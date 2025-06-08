@@ -117,7 +117,7 @@ func main() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatal().Err(err).Msg("")
+		log.Fatal().Stack().Err(err).Msg("")
 	}
 
 }

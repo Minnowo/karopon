@@ -35,7 +35,7 @@ func (a *APIV1) get_userevent(w http.ResponseWriter, r *http.Request) {
 	}
 	var event database.TblUserEvent
 
-	err = a.Db.LoadUserEvent(r.Context(), eventID, &event)
+	err = a.Db.LoadUserEvent(r.Context(), user.ID, eventID, &event)
 
 	if err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Int("event_id", eventID).Msg("failed to read user event")

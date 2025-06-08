@@ -4,30 +4,38 @@ type Props = {
     value: number;
     onChange: (value: number) => void;
     step?: number | string;
+    inputMin?: number;
+    inputMax?: number;
     min?: number;
-    max?: number;
 };
 
 export function NumberInput(p: Props) {
-    const step: string | number = p.step || "any";
+    const step: string | number = p.step || 'any';
+
+    const handleInput = (e: InputEvent) => {
+        const val = (e.target as HTMLInputElement).value;
+
+        const parsed = parseFloat(val);
+        if (!isNaN(parsed)) {
+            if (p.min !== undefined && parsed === p.inputMin) {
+                p.onChange(p.min);
+            } else {
+                p.onChange(parsed);
+            }
+        }
+    };
 
     return (
         <div class={`relative min-w-32 ${p.class}`}>
-            <span class="absolute no-drag top-1/2 -translate-y-1/2 left-1">
-                {p.label}
-            </span>
+            <span class="absolute no-drag top-1/2 -translate-y-1/2 left-1">{p.label}</span>
             <input
                 class="w-full !pl-16"
                 type="number"
-                min={p.min}
-                max={p.max}
+                min={p.inputMin}
+                max={p.inputMax}
                 step={step}
                 value={p.value}
-                onInput={(e) =>
-                    p.onChange(
-                        parseFloat((e.target as HTMLInputElement).value) || 0,
-                    )
-                }
+                onInput={handleInput}
             />
         </div>
     );

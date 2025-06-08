@@ -23,6 +23,7 @@ func (a *APIV1) create_userfoodlog(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&foodlog)
 
 	if err != nil {
+		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -39,7 +40,7 @@ func (a *APIV1) create_userfoodlog(w http.ResponseWriter, r *http.Request) {
 
 	foodlog.UserID = user.ID
 
-	id, err := a.Db.LogUserFood(r.Context(), &foodlog)
+	id, err := a.Db.AddUserFoodLog(r.Context(), &foodlog)
 
 	if err != nil {
 		log.Warn().Err(err).Msg("error adding food")

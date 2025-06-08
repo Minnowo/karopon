@@ -1,16 +1,18 @@
-import { useState, useRef } from "preact/hooks";
-import { LogFood } from "../../api/api";
-import { TblUserFood } from "../../api/types";
-import { NumberInput } from "../../components/numberinput";
-import { FuzzySearch } from "../../components/select_list";
+import {useState, useRef} from 'preact/hooks';
+import {LogFood} from '../../api/api';
+import {TblUserFood, TblUserFoodLog, InsertUserFoodLog, TblUserEvent} from '../../api/types';
+import {NumberInput} from '../../components/numberinput';
+import {FuzzySearch} from '../../components/select_list';
 
 type FoodInputProps = {
     foods: TblUserFood[];
+    events: TblUserEvent[];
 };
-export function FoodInput({ foods }: FoodInputProps) {
-    const [food, setFood] = useState<string>("");
-    const [event, setEvent] = useState<string>("");
-    const [unit, setUnit] = useState<string>("");
+export function FoodInput({foods, events}: FoodInputProps) {
+    const [selectedFood, setSelectedFood] = useState<TblUserFood | null>(null);
+    const [food, setFood] = useState<string>('');
+    const [event, setEvent] = useState<string>('');
+    const [unit, setUnit] = useState<string>('');
     const [carb, setCarb] = useState<number>(0);
     const [portion, setPortion] = useState<number>(1);
     const [protein, setProtein] = useState<number>(0);
@@ -18,9 +20,10 @@ export function FoodInput({ foods }: FoodInputProps) {
     const [fat, setFat] = useState<number>(0);
 
     const clear = () => {
-        setFood("");
-        setEvent("");
-        setUnit("");
+        setSelectedFood(null);
+        setFood('');
+        setEvent('');
+        setUnit('');
         setCarb(0);
         setPortion(1);
         setProtein(0);
@@ -28,25 +31,34 @@ export function FoodInput({ foods }: FoodInputProps) {
         setFat(0);
     };
 
-    const onFoodSelected = (f: TblUserFood) => {
-        setFood(f.name);
-        setUnit(f.unit);
-        setCarb(f.carb);
-        setPortion(f.portion);
-        setProtein(f.protein);
-        setFibre(f.fibre);
-        setFat(f.fat);
+    const onEventSelected = (f: TblUserEvent|null) => {
+        if(f!==null){
+            setEvent(f.name);
+        }
+    };
+    const onFoodSelected = (f: TblUserFood | null) => {
+        if (f === null) {
+            setSelectedFood(null);
+        } else {
+            setSelectedFood(f);
+            setFood(f.name);
+            setUnit(f.unit);
+            setPortion(f.portion);
+            setCarb(f.carb * f.portion);
+            setProtein(f.protein * f.portion);
+            setFibre(f.fibre * f.portion);
+            setFat(f.fat * f.portion);
+        }
     };
 
     function handleSubmit(e: Event) {
         e.preventDefault();
 
-        console.log({ food, event, unit, carb, protein, fibre, fat });
+        console.log({food, event, unit, carb, protein, fibre, fat});
 
-        const aFood: TblUserFood = {
-            id: 0,
-            user_id: 0,
+        const aFood: InsertUserFoodLog = {
             name: food,
+            event,
             unit,
             portion,
             protein,
@@ -61,38 +73,45 @@ export function FoodInput({ foods }: FoodInputProps) {
             }
         });
     }
+    const updateWithPortion = (p: number) => {
+        setPortion(p);
+        if (selectedFood) {
+            setCarb(selectedFood.carb * p);
+            setProtein(selectedFood.protein * p);
+            setFibre(selectedFood.fibre * p);
+            setFat(selectedFood.fat * p);
+        }
+    };
 
     return (
-        <form class="w-full p-8" onSubmit={handleSubmit}>
+        <form class="w-full" onSubmit={handleSubmit}>
             <div class="flex flex-col">
                 <FuzzySearch<TblUserFood>
                     query={food}
                     onQueryChange={setFood}
                     data={foods}
-                    searchKey={"name"}
+                    searchKey={'name'}
                     class="w-full my-1"
                     placeholder="Food"
                     onSelect={onFoodSelected}
                 />
 
                 <div class="flex flex-col sm:flex-row">
-                    <input
+                    <FuzzySearch<TblUserEvent>
+                        query={event}
+                        onQueryChange={setEvent}
+                        data={events}
+                        searchKey={'name'}
                         class="w-full my-1 sm:mr-1"
-                        type="text"
                         placeholder="Event"
-                        value={event}
-                        onInput={(e) =>
-                            setEvent((e.target as HTMLInputElement).value)
-                        }
+                        onSelect={onEventSelected}
                     />
                     <input
                         class="w-full my-1 sm:ml-1"
                         type="text"
                         placeholder="Unit"
                         value={unit}
-                        onInput={(e) =>
-                            setUnit((e.target as HTMLInputElement).value)
-                        }
+                        onInput={(e) => setUnit((e.target as HTMLInputElement).value)}
                     />
                 </div>
 
@@ -100,37 +119,19 @@ export function FoodInput({ foods }: FoodInputProps) {
                     <NumberInput
                         class="w-full my-1 mr-1"
                         label="Portion"
+                        min={0.01}
+                        inputMin={0}
                         value={portion}
-                        onChange={setPortion}
+                        onChange={updateWithPortion}
                     />
-                    <NumberInput
-                        class="w-full my-1 ml-1"
-                        label="Carb"
-                        value={carb}
-                        onChange={setCarb}
-                    />
+                    <NumberInput class="w-full my-1 ml-1" label="Carb" min={0} value={carb} onChange={setCarb} />
                 </div>
                 <div class="flex sm:flex-row">
-                    <NumberInput
-                        class="w-full my-1 mr-1"
-                        label="Protein"
-                        value={protein}
-                        onChange={setProtein}
-                    />
-                    <NumberInput
-                        class="w-full my-1 ml-1"
-                        label="Fibre"
-                        value={fibre}
-                        onChange={setFibre}
-                    />
+                    <NumberInput class="w-full my-1 mr-1" label="Protein" min={0} value={protein} onChange={setProtein} />
+                    <NumberInput class="w-full my-1 ml-1" label="Fibre" min={0} value={fibre} onChange={setFibre} />
                 </div>
                 <div class="flex sm:flex-row">
-                    <NumberInput
-                        class="w-full my-1 mr-1"
-                        label="Fat"
-                        value={fat}
-                        onChange={setFat}
-                    />
+                    <NumberInput class="w-full my-1 mr-1" label="Fat" min={0} value={fat} onChange={setFat} />
                     <input class="w-full my-1 ml-1" type="submit" value="Add" />
                 </div>
             </div>

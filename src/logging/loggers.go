@@ -8,6 +8,7 @@ import (
 
 	"github.com/rs/zerolog"
 	zerologger "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 type LogConfig struct {
@@ -61,6 +62,7 @@ func loadLogConfigs(path string) error {
 }
 
 func init() {
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	loadLogConfigs("loggers.json")
 
 	cw := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}

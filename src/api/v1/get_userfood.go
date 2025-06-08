@@ -20,7 +20,7 @@ func (a *APIV1) get_userfood(w http.ResponseWriter, r *http.Request) {
 
 	var foodlog []database.TblUserFood
 
-	err := a.Db.LoadFoods(r.Context(), user.ID, &foodlog)
+	err := a.Db.LoadUserFoods(r.Context(), user.ID, &foodlog)
 
 	if err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user food log")

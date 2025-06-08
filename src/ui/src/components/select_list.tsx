@@ -1,12 +1,12 @@
-import { Ref } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
-import { useDebouncedCallback } from "../hooks/useDebounce";
+import {Ref} from 'preact';
+import {useEffect, useRef, useState, useCallback} from 'preact/hooks';
+import {useDebouncedCallback} from '../hooks/useDebounce';
 
 type FuzzySearchProps<T> = {
     data: T[];
     searchKey: keyof T;
     query: string;
-    onSelect: (item: T) => void;
+    onSelect: (item: T | null) => void;
     onQueryChange?: (query: string) => void;
 
     placeholder?: string;
@@ -18,23 +18,39 @@ export function FuzzySearch<T>({
     onQueryChange,
     data,
     searchKey,
-    placeholder = "",
+    placeholder = '',
     class: className,
     onSelect,
 }: FuzzySearchProps<T>) {
-    const container: Ref<HTMLDivElement> = useRef();
-    const input: Ref<HTMLInputElement> = useRef();
-    const list: Ref<HTMLUListElement> = useRef();
-    const didSubmit: Ref<boolean> = useRef(false);
+    const container = useRef<HTMLDivElement | null>(null);
+    const input = useRef<HTMLInputElement | null>(null);
+    const list = useRef<HTMLUListElement | null>(null);
+    const didSubmit = useRef<boolean>(false);
 
     const [open, setOpen] = useState<boolean>(false);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [matches, setMatches] = useState<T[] | null>(null);
 
-    const debounceSetQuery = useDebouncedCallback(
-        (q: string) => onQueryChange(q),
-        300,
+    const doSearch = useCallback(
+        (query: string) => {
+            if (!query) {
+                setMatches(null);
+                setOpen(false);
+                setSelectedIndex(null);
+            } else {
+                const m = data.filter((item) => String(item[searchKey]).toLowerCase().includes(query.toLowerCase()));
+
+                if (m && m.length > 0) {
+                    setSelectedIndex(0);
+                }
+                setMatches(m);
+                setOpen(document.activeElement === input.current);
+            }
+        },
+        [data, searchKey]
     );
+
+    const [debounceSearch, abortDebounce] = useDebouncedCallback(doSearch, 300);
 
     useEffect(() => {
         if (didSubmit.current) {
@@ -42,32 +58,15 @@ export function FuzzySearch<T>({
             return;
         }
 
-        if (onQueryChange) {
-            onQueryChange(query);
-        }
-        console.info("update query");
-        if (!query) {
-            setMatches(null);
-            setOpen(false);
-            setSelectedIndex(null);
-        } else {
-        console.info("update query");
-            const m = data.filter((item) =>
-                String(item[searchKey])
-                    .toLowerCase()
-                    .includes(query.toLowerCase()),
-            );
+        debounceSearch(query);
+    }, [query, debounceSearch]);
 
-            setMatches(m);
-            setOpen(true);
-        }
-    }, [query, data, searchKey, onQueryChange]);
-
-    const doSelect = (item: T) => {
+    const doSelect = (item: T | null) => {
         if (!item) {
+            onSelect(null);
             return;
         }
-        onQueryChange(item[searchKey] as string);
+        onQueryChange && onQueryChange(item[searchKey] as string);
         setMatches(null);
         setOpen(false);
         setSelectedIndex(null);
@@ -78,9 +77,11 @@ export function FuzzySearch<T>({
     const onFocusOut = (event: FocusEvent) => {
         const next = event.relatedTarget as HTMLElement | null;
 
-        if (next && container.current?.contains(next)) {
+        if (next && container?.current?.contains(next)) {
             return;
         }
+
+        abortDebounce();
 
         if (open) {
             setOpen(false);
@@ -89,11 +90,10 @@ export function FuzzySearch<T>({
 
     const openOnFocusIn = () => {
         // prevent tabbing into the textbox selecting all the text
-        if (input.current.selectionEnd - input.current.selectionStart > 1) {
-            input.current.setSelectionRange(
-                input.current.value.length,
-                input.current.value.length,
-            );
+        if (input.current && input.current.selectionEnd !== null && input.current.selectionStart !== null) {
+            if (input.current.selectionEnd - input.current.selectionStart > 1) {
+                input.current.setSelectionRange(input.current.value.length, input.current.value.length);
+            }
         }
 
         if (didSubmit.current) {
@@ -105,36 +105,39 @@ export function FuzzySearch<T>({
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
+        if (event.key === 'Escape') {
             event.preventDefault();
             setOpen(false);
         }
-        if (event.key === "Enter") {
+        if (event.key === 'Enter') {
             event.preventDefault();
-            if (!matches || matches.length == 0) {
+            if (!open) {
+                doSelect(null);
+            } else if (selectedIndex === null) {
+                setOpen(false);
+            } else if (!matches || matches.length == 0) {
                 setOpen(false);
             } else if (selectedIndex >= 0 && selectedIndex < matches.length) {
                 doSelect(matches[selectedIndex]);
             }
         }
-        if (!open) {
+        if (!open || matches === null || matches.length === 0) {
             return;
         }
-        if (event.key === "Tab") {
+        if (event.key === 'Tab') {
             event.preventDefault();
 
             if (selectedIndex === null) {
                 setSelectedIndex(0);
             } else if (event.shiftKey) {
-                setSelectedIndex(
-                    (selectedIndex - 1 + matches.length) % matches.length,
-                );
+                setSelectedIndex((selectedIndex - 1 + matches.length) % matches.length);
             } else {
                 setSelectedIndex((selectedIndex + 1) % matches.length);
             }
         }
     };
-    console.info("oepn", open);
+
+    console.info(open);
 
     return (
         <div ref={container} class={className} onFocusOut={onFocusOut}>
@@ -144,33 +147,25 @@ export function FuzzySearch<T>({
                 type="text"
                 placeholder={placeholder}
                 value={query}
-                onInput={(e) =>
-                    debounceSetQuery((e.target as HTMLInputElement).value)
-                }
+                onInput={(e) => onQueryChange && onQueryChange((e.target as HTMLInputElement).value)}
                 onKeyDown={onKeyDown}
                 onFocusIn={openOnFocusIn}
             />
             {open && (
-                <ul
-                    ref={list}
-                    class={`absolute z-10 border mt-1 max-h-60 overflow-auto rounded shadow`}
-                >
+                <ul ref={list} class={`absolute z-10 border mt-1 max-h-60 overflow-auto rounded shadow`}>
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => (
                             <li
                                 tabindex={0}
                                 key={item[searchKey]}
-                                class={`${selectedIndex === i ? "bg-c-l-black" : "bg-c-black"}  p-2 hover:bg-gray-100 cursor-pointer`}
+                                class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-gray-100 cursor-pointer`}
                                 onClick={() => doSelect(item)}
                             >
                                 {item[searchKey] as string}
                             </li>
                         ))
                     ) : (
-                        <li class="bg-c-black  p-2 hover:bg-gray-100 cursor-pointer">
-                            {" "}
-                            no results{" "}
-                        </li>
+                        <li class="bg-c-black  p-2 hover:bg-gray-100 cursor-pointer"> no results </li>
                     )}
                 </ul>
             )}

@@ -1,8 +1,8 @@
-import { useEffect } from "preact/hooks";
+import {useEffect} from 'preact/hooks';
 
 export function LogoutPage() {
     useEffect(() => {
-        window.location.href = "/api/logout";
+        window.location.href = '/api/logout';
     }, []);
 
     return null;

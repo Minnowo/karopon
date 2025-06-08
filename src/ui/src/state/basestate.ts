@@ -1,6 +1,7 @@
-import { TblUser, TblUserFood } from "../api/types";
+import {TblUser, TblUserFood, TblUserEvent} from '../api/types';
 
 export interface BaseState {
     user: TblUser;
     foods: TblUserFood[];
+    events: TblUserEvent[];
 }

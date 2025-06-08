@@ -30,7 +30,7 @@ func FakeAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler {
 			user := database.TblUser{
 				Name:    "minno",
 				ID:      1,
-				Created: time.Now(),
+				Created: database.UnixMillis(time.Now()),
 			}
 
 			ctx := context.WithValue(context.Background(), constants.USER_CONTEXT_KEY, &user)

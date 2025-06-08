@@ -21,27 +21,26 @@ type DB interface {
 	SetVersion(ctx context.Context, version Version) error
 	SetVersionTx(tx *sqlx.Tx, version Version) error
 
-	AddFood(ctx context.Context, food *TblUserFood) (int, error)
-	AddFoods(ctx context.Context, food []*TblUserFood) error
-	LoadFoods(ctx context.Context, userId int, out *[]TblUserFood) error
-
-	CreateUser(ctx context.Context, user *TblUser) (int, error)
-	GetUser(ctx context.Context, username string) (*TblUser, error)
+	AddUser(ctx context.Context, user *TblUser) (int, error)
+	LoadUser(ctx context.Context, username string, user *TblUser) error
 	LoadUsers(ctx context.Context, users *[]TblUser) error
 
-	CreateEvent(ctx context.Context, event *TblEvent) (int, error)
+	AddUserFood(ctx context.Context, food *TblUserFood) (int, error)
+	AddUserFoods(ctx context.Context, food []*TblUserFood) error
+	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error
 
-	CreateUserEvent(ctx context.Context, event *TblUserEvent) (int, error)
+	AddUserEvent(ctx context.Context, event *TblUserEvent) (int, error)
+	LoadUserEvent(ctx context.Context, userId int, eventId int, events *TblUserEvent) error
+	LoadUserEvents(ctx context.Context, userId int, events *[]TblUserEvent) error
 
-	LoadUserEvent(ctx context.Context, eventId int, out *TblUserEvent) error
-	LoadUserEvents(ctx context.Context, userId int, out *[]TblUserEvent) error
+	// AddUserEventLog(ctx context.Context, event *TblUserEventLog) (int, error)
+	// LoadUserEventLog(ctx context.Context, userId int, events *TblUserEventLog) error
+	// LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
+
 	LoadUserEventsWithFood(ctx context.Context, userId int, out *[]UserEventWithFoods) error
 
-	LogUserFood(ctx context.Context, food *TblUserFoodLog) (int, error)
-	LogUserFoodEvent(ctx context.Context, userId int, food *TblUserFood, event *TblUserEvent) (int, error)
-
-	LoadUserFoodLog(ctx context.Context, userId int, out *[]TblUserFoodLog) error
-	LoadUserFoodLogByEvent(ctx context.Context, userId int, eventId int, out *[]TblUserFoodLog) error
+	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
+	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
 
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
 	Base() *SQLxDB

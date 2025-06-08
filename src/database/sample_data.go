@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -12,10 +11,8 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	var user TblUser
 	user.Name = username
 
-	if u, err := db.GetUser(ctx, user.Name); err == nil {
-		user.ID = u.ID
-	} else {
-		id, err := db.CreateUser(ctx, &user)
+	if err := db.LoadUser(ctx, user.Name, &user); err != nil {
+		id, err := db.AddUser(ctx, &user)
 		if err != nil {
 			return err
 		}
@@ -24,40 +21,40 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 
 	log.Info().Int("id", user.ID).Str("name", user.Name).Msg("test data user")
 
-	event1 := TblEvent{Name: "lunch"}
-	if id, err := db.CreateEvent(ctx, &event1); err != nil {
+	event1 := TblUserEvent{UserID: user.ID, Name: "lunch"}
+	if id, err := db.AddUserEvent(ctx, &event1); err != nil {
 		return err
 	} else {
 		event1.ID = id
 	}
 
-	userEvent1 := TblUserEvent{
-		UserID:                   user.ID,
-		EventID:                  event1.ID,
-		UserTime:                 time.Now(),
-		Event:                    event1.Name,
-		NetCarbs:                 0,
-		BloodGlucose:             0,
-		BloodGlucoseTarget:       0,
-		InsulinSensitivityFactor: 0,
-		InsulinToCarbRatio:       0,
-		RecommendedInsulinAmount: 0,
-		ActualInsulinTaken:       0,
-	}
-	if id, err := db.CreateUserEvent(ctx, &userEvent1); err != nil {
-		return err
-	} else {
-		userEvent1.ID = id
-	}
+	// userEvent1 := TblUserEventLog{
+	// 	UserID:                   user.ID,
+	// 	EventID:                  event1.ID,
+	// 	UserTime:                 UnixMillis(time.Now()),
+	// 	Event:                    event1.Name,
+	// 	NetCarbs:                 0,
+	// 	BloodGlucose:             0,
+	// 	BloodGlucoseTarget:       0,
+	// 	InsulinSensitivityFactor: 0,
+	// 	InsulinToCarbRatio:       0,
+	// 	RecommendedInsulinAmount: 0,
+	// 	ActualInsulinTaken:       0,
+	// }
+	// if id, err := db.AddUserEventLog(ctx, &userEvent1); err != nil {
+	// 	return err
+	// } else {
+	// 	userEvent1.ID = id
+	// }
 	food1 := TblUserFood{UserID: user.ID, Name: "tim bar", Portion: 1, Unit: "bar", Protein: 6, Carb: 22, Fibre: 4, Fat: 15}
 
-	if id, err := db.AddFood(ctx, &food1); err != nil {
+	if id, err := db.AddUserFood(ctx, &food1); err != nil {
 		return err
 	} else {
 		food1.ID = id
 	}
 
-	err := db.AddFoods(context.Background(), []*TblUserFood{
+	err := db.AddUserFoods(context.Background(), []*TblUserFood{
 
 		{UserID: user.ID, Name: "english muffin - wonder", Portion: 57, Unit: "g", Protein: 5, Carb: 25, Fibre: 1, Fat: 1.5},
 		{UserID: user.ID, Name: "spaghettini - great value", Portion: 85, Unit: "g", Protein: 12, Carb: 63, Fibre: 3, Fat: 1},
@@ -76,13 +73,6 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// if _, err = db.LogUserFood(ctx, user.ID, &food1); err != nil {
-	// 	return err
-	// }
-	if _, err = db.LogUserFoodEvent(ctx, user.ID, &food1, &userEvent1); err != nil {
 		return err
 	}
 

@@ -7,6 +7,7 @@ import (
 	"karopon/src/database"
 	"karopon/src/database/connection"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -32,15 +33,15 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	var user database.TblUser
 	user.Name = username
 
-	if usr, err := conn.GetUser(ctx, username); usr != nil || err != nil {
+	if err := conn.LoadUser(ctx, username, &user); err != nil {
 
 		if err == sql.ErrNoRows {
 			// continue
-		} else if err != nil {
-			return err
 		} else {
-			return fmt.Errorf("user already exists")
+			return errors.WithStack(err)
 		}
+	} else {
+		return fmt.Errorf("user already exists")
 	}
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -51,7 +52,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
 	user.Password = pass
 
-	if _, err := conn.CreateUser(ctx, &user); err != nil {
+	if _, err := conn.AddUser(ctx, &user); err != nil {
 		return err
 	}
 	return nil
