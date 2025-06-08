@@ -1,29 +1,30 @@
-
 @import "tailwindcss";
 
 @theme {
-    --color-c-black   : rgb(31, 31, 31);
-    --color-c-red     : rgb(244, 71, 71);
-    --color-c-green   : rgb(106, 153, 85);
-    --color-c-yellow  : rgb(215, 186, 125);
-    --color-c-blue    : rgb(86, 156, 214);
-    --color-c-magenta : rgb(197, 134, 192);
-    --color-c-cyan    : rgb(78, 201, 176);
-    --color-c-white   : rgb(212, 212, 212);
-    --color-c-l-black : rgb(128, 128, 128);
-    --color-c-l-red   : rgb(209, 105, 105);
-    --color-c-l-green : rgb(181, 206, 168);
+    --color-c-black: rgb(31, 31, 31);
+    --color-c-red: rgb(244, 71, 71);
+    --color-c-green: rgb(106, 153, 85);
+    --color-c-yellow: rgb(215, 186, 125);
+    --color-c-blue: rgb(86, 156, 214);
+    --color-c-magenta: rgb(197, 134, 192);
+    --color-c-cyan: rgb(78, 201, 176);
+    --color-c-white: rgb(212, 212, 212);
+    --color-c-l-black: rgb(128, 128, 128);
+    --color-c-l-red: rgb(209, 105, 105);
+    --color-c-l-green: rgb(181, 206, 168);
     --color-c-l-yellow: rgb(220, 220, 170);
-    --color-c-l-blue  : rgb(156, 220, 254);
+    --color-c-l-blue: rgb(156, 220, 254);
     --color-c-l-magenta: rgb(197, 134, 192);
-    --color-c-l-cyan  : rgb(79, 193, 255);
-    --color-c-l-white : rgb(255, 214, 2);
+    --color-c-l-cyan: rgb(79, 193, 255);
+    --color-c-l-white: rgb(255, 214, 2);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-*, ::after, ::before{
-    box-sizing: border-box
+*,
+::after,
+::before {
+    box-sizing: border-box;
 }
 
 html {

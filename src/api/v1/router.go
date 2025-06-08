@@ -31,10 +31,12 @@ func (a *APIV1) Register(r *mux.Router) {
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.FakeAuth(a.UserReg))
+	api.Use(middleware.Cors)
 	// api.Use(middleware.Auth(a.UserReg))
 
 	get := api.Methods("GET").Subrouter()
 	get.HandleFunc("/whoami", a.whoami)
+	get.HandleFunc("/foods", a.get_userfood)
 	get.HandleFunc("/foodlog", a.get_userfoodlog)
 	get.HandleFunc("/events", a.get_userevents)
 	get.HandleFunc("/events/{:id}", a.get_userevents)

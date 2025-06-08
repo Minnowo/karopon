@@ -1,8 +1,7 @@
-
 export interface TblUser {
-  id: number;
-  name: string;
-  created: string;
+    id: number;
+    name: string;
+    created: string;
 }
 
 export interface TblConfig {
@@ -61,4 +60,3 @@ export interface TblUserFoodLog {
     fibre: number;
     fat: number;
 }
-

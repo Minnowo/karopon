@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import preact from '@preact/preset-vite';
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import preact from "@preact/preset-vite";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,10 +8,10 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                entryFileNames: 'static/[name].js',        // main entry point
-                chunkFileNames: 'static/[name].js', // code-split chunks
-                assetFileNames: 'static/[name][extname]' // static assets (e.g., CSS, images)
-            }
-        }
+                entryFileNames: "static/[name].js", // main entry point
+                chunkFileNames: "static/[name].js", // code-split chunks
+                assetFileNames: "static/[name][extname]", // static assets (e.g., CSS, images)
+            },
+        },
     },
 });

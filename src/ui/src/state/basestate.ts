@@ -1,5 +1,6 @@
-import { TblUser } from "../api/types";
+import { TblUser, TblUserFood } from "../api/types";
 
 export interface BaseState {
-    user : TblUser
+    user: TblUser;
+    foods: TblUserFood[];
 }

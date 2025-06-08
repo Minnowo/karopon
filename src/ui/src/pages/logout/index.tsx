@@ -1,9 +1,7 @@
-
 import { useEffect } from "preact/hooks";
 
 export function LogoutPage() {
-
-   useEffect(() => {
+    useEffect(() => {
         window.location.href = "/api/logout";
     }, []);
 
