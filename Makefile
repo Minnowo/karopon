@@ -53,3 +53,6 @@ build-site:
 run: format generate
 	LOG_LEVEL=debug go run $(SITE_SRC) run
 
+docker-pg:
+	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
+
