@@ -39,6 +39,7 @@ type DB interface {
 
 	LoadUserEventsWithFood(ctx context.Context, userId int, out *[]UserEventWithFoods) error
 
+	// sets the UserTime, FoodID, and EventID, on the given food
 	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
 	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
 
