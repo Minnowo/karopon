@@ -17,9 +17,16 @@ export function ListPage(state: BaseState) {
         return <div class="">loading...</div>;
     }
 
+    const onFoodLogCreated = (food: TblUserFoodLog) => {
+        if (food === null) {
+            return;
+        }
+        setFoodlog((prev) => (prev ? [food, ...prev] : [food]));
+    };
+
     return (
         <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <FoodInput foods={state.foods} events={state.events} />
+            <FoodInput foods={state.foods} events={state.events} onFoodLogCreated={onFoodLogCreated} />
 
             <div className="w-full space-y-4">
                 {foodlog.map((food: TblUserFoodLog) => {
@@ -51,47 +58,6 @@ export function ListPage(state: BaseState) {
                     );
                 })}
             </div>
-        </div>
-    );
-
-    return (
-        <div class="flex flex-col items-center justify-center ">
-            <FoodInput foods={state.foods} />
-
-            <table class="table-bordered table-padded">
-                <thead>
-                    <tr>
-                        <td> Time</td>
-                        <td> Food </td>
-                        <td> Event </td>
-                        <td> Unit</td>
-                        <td> Portion</td>
-                        <td> Carb</td>
-                        <td> Protein</td>
-                        <td> Fibre</td>
-                        <td> Fat</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {foodlog.map((food: TblUserFoodLog) => {
-                        const t = formatSmartTimestamp(food.user_time);
-
-                        return (
-                            <tr key={food.id}>
-                                <td> {t}</td>
-                                <td> {food.name} </td>
-                                <td> {food.event} </td>
-                                <td> {food.unit}</td>
-                                <td> {food.portion}</td>
-                                <td> {food.carb}</td>
-                                <td> {food.protein}</td>
-                                <td> {food.fibre}</td>
-                                <td> {food.fat}</td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
         </div>
     );
 }

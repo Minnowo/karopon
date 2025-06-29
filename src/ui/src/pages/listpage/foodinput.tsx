@@ -7,8 +7,9 @@ import {FuzzySearch} from '../../components/select_list';
 type FoodInputProps = {
     foods: TblUserFood[];
     events: TblUserEvent[];
+    onFoodLogCreated: (log: TblUserFoodLog) => void;
 };
-export function FoodInput({foods, events}: FoodInputProps) {
+export function FoodInput({foods, events, onFoodLogCreated}: FoodInputProps) {
     const [selectedFood, setSelectedFood] = useState<TblUserFood | null>(null);
     const [food, setFood] = useState<string>('');
     const [event, setEvent] = useState<string>('');
@@ -18,6 +19,7 @@ export function FoodInput({foods, events}: FoodInputProps) {
     const [protein, setProtein] = useState<number>(0);
     const [fibre, setFibre] = useState<number>(0);
     const [fat, setFat] = useState<number>(0);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const clear = () => {
         setSelectedFood(null);
@@ -31,8 +33,8 @@ export function FoodInput({foods, events}: FoodInputProps) {
         setFat(0);
     };
 
-    const onEventSelected = (f: TblUserEvent|null) => {
-        if(f!==null){
+    const onEventSelected = (f: TblUserEvent | null) => {
+        if (f !== null) {
             setEvent(f.name);
         }
     };
@@ -51,10 +53,8 @@ export function FoodInput({foods, events}: FoodInputProps) {
         }
     };
 
-    function handleSubmit(e: Event) {
+    const handleSubmit = (e: Event) => {
         e.preventDefault();
-
-        console.log({food, event, unit, carb, protein, fibre, fat});
 
         const aFood: InsertUserFoodLog = {
             name: food,
@@ -67,12 +67,17 @@ export function FoodInput({foods, events}: FoodInputProps) {
             fat,
         };
 
-        LogFood(aFood).then((ok) => {
-            if (ok) {
+        LogFood(aFood).then((food) => {
+            if (food === null) {
+                setErrorMsg('There was an error logging the food.');
+            } else {
+                setErrorMsg(null);
                 clear();
+                onFoodLogCreated(food);
             }
         });
-    }
+    };
+
     const updateWithPortion = (p: number) => {
         setPortion(p);
         if (selectedFood) {
@@ -85,6 +90,8 @@ export function FoodInput({foods, events}: FoodInputProps) {
 
     return (
         <form class="w-full" onSubmit={handleSubmit}>
+            {errorMsg !== null ? <div class="text-c-red"> {errorMsg} </div> : null}
+
             <div class="flex flex-col">
                 <FuzzySearch<TblUserFood>
                     query={food}

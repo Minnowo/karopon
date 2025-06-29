@@ -7,80 +7,135 @@ export async function Logout(): Promise<boolean> {
 }
 
 export async function WhoAmI(): Promise<TblUser | null> {
-    const response = await fetch(`${base}/api/whoami`);
+    try {
+        const response = await fetch(`${base}/api/whoami`);
 
-    if (response.status !== 200) {
+        if (response.status !== 200) {
+            return null;
+        }
+
+        const json = await response.json();
+
+        if (json === null) {
+            return null;
+        }
+
+        return json as TblUser;
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error getting user:', msg);
         return null;
     }
-
-    const json = await response.json();
-
-    if (json === null) {
-        return null;
-    }
-
-    return json as TblUser;
 }
 
 export async function UserFoods(): Promise<Array<TblUserFood> | null> {
-    const response = await fetch(`${base}/api/foods`);
+    try {
+        const response = await fetch(`${base}/api/foods`);
 
-    if (response.status !== 200) {
+        if (response.status !== 200) {
+            return null;
+        }
+
+        const json = await response.json();
+
+        if (json === null) {
+            return null;
+        }
+
+        return json as Array<TblUserFood>;
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error getting user foods:', msg);
         return null;
     }
-
-    const json = await response.json();
-
-    if (json === null) {
-        return null;
-    }
-
-    return json as Array<TblUserFood>;
 }
 export async function UserEvents(): Promise<Array<TblUserEvent> | null> {
-    const response = await fetch(`${base}/api/events`);
+    try {
+        const response = await fetch(`${base}/api/events`);
 
-    if (response.status !== 200) {
+        if (response.status !== 200) {
+            return null;
+        }
+
+        const json = await response.json();
+
+        if (json === null) {
+            return null;
+        }
+
+        return json as Array<TblUserEvent>;
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error getting user events:', msg);
         return null;
     }
-
-    const json = await response.json();
-
-    if (json === null) {
-        return null;
-    }
-
-    return json as Array<TblUserEvent>;
 }
 
 export async function GetUserFoodLog(): Promise<Array<TblUserFoodLog> | null> {
-    const response = await fetch(`${base}/api/foodlog`);
+    try {
+        const response = await fetch(`${base}/api/foodlog`);
 
-    if (response.status !== 200) {
+        if (response.status !== 200) {
+            return null;
+        }
+
+        const json = await response.json();
+
+        if (json === null) {
+            return null;
+        }
+
+        return json as Array<TblUserFoodLog>;
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error getting food log:', msg);
         return null;
     }
-
-    const json = await response.json();
-
-    if (json === null) {
-        return null;
-    }
-
-    return json as Array<TblUserFoodLog>;
 }
 
-export async function LogFood(food: InsertUserFoodLog): Promise<boolean> {
-    const response = await fetch(`${base}/api/logfood`, {
-        headers: {
-            'content-type': 'application/json',
-        },
-        method: 'POST',
-        body: JSON.stringify(food),
-    });
+export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog | null> {
+    try {
+        const response = await fetch(`${base}/api/logfood`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(food),
+        });
 
-    if (response.status !== 200) {
-        return false;
+        if (response.status !== 200) {
+            return null;
+        }
+
+        return await response.json();
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error creating food log:', msg);
+        return null;
     }
-
-    return true;
 }
