@@ -27,6 +27,7 @@ type DB interface {
 
 	AddUserFood(ctx context.Context, food *TblUserFood) (int, error)
 	AddUserFoods(ctx context.Context, food []*TblUserFood) error
+	UpdateUserFood(ctx context.Context, food *TblUserFood) error
 	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error
 
 	AddUserEvent(ctx context.Context, event *TblUserEvent) (int, error)

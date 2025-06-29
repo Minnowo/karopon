@@ -6,7 +6,7 @@ import {FoodInput} from './foodinput';
 import {FuzzySearch} from '../../components/select_list';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 
-export function ListPage(state: BaseState) {
+export function FoodLogPage(state: BaseState) {
     const [foodlog, setFoodlog] = useState<Array<TblUserFoodLog> | null>(null);
 
     useEffect(() => {

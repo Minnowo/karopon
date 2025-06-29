@@ -30,9 +30,9 @@ func (a *APIV1) Register(r *mux.Router) {
 	a.router = r
 
 	api := r.PathPrefix("/api").Subrouter()
-	api.Use(middleware.FakeAuth(a.UserReg))
 	api.Use(middleware.Cors)
-	// api.Use(middleware.Auth(a.UserReg))
+	// api.Use(middleware.FakeAuth(a.UserReg))
+	api.Use(middleware.Auth(a.UserReg))
 
 	get := api.Methods("GET").Subrouter()
 	get.HandleFunc("/whoami", a.whoami)
@@ -45,4 +45,6 @@ func (a *APIV1) Register(r *mux.Router) {
 	post := api.Methods("POST").Subrouter()
 	post.HandleFunc("/login", a.api_login)
 	post.HandleFunc("/logfood", a.create_userfoodlog)
+	post.HandleFunc("/food/update", a.update_userfood)
+
 }

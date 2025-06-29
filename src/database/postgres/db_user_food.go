@@ -41,6 +41,30 @@ func (db *PGDatabase) AddUserFoods(ctx context.Context, foods []*database.TblUse
 	})
 }
 
+func (db *PGDatabase) UpdateUserFood(ctx context.Context, food *database.TblUserFood) error {
+
+	query := `
+		UPDATE PON.USER_FOOD
+		SET
+			NAME    = :name,
+			UNIT    = :unit,
+			PORTION = :portion,
+			PROTEIN = :protein,
+			CARB    = :carb,
+			FIBRE   = :fibre,
+			FAT     = :fat
+		WHERE USER_ID = :user_id AND ID = :id 
+    `
+
+	_, err := db.NamedExecContext(ctx, query, food)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *PGDatabase) LoadUserFoods(ctx context.Context, userId int, out *[]database.TblUserFood) error {
 	query := `
 		SELECT * FROM PON.USER_FOOD f

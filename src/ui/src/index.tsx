@@ -3,8 +3,9 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {ListPage} from './pages/listpage/index.jsx';
+import { FoodLogPage } from './pages/foodlog/index.js';
 import {LoginPage} from './pages/login/index.jsx';
+import { FoodPage } from './pages/food/index.js';
 import {NotFound} from './pages/_404.jsx';
 
 import {useEffect, useState} from 'preact/hooks';
@@ -35,14 +36,14 @@ export function App() {
             <Header />
 
             <Switch>
-                <Route path="/">
-                    <ListPage user={user} foods={foods} events={events} />
+                <Route path="/foodlog">
+                    <FoodLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                </Route>
+                <Route path="/foods">
+                    <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                 </Route>
                 <Route path="/logout">
                     <LogoutPage />
-                </Route>
-                <Route path="/list">
-                    <ListPage user={user} foods={foods} events={events} />
                 </Route>
                 <Route>
                     {' '}

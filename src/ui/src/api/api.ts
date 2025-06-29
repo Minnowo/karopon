@@ -59,6 +59,34 @@ export async function UserFoods(): Promise<Array<TblUserFood> | null> {
         return null;
     }
 }
+
+export async function UpdateUserFood(food : TblUserFood): Promise<boolean> {
+    try {
+        const response = await fetch(`${base}/api/food/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(food),
+        });
+
+        if (response.status !== 200) {
+            return false;
+        }
+
+        return true;
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error getting user events:', msg);
+        return false;
+    }
+}
+
 export async function UserEvents(): Promise<Array<TblUserEvent> | null> {
     try {
         const response = await fetch(`${base}/api/events`);
