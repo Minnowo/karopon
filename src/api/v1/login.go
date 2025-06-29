@@ -76,11 +76,11 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Path:     "/",
-		Name:     constants.SESSION_COOKIE,
-		Value:    token,
-		Expires:  time.Now().Add(time.Hour * 24),
-		Secure:   true,
+		Path:    "/",
+		Name:    constants.SESSION_COOKIE,
+		Value:   token,
+		Expires: time.Now().Add(time.Hour * 24),
+		// Secure:   true,
 		HttpOnly: true,
 	})
 
