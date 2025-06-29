@@ -44,14 +44,7 @@ func (a *APIV1) update_userfood(w http.ResponseWriter, r *http.Request) {
 	}
 
 	food.UserID = user.ID
-
-	if food.Portion != 1 {
-		food.Carb = float32(food.Carb) / food.Portion
-		food.Fat = float32(food.Fat) / food.Portion
-		food.Fibre = float32(food.Fibre) / food.Portion
-		food.Protein = float32(food.Protein) / food.Portion
-		food.Portion = 1
-	}
+	food.Scale()
 
 	err = a.Db.UpdateUserFood(r.Context(), &food)
 

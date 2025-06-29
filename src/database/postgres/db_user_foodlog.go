@@ -42,18 +42,19 @@ func (db *PGDatabase) AddUserFoodLog(ctx context.Context, food *database.TblUser
 					return fmt.Errorf("portion cannot be 0")
 				}
 
-				scaledFood := database.TblUserFood{
+				newFood := database.TblUserFood{
 					UserID:  food.UserID,
 					Name:    food.Name,
 					Unit:    food.Unit,
 					Portion: 1,
-					Protein: food.Protein / float32(food.Portion),
-					Carb:    food.Carb / float32(food.Portion),
-					Fibre:   food.Fibre / float32(food.Portion),
-					Fat:     food.Fat / float32(food.Portion),
+					Protein: food.Protein,
+					Carb:    food.Carb,
+					Fibre:   food.Fibre,
+					Fat:     food.Fat,
 				}
+				newFood.Scale()
 
-				if id, err := db.InsertOneNamedGetIDTx(tx, query, scaledFood); err != nil {
+				if id, err := db.InsertOneNamedGetIDTx(tx, query, newFood); err != nil {
 					return err
 				} else {
 					food.FoodID = id

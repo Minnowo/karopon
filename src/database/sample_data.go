@@ -47,6 +47,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	// 	userEvent1.ID = id
 	// }
 	food1 := TblUserFood{UserID: user.ID, Name: "tim bar", Portion: 1, Unit: "bar", Protein: 6, Carb: 22, Fibre: 4, Fat: 15}
+	food1.Scale()
 
 	if id, err := db.AddUserFood(ctx, &food1); err != nil {
 		return err
@@ -54,7 +55,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 		food1.ID = id
 	}
 
-	err := db.AddUserFoods(context.Background(), []*TblUserFood{
+	foods:= []*TblUserFood{
 
 		{UserID: user.ID, Name: "english muffin - wonder", Portion: 57, Unit: "g", Protein: 5, Carb: 25, Fibre: 1, Fat: 1.5},
 		{UserID: user.ID, Name: "spaghettini - great value", Portion: 85, Unit: "g", Protein: 12, Carb: 63, Fibre: 3, Fat: 1},
@@ -70,7 +71,11 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 		{UserID: user.ID, Name: "float bar", Portion: 1, Unit: "bar", Protein: 0.2, Carb: 10, Fibre: 0, Fat: 2},
 		{UserID: user.ID, Name: "english muffin - no name", Portion: 57, Unit: "g", Protein: 5, Carb: 26, Fibre: 1, Fat: 1},
 		{UserID: user.ID, Name: "grapes", Portion: 100, Unit: "g", Protein: 0.72, Carb: 18.1, Fibre: 0.9, Fat: 0.16},
-	})
+	}
+	for _, food := range foods {
+		food.Scale()
+	} 
+	err := db.AddUserFoods(context.Background(), foods)
 
 	if err != nil {
 		return err
