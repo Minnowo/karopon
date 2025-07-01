@@ -50,6 +50,7 @@ export interface TblUserFoodLog {
     user_time: number;
     name: string;
 
+    eventlog_id: number | null;
     event_id: number | null;
     event: string;
 
@@ -61,6 +62,7 @@ export interface TblUserFoodLog {
     fibre: number;
     fat: number;
 }
+
 export interface InsertUserFoodLog {
     name: string;
     event: string;

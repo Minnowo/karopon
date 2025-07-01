@@ -46,7 +46,7 @@ func (db *PGDatabase) AddUserFoodLog(ctx context.Context, food *database.TblUser
 					UserID:  food.UserID,
 					Name:    food.Name,
 					Unit:    food.Unit,
-					Portion: 1,
+					Portion: food.Portion,
 					Protein: food.Protein,
 					Carb:    food.Carb,
 					Fibre:   food.Fibre,
@@ -106,8 +106,8 @@ func (db *PGDatabase) AddUserFoodLog(ctx context.Context, food *database.TblUser
 		}
 
 		query = `
-			INSERT INTO PON.USER_FOODLOG (USER_ID, FOOD_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT, EVENT_ID)
-			VALUES (:user_id, :food_id, :user_time, :name, :event, :unit, :portion, :protein, :carb, :fibre, :fat, :event_id)
+			INSERT INTO PON.USER_FOODLOG (USER_ID, FOOD_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT, EVENT_ID, EVENTLOG_ID)
+			VALUES (:user_id, :food_id, :user_time, :name, :event, :unit, :portion, :protein, :carb, :fibre, :fat, :event_id, :eventlog_id)
 			RETURNING ID;
 		`
 

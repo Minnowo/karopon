@@ -82,7 +82,7 @@ type TblUserFood struct {
 	Fat     float32 `db:"fat" json:"fat"`
 }
 
-func (f *TblUserFood) Scale(){
+func (f *TblUserFood) Scale() {
 	if f.Portion != 1 {
 		f.Carb = float32(f.Carb) / f.Portion
 		f.Fat = float32(f.Fat) / f.Portion
@@ -100,8 +100,9 @@ type TblUserFoodLog struct {
 	UserTime UnixMillis `db:"user_time" json:"user_time"`
 	Name     string     `db:"name" json:"name"`
 
-	EventID *int   `db:"event_id" json:"event_id"`
-	Event   string `db:"event" json:"event"`
+	EventLogID *int   `db:"eventlog_id" json:"eventlog_id"`
+	EventID    *int   `db:"event_id" json:"event_id"`
+	Event      string `db:"event" json:"event"`
 
 	Unit string `db:"unit" json:"unit"`
 
