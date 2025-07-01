@@ -1,15 +1,16 @@
-import {useState, useRef} from 'preact/hooks';
-import {LogFood} from '../../api/api';
-import {TblUserFood, TblUserFoodLog, InsertUserFoodLog, TblUserEvent} from '../../api/types';
-import {NumberInput} from '../../components/numberinput';
-import {FuzzySearch} from '../../components/select_list';
+import {useState} from 'preact/hooks';
+import {LogFood} from '../api/api';
+import {TblUserFood, TblUserFoodLog, InsertUserFoodLog, TblUserEvent} from '../api/types';
+import {NumberInput} from './numberinput';
+import {FuzzySearch} from './select_list';
 
 type FoodInputProps = {
     foods: TblUserFood[];
     events: TblUserEvent[];
-    onFoodLogCreated: (log: TblUserFoodLog) => void;
+    showEventInput?: boolean;
+    onSubmit: (log: InsertUserFoodLog, clear: () => void, setErrorMsg: (msg: string | null) => void) => void;
 };
-export function FoodInput({foods, events, onFoodLogCreated}: FoodInputProps) {
+export function FoodInput({foods, events, showEventInput = true, onSubmit}: FoodInputProps) {
     const [selectedFood, setSelectedFood] = useState<TblUserFood | null>(null);
     const [food, setFood] = useState<string>('');
     const [event, setEvent] = useState<string>('');
@@ -67,15 +68,7 @@ export function FoodInput({foods, events, onFoodLogCreated}: FoodInputProps) {
             fat,
         };
 
-        LogFood(aFood).then((food) => {
-            if (food === null) {
-                setErrorMsg('There was an error logging the food.');
-            } else {
-                setErrorMsg(null);
-                clear();
-                onFoodLogCreated(food);
-            }
-        });
+        onSubmit(aFood, clear, setErrorMsg);
     };
 
     const updateWithPortion = (p: number) => {
@@ -104,15 +97,17 @@ export function FoodInput({foods, events, onFoodLogCreated}: FoodInputProps) {
                 />
 
                 <div class="flex flex-col sm:flex-row">
-                    <FuzzySearch<TblUserEvent>
-                        query={event}
-                        onQueryChange={setEvent}
-                        data={events}
-                        searchKey={'name'}
-                        class="w-full my-1 sm:mr-1"
-                        placeholder="Event"
-                        onSelect={onEventSelected}
-                    />
+                    {showEventInput ? (
+                        <FuzzySearch<TblUserEvent>
+                            query={event}
+                            onQueryChange={setEvent}
+                            data={events}
+                            searchKey={'name'}
+                            class="w-full my-1 sm:mr-1"
+                            placeholder="Event"
+                            onSelect={onEventSelected}
+                        />
+                    ) : null}
                     <input
                         class="w-full my-1 sm:ml-1"
                         type="text"

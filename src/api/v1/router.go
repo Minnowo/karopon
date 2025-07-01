@@ -31,7 +31,7 @@ func (a *APIV1) Register(r *mux.Router) {
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.Cors)
-	// api.Use(middleware.FakeAuth(a.UserReg))
+	api.Use(middleware.FakeAuth(a.UserReg))
 	api.Use(middleware.Auth(a.UserReg))
 
 	get := api.Methods("GET").Subrouter()

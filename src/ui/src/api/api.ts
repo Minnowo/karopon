@@ -1,6 +1,7 @@
 import {TblUser, TblUserFoodLog, TblUserFood, TblUserEvent, InsertUserFoodLog} from './types';
 
-export const base = 'http://localhost:9070';
+// export const base = 'http://localhost:9070';
+export const base = '';
 
 export async function Logout(): Promise<boolean> {
     return await fetch(`${base}/api/logout`).then((r) => r.status === 200);
@@ -60,7 +61,7 @@ export async function UserFoods(): Promise<Array<TblUserFood> | null> {
     }
 }
 
-export async function UpdateUserFood(food : TblUserFood): Promise<boolean> {
+export async function UpdateUserFood(food: TblUserFood): Promise<boolean> {
     try {
         const response = await fetch(`${base}/api/food/update`, {
             headers: {

@@ -55,7 +55,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 		food1.ID = id
 	}
 
-	foods:= []*TblUserFood{
+	foods := []*TblUserFood{
 
 		{UserID: user.ID, Name: "english muffin - wonder", Portion: 57, Unit: "g", Protein: 5, Carb: 25, Fibre: 1, Fat: 1.5},
 		{UserID: user.ID, Name: "spaghettini - great value", Portion: 85, Unit: "g", Protein: 12, Carb: 63, Fibre: 3, Fat: 1},
@@ -74,7 +74,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	}
 	for _, food := range foods {
 		food.Scale()
-	} 
+	}
 	err := db.AddUserFoods(context.Background(), foods)
 
 	if err != nil {

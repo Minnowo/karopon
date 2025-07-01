@@ -1,9 +1,8 @@
 import {useEffect, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {TblUserFoodLog, TblUserFood} from '../../api/types';
-import {GetUserFoodLog} from '../../api/api';
-import {FoodInput} from './foodinput';
-import {FuzzySearch} from '../../components/select_list';
+import {InsertUserFoodLog, TblUserFoodLog} from '../../api/types';
+import {GetUserFoodLog, LogFood} from '../../api/api';
+import {FoodInput} from '../../components/foodinput';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 
 export function FoodLogPage(state: BaseState) {
@@ -17,20 +16,26 @@ export function FoodLogPage(state: BaseState) {
         return <div class="">loading...</div>;
     }
 
-    const onFoodLogCreated = (food: TblUserFoodLog) => {
-        if (food === null) {
-            return;
-        }
-        setFoodlog((prev) => (prev ? [food, ...prev] : [food]));
+    const onSubmitFood = (food: InsertUserFoodLog, clear: () => void, setError: (msg: string | null) => void) => {
+        LogFood(food).then((fullFood) => {
+            if (fullFood === null) {
+                setError('There was an error logging the food.');
+            } else {
+                setFoodlog((prev) => (prev ? [fullFood, ...prev] : [fullFood]));
+                setError(null);
+                clear();
+            }
+        });
     };
 
     return (
         <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <FoodInput foods={state.foods} events={state.events} onFoodLogCreated={onFoodLogCreated} />
+            <FoodInput foods={state.foods} events={state.events} onSubmit={onSubmitFood} />
 
             <div className="w-full space-y-4">
                 {foodlog.map((food: TblUserFoodLog) => {
                     const t = formatSmartTimestamp(food.user_time);
+                    const netCarbs = food.carb - food.fibre;
 
                     return (
                         <div key={food.id} className="rounded-sm p-2 border border-c-yellow">
@@ -49,10 +54,11 @@ export function FoodLogPage(state: BaseState) {
                             </div>
 
                             <div className="flex flex-wrap">
-                                <span class="mx-1 whitespace-nowrap">{food.carb} Carb </span>
-                                <span class="mx-1 whitespace-nowrap">{food.protein} Protein </span>
-                                <span class="mx-1 whitespace-nowrap">{food.fibre} Fibre </span>
-                                <span class="mx-1 whitespace-nowrap">{food.fat} Fat </span>
+                                <span class="mx-1 whitespace-nowrap">{food.carb.toFixed(3)} Carb </span>
+                                <span class="mx-1 whitespace-nowrap">{food.protein.toFixed(3)} Protein </span>
+                                <span class="mx-1 whitespace-nowrap">{food.fibre.toFixed(3)} Fibre </span>
+                                <span class="mx-1 whitespace-nowrap">{food.fat.toFixed(3)} Fat </span>
+                                <span class="mx-1 whitespace-nowrap font-bold">{netCarbs.toFixed(3)} Net Carbs </span>
                             </div>
                         </div>
                     );

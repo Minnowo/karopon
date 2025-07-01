@@ -3,15 +3,16 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import { FoodLogPage } from './pages/foodlog/index.js';
+import {FoodLogPage} from './pages/foodlog/index.js';
 import {LoginPage} from './pages/login/index.jsx';
-import { FoodPage } from './pages/food/index.js';
+import {FoodPage} from './pages/food/index.js';
 import {NotFound} from './pages/_404.jsx';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent} from './api/types';
 import {WhoAmI, UserFoods, UserEvents} from './api/api';
 import {LogoutPage} from './pages/logout/index.js';
+import {EventLogPage} from './pages/eventlog/index.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -36,6 +37,9 @@ export function App() {
             <Header />
 
             <Switch>
+                <Route path="/eventlog">
+                    <EventLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                </Route>
                 <Route path="/foodlog">
                     <FoodLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                 </Route>
