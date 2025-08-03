@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 
 @theme {
-    --color-c-black: rgb(31, 31, 31);
+    --color-c-d-black: rgb(31, 31, 31);
+    --color-c-black: rgb(38, 38, 38);
     --color-c-red: rgb(244, 71, 71);
     --color-c-green: rgb(106, 153, 85);
     --color-c-yellow: rgb(215, 186, 125);
@@ -73,11 +74,15 @@ input,
 button,
 textarea {
     @apply outline-none rounded-sm border px-0.5 py-1
-    bg-c-black text-c-white      placeholder-c-green      border-c-yellow  focus:border-c-red;
+    bg-c-d-black text-c-white      placeholder-c-green      border-c-yellow  focus:border-c-red;
 }
 
 @utility table-bordered {
     @apply border border-c-l-black border-collapse border-solid;
+}
+
+@utility container-theme {
+    @apply bg-c-d-black border-c-yellow focus:border-c-red;
 }
 
 .table-bordered th,

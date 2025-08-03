@@ -58,11 +58,7 @@ func (db *PGDatabase) UpdateUserFood(ctx context.Context, food *database.TblUser
 
 	_, err := db.NamedExecContext(ctx, query, food)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (db *PGDatabase) LoadUserFoods(ctx context.Context, userId int, out *[]database.TblUserFood) error {

@@ -23,6 +23,7 @@ export function FoodInput({foods, events, showEventInput = true, onSubmit}: Food
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const clear = () => {
+        setErrorMsg(null);
         setSelectedFood(null);
         setFood('');
         setEvent('');
@@ -109,7 +110,7 @@ export function FoodInput({foods, events, showEventInput = true, onSubmit}: Food
                         />
                     ) : null}
                     <input
-                        class="w-full my-1 sm:ml-1"
+                        class={`w-full my-1 ${showEventInput ? 'sm:ml-1' : ''}`}
                         type="text"
                         placeholder="Unit"
                         value={unit}

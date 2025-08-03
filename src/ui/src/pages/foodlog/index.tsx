@@ -38,7 +38,7 @@ export function FoodLogPage(state: BaseState) {
                     const netCarbs = food.carb - food.fibre;
 
                     return (
-                        <div key={food.id} className="rounded-sm p-2 border border-c-yellow">
+                        <div key={food.id} className="rounded-sm p-2 border container-theme">
                             <div className="flex justify-between font-semibold mb-2">
                                 <div>
                                     <span> {food.name} </span>

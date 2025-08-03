@@ -17,31 +17,73 @@ type DB interface {
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
 
+	// Get the version of this database, used for migration tracking.
 	GetVersion(ctx context.Context) (Version, error)
+
+	// Sets the version of this database.
 	SetVersion(ctx context.Context, version Version) error
+
+	// Sets the version of this database using the given transaction.
 	SetVersionTx(tx *sqlx.Tx, version Version) error
 
+	// Add the given user to the database, returning their ID or error.
+	// Does not edit the given struct.
 	AddUser(ctx context.Context, user *TblUser) (int, error)
+
+	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
+
+	// Read all users into the given array, or returning an error.
 	LoadUsers(ctx context.Context, users *[]TblUser) error
 
+	// Add a food and returns it's ID, or an error.
+	// Does not edit the given struct.
 	AddUserFood(ctx context.Context, food *TblUserFood) (int, error)
+
+	// Add all of the given foods or none if an error.
+	// Does not edit the given structs.
 	AddUserFoods(ctx context.Context, food []*TblUserFood) error
+
+	// Update the given food.
+	// Does not edit the given structs.
 	UpdateUserFood(ctx context.Context, food *TblUserFood) error
+
+	// Read all the user foods into the given array, or return an error.
 	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error
 
+	// Add the given event and return it's ID, or an error.
+	// Does not edit the given structs.
 	AddUserEvent(ctx context.Context, event *TblUserEvent) (int, error)
-	LoadUserEvent(ctx context.Context, userId int, eventId int, events *TblUserEvent) error
+
+	// Read the event into the given struct, or returns an error.
+	LoadUserEvent(ctx context.Context, userId int, eventId int, event *TblUserEvent) error
+
+	// Read the event with the given name into the given struct, or returns an error.
+	LoadUserEventByName(ctx context.Context, userId int, name string, event *TblUserEvent) error
+
+	// Read all the users events into the given array, or returns an error.
 	LoadUserEvents(ctx context.Context, userId int, events *[]TblUserEvent) error
 
-	// AddUserEventLog(ctx context.Context, event *TblUserEventLog) (int, error)
-	// LoadUserEventLog(ctx context.Context, userId int, events *TblUserEventLog) error
-	// LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
+	// Add the given event log to the database with the given transaction.
+	// Returns the created ID or an error.
+	// Does not edit the given struct.
+	AddUserEventLogTx(tx *sqlx.Tx, event *TblUserEventLog) (int, error)
+
+	// Add the given event log to the database.
+	// If the TblUserEventLog.UserTime IsZero it is set as the current UTC time.
+	// The given foods are updated with the event's UserID, Event, EventLogID.
+	// The given foods UserTime are updated if their usertime IsZero.
+	// The given foods ID are updated.
+	// The given foods are also updated by any modifications made by AddUserFoodLogTx.
+	AddUserEventLogWith(ctx context.Context, event *TblUserEventLog, foodlogs []TblUserFoodLog) (int, error)
 
 	LoadUserEventsWithFood(ctx context.Context, userId int, out *[]UserEventWithFoods) error
 
-	// sets the UserTime, FoodID, and EventID, on the given food
+	// Add the given TblUserFoodLog to the databasea, and sets the UserTime, FoodID, and EventID, on the given food
+	// Returns the TblUserFoodLog ID or an error.
 	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
+	AddUserFoodLogTx(tx *sqlx.Tx, food *TblUserFoodLog) (int, error)
+
 	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
 
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error

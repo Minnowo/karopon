@@ -23,8 +23,18 @@ func (db *PGDatabase) LoadUserEvent(ctx context.Context, userId int, eventId int
 		WHERE u.ID = $1 AND u.USER_ID = $2
 	`
 
-	return db.SelectContext(ctx, out, query, eventId, userId)
+	return db.GetContext(ctx, out, query, eventId, userId)
 }
+
+func (db *PGDatabase) LoadUserEventByName(ctx context.Context, userId int, name string, out *database.TblUserEvent) error {
+	query := `
+		SELECT * FROM PON.USER_EVENT u
+		WHERE u.NAME = $1 AND u.USER_ID = $2
+	`
+
+	return db.GetContext(ctx, out, query, name, userId)
+}
+
 func (db *PGDatabase) LoadUserEvents(ctx context.Context, userId int, out *[]database.TblUserEvent) error {
 	query := `
 		SELECT * FROM PON.USER_EVENT u

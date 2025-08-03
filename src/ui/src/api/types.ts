@@ -73,3 +73,8 @@ export interface InsertUserFoodLog {
     fibre: number;
     fat: number;
 }
+
+export interface CreateUserEventLog {
+    event: TblUserEvent;
+    foods: InsertUserFoodLog[];
+}

@@ -45,6 +45,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	post := api.Methods("POST").Subrouter()
 	post.HandleFunc("/login", a.api_login)
 	post.HandleFunc("/logfood", a.create_userfoodlog)
+	post.HandleFunc("/logevent", a.create_userevent)
 	post.HandleFunc("/food/update", a.update_userfood)
 
 }

@@ -1,4 +1,4 @@
-import {TblUser, TblUserFoodLog, TblUserFood, TblUserEvent, InsertUserFoodLog} from './types';
+import {TblUser, TblUserFoodLog, TblUserFood, CreateUserEventLog, TblUserEvent, InsertUserFoodLog} from './types';
 
 // export const base = 'http://localhost:9070';
 export const base = '';
@@ -165,6 +165,33 @@ export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog |
             msg = error;
         }
         console.error('Error creating food log:', msg);
+        return null;
+    }
+}
+
+export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog | null> {
+    try {
+        const response = await fetch(`${base}/api/logevent`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(food),
+        });
+
+        if (response.status !== 200) {
+            return null;
+        }
+
+        return await response.json();
+    } catch (error: unknown) {
+        let msg;
+        if (error instanceof Error) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        console.error('Error creating event log:', msg);
         return null;
     }
 }

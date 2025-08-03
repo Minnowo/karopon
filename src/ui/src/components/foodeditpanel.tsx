@@ -35,7 +35,7 @@ export function FoodEditPanel({food, updateFood}: FoodEditPanelProps) {
     };
 
     return (
-        <div key={food.id} className="rounded-sm p-2 border border-c-yellow">
+        <div key={food.id} className="rounded-sm p-2 border container-theme">
             <div className="flex justify-between font-semibold mb-2">
                 {showUpdatePanel ? (
                     <div class="w-full px-1">
