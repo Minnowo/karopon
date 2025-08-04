@@ -3,61 +3,48 @@ import {TblUser, TblUserFoodLog, TblUserFood, CreateUserEventLog, TblUserEvent, 
 // export const base = 'http://localhost:9070';
 export const base = '';
 
-export async function Logout(): Promise<boolean> {
-    return await fetch(`${base}/api/logout`).then((r) => r.status === 200);
+async function throwFailureReason(r: Response) {
+    const reason = await r.text();
+    throw new Error(`Request failed with status ${r.status}: ${reason}`);
 }
 
-export async function WhoAmI(): Promise<TblUser | null> {
+function rethrow(err: unknown): never {
+    console.error('Caught error: ', err);
+    if (err instanceof Error) {
+        throw err;
+    }
+    throw new Error(String(err));
+}
+
+export function Logout(): Promise<boolean> {
+    return fetch(`${base}/api/logout`).then((r) => r.status === 200);
+}
+
+export async function WhoAmI(): Promise<TblUser> {
     try {
         const response = await fetch(`${base}/api/whoami`);
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
-        const json = await response.json();
-
-        if (json === null) {
-            return null;
-        }
-
-        return json as TblUser;
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error getting user:', msg);
-        return null;
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
-export async function UserFoods(): Promise<Array<TblUserFood> | null> {
+export async function UserFoods(): Promise<Array<TblUserFood>> {
     try {
         const response = await fetch(`${base}/api/foods`);
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
-        const json = await response.json();
-
-        if (json === null) {
-            return null;
-        }
-
-        return json as Array<TblUserFood>;
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error getting user foods:', msg);
-        return null;
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
@@ -72,77 +59,44 @@ export async function UpdateUserFood(food: TblUserFood): Promise<boolean> {
         });
 
         if (response.status !== 200) {
-            return false;
+            await throwFailureReason(response);
         }
 
         return true;
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error getting user events:', msg);
-        return false;
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
-export async function UserEvents(): Promise<Array<TblUserEvent> | null> {
+export async function UserEvents(): Promise<Array<TblUserEvent>> {
     try {
         const response = await fetch(`${base}/api/events`);
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
-        const json = await response.json();
-
-        if (json === null) {
-            return null;
-        }
-
-        return json as Array<TblUserEvent>;
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error getting user events:', msg);
-        return null;
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
-export async function GetUserFoodLog(): Promise<Array<TblUserFoodLog> | null> {
+export async function GetUserFoodLog(): Promise<Array<TblUserFoodLog>> {
     try {
         const response = await fetch(`${base}/api/foodlog`);
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
-        const json = await response.json();
-
-        if (json === null) {
-            return null;
-        }
-
-        return json as Array<TblUserFoodLog>;
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error getting food log:', msg);
-        return null;
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
-export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog | null> {
+export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog> {
     try {
         const response = await fetch(`${base}/api/logfood`, {
             headers: {
@@ -153,25 +107,18 @@ export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog |
         });
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
         return await response.json();
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error creating food log:', msg);
-        return null;
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }
 
-export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog | null> {
+export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog> {
     try {
-        const response = await fetch(`${base}/api/logevent`, {
+        const response: Response = await fetch(`${base}/api/logevent`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -180,18 +127,11 @@ export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog
         });
 
         if (response.status !== 200) {
-            return null;
+            await throwFailureReason(response);
         }
 
         return await response.json();
-    } catch (error: unknown) {
-        let msg;
-        if (error instanceof Error) {
-            msg = error.message;
-        } else {
-            msg = error;
-        }
-        console.error('Error creating event log:', msg);
-        return null;
+    } catch (err: unknown) {
+        rethrow(err);
     }
 }

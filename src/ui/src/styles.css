@@ -22,25 +22,58 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-*,
-::after,
-::before {
-    box-sizing: border-box;
+@layer base {
+    *,
+    ::after,
+    ::before {
+        box-sizing: border-box;
+    }
+
+    html {
+        color: var(--color-c-white);
+        background-color: var(--color-c-black);
+    }
+
+    a {
+        color: var(--color-c-yellow);
+        background-color: transparent;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--color-c-yellow);
+    }
+
+    img {
+        @apply no-drag;
+    }
+
+    h1 {
+        @apply text-3xl font-medium;
+    }
+
+    h2 {
+        @apply text-2xl font-medium;
+    }
+
+    h3 {
+        @apply text-lg font-medium;
+    }
+
+    input,
+    button,
+    textarea {
+        @apply outline-none rounded-sm border px-0.5 py-1
+    bg-c-d-black text-c-white      placeholder-c-l-black      border-c-yellow  focus:border-c-l-green hover:border-c-l-yellow;
+    }
 }
 
-html {
-    color: var(--color-c-white);
-    background-color: var(--color-c-black);
+@utility table-bordered {
+    @apply border border-c-l-black border-collapse border-solid;
 }
 
-a {
-    color: var(--color-c-yellow);
-    background-color: transparent;
-    text-decoration: none;
-}
-
-a:hover {
-    color: var(--color-c-yellow);
+@utility container-theme {
+    @apply border bg-c-d-black border-c-yellow focus:border-c-l-green;
 }
 
 @utility no-drag {
@@ -52,37 +85,6 @@ a:hover {
     -webkit-user-drag: none;
     user-drag: none;
     -webkit-touch-callout: none;
-}
-
-img {
-    @apply no-drag;
-}
-
-h1 {
-    @apply text-3xl font-medium;
-}
-
-h2 {
-    @apply text-2xl font-medium;
-}
-
-h3 {
-    @apply text-lg font-medium;
-}
-
-input,
-button,
-textarea {
-    @apply outline-none rounded-sm border px-0.5 py-1
-    bg-c-d-black text-c-white      placeholder-c-green      border-c-yellow  focus:border-c-red;
-}
-
-@utility table-bordered {
-    @apply border border-c-l-black border-collapse border-solid;
-}
-
-@utility container-theme {
-    @apply bg-c-d-black border-c-yellow focus:border-c-red;
 }
 
 .table-bordered th,

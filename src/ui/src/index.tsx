@@ -50,8 +50,7 @@ export function App() {
                     <LogoutPage />
                 </Route>
                 <Route>
-                    {' '}
-                    <NotFound />{' '}
+                    <NotFound />
                 </Route>
             </Switch>
         </Router>

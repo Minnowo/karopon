@@ -1,7 +1,7 @@
 import {useState} from 'preact/hooks';
-import {LogFood} from '../api/api';
-import {TblUserFood, TblUserFoodLog, InsertUserFoodLog, TblUserEvent} from '../api/types';
-import {NumberInput} from './numberinput';
+import {ErrorDiv} from './error_div';
+import {TblUserFood, InsertUserFoodLog, TblUserEvent} from '../api/types';
+import {NumberInput} from './number_input';
 import {FuzzySearch} from './select_list';
 
 type FoodInputProps = {
@@ -84,7 +84,7 @@ export function FoodInput({foods, events, showEventInput = true, onSubmit}: Food
 
     return (
         <form class="w-full" onSubmit={handleSubmit}>
-            {errorMsg !== null ? <div class="text-c-red"> {errorMsg} </div> : null}
+            <ErrorDiv errorMsg={errorMsg} />
 
             <div class="flex flex-col">
                 <FuzzySearch<TblUserFood>

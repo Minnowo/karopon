@@ -1,3 +1,7 @@
+export function NowISOStr(): string {
+    return new Date().toISOString().slice(0, 16);
+}
+
 export function formatSmartTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
     const now = new Date();

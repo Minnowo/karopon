@@ -2,7 +2,7 @@ import {useEffect, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {InsertUserFoodLog, TblUserFoodLog} from '../../api/types';
 import {GetUserFoodLog, LogFood} from '../../api/api';
-import {FoodInput} from '../../components/foodinput';
+import {FoodInput} from '../../components/food_input';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 
 export function FoodLogPage(state: BaseState) {

@@ -1,7 +1,7 @@
 import {useState, useRef} from 'preact/hooks';
 import {TblUserFood} from '../api/types';
-import {NumberInput} from './numberinput';
-import {MouseEvent} from 'preact/compat';
+import {NumberInput} from './number_input';
+import {DropdownButton} from './drop_down_button';
 
 type FoodEditPanelProps = {
     food: TblUserFood;
@@ -14,15 +14,15 @@ export function FoodEditPanel({food, updateFood}: FoodEditPanelProps) {
     const foodUnit = useRef<HTMLInputElement>(null);
     const [showUpdatePanel, setShowUpdatePanel] = useState<boolean>(false);
 
-    const onEditClicked = (_: MouseEvent<HTMLButtonElement>) => {
+    const onEditClicked = () => {
         setShowUpdatePanel(!showUpdatePanel);
     };
 
-    const onCancelClick = (_: MouseEvent<HTMLButtonElement>) => {
+    const onCancelClick = () => {
         setShowUpdatePanel(false);
     };
 
-    const onSaveClick = (_: MouseEvent<HTMLButtonElement>) => {
+    const onSaveClick = () => {
         const newFood = {...food, ...tmpFood.current};
         if (foodName.current?.value) {
             newFood.name = foodName.current.value;
@@ -69,7 +69,12 @@ export function FoodEditPanel({food, updateFood}: FoodEditPanelProps) {
                     </div>
                 ) : (
                     <div>
-                        <button onClick={onEditClicked}> Edit </button>
+                        <DropdownButton
+                            actions={[
+                                {label: 'Edit', onClick: onEditClicked},
+                                {label: 'Delete', onClick: () => console.log('Delete')},
+                            ]}
+                        />
                     </div>
                 )}
             </div>

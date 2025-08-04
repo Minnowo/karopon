@@ -1,15 +1,18 @@
-import {useEffect, useState, useMemo, useRef} from 'preact/hooks';
+import {useState, useMemo, useRef} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFoodLog} from '../../api/types';
-import {GetUserFoodLog, LogEvent} from '../../api/api';
-import {FoodInput} from '../../components/foodinput';
-import {formatSmartTimestamp} from '../../utils/date_utils';
+import {LogEvent} from '../../api/api';
+import {FoodInput} from '../../components/food_input';
+import {ErrorDiv} from '../../components/error_div';
 import {FuzzySearch} from '../../components/select_list';
+import {NowISOStr} from '../../utils/date_utils';
+import {ChangeEvent} from 'preact/compat';
 
 export function EventLogPage(state: BaseState) {
     const [foodlog, setFoodlog] = useState<Array<InsertUserFoodLog>>([]);
     const [event, setEvent] = useState<string>('');
-    const dateInput = useRef<HTMLInputElement>(null);
+    const [eventTime, setEventTime] = useState<Date>(new Date());
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [totalProtein, totalCarbs, totalFibre, totalFat, netCarbs] = useMemo(() => {
         let totalProtein = 0;
@@ -28,6 +31,13 @@ export function EventLogPage(state: BaseState) {
         return [totalProtein, totalCarbs, totalFibre, totalFat, netCarbs];
     }, [foodlog]);
 
+    const clear = () => {
+        setEvent('');
+        setFoodlog([]);
+        setErrorMsg(null);
+        setEventTime(new Date());
+    };
+
     const onCreate = () => {
         const data = {
             event: {
@@ -36,9 +46,13 @@ export function EventLogPage(state: BaseState) {
             foods: foodlog,
         } as CreateUserEventLog;
 
-        LogEvent(data).then((json) => {
-            console.log(json);
-        });
+        LogEvent(data)
+            .then(() => {
+                clear();
+            })
+            .catch((e: Error) => {
+                setErrorMsg(e.message);
+            });
     };
 
     const onSelectEvent = (evnt: TblUserEvent | null) => {
@@ -56,19 +70,18 @@ export function EventLogPage(state: BaseState) {
         clear();
     };
 
-    const getDate = (): string => {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    const onEventTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target) {
+            const value = e.currentTarget.value;
+            setEventTime(new Date(value));
+        }
     };
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <div className="flex w-full">
+        <div className="flex flex-col items-center justify-center p-4">
+            <ErrorDiv errorMsg={errorMsg} />
+
+            <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
                     onQueryChange={setEvent}
@@ -79,9 +92,15 @@ export function EventLogPage(state: BaseState) {
                     onSelect={onSelectEvent}
                 />
 
-                <input ref={dateInput} class="w-full my-1 sm:mx-1" type="datetime-local" name="Event Date" value={getDate()} />
+                <input
+                    class="w-full my-1 sm:mx-1"
+                    type="datetime-local"
+                    name="Event Date"
+                    onChange={onEventTimeChange}
+                    value={eventTime.toISOString().substring(0, 16)}
+                />
 
-                <input class="w-full my-1 ml-1" type="submit" value="Create" onClick={onCreate} />
+                <input class="w-full my-1 ml-1 max-w-32" type="submit" value="Create" onClick={onCreate} />
             </div>
 
             <div class="w-full text-left">
