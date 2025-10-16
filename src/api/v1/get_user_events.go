@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"karopon/src/api"
+	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
 	"strconv"
@@ -12,15 +13,18 @@ import (
 )
 
 func (a *APIV1) get_userevent(w http.ResponseWriter, r *http.Request) {
-	user, ok := api.GetSession(r)
 
-	if !ok {
+	user := auth.GetUser(r)
+
+	if user == nil {
 		api.BadReq(w, "no user session available")
 		return
 	}
 
 	vars := mux.Vars(r)
 	eventIDStr, ok := vars["id"]
+
+	log.Debug().Any("vars", vars).Msg("get user event")
 
 	if !ok {
 		api.BadReq(w, "no event id given")
@@ -50,9 +54,9 @@ func (a *APIV1) get_userevent(w http.ResponseWriter, r *http.Request) {
 
 func (a *APIV1) get_userevents(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := api.GetSession(r)
+	user := auth.GetUser(r)
 
-	if !ok {
+	if user == nil {
 		api.BadReq(w, "no user session available")
 		return
 	}

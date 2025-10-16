@@ -1,7 +1,9 @@
 package v1
 
 import (
+	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
+	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/handlers/user"
 
@@ -29,18 +31,24 @@ func (a *APIV1) Deinit() {
 func (a *APIV1) Register(r *mux.Router) {
 	a.router = r
 
+	user := &database.TblUser{
+		Name: "minno",
+		ID:   1,
+	}
+
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.Cors)
-	api.Use(middleware.FakeAuth(a.UserReg))
-	api.Use(middleware.Auth(a.UserReg))
+	api.Use(auth.FakeAuth(user, a.UserReg))
+	api.Use(auth.ParseAuth(constants.SESSION_COOKIE, a.UserReg))
+	api.Use(auth.RequireAuth())
 
 	get := api.Methods("GET").Subrouter()
+	get.HandleFunc("/logout", a.api_logout)
 	get.HandleFunc("/whoami", a.whoami)
 	get.HandleFunc("/foods", a.get_userfood)
 	get.HandleFunc("/foodlog", a.get_userfoodlog)
 	get.HandleFunc("/events", a.get_userevents)
-	get.HandleFunc("/events/{:id}", a.get_userevents)
-	get.HandleFunc("/logout", a.api_logout)
+	get.HandleFunc("/events/{id}", a.get_userevent)
 
 	post := api.Methods("POST").Subrouter()
 	post.HandleFunc("/login", a.api_login)

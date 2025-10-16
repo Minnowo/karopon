@@ -2,7 +2,7 @@ package v1
 
 import (
 	"karopon/src/api"
-	"karopon/src/api/middleware"
+	"karopon/src/api/auth"
 	"karopon/src/constants"
 	"net/http"
 	"time"
@@ -12,10 +12,10 @@ import (
 
 func (a *APIV1) api_logout(w http.ResponseWriter, r *http.Request) {
 
-	_, ok := api.GetSession(r)
+	user := auth.GetUser(r)
 
-	if ok {
-		authToken, err := r.Cookie(middleware.SESSION_COOKIE)
+	if user != nil {
+		authToken, err := r.Cookie(constants.SESSION_COOKIE)
 
 		if err == nil {
 			a.UserReg.ExpireToken(authToken.Value)

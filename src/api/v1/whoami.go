@@ -3,14 +3,15 @@ package v1
 import (
 	"encoding/json"
 	"karopon/src/api"
+	"karopon/src/api/auth"
 	"net/http"
 )
 
 func (a *APIV1) whoami(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := api.GetSession(r)
+	user := auth.GetUser(r)
 
-	if !ok {
+	if user == nil {
 		api.Unauthorized(w)
 		return
 	}

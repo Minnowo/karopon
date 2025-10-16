@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"karopon/src/api"
+	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
 	"time"
@@ -19,9 +20,9 @@ type CreateUserEventLog struct {
 
 func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := api.GetSession(r)
+	user := auth.GetUser(r)
 
-	if !ok {
+	if user == nil {
 		api.BadReq(w, "no user session available")
 		return
 	}
