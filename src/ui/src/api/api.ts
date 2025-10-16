@@ -16,7 +16,7 @@ function rethrow(err: unknown): never {
     throw new Error(String(err));
 }
 
-export function Logout(): Promise<boolean> {
+export async function Logout(): Promise<boolean> {
     return fetch(`${base}/api/logout`).then((r) => r.status === 200);
 }
 

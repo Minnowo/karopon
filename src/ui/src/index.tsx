@@ -4,6 +4,7 @@ import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
 import {FoodLogPage} from './pages/foodlog/index.js';
+import {HomePage} from './pages/home/index.jsx';
 import {LoginPage} from './pages/login/index.jsx';
 import {FoodPage} from './pages/food/index.js';
 import {NotFound} from './pages/_404.jsx';
@@ -34,7 +35,7 @@ export function App() {
 
     return (
         <Router hook={useHashLocation}>
-            <Header />
+            <Header user={user} />
 
             <Switch>
                 <Route path="/eventlog">
@@ -50,7 +51,7 @@ export function App() {
                     <LogoutPage />
                 </Route>
                 <Route>
-                    <NotFound />
+                    <HomePage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                 </Route>
             </Switch>
         </Router>
