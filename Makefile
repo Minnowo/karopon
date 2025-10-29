@@ -18,13 +18,13 @@ SITE_DST := ./main.o
 
 
 download-tools:
-	go install github.com/a-h/templ/cmd/templ@latest
 	go install golang.org/x/tools/cmd/goimports@latest
-
 
 install-go:
 	go mod download
 
+install-js:
+	make -C $(UI) install
 
 generate:
 	make -C ./src/ui generate
@@ -32,7 +32,6 @@ generate:
 format:
 	gofmt -w -s .
 	goimports -w .
-
 
 test: format generate
 	go test ./...
@@ -45,7 +44,6 @@ test-verbose: format generate
 
 test-clean: format generate
 	go clean -testcache
-
 
 build-site:
 	go build -ldflags "$(LDFLAGS)" -tags="$(TAGS)" -o $(SITE_DST) $(SITE_SRC)
