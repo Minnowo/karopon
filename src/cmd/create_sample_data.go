@@ -10,7 +10,7 @@ import (
 
 func CmdCreateSampleData(ctx context.Context, c *cli.Command) error {
 
-	dbconn := c.Value("database_conn").(string)
+	dbconn := c.Value("database-conn").(string)
 	username := c.Value("username").(string)
 
 	if username == "" {

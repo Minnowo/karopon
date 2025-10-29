@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"karopon/src/api/middleware"
 	v1 "karopon/src/api/v1"
+	"karopon/src/config"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/database/connection"
@@ -25,7 +26,11 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 
 	bindAddr := c.Value("bind").(string)
 	port := c.Value("port").(int32)
-	dbconn := c.Value("database_conn").(string)
+	dbconn := c.Value("database-conn").(string)
+
+	if fakeAuth, ok := c.Value("fake-auth-as-user").(string); ok {
+		config.SetFakeAuthUser(fakeAuth)
+	}
 
 	var addr = fmt.Sprintf("%s:%d", bindAddr, port)
 

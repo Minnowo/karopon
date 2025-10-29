@@ -14,7 +14,7 @@ import (
 
 func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
-	dbconn := c.Value("database_conn").(string)
+	dbconn := c.Value("database-conn").(string)
 	username := c.Value("username").(string)
 	password := c.Value("password").(string)
 
@@ -31,7 +31,6 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	}
 
 	var user database.TblUser
-	user.Name = username
 
 	if err := conn.LoadUser(ctx, username, &user); err != nil {
 

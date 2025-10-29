@@ -1,8 +1,10 @@
 package v1
 
 import (
+	"context"
 	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
+	"karopon/src/config"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/handlers/user"
@@ -18,27 +20,45 @@ type APIV1 struct {
 	router  *mux.Router
 }
 
-func (a *APIV1) Init() {
-
+func (a *APIV1) check() {
 	if a.UserReg == nil {
 		log.Panic().Msg("user registry is nil")
 	}
+	if a.Db == nil {
+		log.Panic().Msg("database must not be nil")
+	}
+}
+
+func (a *APIV1) Init() {
+	a.check()
 }
 
 func (a *APIV1) Deinit() {
 }
 
 func (a *APIV1) Register(r *mux.Router) {
-	a.router = r
 
-	user := &database.TblUser{
-		Name: "minno",
-		ID:   1,
-	}
+	a.check()
+	a.router = r
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.Cors)
-	api.Use(auth.FakeAuth(user, a.UserReg))
+
+	if config.FakeAuth() {
+
+		var user database.TblUser
+
+		if err := a.Db.LoadUser(context.Background(), config.FakeAuthUser(), &user); err != nil {
+			log.Panic().
+				Err(err).
+				Str("username", config.FakeAuthUser()).
+				Msg("could not load user for fake auth")
+		}
+
+		log.Info().Str("username", user.Name).Msg("faking auth as user")
+
+		api.Use(auth.FakeAuth(&user, a.UserReg))
+	}
 	api.Use(auth.ParseAuth(constants.SESSION_COOKIE, a.UserReg))
 	api.Use(auth.RequireAuth())
 

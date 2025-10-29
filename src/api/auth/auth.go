@@ -74,7 +74,7 @@ func FakeAuth(user *database.TblUser, userReg *user.UserRegistry) func(next http
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			log.Info().Msg("using fake auth")
+			log.Debug().Msg("using fake auth")
 
 			r = PutUser(r, user)
 

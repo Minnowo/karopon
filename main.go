@@ -33,7 +33,7 @@ func main() {
 						Action:      cmd.CmdCreateSampleData,
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "database_conn",
+								Name:     "database-conn",
 								Aliases:  []string{"c"},
 								Usage:    "The database connection string",
 								Sources:  cli.EnvVars("DATABASE_CONN"),
@@ -53,7 +53,7 @@ func main() {
 						Action:      cmd.CmdCreateUser,
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "database_conn",
+								Name:     "database-conn",
 								Aliases:  []string{"c"},
 								Usage:    "The database connection string",
 								Sources:  cli.EnvVars("DATABASE_CONN"),
@@ -81,7 +81,7 @@ func main() {
 				Action:      cmd.CmdServerMain,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "database_conn",
+						Name:     "database-conn",
 						Aliases:  []string{"c"},
 						Usage:    "The database connection string",
 						Sources:  cli.EnvVars("DATABASE_CONN"),
@@ -104,11 +104,9 @@ func main() {
 						Required: false,
 					},
 					&cli.StringFlag{
-						Name:     "registry",
-						Aliases:  []string{"r"},
-						Usage:    "The user registry file",
-						Value:    "./users.json",
-						Sources:  cli.EnvVars("USER_REGISTRY_PATH"),
+						Name:     "fake-auth-as-user",
+						Usage:    "Automatically authenticate as this user",
+						Sources:  cli.EnvVars("FAKE_AUTH_AS_USER"),
 						Required: false,
 					},
 				},
