@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,18 +13,14 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	user.Name = username
 
 	if err := db.LoadUser(ctx, user.Name, &user); err != nil {
-		id, err := db.AddUser(ctx, &user)
-		if err != nil {
-			return err
-		}
-		user.ID = id
+		return errors.Wrap(err, "could not load user, they probably don't exist")
 	}
 
 	log.Info().Int("id", user.ID).Str("name", user.Name).Msg("test data user")
 
 	event1 := TblUserEvent{UserID: user.ID, Name: "lunch"}
 	if id, err := db.AddUserEvent(ctx, &event1); err != nil {
-		return err
+		return errors.Wrap(err, "failed to create user event")
 	} else {
 		event1.ID = id
 	}
@@ -50,7 +47,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 	food1.Scale()
 
 	if id, err := db.AddUserFood(ctx, &food1); err != nil {
-		return err
+		return errors.Wrap(err, "failed to add user food")
 	} else {
 		food1.ID = id
 	}

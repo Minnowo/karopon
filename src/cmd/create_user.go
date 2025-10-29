@@ -37,7 +37,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 		if err == sql.ErrNoRows {
 			// continue
 		} else {
-			return errors.WithStack(err)
+			return errors.Wrap(err, "error checking if user exists")
 		}
 	} else {
 		return fmt.Errorf("user already exists")

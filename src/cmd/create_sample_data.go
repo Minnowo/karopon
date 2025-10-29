@@ -13,10 +13,6 @@ func CmdCreateSampleData(ctx context.Context, c *cli.Command) error {
 	dbconn := c.Value("database-conn").(string)
 	username := c.Value("username").(string)
 
-	if username == "" {
-		username = "TEST_USER"
-	}
-
 	conn, err := connection.Connect(context.Background(), database.POSTGRES, dbconn)
 
 	if err != nil {
