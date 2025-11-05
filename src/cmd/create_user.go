@@ -49,6 +49,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
+	user.Name = username
 	user.Password = pass
 
 	if _, err := conn.AddUser(ctx, &user); err != nil {
