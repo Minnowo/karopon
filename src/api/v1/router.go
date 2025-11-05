@@ -60,9 +60,11 @@ func (a *APIV1) Register(r *mux.Router) {
 		api.Use(auth.FakeAuth(&user, a.UserReg))
 	}
 	api.Use(auth.ParseAuth(constants.SESSION_COOKIE, a.UserReg))
-	api.Use(auth.RequireAuth())
+
+	api.HandleFunc("/login", a.api_login).Methods("POST")
 
 	get := api.Methods("GET").Subrouter()
+	get.Use(auth.RequireAuth())
 	get.HandleFunc("/logout", a.api_logout)
 	get.HandleFunc("/whoami", a.whoami)
 	get.HandleFunc("/foods", a.get_userfood)
@@ -71,7 +73,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/events/{id}", a.get_userevent)
 
 	post := api.Methods("POST").Subrouter()
-	post.HandleFunc("/login", a.api_login)
+	post.Use(auth.RequireAuth())
 	post.HandleFunc("/logfood", a.create_userfoodlog)
 	post.HandleFunc("/logevent", a.create_userevent)
 	post.HandleFunc("/food/update", a.update_userfood)
