@@ -1,0 +1,52 @@
+.header-button {
+    border: 1px;
+    display: flex;
+    /* height: 5vw; */
+    /* width: 5vh; */
+    margin-top: 2.5vh;
+    /* margin-bottom: 30vh; */
+    border-color: var(--color-c-yellow);
+    padding: 10px;
+    border: solid 1px;
+    border-radius: 5%;
+
+    position: relative;
+    height: 5vh;
+    width: 7.5vw;
+
+    overflow: hidden;
+    justify-content: center;
+}
+
+.header-button::before {
+    background: linear-gradient(90deg, var(--color-c-black) 0%,rgb(186, 186, 186) 90%, var(--color-c-black) 95%);
+    transform: translateX(-100%);
+    position: absolute;
+    width: 200%;
+    top: 0px;
+    left: 0px;
+    content: "";
+    height: inherit;
+    transition: transform 1s;
+    z-index: 0;
+}
+
+.button-content {
+    position: relative;
+    z-index: 1;
+    font-size: 1rem;
+}
+
+.header-button:hover::before {
+    transform: translateX(0%);
+}
+
+
+.button-bar {
+    display: flex;
+    flex-direction: row;
+    margin-left: 1.5vw;
+    /* height: 5vh; */
+    padding-bottom: 2.5vh;
+    gap: 0.5vw;
+}
