@@ -1,0 +1,83 @@
+:root {
+    --event-expand-duration: 0.8s;
+}
+
+.event-expand-button {
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    width: 30px;
+    height: 30px;
+    transition-duration: var(--event-expand-duration);
+}
+.event-expand-button:hover {
+    width: 100px;
+    /* transition-duration: var(--event-expand-duration); */
+}
+.event-expand-button::before {
+    content: "Expand details";
+    font-size: 0px;
+    opacity: 0;
+    /* top: -20px; */
+    position: absolute;
+}
+
+.event-expand-button.reverse::before  {
+    content: "Hide";
+    font-size: 0px;
+    opacity: 0;
+    position: absolute;
+}
+
+.arrow-icon {
+    width: 25px;
+    height: 20px;
+    fill: var(--color-c-yellow);
+    --arrow-rotation: 180deg;
+    transform: rotate(var(--arrow-rotation));
+    transition: 0s;
+}
+
+.arrow-icon.reverse{
+    --arrow-rotation: 0deg;
+    transition: 0s;
+}
+
+.event-expand-button:hover .arrow-icon {
+    transform: translateY(200%) rotate(var(--arrow-rotation));
+    transition-duration: var(--event-expand-duration);
+}
+
+.event-expand-button:hover .arrow-icon.reverse {
+    transform: translateY(-200%) rotate(var(--arrow-rotation));
+    transition-duration: var(--event-expand-duration);
+}
+
+
+.event-expand-button:hover::before {
+    font-size: 12px;
+    transition-duration: var(--event-expand-duration);
+    opacity: 1;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.food-item-list {
+    padding: 5px;
+    margin: 5px 0 5px 0; 
+    border: 1px solid var(--color-c-yellow);
+    border-radius: 7.5px;
+    width: 100%;
+}
+
+.food-item-list-header {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.food-item {
+    width: 97.5%;
+}
