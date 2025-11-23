@@ -1,11 +1,10 @@
-import {useState, useMemo, useRef} from 'preact/hooks';
-import {BaseState} from '../../state/basestate';
-import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFoodLog} from '../../api/types';
-import {LogEvent} from '../../api/api';
-import {FoodInput} from '../../components/food_input';
-import {ErrorDiv} from '../../components/error_div';
-import {FuzzySearch} from '../../components/select_list';
-import {NowISOStr} from '../../utils/date_utils';
+import {useState, useMemo} from 'preact/hooks';
+import {BaseState} from '../state/basestate';
+import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFoodLog} from '../api/types';
+import {LogEvent} from '../api/api';
+import {FoodInput} from '../components/food_input';
+import {ErrorDiv} from '../components/error_div';
+import {FuzzySearch} from '../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 
 export function EventLogPage(state: BaseState) {

@@ -76,6 +76,8 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.Use(auth.RequireAuth())
 	post.HandleFunc("/logfood", a.create_userfoodlog)
 	post.HandleFunc("/logevent", a.create_userevent)
+	post.HandleFunc("/food/new", a.add_userfood)
 	post.HandleFunc("/food/update", a.update_userfood)
+	post.HandleFunc("/food/delete", a.delete_userfood)
 
 }

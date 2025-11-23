@@ -3,17 +3,16 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {FoodLogPage} from './pages/foodlog/index.js';
-import {HomePage} from './pages/home/index.jsx';
-import {LoginPage} from './pages/login/index.jsx';
-import {FoodPage} from './pages/food/index.js';
-import {NotFound} from './pages/_404.jsx';
+import {FoodLogPage} from './pages/foodlog_page.js';
+import {HomePage} from './pages/home_page.jsx';
+import {LoginPage} from './pages/login_page.jsx';
+import {FoodPage} from './pages/foodpage';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent} from './api/types';
 import {WhoAmI, UserFoods, UserEvents} from './api/api';
-import {LogoutPage} from './pages/logout/index.js';
-import {EventLogPage} from './pages/eventlog/index.js';
+import {LogoutPage} from './pages/logout_page.js';
+import {EventLogPage} from './pages/eventlog_page.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -22,7 +21,10 @@ export function App() {
 
     useEffect(() => {
         WhoAmI().then((me) => setUser(me));
-        UserFoods().then((myFood) => setFoods(myFood));
+        UserFoods().then((myFood) => {
+            myFood.sort((a, b) => a.name.localeCompare(b.name));
+            setFoods(myFood);
+        });
         UserEvents().then((myEvents) => setEvents(myEvents));
     }, []);
 
@@ -34,27 +36,29 @@ export function App() {
     }
 
     return (
-        <Router hook={useHashLocation}>
-            <Header user={user} />
+        <main className="p-16">
+            <Router hook={useHashLocation}>
+                <Header user={user} />
 
-            <Switch>
-                <Route path="/eventlog">
-                    <EventLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                </Route>
-                <Route path="/foodlog">
-                    <FoodLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                </Route>
-                <Route path="/foods">
-                    <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                </Route>
-                <Route path="/logout">
-                    <LogoutPage />
-                </Route>
-                <Route>
-                    <HomePage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                </Route>
-            </Switch>
-        </Router>
+                <Switch>
+                    <Route path="/eventlog">
+                        <EventLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/foodlog">
+                        <FoodLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/foods">
+                        <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/logout">
+                        <LogoutPage />
+                    </Route>
+                    <Route>
+                        <HomePage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                </Switch>
+            </Router>
+        </main>
     );
 }
 

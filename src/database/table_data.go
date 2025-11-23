@@ -95,7 +95,7 @@ func (f *TblUserFood) Scale() {
 type TblUserFoodLog struct {
 	ID       int        `db:"id" json:"id"`
 	UserID   int        `db:"user_id" json:"user_id"`
-	FoodID   int        `db:"food_id" json:"food_id"`
+	FoodID   *int       `db:"food_id" json:"food_id"`
 	Created  UnixMillis `db:"created" json:"created"`
 	UserTime UnixMillis `db:"user_time" json:"user_time"`
 	Name     string     `db:"name" json:"name"`

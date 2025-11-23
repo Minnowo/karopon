@@ -45,7 +45,7 @@ export interface TblUserFood {
 export interface TblUserFoodLog {
     id: number;
     user_id: number;
-    food_id: number;
+    food_id: number | null;
     created: number;
     user_time: number;
     name: string;

@@ -48,6 +48,9 @@ type DB interface {
 	// Does not edit the given structs.
 	UpdateUserFood(ctx context.Context, food *TblUserFood) error
 
+	// Delete a food by it's ID.
+	DeleteUserFood(ctx context.Context, userId int, foodId int) error
+
 	// Read all the user foods into the given array, or return an error.
 	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error
 

@@ -69,14 +69,18 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 			if id, err := db.InsertOneNamedGetIDTx(tx, query, newFood); err != nil {
 				return -1, err
 			} else {
-				food.FoodID = id
-				log.Debug().Int("id", food.FoodID).Msg("created new food")
+				food.FoodID = &id
+				log.Debug().Int("id", *food.FoodID).Msg("created new food")
 			}
 
 		} else if err != nil {
 			return -1, err
 		} else {
-			log.Debug().Int("id", food.FoodID).Msg("found existing food")
+			id := -1
+			if food.FoodID != nil {
+				id = *food.FoodID
+			}
+			log.Debug().Int("id", id).Msg("found existing food")
 		}
 	}
 

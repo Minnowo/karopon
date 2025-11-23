@@ -1,4 +1,4 @@
-import {base} from '../../api/api';
+import {base} from '../api/api';
 export function LoginPage() {
     return (
         <div class="flex flex-col items-center justify-center ">

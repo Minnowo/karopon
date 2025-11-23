@@ -68,6 +68,46 @@ export async function UpdateUserFood(food: TblUserFood): Promise<boolean> {
     }
 }
 
+export async function NewUserFood(food: TblUserFood): Promise<TblUserFood> {
+    try {
+        const response = await fetch(`${base}/api/food/new`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(food),
+        });
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
+export async function DeleteUserFood(food: TblUserFood): Promise<boolean> {
+    try {
+        const response = await fetch(`${base}/api/food/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(food),
+        });
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return true;
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
 export async function UserEvents(): Promise<Array<TblUserEvent>> {
     try {
         const response = await fetch(`${base}/api/events`);

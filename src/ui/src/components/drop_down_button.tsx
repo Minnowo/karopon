@@ -1,16 +1,23 @@
 import {useState, useRef, useEffect} from 'preact/hooks';
 
-type Action = {
+export type DropdownButtonAction = {
     label: string;
     onClick: () => void;
 };
 
 type DropdownProps = {
-    actions: Action[];
+    actions: DropdownButtonAction[];
     label?: string;
+    className?: string;
+    buttonClassName?: string;
 };
 
-export function DropdownButton({actions, label = '[:]'}: DropdownProps) {
+export function DropdownButton({
+    actions,
+    label = '[:]',
+    className,
+    buttonClassName = 'w-full h-full font-mono p-0.5 m-0 border-none bg-c-d-black hover:bg-c-black',
+}: DropdownProps) {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -27,13 +34,13 @@ export function DropdownButton({actions, label = '[:]'}: DropdownProps) {
     }, []);
 
     return (
-        <div class="relative" ref={menuRef}>
-            <button onClick={() => setOpen(!open)} class="font-mono p-0.5 m-0 border-none bg-c-d-black hover:bg-c-black">
+        <div className={`relative ${className}`} ref={menuRef}>
+            <button onClick={() => setOpen(!open)} className={buttonClassName}>
                 {label}
             </button>
 
             {open && (
-                <div class="absolute container-theme right-0 shadow-lg z-10">
+                <div className="absolute container-theme right-0 shadow-lg z-10">
                     {actions.map((action, i) => (
                         <button
                             key={i}
@@ -41,7 +48,7 @@ export function DropdownButton({actions, label = '[:]'}: DropdownProps) {
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            class="w-full text-left rounded-none border-none hover:bg-c-black px-2 py-1"
+                            className="w-full text-left rounded-none border-none hover:bg-c-black px-2 py-1"
                         >
                             {action.label}
                         </button>
