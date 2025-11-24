@@ -13,6 +13,7 @@ import {TblUser, TblUserFood, TblUserEvent} from './api/types';
 import {WhoAmI, UserFoods, UserEvents} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventLogPage} from './pages/eventlog_page.js';
+import {EventsPage} from './pages/eventpage';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -45,7 +46,7 @@ export function App() {
                         <EventLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                     </Route>
                     <Route path="/foodlog">
-                        <FoodLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                        <EventsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                     </Route>
                     <Route path="/foods">
                         <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
