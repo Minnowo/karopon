@@ -7,6 +7,7 @@ import {FoodLogPage} from './pages/foodlog_page.js';
 import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
+import { BloodSugarPage } from './pages/bloodsugar_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent} from './api/types';
@@ -15,10 +16,66 @@ import {LogoutPage} from './pages/logout_page.js';
 import {EventLogPage} from './pages/eventlog_page.js';
 import {EventsPage} from './pages/eventpage';
 
+//test data
+const test_user: TblUser = {
+    id: 1,
+    name: "test",
+    created: ""
+}
+const test_food: TblUserFood[] =[{
+    id: 1,
+    user_id: 1,
+    name: "test",
+    unit: "test",
+    portion: 1,
+    protein: 1,
+    carb: 1,
+    fibre: 1,
+    fat: 1,
+}]
+
+const test_events: TblUserEvent[] = [{
+    id: 1,
+    user_id: 1,
+    name: "test",
+}]
+
 export function App() {
+    const [_, test_setFoods] = useState<Array<TblUserFood> | null>(null);
+    const [__, test_setEvents] = useState<Array<TblUserEvent> | null>(null);
+    // return (
+    //     <BloodSugarPage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    // )
+    // return (
+    // <main className="p-16">
+    //     <div>test</div>
+    //     <Header user={test_user}/>
+    //         <Switch>
+    //             <Route path="/eventlog">
+    //                 <EventLogPage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    //             </Route>
+    //             <Route path="/foodlog">
+    //                 <EventsPage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    //             </Route>
+    //             <Route path="/foods">
+    //                 <FoodPage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    //             </Route>
+    //             <Route path="/bloodsugar">
+    //                 <BloodSugarPage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    //             </Route>
+    //             <Route path="/logout">
+    //                 <LogoutPage />
+    //             </Route>
+    //             <Route>
+    //                 <HomePage user={test_user} foods={test_food} setFoods={test_setFoods} events={test_events} setEvents={test_setEvents} />
+    //             </Route>
+    //         </Switch>
+    // </main>
+    // )
     const [user, setUser] = useState<TblUser | null>(null);
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
+
 
     useEffect(() => {
         WhoAmI().then((me) => setUser(me));
@@ -35,7 +92,7 @@ export function App() {
     if (foods === null || events === null) {
         return <div>loading...</div>;
     }
-
+    
     return (
         <main className="p-16">
             <Router hook={useHashLocation}>
@@ -50,6 +107,9 @@ export function App() {
                     </Route>
                     <Route path="/foods">
                         <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/bloodsugar">
+                        <BloodSugarPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                     </Route>
                     <Route path="/logout">
                         <LogoutPage />
