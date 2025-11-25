@@ -1,4 +1,12 @@
-import {TblUser, TblUserFoodLog, TblUserFood, CreateUserEventLog, TblUserEvent, InsertUserFoodLog, TblUserEventLog} from './types';
+import {
+    TblUser,
+    TblUserFoodLog,
+    TblUserFood,
+    CreateUserEventLog,
+    TblUserEvent,
+    InsertUserFoodLog,
+    TblUserEventLog,
+} from './types';
 
 // export const base = 'http://localhost:9070';
 export const base = '';
@@ -189,4 +197,3 @@ export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog
         rethrow(err);
     }
 }
-
