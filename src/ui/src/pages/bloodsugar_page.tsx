@@ -1,104 +1,25 @@
-import { useState } from 'preact/hooks';
 import {BaseState} from '../state/basestate';
 import { TblUserEventLog } from '../api/types';
+import {useEffect, useState} from 'preact/hooks';
+import { GetUserEventLog } from '../api/api';
 
-const test_eventLog : TblUserEventLog[]= [{
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: new Date().getTime(),
-    event: "event1",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-    {
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: 1,
-    event: "event2",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-    {
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: 1,
-    event: "event3",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-    {
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: 1,
-    event: "string",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-    {
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: 1,
-    event: "event4",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-    {
-    id: 1,
-    user_id: 1,
-    event_id: 1,
-    created: 1,
-    user_time: 1,
-    event: "event5",
-    net_carbs: 1,
-    blood_glucose: 1,
-    blood_glucose_target: 1,
-    insulin_sensitivity_factor: 1,
-    insulin_to_carb_ratio: 1,
-    recommended_insulin_amount: 1,
-    actual_insulin_taken: 1,
-    },
-];
 
 export function BloodSugarPage(state: BaseState) {
     const [open, setOpen] = useState(false);
     const [numberToShow, setNumberToShow] = useState<number>(5);
+    const [eventLogs, setEventLog] = useState<Array<TblUserEventLog> | null>(null);
 
     const recommendedLimit = [1,2,5,10,20,50]
+
+    useEffect(() => {
+            GetUserEventLog().then((r) => setEventLog(r));
+    }, []);
+    
+    if (eventLogs === null) {
+        return <div class="">loading...</div>;
+    }
+    
+    console.log(eventLogs);
 
     return (
         <main>
@@ -163,7 +84,7 @@ export function BloodSugarPage(state: BaseState) {
                 <text className="text-2xl font-medium ml-10">Events</text>
                 <div className="flex flex-col items-center">
                     {
-                        test_eventLog.slice(0,numberToShow).map((eventLog: TblUserEventLog) => {
+                        eventLogs.slice(0,numberToShow).map((eventLog: TblUserEventLog) => {
                             return (
                                 <div className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between">
                                     <div className="text-lg font-medium h-10 w-15 m-5 flex items-center justify-center border-b">{eventLog["event"]}</div>
