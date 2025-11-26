@@ -48,6 +48,10 @@ type DB interface {
 	// Does not edit the given structs.
 	UpdateUserFood(ctx context.Context, food *TblUserFood) error
 
+	// Update the given eventlog.
+	// Does not edit the given structs.
+	UpdateUserEventLog(ctx context.Context, food *TblUserEventLog) error
+
 	// Delete a food by it's ID.
 	DeleteUserFood(ctx context.Context, userId int, foodId int) error
 
