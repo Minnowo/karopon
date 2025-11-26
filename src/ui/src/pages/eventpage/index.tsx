@@ -166,9 +166,7 @@ export function EventsPage(state: BaseState) {
                                         {foodGroup.foods.map((food: TblUserFoodLog) => (
                                             <tr key={food.id}>
                                                 <td className="whitespace-nowrap max-w-[150px]">
-                                                <div className="overflow-x-scroll">
-                                                    {food.name}
-                                                </div>
+                                                    <div className="overflow-x-scroll">{food.name}</div>
                                                 </td>
                                                 <td className="text-right whitespace-nowrap">
                                                     {food.portion} {food.unit}
