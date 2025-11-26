@@ -7,6 +7,7 @@ import {FoodLogPage} from './pages/foodlog_page.js';
 import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
+import { BloodSugarPage } from './pages/bloodsugar_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent} from './api/types';
@@ -15,10 +16,12 @@ import {LogoutPage} from './pages/logout_page.js';
 import {EventLogPage} from './pages/eventlog_page.js';
 import {EventsPage} from './pages/eventpage';
 
+
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
+
 
     useEffect(() => {
         WhoAmI().then((me) => setUser(me));
@@ -35,7 +38,7 @@ export function App() {
     if (foods === null || events === null) {
         return <div>loading...</div>;
     }
-
+    
     return (
         <main className="p-16">
             <Router hook={useHashLocation}>
@@ -50,6 +53,9 @@ export function App() {
                     </Route>
                     <Route path="/foods">
                         <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/bloodsugar">
+                        <BloodSugarPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                     </Route>
                     <Route path="/logout">
                         <LogoutPage />

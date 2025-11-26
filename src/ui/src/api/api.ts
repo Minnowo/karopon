@@ -1,4 +1,12 @@
-import {TblUser, TblUserFoodLog, TblUserFood, CreateUserEventLog, TblUserEvent, InsertUserFoodLog} from './types';
+import {
+    TblUser,
+    TblUserFoodLog,
+    TblUserFood,
+    CreateUserEventLog,
+    TblUserEvent,
+    InsertUserFoodLog,
+    TblUserEventLog,
+} from './types';
 
 // export const base = 'http://localhost:9070';
 export const base = '';
@@ -125,6 +133,20 @@ export async function UserEvents(): Promise<Array<TblUserEvent>> {
 export async function GetUserFoodLog(): Promise<Array<TblUserFoodLog>> {
     try {
         const response = await fetch(`${base}/api/foodlog`);
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
+export async function GetUserEventLog(): Promise<Array<TblUserEventLog>> {
+    try {
+        const response = await fetch(`${base}/api/eventlog`);
 
         if (response.status !== 200) {
             await throwFailureReason(response);

@@ -71,6 +71,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/foodlog", a.get_userfoodlog)
 	get.HandleFunc("/events", a.get_userevents)
 	get.HandleFunc("/events/{id}", a.get_userevent)
+	get.HandleFunc("/eventlog", a.get_usereventlog)
 
 	post := api.Methods("POST").Subrouter()
 	post.Use(auth.RequireAuth())

@@ -67,6 +67,9 @@ type DB interface {
 	// Read all the users events into the given array, or returns an error.
 	LoadUserEvents(ctx context.Context, userId int, events *[]TblUserEvent) error
 
+	// Read all the users eventlogs into the given array, or returns an error.
+	LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
+
 	// Add the given event log to the database with the given transaction.
 	// Returns the created ID or an error.
 	// Does not edit the given struct.

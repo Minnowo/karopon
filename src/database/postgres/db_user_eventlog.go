@@ -83,3 +83,12 @@ func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEven
 
 	return id, err
 }
+
+func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]database.TblUserEventLog) error {
+	query := `
+		SELECT * FROM PON.USER_EVENTLOG el
+		WHERE el.USER_ID = $1
+		ORDER BY el.CREATED DESC
+	`
+	return db.SelectContext(ctx, out, query, userId)
+}
