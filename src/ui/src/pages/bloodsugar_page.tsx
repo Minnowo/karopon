@@ -22,7 +22,7 @@ export function BloodSugarPage(state: BaseState) {
 
     return (
         <main>
-            <div className="w-full flex justify-evenly w-full p-4">
+            <div className="w-full flex justify-evenly p-4">
                 <button className="w-40">New Event</button>
 
                 <div className="w-40 flex relative">
@@ -41,21 +41,21 @@ export function BloodSugarPage(state: BaseState) {
                         onChange={(e) => {
                             if (e != null) {
                                 const number = Number(e.currentTarget.value);
-                                if (number != null) {
+                                if (!isNaN(number)) {
                                     setNumberToShow(number);
                                 }
                             }
                         }}
-                    ></input>
+                    />
                     <div className="flex flex-col w-6">
                         <button
-                            className="rounded-l-none rounded-b-none px-1 leading-none border-l-0 border-b-0 hover:bg-gray-100"
+                            className="rounded-l-none rounded-b-none px-1 leading-none border-l-0 border-b-0 hover:bg-c-l-black"
                             onClick={() => setNumberToShow(numberToShow + 1)}
                         >
                             ▲
                         </button>
                         <button
-                            className="rounded-l-none rounded-t-none px-1 leading-none border-l-0 border-t-0 hover:bg-gray-100"
+                            className="rounded-l-none rounded-t-none px-1 leading-none border-l-0 border-t-0 hover:bg-c-l-black"
                             onClick={() => {
                                 if (numberToShow > 0) {
                                     setNumberToShow(numberToShow - 1);
@@ -70,7 +70,8 @@ export function BloodSugarPage(state: BaseState) {
                             {recommendedLimit.map((limit: number) => {
                                 return (
                                     <div
-                                        className="border px-0.5 w-15 bg-black hover:bg-gray-500"
+                                        className="border px-0.5 w-15 bg-c-black hover:bg-c-l-black"
+                                        key={limit}
                                         onMouseDown={() => setNumberToShow(limit)}
                                     >
                                         {limit}
@@ -84,24 +85,24 @@ export function BloodSugarPage(state: BaseState) {
                 <button className="w-40">Export</button>
             </div>
 
-            <hr></hr>
+            <hr />
             <div className="mt-5">
                 <text className="text-2xl font-medium ml-10">Events</text>
                 <div className="flex flex-col items-center">
                     {eventLogs.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
                         return (
-                            <div className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between">
+                            <div key={eventLog.id} className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between">
                                 <div className="text-lg font-medium h-10 w-15 m-5 flex items-center justify-center border-b">
-                                    {eventLog['event']}
+                                    {eventLog.event}
                                 </div>
                                 <div className="flex items-center">
                                     <div class="bg-gray-400 w-px h-10 mr-5" />
                                     <text className="text-lg font-[700] pr-3">Blood Sugar:</text>
-                                    <text>{eventLog['blood_glucose']}</text>
+                                    <text>{eventLog.blood_glucose}</text>
                                 </div>
                                 <div className="flex items-center">
                                     <div class="bg-gray-400 w-px h-10 mr-5" />
-                                    <div className="flex items-center">{new Date(eventLog['user_time']).toLocaleString()}</div>
+                                    <div className="flex items-center">{new Date(eventLog.user_time).toLocaleString()}</div>
                                 </div>
                                 <button className="flex items-center">Edit</button>
                             </div>
