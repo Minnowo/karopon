@@ -33,8 +33,20 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
             <span className="text-lg">Add Food</span>
             <div className="flex justify-between font-semibold">
                 <div class="w-full px-1">
-                    <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodName} value={food.name} />
-                    <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodUnit} value={food.unit} />
+                    <input
+                        class="mb-2 whitespace-nowrap w-full"
+                        type="text"
+                        ref={foodName}
+                        value={food.name}
+                        placeholder="Food Name"
+                    />
+                    <input
+                        class="mb-2 whitespace-nowrap w-full"
+                        type="text"
+                        ref={foodUnit}
+                        value={food.unit}
+                        placeholder="Portion Unit"
+                    />
                     <NumberInput
                         class={'whitespace-nowrap'}
                         label={'Portion'}
