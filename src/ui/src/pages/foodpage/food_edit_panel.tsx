@@ -87,10 +87,12 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                         <div className="w-full flex flex-row items-center justify-between mb-2">
                             <NumberInput2
                                 className="w-32"
+                                innerClassName="w-24"
                                 label={food.unit}
                                 numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
                                 distinctNumberList={true}
                                 min={0}
+                                max={1_000_000_000}
                                 value={portion}
                                 onValueChange={setPortion}
                             />

@@ -2,7 +2,8 @@ import {useState, useRef, useEffect} from 'preact/hooks';
 
 type Props = {
     className?: string;
-    label: string;
+    innerClassName?: string;
+    label?: string;
     value: number;
     onValueChange: (value: number) => void;
     numberList?: number[];
@@ -51,16 +52,25 @@ export function NumberInput2(p: Props) {
         p.onValueChange(valueRef.current - step);
     };
 
+    const className = p.className !== undefined ? p.className : '';
+    const innerClassName = p.innerClassName !== undefined ? p.innerClassName : 'w-12';
+
     return (
-        <div className={`h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow ${p.className}`}>
-            <button className="border-none select-none" onClick={() => setOpen(!open)} onBlur={() => setOpen(false)}>
-                {p.label}
-            </button>
+        <div className={`h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow ${className}`}>
+            {p.label && (
+                <button
+                    className="flex-none border-none select-none rounded-r-none pr-1"
+                    onClick={() => setOpen(!open)}
+                    onBlur={() => setOpen(false)}
+                >
+                    {p.label}
+                </button>
+            )}
             <input
+                className={`flex-none ${innerClassName} pl-1 border-none focus:outline-none rounded-r-none`}
                 type="text"
                 inputmode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*$"
-                className="pl-2 w-16 border-none focus:outline-none"
                 value={p.value}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setOpen(false)}
@@ -75,18 +85,25 @@ export function NumberInput2(p: Props) {
                     }
                     const number = Number(e.currentTarget.value);
 
-                    if (!isNaN(number)) {
-                        if (number != p.value) {
-                            p.onValueChange(number);
-                        }
-                    } else {
+                    if (isNaN(number)) {
                         e.currentTarget.value = `${p.value}`;
+                        return;
+                    }
+                    if (number == p.value) {
+                        return;
+                    }
+                    if (p.max !== undefined && number > p.max) {
+                        p.onValueChange(p.max);
+                    } else if (p.min !== undefined && number < p.min) {
+                        p.onValueChange(p.min);
+                    } else {
+                        p.onValueChange(number);
                     }
                 }}
             />
-            <div className="flex flex-col w-6 justify-between">
+            <div className="flex flex-col flex-none justify-between">
                 <button
-                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="w-fit select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}
@@ -103,7 +120,7 @@ export function NumberInput2(p: Props) {
                     ▲
                 </button>
                 <button
-                    className="select-none px-1 pb-1 pt-0 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="w-fit select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}

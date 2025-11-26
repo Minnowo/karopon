@@ -1,10 +1,17 @@
-import {useEffect, useState} from 'preact/hooks';
+import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {InsertUserFoodLog, TblUserFoodLog} from '../../api/types';
+import {InsertUserFoodLog, TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
 import {GetUserFoodLog, LogFood} from '../../api/api';
 import {FoodInput} from '../../components/food_input';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {Fragment} from 'preact/jsx-runtime';
+import {DropdownButton} from '../../components/drop_down_button';
+import {DownloadData} from '../../utils/download';
+import {FuzzySearch} from '../../components/select_list';
+import {ChangeEvent} from 'preact/compat';
+import {DoRender} from '../../hooks/doRender';
+import {NumberInput2} from '../../components/number_input2';
+import {AddEventsPanel} from './add_event_panel';
 
 interface FoodGroup {
     id: number | null;
@@ -52,6 +59,7 @@ async function getGroupedFoodLog(): Promise<FoodGroup[]> {
 
 export function EventsPage(state: BaseState) {
     const [foodlog, setFoodlog] = useState<Array<FoodGroup> | null>(null);
+    const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
 
     useEffect(() => {
         getGroupedFoodLog().then((r) => setFoodlog(r));
@@ -81,62 +89,50 @@ export function EventsPage(state: BaseState) {
         });
     };
 
-    const renderFood = (food: TblUserFoodLog, isInGroup: boolean) => {
-        const t = formatSmartTimestamp(food.user_time);
-        const netCarbs = food.carb - food.fibre;
-
-        const css = isInGroup ? '' : 'border container-theme';
-
-        return (
-            <div key={`foodlog_${food.id}`} className={`overflow-x-scroll rounded-sm p-2 ${css}`}>
-                <div className="flex justify-between font-semibold mb-2">
-                    <div>
-                        <span> {food.name} </span>
-                        <span>
-                            {' '}
-                            {food.portion} {food.unit}{' '}
-                        </span>
-                    </div>
-                    {isInGroup ? null : (
-                        <div>
-                            <span> {food.event ? `${food.event} ` : ''} </span>
-                            <span>{t}</span>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex flex-wrap">
-                    <span class="mx-1 whitespace-nowrap">{food.carb.toFixed(3)} Carb </span>
-                    <span class="mx-1 whitespace-nowrap">{food.protein.toFixed(3)} Protein </span>
-                    <span class="mx-1 whitespace-nowrap">{food.fibre.toFixed(3)} Fibre </span>
-                    <span class="mx-1 whitespace-nowrap">{food.fat.toFixed(3)} Fat </span>
-                    <span class="mx-1 whitespace-nowrap font-bold">{netCarbs.toFixed(3)} Net Carbs </span>
-                </div>
-            </div>
-        );
-    };
-
-    const renderFoodGroup = (food: TblUserFoodLog) => {
-        return renderFood(food, true);
-    };
-
     return (
         <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <FoodInput foods={state.foods} events={state.events} onSubmit={onSubmitFood} />
+            <div className="w-full flex justify-evenly p-4">
+                <button className="w-32" onClick={() => setShowNewEventPanel((x) => !x)}>
+                    Add New Food
+                </button>
+                <button className="w-32">Import</button>
+                <DropdownButton
+                    buttonClassName="w-full h-full"
+                    className="w-32"
+                    label="Export"
+                    actions={[
+                        {
+                            label: 'As JSON',
+                            onClick: () => {
+                                const jsonStr = JSON.stringify(foodlog, null, 2);
+                                const blob = new Blob([jsonStr], {type: 'application/json'});
+                                DownloadData(blob, 'food-log.json');
+                            },
+                        },
+                    ]}
+                />
+            </div>
+
+            {showNewEventPanel && <AddEventsPanel foods={state.foods} events={state.events} />}
 
             <div className="w-full space-y-4">
                 {foodlog.map((foodGroup: FoodGroup) => {
-                    if (foodGroup.id === null) {
-                        return renderFood(foodGroup.foods[0], false);
-                    }
-
-                    const netCarbs = foodGroup.carb - foodGroup.fibre;
+                    const key = foodGroup.id === null ? `f_${foodGroup.foods[0].id}` : `e_${foodGroup.id}`;
 
                     return (
-                        <div key={`eventlog_${foodGroup.id}`} className="w-full p-2 border container-theme">
-                            <div className="text-xs font-semibold">
-                                <span>{`${foodGroup.foods[0].event} `}</span>
-                                <span>{formatSmartTimestamp(foodGroup.foods[0].user_time)}</span>
+                        <div key={key} className="w-full p-2 border container-theme">
+                            <div className="flex flex-row w-full justify-between">
+                                <div className="align-middle text-s font-semibold">
+                                    {`${foodGroup.foods[0].event} `} {formatSmartTimestamp(foodGroup.foods[0].user_time)}
+                                </div>
+
+                                <DropdownButton
+                                    actions={[
+                                        {label: 'Copy', onClick: () => {}},
+                                        {label: 'Edit', onClick: () => {}},
+                                        {label: 'Delete', onClick: () => {}},
+                                    ]}
+                                />
                             </div>
 
                             <div className="w-full mt-2 hidden sm:block">
@@ -154,15 +150,17 @@ export function EventsPage(state: BaseState) {
                                     </thead>
 
                                     <tbody>
-                                        <tr>
-                                            <td className="whitespace-nowrap">Total</td>
-                                            <td className="text-right">-</td>
-                                            <td className="text-right">{foodGroup.protein.toFixed(3)}</td>
-                                            <td className="text-right">{foodGroup.carb.toFixed(3)}</td>
-                                            <td className="text-right">{foodGroup.fibre.toFixed(3)}</td>
-                                            <td className="text-right">{foodGroup.fat.toFixed(3)}</td>
-                                            <th className="text-right">{netCarbs.toFixed(3)}</th>
-                                        </tr>
+                                        {foodGroup.foods.length > 1 && (
+                                            <tr>
+                                                <td className="whitespace-nowrap">Total</td>
+                                                <td className="text-right">-</td>
+                                                <td className="text-right">{foodGroup.protein.toFixed(3)}</td>
+                                                <td className="text-right">{foodGroup.carb.toFixed(3)}</td>
+                                                <td className="text-right">{foodGroup.fibre.toFixed(3)}</td>
+                                                <td className="text-right">{foodGroup.fat.toFixed(3)}</td>
+                                                <th className="text-right">{(foodGroup.carb - foodGroup.fibre).toFixed(3)}</th>
+                                            </tr>
+                                        )}
                                         {foodGroup.foods.map((food: TblUserFoodLog) => (
                                             <tr key={food.id}>
                                                 <td className="whitespace-nowrap max-w-[150px]">
