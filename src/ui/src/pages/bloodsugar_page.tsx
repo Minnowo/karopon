@@ -2,13 +2,12 @@ import {BaseState} from '../state/basestate';
 import {TblUserEventLog} from '../api/types';
 import {useEffect, useState} from 'preact/hooks';
 import {GetUserEventLog} from '../api/api';
+import { NumberInput2 } from '../components/number_input2';
 
 export function BloodSugarPage(state: BaseState) {
-    const [open, setOpen] = useState(false);
+
     const [numberToShow, setNumberToShow] = useState<number>(5);
     const [eventLogs, setEventLog] = useState<Array<TblUserEventLog> | null>(null);
-
-    const recommendedLimit = [1, 2, 5, 10, 20, 50];
 
     useEffect(() => {
         GetUserEventLog().then((r) => setEventLog(r));
@@ -18,69 +17,13 @@ export function BloodSugarPage(state: BaseState) {
         return <div class="">loading...</div>;
     }
 
-    console.log(eventLogs);
-
     return (
         <main>
             <div className="w-full flex justify-evenly p-4">
                 <button className="w-40">New Event</button>
 
-                <div className="w-40 flex relative">
-                    <button
-                        className="w-24 border-r-0 rounded-l-md rounded-r-none"
-                        onClick={() => setOpen(!open)}
-                        onBlur={() => setOpen(false)}
-                    >
-                        Show Last
-                    </button>
-                    <input
-                        className="pl-2 w-9 rounded-l-none rounded-r-none border-r-0 focus:outline-none"
-                        value={numberToShow}
-                        onFocus={() => setOpen(true)}
-                        onBlur={() => setOpen(false)}
-                        onChange={(e) => {
-                            if (e != null) {
-                                const number = Number(e.currentTarget.value);
-                                if (!isNaN(number)) {
-                                    setNumberToShow(number);
-                                }
-                            }
-                        }}
-                    />
-                    <div className="flex flex-col w-6">
-                        <button
-                            className="rounded-l-none rounded-b-none px-1 leading-none border-l-0 border-b-0 hover:bg-c-l-black"
-                            onClick={() => setNumberToShow(numberToShow + 1)}
-                        >
-                            ▲
-                        </button>
-                        <button
-                            className="rounded-l-none rounded-t-none px-1 leading-none border-l-0 border-t-0 hover:bg-c-l-black"
-                            onClick={() => {
-                                if (numberToShow > 0) {
-                                    setNumberToShow(numberToShow - 1);
-                                }
-                            }}
-                        >
-                            ▼
-                        </button>
-                    </div>
-                    {open && (
-                        <div className="absolute left-24 top-full">
-                            {recommendedLimit.map((limit: number) => {
-                                return (
-                                    <div
-                                        className="border px-0.5 w-15 bg-c-black hover:bg-c-l-black"
-                                        key={limit}
-                                        onMouseDown={() => setNumberToShow(limit)}
-                                    >
-                                        {limit}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+
+    <NumberInput2 label={"Show Last"}value={numberToShow} onValueChange={setNumberToShow} numberList={[1, 2, 5, 10, 20, 50]} />
 
                 <button className="w-40">Export</button>
             </div>
