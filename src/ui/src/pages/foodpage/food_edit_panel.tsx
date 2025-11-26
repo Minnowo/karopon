@@ -3,6 +3,7 @@ import {TblUserFood} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {DropdownButton} from '../../components/drop_down_button';
 import {JSX} from 'preact/jsx-runtime';
+import {NumberInput2} from '../../components/number_input2';
 
 type FoodEditPanelProps = {
     food: TblUserFood;
@@ -12,11 +13,15 @@ type FoodEditPanelProps = {
 };
 
 export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) {
-    const tmpFood = useRef<TblUserFood>({} as TblUserFood);
+    const tmpFood = useRef<TblUserFood>({...food});
     const foodName = useRef<HTMLInputElement>(null);
     const foodUnit = useRef<HTMLInputElement>(null);
     const [showUpdatePanel, setShowUpdatePanel] = useState<boolean>(false);
     const [portion, setPortion] = useState<number>(food.portion);
+
+    const [, setRender] = useState<number>(0);
+
+    const render = () => setRender((x) => x + 1);
 
     const onEditClicked = () => {
         setShowUpdatePanel(!showUpdatePanel);
@@ -56,11 +61,14 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                         <div class="w-full px-1">
                             <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodName} value={food.name} />
                             <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodUnit} value={food.unit} />
-                            <NumberInput
-                                class={'whitespace-nowrap'}
+                            <NumberInput2
+                                className={'whitespace-nowrap'}
                                 label={'Portion'}
-                                value={food.portion}
-                                onChange={(portion: number) => (tmpFood.current.portion = portion)}
+                                value={tmpFood.current.portion}
+                                onValueChange={(portion: number) => {
+                                    tmpFood.current.portion = portion;
+                                    render();
+                                }}
                             />
                         </div>
 
@@ -76,12 +84,16 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                 ) : (
                     <div className="w-full flex flex-col">
                         <span className="w-full text-lg mb-2">{food.name}</span>
-                        <div className="w-full flex flex-row items-center justify-between">
-                            <span>
-                                Per
-                                <input className="mx-2 w-32" type="number" value={portion} onInput={updatePortion} min="0" />
-                                <strong>{food.unit}</strong>
-                            </span>
+                        <div className="w-full flex flex-row items-center justify-between mb-2">
+                            <NumberInput2
+                                className="w-32"
+                                label={food.unit}
+                                numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
+                                distinctNumberList={true}
+                                min={0}
+                                value={portion}
+                                onValueChange={setPortion}
+                            />
                             <DropdownButton
                                 actions={[
                                     {
@@ -117,29 +129,41 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
 
             {showUpdatePanel ? (
                 <div className="flex flex-wrap">
-                    <NumberInput
-                        class={'mx-1 mt-2 whitespace-nowrap'}
+                    <NumberInput2
+                        className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Protein'}
-                        value={food.protein}
-                        onChange={(protein: number) => (tmpFood.current.protein = protein)}
+                        value={tmpFood.current.protein}
+                        onValueChange={(protein: number) => {
+                            tmpFood.current.protein = protein;
+                            render();
+                        }}
                     />
-                    <NumberInput
-                        class={'mx-1 mt-2 whitespace-nowrap'}
+                    <NumberInput2
+                        className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Carb'}
-                        value={food.carb}
-                        onChange={(carb: number) => (tmpFood.current.carb = carb)}
+                        value={tmpFood.current.carb}
+                        onValueChange={(carb: number) => {
+                            tmpFood.current.carb = carb;
+                            render();
+                        }}
                     />
-                    <NumberInput
-                        class={'mx-1 mt-2 whitespace-nowrap'}
+                    <NumberInput2
+                        className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Fibre'}
-                        value={food.fibre}
-                        onChange={(fibre: number) => (tmpFood.current.fibre = fibre)}
+                        value={tmpFood.current.fibre}
+                        onValueChange={(fibre: number) => {
+                            tmpFood.current.fibre = fibre;
+                            render();
+                        }}
                     />
-                    <NumberInput
-                        class={'mx-1 mt-2 whitespace-nowrap'}
+                    <NumberInput2
+                        className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Fat'}
-                        value={food.fat}
-                        onChange={(fat: number) => (tmpFood.current.fat = fat)}
+                        value={tmpFood.current.fat}
+                        onValueChange={(fat: number) => {
+                            tmpFood.current.fat = fat;
+                            render();
+                        }}
                     />
                 </div>
             ) : (
