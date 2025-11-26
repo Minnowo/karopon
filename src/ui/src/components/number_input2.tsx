@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "preact/hooks";
+import {useState, useRef, useEffect} from 'preact/hooks';
 
 type Props = {
     className?: string;
@@ -12,7 +12,6 @@ type Props = {
 };
 
 export function NumberInput2(p: Props) {
-
     const intDelay = 500;
     const repSpeed = 150;
     const timeoutRef = useRef<number>(0);
@@ -31,23 +30,23 @@ export function NumberInput2(p: Props) {
 
     const doInc = () => {
         const step = p.step === undefined ? 1 : p.step;
-        if (p.max !== undefined && valueRef.current + step > p.max) { return; }
+        if (p.max !== undefined && valueRef.current + step > p.max) {
+            return;
+        }
         p.onValueChange(valueRef.current + step);
-    }
+    };
 
     const doDec = () => {
         const step = p.step === undefined ? 1 : p.step;
-        if (p.min !== undefined && valueRef.current - step < p.min) { return; }
+        if (p.min !== undefined && valueRef.current - step < p.min) {
+            return;
+        }
         p.onValueChange(valueRef.current - step);
-    }
+    };
 
     return (
         <div className="h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow">
-            <button
-                className="w-24 border-none select-none"
-                onClick={() => setOpen(!open)}
-                onBlur={() => setOpen(false)}
-            >
+            <button className="w-24 border-none select-none" onClick={() => setOpen(!open)} onBlur={() => setOpen(false)}>
                 {p.label}
             </button>
             <input
