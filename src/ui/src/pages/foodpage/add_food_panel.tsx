@@ -56,8 +56,10 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                         placeholder="Portion Unit"
                     />
                     <NumberInput2
-                        className={'whitespace-nowrap'}
+                        className={'whitespace-nowrap w-full'}
+                        innerClassName={'flex-grow'}
                         min={0}
+                        max={1_000_000_000}
                         numberList={[1, 2, 5, 10, 50, 100, 200]}
                         label={'Portion'}
                         value={tmpFood.current.portion}
