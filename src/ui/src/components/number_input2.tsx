@@ -6,6 +6,7 @@ type Props = {
     value: number;
     onValueChange: (value: number) => void;
     numberList?: number[];
+    distinctNumberList?: boolean;
     step?: number;
     min?: number;
     max?: number;
@@ -19,6 +20,10 @@ export function NumberInput2(p: Props) {
     const valueRef = useRef<number>(p.value);
     const [open, setOpen] = useState<boolean>(false);
 
+    const numberList: number[] | undefined = p.distinctNumberList
+        ? [...new Set(p.numberList)].sort((a, b) => a - b)
+        : p.numberList;
+
     useEffect(() => {
         valueRef.current = p.value;
     }, [p.value]);
@@ -31,6 +36,7 @@ export function NumberInput2(p: Props) {
     const doInc = () => {
         const step = p.step === undefined ? 1 : p.step;
         if (p.max !== undefined && valueRef.current + step > p.max) {
+            p.onValueChange(p.max);
             return;
         }
         p.onValueChange(valueRef.current + step);
@@ -39,14 +45,15 @@ export function NumberInput2(p: Props) {
     const doDec = () => {
         const step = p.step === undefined ? 1 : p.step;
         if (p.min !== undefined && valueRef.current - step < p.min) {
+            p.onValueChange(p.min);
             return;
         }
         p.onValueChange(valueRef.current - step);
     };
 
     return (
-        <div className="h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow">
-            <button className="w-24 border-none select-none" onClick={() => setOpen(!open)} onBlur={() => setOpen(false)}>
+        <div className={`h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow ${p.className}`}>
+            <button className="border-none select-none" onClick={() => setOpen(!open)} onBlur={() => setOpen(false)}>
                 {p.label}
             </button>
             <input
@@ -61,7 +68,13 @@ export function NumberInput2(p: Props) {
                     if (e === null || e.currentTarget.value.length <= 0) {
                         return;
                     }
+                    if (e.currentTarget.value.endsWith('.')) {
+                        if (e.currentTarget.value.indexOf('.') === e.currentTarget.value.length - 1) {
+                            return;
+                        }
+                    }
                     const number = Number(e.currentTarget.value);
+
                     if (!isNaN(number)) {
                         if (number != p.value) {
                             p.onValueChange(number);
@@ -71,9 +84,9 @@ export function NumberInput2(p: Props) {
                     }
                 }}
             />
-            <div className="flex flex-col h-full w-6">
+            <div className="flex flex-col w-6 justify-between">
                 <button
-                    className="select-none px-1 leading-none border-none hover:bg-c-l-black"
+                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}
@@ -90,7 +103,7 @@ export function NumberInput2(p: Props) {
                     ▲
                 </button>
                 <button
-                    className="select-none px-1 leading-none border-none hover:bg-c-l-black"
+                    className="select-none px-1 pb-1 pt-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}
@@ -107,9 +120,9 @@ export function NumberInput2(p: Props) {
                     ▼
                 </button>
             </div>
-            {open && p.numberList !== undefined && (
-                <div className="absolute left-24 top-full">
-                    {p.numberList.map((limit: number) => {
+            {open && numberList !== undefined && (
+                <div className="absolute left-24 top-full z-50">
+                    {numberList.map((limit: number) => {
                         return (
                             <div
                                 className="border px-0.5 w-15 bg-c-black hover:bg-c-l-black"

@@ -115,6 +115,8 @@ export function BloodSugarPage(state: BaseState) {
 
                 <NumberInput2
                     label={'Show Last'}
+                    min={1}
+                    step={5}
                     value={numberToShow}
                     onValueChange={setNumberToShow}
                     numberList={[1, 2, 5, 10, 20, 50]}
