@@ -158,6 +158,26 @@ export async function GetUserEventLog(): Promise<Array<TblUserEventLog>> {
     }
 }
 
+export async function UpdateUserEventLog(eventlog: TblUserEventLog): Promise<boolean> {
+    try {
+        const response = await fetch(`${base}/api/eventlog/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(eventlog),
+        });
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return true;
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
 export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog> {
     try {
         const response = await fetch(`${base}/api/logfood`, {
