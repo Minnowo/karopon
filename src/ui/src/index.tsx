@@ -8,6 +8,7 @@ import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import { BloodSugarPage } from './pages/bloodsugar_page.js';
+import { StatsPage } from './pages/stats_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent} from './api/types';
@@ -56,6 +57,9 @@ export function App() {
                     </Route>
                     <Route path="/bloodsugar">
                         <BloodSugarPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/stats">
+                        <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
                     </Route>
                     <Route path="/logout">
                         <LogoutPage />
