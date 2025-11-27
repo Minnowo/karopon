@@ -7,7 +7,7 @@ import {FoodLogPage} from './pages/foodlog_page.js';
 import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
-import { BloodSugarPage } from './pages/bloodsugar_page.js';
+import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import { StatsPage } from './pages/stats_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
@@ -17,12 +17,10 @@ import {LogoutPage} from './pages/logout_page.js';
 import {EventLogPage} from './pages/eventlog_page.js';
 import {EventsPage} from './pages/eventpage';
 
-
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
-
 
     useEffect(() => {
         WhoAmI().then((me) => setUser(me));
@@ -39,9 +37,9 @@ export function App() {
     if (foods === null || events === null) {
         return <div>loading...</div>;
     }
-    
+
     return (
-        <main className="p-16">
+        <main className="p-4 sm:p-8 md:p-16">
             <Router hook={useHashLocation}>
                 <Header user={user} />
 

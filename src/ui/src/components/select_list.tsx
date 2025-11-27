@@ -8,9 +8,8 @@ type FuzzySearchProps<T> = {
     query: string;
     onSelect: (item: T | null) => void;
     onQueryChange?: (query: string) => void;
-
     placeholder?: string;
-    class?: string;
+    className?: string;
 };
 
 export function FuzzySearch<T>({
@@ -19,7 +18,7 @@ export function FuzzySearch<T>({
     data,
     searchKey,
     placeholder = '',
-    class: className,
+    className,
     onSelect,
 }: FuzzySearchProps<T>) {
     const container = useRef<HTMLDivElement | null>(null);

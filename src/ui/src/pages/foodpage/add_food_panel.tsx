@@ -1,9 +1,6 @@
-import {DropdownButton} from '../../components/drop_down_button';
-
-import {useState, useRef} from 'preact/hooks';
+import {useState, useRef, useEffect} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
-import {NumberInput} from '../../components/number_input';
-import {JSX} from 'preact/jsx-runtime';
+import {NumberInput2} from '../../components/number_input2';
 
 type AddFoodPanelProps = {
     food: TblUserFood;
@@ -13,9 +10,18 @@ type AddFoodPanelProps = {
 };
 
 export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodPanelProps) {
-    const tmpFood = useRef<TblUserFood>({} as TblUserFood);
+    const tmpFood = useRef<TblUserFood>({...food});
     const foodName = useRef<HTMLInputElement>(null);
     const foodUnit = useRef<HTMLInputElement>(null);
+
+    const [, setRender] = useState<number>(0);
+
+    const render = () => setRender((x) => x + 1);
+
+    useEffect(() => {
+        tmpFood.current = food;
+        render();
+    }, [food]);
 
     const onSaveClick = () => {
         const newFood = {...food, ...tmpFood.current};
@@ -33,13 +39,34 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
             <span className="text-lg">Add Food</span>
             <div className="flex justify-between font-semibold">
                 <div class="w-full px-1">
-                    <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodName} value={food.name} />
-                    <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodUnit} value={food.unit} />
-                    <NumberInput
-                        class={'whitespace-nowrap'}
+                    <input
+                        class="mb-2 whitespace-nowrap w-full"
+                        type="text"
+                        ref={foodName}
+                        value={food.name}
+                        onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
+                        placeholder="Food Name"
+                    />
+                    <input
+                        class="mb-2 whitespace-nowrap w-full"
+                        type="text"
+                        ref={foodUnit}
+                        value={food.unit}
+                        onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
+                        placeholder="Portion Unit"
+                    />
+                    <NumberInput2
+                        className={'whitespace-nowrap w-full'}
+                        innerClassName={'flex-grow'}
+                        min={0}
+                        max={1_000_000_000}
+                        numberList={[1, 2, 5, 10, 50, 100, 200]}
                         label={'Portion'}
-                        value={food.portion}
-                        onChange={(portion: number) => (tmpFood.current.portion = portion)}
+                        value={tmpFood.current.portion}
+                        onValueChange={(portion: number) => {
+                            tmpFood.current.portion = portion;
+                            render();
+                        }}
                     />
                 </div>
 
@@ -54,29 +81,49 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
             </div>
 
             <div className="flex flex-wrap">
-                <NumberInput
-                    class={'mx-1 mt-2 whitespace-nowrap'}
+                <NumberInput2
+                    className={'mx-1 mt-2 whitespace-nowrap'}
                     label={'Protein'}
-                    value={food.protein}
-                    onChange={(protein: number) => (tmpFood.current.protein = protein)}
+                    min={0}
+                    numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
+                    value={tmpFood.current.protein}
+                    onValueChange={(protein: number) => {
+                        tmpFood.current.protein = protein;
+                        render();
+                    }}
                 />
-                <NumberInput
-                    class={'mx-1 mt-2 whitespace-nowrap'}
+                <NumberInput2
+                    className={'mx-1 mt-2 whitespace-nowrap'}
                     label={'Carb'}
-                    value={food.carb}
-                    onChange={(carb: number) => (tmpFood.current.carb = carb)}
+                    min={0}
+                    numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
+                    value={tmpFood.current.carb}
+                    onValueChange={(carb: number) => {
+                        tmpFood.current.carb = carb;
+                        render();
+                    }}
                 />
-                <NumberInput
-                    class={'mx-1 mt-2 whitespace-nowrap'}
+                <NumberInput2
+                    className={'mx-1 mt-2 whitespace-nowrap'}
                     label={'Fibre'}
-                    value={food.fibre}
-                    onChange={(fibre: number) => (tmpFood.current.fibre = fibre)}
+                    min={0}
+                    numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
+                    value={tmpFood.current.fibre}
+                    onValueChange={(fibre: number) => {
+                        tmpFood.current.fibre = fibre;
+                        render();
+                    }}
                 />
-                <NumberInput
-                    class={'mx-1 mt-2 whitespace-nowrap'}
+                <NumberInput2
+                    className={'mx-1 mt-2 whitespace-nowrap'}
                     label={'Fat'}
-                    value={food.fat}
-                    onChange={(fat: number) => (tmpFood.current.fat = fat)}
+                    min={0}
+                    numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
+                    value={tmpFood.current.fat}
+                    onValueChange={(fat: number) => {
+                        tmpFood.current.fat = fat;
+                        render();
+                    }}
                 />
             </div>
         </div>
