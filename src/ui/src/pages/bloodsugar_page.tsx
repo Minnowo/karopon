@@ -3,6 +3,7 @@ import {TblUserEventLog} from '../api/types';
 import {useEffect, useState} from 'preact/hooks';
 import {GetUserEventLog, UpdateUserEventLog} from '../api/api';
 import {NumberInput2} from '../components/number_input2';
+import { ChangeEvent } from 'preact/compat';
 
 // import { test_eventLog } from '../testdata';
 
@@ -34,7 +35,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                         <text>Event Name</text>
                         <input
                             value={form.event}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('event', e.currentTarget.value.toString());
                             }}
                         ></input>
@@ -46,7 +47,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                             class="w-full my-1 sm:mx-1"
                             type="datetime-local"
                             name="Event Date"
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('created', new Date(e.currentTarget.value).getTime());
                             }}
                             value={new Date(form.created).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
@@ -59,7 +60,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                         <text>Blood Sugar</text>
                         <input
                             value={form.blood_glucose.toString()}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('blood_glucose', Number(e.currentTarget.value));
                             }}
                         ></input>
@@ -67,7 +68,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
 
                     <div class="flex flex-col">
                         <text>Sugar Taken</text>
-                        <input placeholder={'0'} onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}></input>
+                        <input placeholder={'0'} onChange={(e: ChangeEvent<HTMLInputElement>) => {}}></input>
                     </div>
                 </div>
             </form>
