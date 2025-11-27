@@ -3,7 +3,7 @@ import {TblUserEventLog} from '../api/types';
 import {useEffect, useState} from 'preact/hooks';
 import {GetUserEventLog, UpdateUserEventLog} from '../api/api';
 import {NumberInput2} from '../components/number_input2';
-import { ChangeEvent } from 'preact/compat';
+import {ChangeEvent} from 'preact/compat';
 
 // import { test_eventLog } from '../testdata';
 
@@ -38,7 +38,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('event', e.currentTarget.value.toString());
                             }}
-                        ></input>
+                        />
                     </div>
 
                     <div class="flex flex-col w-3/10">
@@ -63,12 +63,12 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('blood_glucose', Number(e.currentTarget.value));
                             }}
-                        ></input>
+                        />
                     </div>
 
                     <div class="flex flex-col">
                         <text>Sugar Taken</text>
-                        <input placeholder={'0'} onChange={(e: ChangeEvent<HTMLInputElement>) => {}}></input>
+                        <input placeholder={'0'} />
                     </div>
                 </div>
             </form>
