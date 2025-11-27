@@ -4,14 +4,17 @@ import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
 import {NumberInput2} from '../../components/number_input2';
+import {TblUserFoodLogFactory} from '../../api/factories';
+import {CalcInsulin} from '../../utils/insulin';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
     foods: TblUserFood[];
     render: () => void;
+    deleteSelf: () => void;
 }
 
-export function AddEventsPanelRow({foods, food, render}: AddEventsPanelRowState) {
+export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPanelRowState) {
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
     // We use this to scale by the portion, but still let the user type manually.
     const foodTemplate = useRef<TblUserFoodLog>({...food});
@@ -93,7 +96,7 @@ export function AddEventsPanelRow({foods, food, render}: AddEventsPanelRowState)
                         }}
                     />
                 </td>
-                <td>
+                <td className="pr-1">
                     <NumberInput2
                         value={food.fat}
                         onValueChange={(v) => {
@@ -101,6 +104,11 @@ export function AddEventsPanelRow({foods, food, render}: AddEventsPanelRowState)
                             render();
                         }}
                     />
+                </td>
+                <td>
+                    <button className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
+                        X
+                    </button>
                 </td>
             </tr>
         </>
@@ -115,7 +123,13 @@ interface AddEventsPanelState {
 export function AddEventsPanel(p: AddEventsPanelState) {
     const [event, setEvent] = useState<string>('');
     const [eventTime, setEventTime] = useState<Date>(new Date());
-    const foods = useRef<TblUserFoodLog[]>([]);
+    const [bloodSugar, setBloodSugar] = useState<number>(0);
+    const [insulinTaken, setInsulinTaken] = useState<number>(0);
+    const foods = useRef<TblUserFoodLog[]>([
+        TblUserFoodLogFactory.empty(),
+        TblUserFoodLogFactory.empty(),
+        TblUserFoodLogFactory.empty(),
+    ]);
 
     const render = DoRender();
 
@@ -124,6 +138,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             const value = e.currentTarget.value;
             setEventTime(new Date(value));
         }
+    };
+
+    const calcNetCarbs = () => {
+        let net = 0;
+        for (let i = 0; i < foods.current.length; i++) {
+            net += foods.current[i].carb - foods.current[i].fibre;
+        }
+        return net;
     };
 
     const buildSumHeader = () => {
@@ -151,6 +173,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         );
     };
 
+    const netCarb = calcNetCarbs();
+    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
     return (
         <>
             <div className="flex w-full mb-4">
@@ -175,8 +199,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onChange={onEventTimeChange}
                     value={eventTime.toISOString().substring(0, 16)}
                 />
-
-                <input class="w-full my-1 ml-1 max-w-32" type="submit" value="Create" />
             </div>
 
             <table className="w-full text-sm border-collapse">
@@ -186,23 +208,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                             {' '}
                             <button
                                 onClick={() => {
-                                    foods.current.push({
-                                        id: 0,
-                                        user_id: 0,
-                                        food_id: 0,
-                                        created: 0,
-                                        user_time: 0,
-                                        name: '',
-                                        eventlog_id: 0,
-                                        event_id: 0,
-                                        event: event,
-                                        unit: '',
-                                        portion: 0,
-                                        protein: 0,
-                                        carb: 0,
-                                        fibre: 0,
-                                        fat: 0,
-                                    });
+                                    foods.current.push(TblUserFoodLogFactory.empty());
                                     render();
                                 }}
                             >
@@ -214,16 +220,51 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         <th className="text-center py-1">Carbs</th>
                         <th className="text-center py-1">Fibre</th>
                         <th className="text-center py-1">Fat</th>
+                        <th className="text-center py-1" />
                     </tr>
                 </thead>
 
                 <tbody>
                     {buildSumHeader()}
-                    {foods.current.map((food: TblUserFoodLog) => (
-                        <AddEventsPanelRow key={food.id} foods={p.foods} food={food} render={render} />
+                    {foods.current.map((food: TblUserFoodLog, index: number) => (
+                        <AddEventsPanelRow
+                            key={food.id}
+                            foods={p.foods}
+                            food={food}
+                            render={render}
+                            deleteSelf={() => {
+                                foods.current.splice(index, 1);
+                                render();
+                            }}
+                        />
                     ))}
                 </tbody>
             </table>
+            <div className="w-full flex flex-none justify-end">
+                <span className="px-2"> Insulin Calc: {insulin.toFixed(3)} </span>
+                <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(3)} </span>
+            </div>
+
+            <div className="w-full flex flex-row flex-none justify-evenly">
+                <NumberInput2
+                    className="whitespace-nowrap my-1 mx-1 min-w-32"
+                    innerClassName="w-full"
+                    label="Blood Sugar"
+                    value={bloodSugar}
+                    onValueChange={setBloodSugar}
+                    min={0}
+                />
+                <NumberInput2
+                    className="whitespace-nowrap my-1 mx-1 min-w-32"
+                    innerClassName="w-full"
+                    label="Insulin Taken"
+                    value={insulinTaken}
+                    onValueChange={setInsulinTaken}
+                    min={0}
+                />
+                <input className="w-full my-1 mx-1 max-w-32" type="submit" value="Cancel" />
+                <input className="w-full my-1 mx-1 max-w-32" type="submit" value="Create" />
+            </div>
         </>
     );
 }

@@ -13,7 +13,7 @@ type Props = {
     max?: number;
 };
 
-export function NumberInput2(p: Props) {
+export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
     const intDelay = 500;
     const repSpeed = 150;
     const timeoutRef = useRef<number>(0);
@@ -36,8 +36,8 @@ export function NumberInput2(p: Props) {
 
     const doInc = () => {
         const step = p.step === undefined ? 1 : p.step;
-        if (p.max !== undefined && valueRef.current + step > p.max) {
-            p.onValueChange(p.max);
+        if (max !== undefined && valueRef.current + step > max) {
+            p.onValueChange(max);
             return;
         }
         p.onValueChange(valueRef.current + step);
@@ -56,10 +56,10 @@ export function NumberInput2(p: Props) {
     const innerClassName = p.innerClassName !== undefined ? p.innerClassName : 'w-12';
 
     return (
-        <div className={`h-fit w-fit flex relative outline-none rounded-sm border border-c-yellow ${className}`}>
+        <div className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap ${className}`}>
             {p.label && (
                 <button
-                    className="flex-none border-none select-none rounded-r-none pr-1"
+                    className="border-none select-none rounded-r-none pr-1"
                     onClick={() => setOpen(!open)}
                     onBlur={() => setOpen(false)}
                 >
@@ -67,7 +67,7 @@ export function NumberInput2(p: Props) {
                 </button>
             )}
             <input
-                className={`flex-none ${innerClassName} pl-1 border-none focus:outline-none rounded-r-none`}
+                className={`${innerClassName} pl-1 border-none focus:outline-none rounded-r-none`}
                 type="text"
                 inputmode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*$"
@@ -92,8 +92,8 @@ export function NumberInput2(p: Props) {
                     if (number == p.value) {
                         return;
                     }
-                    if (p.max !== undefined && number > p.max) {
-                        p.onValueChange(p.max);
+                    if (max !== undefined && number > max) {
+                        p.onValueChange(max);
                     } else if (p.min !== undefined && number < p.min) {
                         p.onValueChange(p.min);
                     } else {
@@ -101,9 +101,9 @@ export function NumberInput2(p: Props) {
                     }
                 }}
             />
-            <div className="flex flex-col flex-none justify-between">
+            <div className="flex flex-col justify-between">
                 <button
-                    className="w-fit select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}
@@ -120,7 +120,7 @@ export function NumberInput2(p: Props) {
                     ▲
                 </button>
                 <button
-                    className="w-fit select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
                     onPointerCancel={stopHoldRepeat}

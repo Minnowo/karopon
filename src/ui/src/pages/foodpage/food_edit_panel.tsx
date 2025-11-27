@@ -86,7 +86,6 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                         <span className="w-full text-lg mb-2">{food.name}</span>
                         <div className="w-full flex flex-row items-center justify-between mb-2">
                             <NumberInput2
-                                className="w-32"
                                 innerClassName="w-24"
                                 label={food.unit}
                                 numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
