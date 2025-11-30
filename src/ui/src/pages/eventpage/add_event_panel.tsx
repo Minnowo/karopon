@@ -39,7 +39,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         data={foods}
                         searchKey={'name'}
                         className="w-full my-1 sm:mr-1"
-                        placeholder="Event"
+                        placeholder="Food Name"
+                        noResultsText="New Food"
                         onSelect={(newFood: TblUserFood | null) => {
                             if (!newFood) {
                                 // The user may be creating a new food.
@@ -264,8 +265,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     data={p.events}
                     searchKey={'name'}
                     className="w-full my-1 sm:mr-1"
-                    placeholder="Food"
-                    noResultsText="New Food"
+                    placeholder="Event Name"
+                    noResultsText="New Event"
                     onSelect={(evnt: TblUserEvent | null) => {
                         if (evnt) {
                             setEvent(evnt.name);
