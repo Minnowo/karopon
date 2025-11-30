@@ -90,7 +90,18 @@ export function App() {
                             />
                         </Route>
                         <Route path="/stats">
-                            <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                            <StatsPage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                            />
                         </Route>
                         <Route path="/logout">
                             <LogoutPage />

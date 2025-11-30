@@ -13,7 +13,6 @@ type MacroTotals = {
 };
 
 export function StatsPage(state: BaseState) {
-    const eventLogs = state.eventlog ?? [];
     const [foodLogs, setFoodLogs] = useState<TblUserFoodLog[] | null>(null);
     const [range, setRange] = useState<RangeType>('daily');
     const [chartData, setChartData] = useState<{date: string; carbs: number}[]>([]);
@@ -24,18 +23,16 @@ export function StatsPage(state: BaseState) {
     }, []);
 
     useEffect(() => {
-        if (eventLogs !== null) {
-            setChartData(buildRangeData(eventLogs, range));
+        if (state.eventlog !== null) {
+            setChartData(buildRangeData(state.eventlog, range));
         }
-    }, [eventLogs, range]);
+    }, [state.eventlog, range]);
 
     useEffect(() => {
         if (foodLogs) {
             setMacros(buildTodayMacros(foodLogs));
         }
     }, [foodLogs]);
-
-    if (eventLogs === null) return <div className="p-4">Loading...</div>;
 
     const width = 600;
     const height = 300;
@@ -92,7 +89,7 @@ export function StatsPage(state: BaseState) {
                 ))}
                 {points.map((p) => (
                     <text
-                        key={p.date + '-x'}
+                        key={`${p.date}-x`}
                         x={p.x}
                         y={height - 5}
                         fill="white"
