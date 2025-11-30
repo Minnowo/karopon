@@ -68,10 +68,11 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/logout", a.api_logout)
 	get.HandleFunc("/whoami", a.whoami)
 	get.HandleFunc("/foods", a.get_userfood)
-	get.HandleFunc("/foodlog", a.get_userfoodlog)
+	get.HandleFunc("/foodlogs", a.get_userfoodlog)
 	get.HandleFunc("/events", a.get_userevents)
 	get.HandleFunc("/events/{id}", a.get_userevent)
-	get.HandleFunc("/eventlog", a.get_usereventlog)
+	get.HandleFunc("/eventlogs", a.get_usereventlog)
+	get.HandleFunc("/eventlogs_with_foodlogs", a.get_usereventlog_with_food_logs)
 
 	post := api.Methods("POST").Subrouter()
 	post.Use(auth.RequireAuth())

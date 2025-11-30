@@ -73,6 +73,7 @@ type DB interface {
 
 	// Read all the users eventlogs into the given array, or returns an error.
 	LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
+	LoadUserEventLogsTx(tx *sqlx.Tx, userId int, events *[]TblUserEventLog) error
 
 	// Add the given event log to the database with the given transaction.
 	// Returns the created ID or an error.
@@ -87,7 +88,9 @@ type DB interface {
 	// The given foods are also updated by any modifications made by AddUserFoodLogTx.
 	AddUserEventLogWith(ctx context.Context, event *TblUserEventLog, foodlogs []TblUserFoodLog) (int, error)
 
-	LoadUserEventsWithFood(ctx context.Context, userId int, out *[]UserEventWithFoods) error
+	// Read all the event logs and their food into the given array.
+	// Returns an error or nil.
+	LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]UserEventLogWithFoodLog) error
 
 	// Add the given TblUserFoodLog to the databasea, and sets the UserTime, FoodID, and EventID, on the given food
 	// Returns the TblUserFoodLog ID or an error.
