@@ -4,11 +4,7 @@ export function Header(state: HeaderState) {
     return (
         <header>
             <div className="w-full flex flex-wrap">
-                [<a href="#/home">home</a>
-                &nbsp; &nbsp;
-                <a href="#/eventlog">eventlog</a>
-                &nbsp; &nbsp;
-                <a href="#/foodlog">foodlog</a>
+                [<a href="#/events">events</a>
                 &nbsp; &nbsp;
                 <a href="#/foods">foods</a>
                 &nbsp; &nbsp;

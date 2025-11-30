@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
-import {TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
+import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
@@ -38,20 +38,21 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         className="w-full my-1 sm:mr-1"
                         placeholder="Event"
                         onSelect={(newFood: TblUserFood | null) => {
-                            if (newFood) {
-                                // Purposefully update the obj instead of assigning it.
-                                // We want the caller's object to be modified by this.
-                                food.id = newFood.id;
-                                food.name = newFood.name;
-                                food.unit = newFood.unit;
-                                food.portion = 1;
-                                food.protein = newFood.protein;
-                                food.fat = newFood.fat;
-                                food.fibre = newFood.fibre;
-                                food.carb = newFood.carb;
-                                foodTemplate.current = {...food};
-                                render();
+                            if (!newFood) {
+                                return;
                             }
+                            // Purposefully update the obj instead of assigning it.
+                            // We want the caller's object to be modified by this.
+                            food.id = newFood.id;
+                            food.name = newFood.name;
+                            food.unit = newFood.unit;
+                            food.portion = 1;
+                            food.protein = newFood.protein;
+                            food.fat = newFood.fat;
+                            food.fibre = newFood.fibre;
+                            food.carb = newFood.carb;
+                            foodTemplate.current = {...food};
+                            render();
                         }}
                     />
                 </td>
@@ -118,6 +119,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 interface AddEventsPanelState {
     foods: TblUserFood[];
     events: TblUserEvent[];
+    createEvent: (e: CreateUserEventLog, doClear: () => void) => void;
 }
 
 export function AddEventsPanel(p: AddEventsPanelState) {
@@ -132,6 +134,50 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     ]);
 
     const render = DoRender();
+
+    const clear = () => {
+        setEvent('');
+        setEventTime(new Date());
+        setBloodSugar(0);
+        setInsulinTaken(0);
+        foods.current.length = 0;
+        foods.current.push(TblUserFoodLogFactory.empty());
+        foods.current.push(TblUserFoodLogFactory.empty());
+        foods.current.push(TblUserFoodLogFactory.empty());
+    };
+
+    const onCreateClick = () => {
+        p.createEvent(
+            {
+                blood_glucose: bloodSugar,
+                blood_glucose_target: 0,
+                insulin_sensitivity_factor: 0,
+                insulin_to_carb_ratio: 0,
+                recommended_insulin_amount: 0,
+                actual_insulin_taken: insulinTaken,
+                event: {
+                    id: 0,
+                    user_id: 0,
+                    name: event,
+                },
+                foods: foods.current
+                    .filter((x) => x.name.length > 0)
+                    .map((x: TblUserFoodLog): InsertUserFoodLog => {
+                        return {
+                            name: x.name,
+                            event: x.event,
+                            unit: x.unit,
+                            portion: x.portion,
+                            protein: x.protein,
+                            carb: x.carb,
+                            fibre: x.fibre,
+                            fat: x.fat,
+                        };
+                    }),
+            },
+            clear
+        );
+    };
 
     const onEventTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target) {
@@ -176,7 +222,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const netCarb = calcNetCarbs();
     const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
     return (
-        <>
+        <div className="w-full p-2 container-theme">
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
@@ -228,7 +274,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     {buildSumHeader()}
                     {foods.current.map((food: TblUserFoodLog, index: number) => (
                         <AddEventsPanelRow
-                            key={food.id}
+                            key={index}
                             foods={p.foods}
                             food={food}
                             render={render}
@@ -245,9 +291,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(3)} </span>
             </div>
 
-            <div className="w-full flex flex-row flex-none justify-evenly">
+            <div className="w-full flex flex-col sm:flex-row sm:justify-evenly justify-end">
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32"
+                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
                     innerClassName="w-full"
                     label="Blood Sugar"
                     value={bloodSugar}
@@ -255,16 +301,16 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     min={0}
                 />
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32"
+                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
                     innerClassName="w-full"
                     label="Insulin Taken"
                     value={insulinTaken}
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 mx-1 max-w-32" type="submit" value="Cancel" />
-                <input className="w-full my-1 mx-1 max-w-32" type="submit" value="Create" />
+                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Cancel" />
+                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
             </div>
-        </>
+        </div>
     );
 }

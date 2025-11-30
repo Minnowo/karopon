@@ -200,7 +200,7 @@ export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog> 
 
 export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog> {
     try {
-        const response: Response = await fetch(`${base}/api/logevent`, {
+        const response: Response = await fetch(`${base}/api/eventlog/new`, {
             headers: {
                 'content-type': 'application/json',
             },

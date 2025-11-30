@@ -93,26 +93,20 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
 
 export function BloodSugarPage(state: BaseState) {
     const [numberToShow, setNumberToShow] = useState<number>(5);
-    const [eventLogs, setEventLog] = useState<Array<TblUserEventLog> | null>(null);
     const [editingID, setEditing] = useState<number | null>(null);
-
-    useEffect(() => {
-        GetUserEventLog().then((r) => setEventLog(r));
-    }, []);
 
     // setEventLog(test_eventLog);
 
     function updateEventLog(eventLog: TblUserEventLog) {
-        console.log(eventLog);
         UpdateUserEventLog(eventLog).then(() => {
-            const eventTempLogs = [...eventLogs!];
+            const eventTempLogs = [...state.eventlog!];
             for (let i = 0; i < eventTempLogs.length; i++) {
                 if (eventTempLogs[i].id == eventLog.id) {
                     eventTempLogs[i] = eventLog;
                     break;
                 }
             }
-            setEventLog(eventTempLogs);
+            state.setEventlog(eventTempLogs);
         });
         setEditing(null);
     }
@@ -138,51 +132,47 @@ export function BloodSugarPage(state: BaseState) {
             <div className="mt-5">
                 <text className="text-2xl font-medium ml-10">Events</text>
                 <div className="flex flex-col items-center">
-                    {eventLogs == null ? (
-                        <div class="">loading...</div>
-                    ) : (
-                        eventLogs.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
-                            return eventLog.id == editingID ? (
-                                <EditEventLogForm
-                                    key={eventLog.id}
-                                    eventlog={eventLog}
-                                    onSave={(form) => updateEventLog(form)}
-                                    onCancel={() => setEditing(null)}
-                                />
-                            ) : (
-                                <div
-                                    key={eventLog.id}
-                                    className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between"
-                                >
-                                    <div className="font-medium h-10 max-w-md m-5 flex items-center justify-center border-b truncate ">
-                                        {eventLog.event}
-                                    </div>
-
-                                    <div class="flex justify-between w-150">
-                                        <div className="flex items-center">
-                                            <div class="bg-gray-400 w-px h-10 mr-5" />
-                                            <text className="font-[700] pr-3">Blood Sugar:</text>
-                                            <text>{eventLog.blood_glucose}</text>
-                                        </div>
-
-                                        <div className="flex items-center">
-                                            <div class="bg-gray-400 w-px h-10 mr-5" />
-                                            <div className="flex items-center">{new Date(eventLog.created).toLocaleString()}</div>
-                                        </div>
-
-                                        <button
-                                            className="flex justify-center w-15 items-center border-0 border-l-1 hover:bg-gray-800"
-                                            onClick={() => {
-                                                setEditing(eventLog.id);
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
-                                    </div>
+                    {state.eventlog.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
+                        return eventLog.id == editingID ? (
+                            <EditEventLogForm
+                                key={eventLog.id}
+                                eventlog={eventLog}
+                                onSave={(form) => updateEventLog(form)}
+                                onCancel={() => setEditing(null)}
+                            />
+                        ) : (
+                            <div
+                                key={eventLog.id}
+                                className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between"
+                            >
+                                <div className="font-medium h-10 max-w-md m-5 flex items-center justify-center border-b truncate ">
+                                    {eventLog.event}
                                 </div>
-                            );
-                        })
-                    )}
+
+                                <div class="flex justify-between w-150">
+                                    <div className="flex items-center">
+                                        <div class="bg-gray-400 w-px h-10 mr-5" />
+                                        <text className="font-[700] pr-3">Blood Sugar:</text>
+                                        <text>{eventLog.blood_glucose}</text>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <div class="bg-gray-400 w-px h-10 mr-5" />
+                                        <div className="flex items-center">{new Date(eventLog.created).toLocaleString()}</div>
+                                    </div>
+
+                                    <button
+                                        className="flex justify-center w-15 items-center border-0 border-l-1 hover:bg-gray-800"
+                                        onClick={() => {
+                                            setEditing(eventLog.id);
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </main>

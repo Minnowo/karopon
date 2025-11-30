@@ -10,8 +10,8 @@ import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent} from './api/types';
-import {WhoAmI, UserFoods, UserEvents} from './api/api';
+import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog} from './api/types';
+import {WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventLogPage} from './pages/eventlog_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -20,6 +20,8 @@ export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
+    const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
         WhoAmI().then((me) => setUser(me));
@@ -28,13 +30,11 @@ export function App() {
             setFoods(myFood);
         });
         UserEvents().then((myEvents) => setEvents(myEvents));
+        GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
     }, []);
 
     if (user === null) {
         return <LoginPage />;
-    }
-    if (foods === null || events === null) {
-        return <div>loading...</div>;
     }
 
     return (
@@ -42,26 +42,63 @@ export function App() {
             <Router hook={useHashLocation}>
                 <Header user={user} />
 
-                <Switch>
-                    <Route path="/eventlog">
-                        <EventLogPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                    <Route path="/foodlog">
-                        <EventsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                    <Route path="/foods">
-                        <FoodPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                    <Route path="/bloodsugar">
-                        <BloodSugarPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                    <Route path="/logout">
-                        <LogoutPage />
-                    </Route>
-                    <Route>
-                        <HomePage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                </Switch>
+                {errorMsg !== null && <div className="text-c-l-red"> {errorMsg} </div>}
+
+                {foods !== null && events !== null && eventlog !== null && (
+                    <Switch>
+                        <Route path="/events">
+                            <EventsPage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                setErrorMsg={setErrorMsg}
+                            />
+                        </Route>
+                        <Route path="/foods">
+                            <FoodPage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                setErrorMsg={setErrorMsg}
+                            />
+                        </Route>
+                        <Route path="/bloodsugar">
+                            <BloodSugarPage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                setErrorMsg={setErrorMsg}
+                            />
+                        </Route>
+                        <Route path="/logout">
+                            <LogoutPage />
+                        </Route>
+                        <Route>
+                            <HomePage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                setErrorMsg={setErrorMsg}
+                            />
+                        </Route>
+                    </Switch>
+                )}
             </Router>
         </main>
     );
