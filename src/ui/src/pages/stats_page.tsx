@@ -1,16 +1,29 @@
 import { useEffect, useState } from "preact/hooks";
-import { TblUserEventLog } from "../api/types";
-import { GetUserEventLog } from "../api/api";
+import { TblUserEventLog, TblUserFoodLog } from "../api/types";
+import { GetUserEventLog, GetUserFoodLog } from "../api/api";
 
 type RangeType = "daily" | "weekly" | "monthly" | "yearly";
 
+type MacroTotals = {
+    carbs: number;
+    protein: number;
+    fat: number;
+    fibre: number;
+};
+
 export function StatsPage(state: any) {
     const [eventLogs, setEventLogs] = useState<TblUserEventLog[] | null>(null);
+    const [foodLogs, setFoodLogs] = useState<TblUserFoodLog[] | null>(null);
     const [range, setRange] = useState<RangeType>("daily");
     const [chartData, setChartData] = useState<{ date: string; carbs: number }[]>([]);
+    const [macros, setMacros] = useState<MacroTotals | null>(null);
 
     useEffect(() => {
         GetUserEventLog().then((data) => setEventLogs(data));
+    }, []);
+
+    useEffect(() => {
+        GetUserFoodLog().then((data) => setFoodLogs(data));
     }, []);
 
     useEffect(() => {
@@ -18,6 +31,12 @@ export function StatsPage(state: any) {
             setChartData(buildRangeData(eventLogs, range));
         }
     }, [eventLogs, range]);
+
+    useEffect(() => {
+        if (foodLogs) {
+            setMacros(buildTodayMacros(foodLogs));
+        }
+    }, [foodLogs]);
 
     if (eventLogs === null) return <div className="p-4">Loading...</div>;
 
@@ -60,7 +79,7 @@ export function StatsPage(state: any) {
                 ))}
             </div>
 
-            <svg width={width} height={height} viewBox={`0 0 ${width + 50} ${height}`} preserveAspectRatio="xMinYMin meet" className="border border-c-yellow rounded">
+            <svg width={width} height={height} viewBox={`0 0 ${width + 50} ${height}`} preserveAspectRatio="xMinYMin meet" className="border border-c-yellow rounded mb-4">
                 <polyline
                     fill="none"
                     stroke="white"
@@ -89,12 +108,136 @@ export function StatsPage(state: any) {
                     </text>
                 ))}
             </svg>
+            {macros && (
+                <>
+                    <h1 className="text-2xl mb-6">Today's Nutrition Breakdown</h1>
+                    {macros.carbs + macros.protein + macros.fat + macros.fibre === 0 ? (
+                        <div className="p-4 text-center text-yellow-400">
+                            Please enter a meal today to see your daily nutrient information
+                        </div>
+                    ) : (
+                        <PieChart data={macros} size={250} />
+                    )}
+                </>
+            )}
         </main>
     );
 }
 
-/* --- Helpers ------------------------------------------------------------ */
+/* --- Pie Chart ------------------------------------------------------------ */
+function PieChart({ data, size }: { data: MacroTotals; size: number }) {
+    const total = data.carbs + data.protein + data.fat + data.fibre;
 
+    const slices = [
+        { label: "Carbs", value: data.carbs, color: "#facc15" },
+        { label: "Protein", value: data.protein, color: "#4ade80" },
+        { label: "Fat", value: data.fat, color: "#fb7185" },
+        { label: "Fibre", value: data.fibre, color: "#60a5fa" }
+    ];
+
+    let cumulative = 0;
+    const [hoverText, setHoverText] = useState<string | null>(null);
+
+    const makeArc = (value: number) => {
+        const start = cumulative;
+        const angle = (value / total) * Math.PI * 2;
+        cumulative += angle;
+        return [start, cumulative];
+    };
+
+    const center = size / 2;
+    const radius = center - 10;
+
+    return (
+        <div className="flex flex-col">
+            <svg width={size} height={size}>
+                {slices.map((slice, i) => {
+                    const [start, end] = makeArc(slice.value);
+                    const path = describeArc(center, center, radius, start, end);
+
+                    return (
+                        <path
+                            key={i}
+                            d={path}
+                            fill={slice.color}
+                            onMouseEnter={() =>
+                                setHoverText(`${slice.label} - ${slice.value.toFixed(2)}g`)
+                            }
+                            onMouseLeave={() => setHoverText(null)}
+                        />
+                    );
+                })}
+            </svg>
+
+            {/* Display hover text next to the chart */}
+            {hoverText && (
+                <div className="text-white font-bold text-lg">
+                    {hoverText}
+                </div>
+            )}
+
+            {/* Legend */}
+            <div className="flex gap-4 mt-4">
+                {slices.map((slice, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                        <div
+                            style={{ backgroundColor: slice.color }}
+                            className="w-4 h-4 rounded-full"
+                        />
+                        <span className="text-white text-sm">
+                            {slice.label} ({slice.value.toFixed(2)}g)
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* --- Helpers ------------------------------------------------------------ */
+function buildTodayMacros(rows: TblUserFoodLog[]): MacroTotals {
+    const isToday = (date: string | number) => {
+        const d = new Date(date);
+        const today = new Date();
+        return (
+            d.getFullYear() === today.getFullYear() &&
+            d.getMonth() === today.getMonth() &&
+            d.getDate() === today.getDate()
+        );
+    };
+
+    const todayMeals = rows.filter((r) => r.user_time && isToday(r.user_time));
+
+    return todayMeals.reduce(
+        (acc, m) => ({
+            carbs: acc.carbs + Number(m.carb || 0),
+            protein: acc.protein + Number(m.protein || 0),
+            fat: acc.fat + Number(m.fat || 0),
+            fibre: acc.fibre + Number(m.fibre || 0),
+        }),
+        { carbs: 0, protein: 0, fat: 0, fibre: 0 }
+    );
+}
+
+function polarToCartesian(cx: number, cy: number, r: number, rad: number) {
+    return {
+        x: cx + r * Math.cos(rad - Math.PI / 2),
+        y: cy + r * Math.sin(rad - Math.PI / 2),
+    };
+}
+
+function describeArc(x: number, y: number, r: number, startAngle: number, endAngle: number) {
+    const start = polarToCartesian(x, y, r, endAngle);
+    const end = polarToCartesian(x, y, r, startAngle);
+    const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+
+    return [
+        "M", x, y,
+        "L", start.x, start.y,
+        "A", r, r, 0, largeArc, 0, end.x, end.y,
+        "Z"
+    ].join(" ");
+}
 function buildRangeData(events: TblUserEventLog[], range: RangeType) {
     const carbEvents = events.filter((e) => typeof e.net_carbs === "number");
     const now = new Date();
