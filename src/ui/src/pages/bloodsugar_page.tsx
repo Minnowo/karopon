@@ -1,28 +1,62 @@
 import {BaseState} from '../state/basestate';
-import {TblUserEventLog} from '../api/types';
+import {CreateUserEventLog, TblUserEventLog} from '../api/types';
 import {useEffect, useState} from 'preact/hooks';
-import {GetUserEventLog, UpdateUserEventLog} from '../api/api';
+import {GetUserEventLog, LogEvent, UpdateUserEventLog} from '../api/api';
 import {NumberInput2} from '../components/number_input2';
 import {ChangeEvent} from 'preact/compat';
-
-// import { test_eventLog } from '../testdata';
+import {DownloadData} from '../utils/download';
 
 type EventLogForm = {
-    eventlog: TblUserEventLog;
+    eventlog: TblUserEventLog | null;
     onCancel: () => void;
     onSave: (form: TblUserEventLog) => void;
 };
 
 function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
     const [form, setForm] = useState<TblUserEventLog>({
-        ...eventlog,
+        id: 0,
+        user_id: 0,
+        event_id: 0,
+        created: new Date().getTime(),
+        user_time: new Date().getTime(),
+        event: '',
+        net_carbs: 0,
+        blood_glucose: -1,
+        blood_glucose_target: 0,
+        insulin_sensitivity_factor: 0,
+        insulin_to_carb_ratio: 0,
+        recommended_insulin_amount: 0,
+        actual_insulin_taken: 0,
     });
+    const [bloodGlucoseError, setBloodGlucoseError] = useState<string | null>(null);
+    const [eventNameError, setEventNameError] = useState<string | null>(null);
+    const [sugarTakenError, setSugarTakenError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (eventlog != null) {
+            setForm({...eventlog});
+        }
+    }, []);
 
     function update(field: string, val: number | string) {
+        if (field == 'blood_glucose' && isNaN(+val)) {
+            setForm((prev) => ({...prev, blood_glucose: -1}));
+            return;
+        }
         setForm((prev) => ({...prev, [field]: val}));
     }
 
     const handleSubmit = (e: Event) => {
+        const newBloodError =
+            form.blood_glucose < 0 || isNaN(+form.blood_glucose) ? 'Blood glucose must be a positive number' : null;
+        const newEventNameError = form.event == '' ? 'Event must have a name' : null;
+
+        setEventNameError(newEventNameError);
+        setBloodGlucoseError(newBloodError);
+
+        if (newBloodError != null || newEventNameError != null) {
+            return;
+        }
         e.preventDefault();
         onSave(form);
     };
@@ -32,9 +66,11 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
             <form class="w-9/10 m-3">
                 <div class="flex items-center justify-between ml-5">
                     <div class="flex flex-col w-6/10">
-                        <text>Event Name</text>
+                        <span className={eventNameError == null ? '' : 'text-red-500'}>
+                            {eventNameError == null ? 'Event Name' : eventNameError}
+                        </span>
                         <input
-                            value={form.event}
+                            placeholder={form.event != '' ? form.event : 'Enter event name'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('event', e.currentTarget.value.toString());
                             }}
@@ -57,18 +93,20 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
 
                 <div class="flex items-center justify-evenly">
                     <div class="flex flex-col">
-                        <text>Blood Sugar</text>
+                        <span className={bloodGlucoseError != null ? 'text-red-500' : ''}>
+                            {bloodGlucoseError == null ? 'Blood Sugar' : bloodGlucoseError}
+                        </span>
                         <input
-                            value={form.blood_glucose.toString()}
+                            placeholder={form.blood_glucose < 0 ? 'Enter a value' : form.blood_glucose.toString()}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                update('blood_glucose', Number(e.currentTarget.value));
+                                update('blood_glucose', e.currentTarget.value);
                             }}
                         />
                     </div>
 
                     <div class="flex flex-col">
-                        <text>Sugar Taken</text>
-                        <input placeholder={'0'} />
+                        <span>Sugar Taken</span>
+                        <input placeholder={'Enter a value'} />
                     </div>
                 </div>
             </form>
@@ -94,6 +132,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
 export function BloodSugarPage(state: BaseState) {
     const [numberToShow, setNumberToShow] = useState<number>(5);
     const [editingID, setEditing] = useState<number | null>(null);
+    const [isAddingNewEvent, setAddingNewEvent] = useState<boolean>(false);
 
     // setEventLog(test_eventLog);
 
@@ -111,10 +150,45 @@ export function BloodSugarPage(state: BaseState) {
         setEditing(null);
     }
 
+    function createEventLog(eventLog: TblUserEventLog) {
+        const createEventLogData: CreateUserEventLog = {
+            blood_glucose: Number(eventLog.blood_glucose),
+            blood_glucose_target: 0,
+            insulin_sensitivity_factor: 0,
+            insulin_to_carb_ratio: 0,
+            recommended_insulin_amount: 0,
+            actual_insulin_taken: 0,
+            event: {
+                id: 0,
+                user_id: 0,
+                name: eventLog.event,
+            },
+            foods: [],
+        };
+        LogEvent(createEventLogData).then(() => {
+            const eventTempLogs = [...state.eventlog!, eventLog];
+            state.setEventlog(eventTempLogs);
+        });
+        setAddingNewEvent(false);
+    }
+
+    function onExport() {
+        const json = JSON.stringify(state.eventlog, ['event', 'blood_glucose', 'created'], 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        DownloadData(blob, 'food-log.json');
+    }
+
     return (
         <main class="text-base sm:text-xs md:text-sm lg:text-base">
             <div className="w-full flex justify-evenly p-4">
-                <button className="w-40 hover:bg-gray-800">New Event</button>
+                <button
+                    className="w-40 hover:bg-gray-800"
+                    onClick={() => {
+                        setAddingNewEvent(true);
+                    }}
+                >
+                    New Event
+                </button>
 
                 <NumberInput2
                     label={'Show Last'}
@@ -125,7 +199,9 @@ export function BloodSugarPage(state: BaseState) {
                     numberList={[1, 2, 5, 10, 20, 50]}
                 />
 
-                <button className="w-40 hover:bg-gray-800">Export</button>
+                <button className="w-40 hover:bg-gray-800" onClick={onExport}>
+                    Export
+                </button>
             </div>
 
             <hr />
@@ -143,7 +219,7 @@ export function BloodSugarPage(state: BaseState) {
                         ) : (
                             <div
                                 key={eventLog.id}
-                                className="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between"
+                                className="bg-c-d-black border border-c-yellow mt-3 w-9/10 rounded-sm flex justify-between"
                             >
                                 <div className="font-medium h-10 max-w-md m-5 flex items-center justify-center border-b truncate ">
                                     {eventLog.event}
@@ -175,6 +251,15 @@ export function BloodSugarPage(state: BaseState) {
                     })}
                 </div>
             </div>
+            {isAddingNewEvent && (
+                <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
+                    <EditEventLogForm
+                        eventlog={null}
+                        onSave={(form) => createEventLog(form)}
+                        onCancel={() => setAddingNewEvent(false)}
+                    />
+                </div>
+            )}
         </main>
     );
 }
