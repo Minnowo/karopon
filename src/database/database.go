@@ -82,6 +82,7 @@ type DB interface {
 
 	// Add the given event log to the database.
 	// If the TblUserEventLog.UserTime IsZero it is set as the current UTC time.
+	// The given TblUserEventLog.NetCarbs is updated with the net carbs of the given foods.
 	// The given foods are updated with the event's UserID, Event, EventLogID.
 	// The given foods UserTime are updated if their usertime IsZero.
 	// The given foods ID are updated.

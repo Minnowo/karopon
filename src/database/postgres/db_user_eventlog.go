@@ -17,6 +17,13 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 		if time.Time(event.UserTime).IsZero() {
 			event.UserTime = database.UnixMillis(time.Now())
 		}
+
+		event.NetCarbs = 0
+
+		for _, food := range foodlogs {
+			event.NetCarbs += food.Carb - food.Fibre
+		}
+
 		eventLogID, err := db.AddUserEventLogTx(tx, event)
 
 		if err != nil {
