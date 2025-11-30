@@ -138,37 +138,12 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 	return id, nil
 }
 
-func (db *PGDatabase) LoadUserEventsWithFood(ctx context.Context, userId int, out *[]database.UserEventWithFoods) error {
-
-	var groupedEvents []database.UserEventWithFoods
-	var events []database.TblUserEvent
-
-	if err := db.LoadUserEvents(ctx, userId, &events); err != nil {
-		return err
-	}
-
-	for _, event := range events {
-
-		geven := database.UserEventWithFoods{Event: event}
-
-		if err := db.LoadUserFoodLogByEvent(ctx, userId, event.ID, &geven.Foods); err != nil {
-			return err
-		}
-		groupedEvents = append(groupedEvents, geven)
-	}
-
-	*out = groupedEvents
-
-	return nil
-}
-
 func (db *PGDatabase) LoadUserFoodLogs(ctx context.Context, userId int, out *[]database.TblUserFoodLog) error {
 	query := `
 		SELECT * FROM PON.USER_FOODLOG fl
 		WHERE fl.USER_ID = $1
 		ORDER BY fl.USER_TIME DESC
 	`
-
 	return db.SelectContext(ctx, out, query, userId)
 }
 
@@ -178,6 +153,14 @@ func (db *PGDatabase) LoadUserFoodLogByEvent(ctx context.Context, userId int, ev
 		WHERE fl.USER_ID = $1 AND fl.EVENT_ID = $2
 		ORDER BY fl.USER_TIME DESC
 	`
-
 	return db.SelectContext(ctx, out, query, userId, eventId)
+}
+
+func (db *PGDatabase) LoadUserFoodLogByEventLogTx(tx *sqlx.Tx, userId int, eventLogId int, out *[]database.TblUserFoodLog) error {
+	query := `
+		SELECT * FROM PON.USER_FOODLOG fl
+		WHERE fl.USER_ID = $1 AND fl.EVENTLOG_ID = $2
+		ORDER BY fl.USER_TIME DESC
+	`
+	return tx.Select(out, query, userId, eventLogId)
 }

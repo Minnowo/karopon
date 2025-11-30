@@ -3,17 +3,16 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {FoodLogPage} from './pages/foodlog_page.js';
 import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
+import { StatsPage } from './pages/stats_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog} from './api/types';
-import {WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
+import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog} from './api/types';
+import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
-import {EventLogPage} from './pages/eventlog_page.js';
 import {EventsPage} from './pages/eventpage';
 
 export function App() {
@@ -21,6 +20,7 @@ export function App() {
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
     const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
+    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventLogWithFoodLog> | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
@@ -31,6 +31,7 @@ export function App() {
         });
         UserEvents().then((myEvents) => setEvents(myEvents));
         GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
+        GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
     }, []);
 
     if (user === null) {
@@ -44,7 +45,7 @@ export function App() {
 
                 {errorMsg !== null && <div className="text-c-l-red"> {errorMsg} </div>}
 
-                {foods !== null && events !== null && eventlog !== null && (
+                {foods !== null && events !== null && eventlog !== null && eventlogsWithFoodlogs !== null && (
                     <Switch>
                         <Route path="/events">
                             <EventsPage
@@ -55,6 +56,8 @@ export function App() {
                                 setEvents={setEvents}
                                 eventlog={eventlog}
                                 setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>
@@ -67,6 +70,8 @@ export function App() {
                                 setEvents={setEvents}
                                 eventlog={eventlog}
                                 setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>
@@ -79,10 +84,15 @@ export function App() {
                                 setEvents={setEvents}
                                 eventlog={eventlog}
                                 setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>
-                        <Route path="/logout">
+                        <Route path="/stats">
+                        <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/logout">
                             <LogoutPage />
                         </Route>
                         <Route>
@@ -94,6 +104,8 @@ export function App() {
                                 setEvents={setEvents}
                                 eventlog={eventlog}
                                 setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>

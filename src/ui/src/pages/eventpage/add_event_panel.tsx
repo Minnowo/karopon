@@ -6,6 +6,8 @@ import {DoRender} from '../../hooks/doRender';
 import {NumberInput2} from '../../components/number_input2';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
+import {Calories} from '../../utils/calories';
+import {JSX} from 'preact';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -31,6 +33,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         query={foodTemplate.current.name}
                         onQueryChange={(q) => {
                             foodTemplate.current.name = q;
+                            food.name = q;
                             render();
                         }}
                         data={foods}
@@ -39,6 +42,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         placeholder="Event"
                         onSelect={(newFood: TblUserFood | null) => {
                             if (!newFood) {
+                                // The user may be creating a new food.
+                                food.name = foodTemplate.current.name;
                                 return;
                             }
                             // Purposefully update the obj instead of assigning it.
@@ -56,22 +61,36 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         }}
                     />
                 </td>
-                <td className="flex flex-none justify-end pr-1">
-                    <NumberInput2
-                        label={food.unit}
-                        value={food.portion}
-                        onValueChange={(v) => {
-                            food.portion = v;
-                            food.carb = foodTemplate.current.carb * v;
-                            food.protein = foodTemplate.current.protein * v;
-                            food.fat = foodTemplate.current.fat * v;
-                            food.fibre = foodTemplate.current.fibre * v;
+                <td className="whitespace-nowrap w-full pr-1">
+                    <input
+                        className="w-full min-w-8"
+                        type="text"
+                        value={food.unit}
+                        onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
+                            food.unit = e.currentTarget.value;
                             render();
                         }}
                     />
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        min={0}
+                        value={food.portion}
+                        onValueChange={(v) => {
+                            food.portion = v;
+                            if (foodTemplate.current.id > 0) {
+                                food.carb = foodTemplate.current.carb * v;
+                                food.protein = foodTemplate.current.protein * v;
+                                food.fat = foodTemplate.current.fat * v;
+                                food.fibre = foodTemplate.current.fibre * v;
+                            }
+                            render();
+                        }}
+                    />
+                </td>
+                <td className="pr-1">
+                    <NumberInput2
+                        min={0}
                         value={food.protein}
                         onValueChange={(v) => {
                             food.protein = v;
@@ -81,6 +100,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        min={0}
                         value={food.carb}
                         onValueChange={(v) => {
                             food.carb = v;
@@ -90,6 +110,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        min={0}
                         value={food.fibre}
                         onValueChange={(v) => {
                             food.fibre = v;
@@ -99,6 +120,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        min={0}
                         value={food.fat}
                         onValueChange={(v) => {
                             food.fat = v;
@@ -135,6 +157,25 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const render = DoRender();
 
+    const totals = (() => {
+        const cols = [0, 0, 0, 0];
+        for (let i = 0; i < foods.current.length; i++) {
+            cols[0] += foods.current[i].protein;
+            cols[1] += foods.current[i].carb;
+            cols[2] += foods.current[i].fibre;
+            cols[3] += foods.current[i].fat;
+        }
+        return {
+            protein: cols[0],
+            carb: cols[1],
+            fibre: cols[2],
+            fat: cols[3],
+        };
+    })();
+
+    const netCarb = totals.carb - totals.fibre;
+    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
+
     const clear = () => {
         setEvent('');
         setEventTime(new Date());
@@ -158,22 +199,22 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 event: {
                     id: 0,
                     user_id: 0,
-                    name: event,
+                    name: event.trim(),
                 },
                 foods: foods.current
-                    .filter((x) => x.name.length > 0)
                     .map((x: TblUserFoodLog): InsertUserFoodLog => {
                         return {
-                            name: x.name,
-                            event: x.event,
-                            unit: x.unit,
+                            name: x.name.trim(),
+                            event: x.event.trim(),
+                            unit: x.unit.trim(),
                             portion: x.portion,
                             protein: x.protein,
                             carb: x.carb,
                             fibre: x.fibre,
                             fat: x.fat,
                         };
-                    }),
+                    })
+                    .filter((x) => x.name.length > 0),
             },
             clear
         );
@@ -186,41 +227,24 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         }
     };
 
-    const calcNetCarbs = () => {
-        let net = 0;
-        for (let i = 0; i < foods.current.length; i++) {
-            net += foods.current[i].carb - foods.current[i].fibre;
-        }
-        return net;
-    };
-
     const buildSumHeader = () => {
         if (foods.current.length <= 1) {
             return <> </>;
-        }
-
-        const cols = [0, 0, 0, 0];
-        for (let i = 0; i < foods.current.length; i++) {
-            cols[0] += foods.current[i].protein;
-            cols[1] += foods.current[i].carb;
-            cols[2] += foods.current[i].fibre;
-            cols[3] += foods.current[i].fat;
         }
 
         return (
             <tr>
                 <td className="whitespace-nowrap w-full">Total</td>
                 <td className="text-center pr-1">-</td>
-                <td className="text-center pr-1">{cols[0].toFixed(3)}</td>
-                <td className="text-center pr-1">{cols[1].toFixed(3)}</td>
-                <td className="text-center pr-1">{cols[2].toFixed(3)}</td>
-                <td className="text-center">{cols[3].toFixed(3)}</td>
+                <td className="text-center pr-1">-</td>
+                <td className="text-center pr-1">{totals.protein.toFixed(3)}</td>
+                <td className="text-center pr-1">{totals.carb.toFixed(3)}</td>
+                <td className="text-center pr-1">{totals.fibre.toFixed(3)}</td>
+                <td className="text-center"> {totals.fat.toFixed(3)}</td>
             </tr>
         );
     };
 
-    const netCarb = calcNetCarbs();
-    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
     return (
         <div className="w-full p-2 container-theme">
             <div className="flex w-full mb-4">
@@ -230,7 +254,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     data={p.events}
                     searchKey={'name'}
                     className="w-full my-1 sm:mr-1"
-                    placeholder="Event"
+                    placeholder="Food"
+                    noResultsText="New Food"
                     onSelect={(evnt: TblUserEvent | null) => {
                         if (evnt) {
                             setEvent(evnt.name);
@@ -239,6 +264,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 />
 
                 <input
+                    tabindex={-1}
                     class="w-full my-1 sm:mx-1"
                     type="datetime-local"
                     name="Event Date"
@@ -261,6 +287,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                 Add Row
                             </button>
                         </th>
+                        <th className="text-center py-1">Unit</th>
                         <th className="text-center py-1">Amount</th>
                         <th className="text-center py-1">Protein</th>
                         <th className="text-center py-1">Carbs</th>
@@ -287,6 +314,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </tbody>
             </table>
             <div className="w-full flex flex-none justify-end">
+                <span className="px-2">
+                    {' '}
+                    Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}{' '}
+                </span>
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(3)} </span>
                 <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(3)} </span>
             </div>
