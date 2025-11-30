@@ -12,7 +12,9 @@ export function Header(state: HeaderState) {
                 &nbsp; &nbsp;
                 <a href="#/foods">foods</a>
                 &nbsp; &nbsp;
-                <a href="#/bloodsugar">bloodsugar</a>]
+                <a href="#/bloodsugar">bloodsugar</a>
+                &nbsp; &nbsp;
+                <a href="#/stats">stats</a>]
                 <span className="ml-auto">
                     [<a href="#/login">login</a>
                     &nbsp; &nbsp;
