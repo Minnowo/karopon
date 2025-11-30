@@ -92,3 +92,27 @@ func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]
 	`
 	return db.SelectContext(ctx, out, query, userId)
 }
+
+func (db *PGDatabase) UpdateUserEventLog(ctx context.Context, eventlog *database.TblUserEventLog) error {
+
+	query := `
+		UPDATE PON.USER_EVENTLOG
+		SET
+			USER_ID						= :user_id,
+			EVENT_ID  					= :event_id,
+			USER_TIME					= :user_time,
+			EVENT						= :event,
+			NET_CARBS					= :net_carbs,
+			BLOOD_GLUCOSE				= :blood_glucose,
+			INSULIN_SENSITIVITY_FACTOR	= :insulin_sensitivity_factor,
+			INSULIN_TO_CARB_RATIO		= :insulin_to_carb_ratio,
+			BLOOD_GLUCOSE_TARGET		= :blood_glucose_target,
+			RECOMMENDED_INSULIN_AMOUNT	= :recommended_insulin_amount,
+			ACTUAL_INSULIN_TAKEN		= :actual_insulin_taken
+		WHERE USER_ID = :user_id AND ID = :id 
+    `
+
+	_, err := db.NamedExecContext(ctx, query, eventlog)
+
+	return err
+}

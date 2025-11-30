@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {InsertUserFoodLog, TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
-import {GetUserFoodLog, LogFood} from '../../api/api';
+import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
+import {GetUserFoodLog, LogEvent, LogFood} from '../../api/api';
 import {FoodInput} from '../../components/food_input';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {Fragment} from 'preact/jsx-runtime';
@@ -60,6 +60,7 @@ async function getGroupedFoodLog(): Promise<FoodGroup[]> {
 export function EventsPage(state: BaseState) {
     const [foodlog, setFoodlog] = useState<Array<FoodGroup> | null>(null);
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     useEffect(() => {
         getGroupedFoodLog().then((r) => setFoodlog(r));
@@ -68,6 +69,14 @@ export function EventsPage(state: BaseState) {
     if (foodlog === null) {
         return <div class="">loading...</div>;
     }
+
+    const onCreateEvent = (eventlog: CreateUserEventLog, clear: () => void) => {
+        LogEvent(eventlog)
+            .then(() => {
+                clear();
+            })
+            .catch((e: Error) => setErrorMsg(e.message));
+    };
 
     const onSubmitFood = (food: InsertUserFoodLog, clear: () => void, setError: (msg: string | null) => void) => {
         LogFood(food).then((fullFood) => {
@@ -90,7 +99,8 @@ export function EventsPage(state: BaseState) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 p-4">
+        <>
+
             <div className="w-full flex justify-evenly p-4">
                 <button className="w-32" onClick={() => setShowNewEventPanel((x) => !x)}>
                     Add New Food
@@ -113,7 +123,8 @@ export function EventsPage(state: BaseState) {
                 />
             </div>
 
-            {showNewEventPanel && <AddEventsPanel foods={state.foods} events={state.events} />}
+            {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
+            {showNewEventPanel && <AddEventsPanel foods={state.foods} events={state.events} createEvent={onCreateEvent} />}
 
             <div className="w-full space-y-4">
                 {foodlog.map((foodGroup: FoodGroup) => {
@@ -183,6 +194,6 @@ export function EventsPage(state: BaseState) {
                     );
                 })}
             </div>
-        </div>
+        </>
     );
 }

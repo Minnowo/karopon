@@ -77,4 +77,10 @@ export interface InsertUserFoodLog {
 export interface CreateUserEventLog {
     event: TblUserEvent;
     foods: InsertUserFoodLog[];
+    blood_glucose: number;
+    blood_glucose_target: number;
+    insulin_sensitivity_factor: number;
+    insulin_to_carb_ratio: number;
+    recommended_insulin_amount: number;
+    actual_insulin_taken: number;
 }

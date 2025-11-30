@@ -57,7 +57,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                     />
                     <NumberInput2
                         className={'whitespace-nowrap w-full'}
-                        innerClassName={'flex-grow'}
+                        innerClassName={'w-full'}
                         min={0}
                         max={1_000_000_000}
                         numberList={[1, 2, 5, 10, 50, 100, 200]}
@@ -83,6 +83,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
             <div className="flex flex-wrap">
                 <NumberInput2
                     className={'mx-1 mt-2 whitespace-nowrap'}
+                    innerClassName={'w-full'}
                     label={'Protein'}
                     min={0}
                     numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
@@ -94,6 +95,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                 />
                 <NumberInput2
                     className={'mx-1 mt-2 whitespace-nowrap'}
+                    innerClassName={'w-full'}
                     label={'Carb'}
                     min={0}
                     numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
@@ -105,6 +107,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                 />
                 <NumberInput2
                     className={'mx-1 mt-2 whitespace-nowrap'}
+                    innerClassName={'w-full'}
                     label={'Fibre'}
                     min={0}
                     numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
@@ -116,6 +119,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                 />
                 <NumberInput2
                     className={'mx-1 mt-2 whitespace-nowrap'}
+                    innerClassName={'w-full'}
                     label={'Fat'}
                     min={0}
                     numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
