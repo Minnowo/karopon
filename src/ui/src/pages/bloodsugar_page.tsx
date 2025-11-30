@@ -5,6 +5,7 @@ import {GetUserEventLog, LogEvent, UpdateUserEventLog} from '../api/api';
 import {NumberInput2} from '../components/number_input2';
 import {ChangeEvent} from 'preact/compat';
 import {DownloadData} from '../utils/download';
+import {DropdownButton} from '../components/drop_down_button';
 
 type EventLogForm = {
     eventlog: TblUserEventLog | null;
@@ -36,7 +37,7 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
         if (eventlog != null) {
             setForm({...eventlog});
         }
-    }, []);
+    }, [eventlog]);
 
     function update(field: string, val: number | string) {
         if (field == 'blood_glucose' && isNaN(+val)) {
@@ -62,9 +63,9 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
     };
 
     return (
-        <div class="bg-c-d-black border mt-3 w-9/10 rounded-sm border-c-yellow flex justify-between">
+        <div class="bg-c-d-black border mt-3 rounded-sm border-c-yellow flex justify-between py-3">
             <form class="w-9/10 m-3">
-                <div class="flex items-center justify-between ml-5">
+                <div class="flex justify-center justify-between ml-5 mb-4">
                     <div class="flex flex-col w-6/10">
                         <span className={eventNameError == null ? '' : 'text-red-500'}>
                             {eventNameError == null ? 'Event Name' : eventNameError}
@@ -74,19 +75,6 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 update('event', e.currentTarget.value.toString());
                             }}
-                        />
-                    </div>
-
-                    <div class="flex flex-col w-3/10">
-                        <text>Time</text>
-                        <input
-                            class="w-full my-1 sm:mx-1"
-                            type="datetime-local"
-                            name="Event Date"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                update('created', new Date(e.currentTarget.value).getTime());
-                            }}
-                            value={new Date(form.created).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
                         />
                     </div>
                 </div>
@@ -104,22 +92,35 @@ function EditEventLogForm({eventlog, onSave, onCancel}: EventLogForm) {
                         />
                     </div>
 
-                    <div class="flex flex-col">
+                    <div class="flex flex-col w-3/10">
+                        <text>Time</text>
+                        <input
+                            class="w-full my-1 sm:mx-1"
+                            type="datetime-local"
+                            name="Event Date"
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                update('created', new Date(e.currentTarget.value).getTime());
+                            }}
+                            value={new Date(form.created).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
+                        />
+                    </div>
+
+                    {/* <div class="flex flex-col">
                         <span>Sugar Taken</span>
                         <input placeholder={'Enter a value'} />
-                    </div>
+                    </div> */}
                 </div>
             </form>
 
-            <div>
+            <div className="-my-3">
                 <button
-                    class="flex justify-center w-15 h-1/2 items-center border-0 border-l-1 rounded-b-none border-b-1 hover:bg-gray-800"
+                    className="flex justify-center w-15 h-1/2 items-center border-0 border-l-1 rounded-b-none border-b-1 hover:bg-gray-800"
                     onClick={onCancel}
                 >
                     X
                 </button>
                 <button
-                    class="flex justify-center w-15 h-1/2 items-center border-0 border-l-1 rounded-t-none border-t-1 hover:bg-gray-800"
+                    className="flex justify-center w-15 h-1/2 items-center border-0 border-l-1 rounded-t-none border-t-1 hover:bg-gray-800"
                     onClick={handleSubmit}
                 >
                     Save
@@ -166,8 +167,7 @@ export function BloodSugarPage(state: BaseState) {
             foods: [],
         };
         LogEvent(createEventLogData).then(() => {
-            const eventTempLogs = [...state.eventlog!, eventLog];
-            state.setEventlog(eventTempLogs);
+            state.setEventlog([...state.eventlog!, eventLog]);
         });
         setAddingNewEvent(false);
     }
@@ -199,23 +199,43 @@ export function BloodSugarPage(state: BaseState) {
                     numberList={[1, 2, 5, 10, 20, 50]}
                 />
 
-                <button className="w-40 hover:bg-gray-800" onClick={onExport}>
-                    Export
-                </button>
+                <DropdownButton
+                    buttonClassName="w-40 h-full hover:bg-gray-800"
+                    label="Export"
+                    actions={[
+                        {
+                            label: 'As JSON',
+                            onClick: onExport,
+                        },
+                    ]}
+                />
             </div>
 
             <hr />
             <div className="mt-5">
                 <text className="text-2xl font-medium ml-10">Events</text>
                 <div className="flex flex-col items-center">
+                    {isAddingNewEvent && (
+                        <div className={'w-9/10 mt-5'}>
+                            <span>Creating event:</span>
+                            <EditEventLogForm
+                                eventlog={null}
+                                onSave={(form) => createEventLog(form)}
+                                onCancel={() => setAddingNewEvent(false)}
+                            />
+                            <hr className="mt-3"></hr>
+                        </div>
+                    )}
                     {state.eventlog.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
                         return eventLog.id == editingID ? (
-                            <EditEventLogForm
-                                key={eventLog.id}
-                                eventlog={eventLog}
-                                onSave={(form) => updateEventLog(form)}
-                                onCancel={() => setEditing(null)}
-                            />
+                            <div className="w-9/10">
+                                <EditEventLogForm
+                                    key={eventLog.id}
+                                    eventlog={eventLog}
+                                    onSave={(form) => updateEventLog(form)}
+                                    onCancel={() => setEditing(null)}
+                                />
+                            </div>
                         ) : (
                             <div
                                 key={eventLog.id}
@@ -251,15 +271,6 @@ export function BloodSugarPage(state: BaseState) {
                     })}
                 </div>
             </div>
-            {isAddingNewEvent && (
-                <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
-                    <EditEventLogForm
-                        eventlog={null}
-                        onSave={(form) => createEventLog(form)}
-                        onCancel={() => setAddingNewEvent(false)}
-                    />
-                </div>
-            )}
         </main>
     );
 }
