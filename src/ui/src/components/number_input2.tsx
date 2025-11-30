@@ -1,4 +1,5 @@
 import {useState, useRef, useEffect} from 'preact/hooks';
+import {JSX} from 'preact';
 
 type Props = {
     className?: string;
@@ -59,6 +60,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
         <div className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap ${className}`}>
             {p.label && (
                 <button
+                    tabindex={-1}
                     className="border-none select-none rounded-r-none pr-1"
                     onClick={() => setOpen(!open)}
                     onBlur={() => setOpen(false)}
@@ -74,7 +76,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                 value={p.value}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setOpen(false)}
-                onInput={(e) => {
+                onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
                     if (e === null || e.currentTarget.value.length <= 0) {
                         return;
                     }
@@ -103,6 +105,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
             />
             <div className="flex flex-col justify-between">
                 <button
+                    tabindex={-1}
                     className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
@@ -120,6 +123,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                     ▲
                 </button>
                 <button
+                    tabindex={-1}
                     className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
                     onPointerLeave={stopHoldRepeat}
