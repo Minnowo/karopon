@@ -74,6 +74,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        innerClassName="w-8"
+                        round={1}
                         min={0}
                         value={food.portion}
                         onValueChange={(v) => {
@@ -90,6 +92,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        innerClassName="w-8"
+                        round={1}
                         min={0}
                         value={food.protein}
                         onValueChange={(v) => {
@@ -100,6 +104,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        innerClassName="w-8"
+                        round={1}
                         min={0}
                         value={food.carb}
                         onValueChange={(v) => {
@@ -110,6 +116,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        innerClassName="w-8"
+                        round={1}
                         min={0}
                         value={food.fibre}
                         onValueChange={(v) => {
@@ -120,6 +128,8 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1">
                     <NumberInput2
+                        innerClassName="w-8"
+                        round={1}
                         min={0}
                         value={food.fat}
                         onValueChange={(v) => {
@@ -237,10 +247,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <td className="whitespace-nowrap w-full">Total</td>
                 <td className="text-center pr-1">-</td>
                 <td className="text-center pr-1">-</td>
-                <td className="text-center pr-1">{totals.protein.toFixed(3)}</td>
-                <td className="text-center pr-1">{totals.carb.toFixed(3)}</td>
-                <td className="text-center pr-1">{totals.fibre.toFixed(3)}</td>
-                <td className="text-center"> {totals.fat.toFixed(3)}</td>
+                <td className="text-center pr-1">{totals.protein.toFixed(1)}</td>
+                <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
+                <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
+                <td className="text-center"> {totals.fat.toFixed(1)}</td>
             </tr>
         );
     };
@@ -315,11 +325,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </table>
             <div className="w-full flex flex-none justify-end">
                 <span className="px-2">
-                    {' '}
-                    Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}{' '}
+                    Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}
                 </span>
-                <span className="px-2"> Insulin Calc: {insulin.toFixed(3)} </span>
-                <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(3)} </span>
+                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
+                <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(1)} </span>
             </div>
 
             <div className="w-full flex flex-col sm:flex-row sm:justify-evenly justify-end">
