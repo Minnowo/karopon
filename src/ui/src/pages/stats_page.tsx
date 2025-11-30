@@ -1,8 +1,9 @@
-import { useEffect, useState } from "preact/hooks";
-import { TblUserEventLog, TblUserFoodLog } from "../api/types";
-import { GetUserEventLog, GetUserFoodLog } from "../api/api";
+import {BaseState} from '../state/basestate';
+import {useEffect, useState} from 'preact/hooks';
+import {TblUserEventLog, TblUserFoodLog} from '../api/types';
+import {GetUserFoodLog} from '../api/api';
 
-type RangeType = "daily" | "weekly" | "monthly" | "yearly";
+type RangeType = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 type MacroTotals = {
     carbs: number;
@@ -11,16 +12,12 @@ type MacroTotals = {
     fibre: number;
 };
 
-export function StatsPage(state: any) {
-    const [eventLogs, setEventLogs] = useState<TblUserEventLog[] | null>(null);
+export function StatsPage(state: BaseState) {
+    const eventLogs = state.eventlog ?? [];
     const [foodLogs, setFoodLogs] = useState<TblUserFoodLog[] | null>(null);
-    const [range, setRange] = useState<RangeType>("daily");
-    const [chartData, setChartData] = useState<{ date: string; carbs: number }[]>([]);
+    const [range, setRange] = useState<RangeType>('daily');
+    const [chartData, setChartData] = useState<{date: string; carbs: number}[]>([]);
     const [macros, setMacros] = useState<MacroTotals | null>(null);
-
-    useEffect(() => {
-        GetUserEventLog().then((data) => setEventLogs(data));
-    }, []);
 
     useEffect(() => {
         GetUserFoodLog().then((data) => setFoodLogs(data));
@@ -45,7 +42,7 @@ export function StatsPage(state: any) {
     const padding = 40;
 
     const maxCarbs = Math.max(...chartData.map((d) => d.carbs), 10);
-    
+
     const points =
         chartData.length <= 1
             ? chartData.map((d) => ({
@@ -58,7 +55,7 @@ export function StatsPage(state: any) {
                   const rawX = padding + (i / (chartData.length - 1)) * (width - padding * 2);
                   const x = Math.max(padding, Math.min(width - padding, rawX));
                   const y = height - padding - (d.carbs / maxCarbs) * (height - padding * 2);
-                  return { x, y, carbs: d.carbs, date: d.date };
+                  return {x, y, carbs: d.carbs, date: d.date};
               });
 
     return (
@@ -66,12 +63,10 @@ export function StatsPage(state: any) {
             <h1 className="text-2xl mb-6">Carbohydrate Stats</h1>
 
             <div className="flex gap-4 mb-4">
-                {["daily", "weekly", "monthly", "yearly"].map((r) => (
+                {['daily', 'weekly', 'monthly', 'yearly'].map((r) => (
                     <button
                         key={r}
-                        className={`px-3 py-1 border rounded ${
-                            range === r ? "bg-c-yellow text-black" : "bg-c-d-black"
-                        }`}
+                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
                         onClick={() => setRange(r as RangeType)}
                     >
                         {r.toUpperCase()}
@@ -79,13 +74,14 @@ export function StatsPage(state: any) {
                 ))}
             </div>
 
-            <svg width={width} height={height} viewBox={`0 0 ${width + 50} ${height}`} preserveAspectRatio="xMinYMin meet" className="border border-c-yellow rounded mb-4">
-                <polyline
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-                />
+            <svg
+                width={width}
+                height={height}
+                viewBox={`0 0 ${width + 50} ${height}`}
+                preserveAspectRatio="xMinYMin meet"
+                className="border border-c-yellow rounded mb-4"
+            >
+                <polyline fill="none" stroke="white" strokeWidth="2" points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
                 {points.map((p) => (
                     <g key={p.date}>
                         <circle cx={p.x} cy={p.y} r="5" fill="yellow" />
@@ -96,7 +92,7 @@ export function StatsPage(state: any) {
                 ))}
                 {points.map((p) => (
                     <text
-                        key={p.date + "-x"}
+                        key={p.date + '-x'}
                         x={p.x}
                         y={height - 5}
                         fill="white"
@@ -125,14 +121,14 @@ export function StatsPage(state: any) {
 }
 
 /* --- Pie Chart ------------------------------------------------------------ */
-function PieChart({ data, size }: { data: MacroTotals; size: number }) {
+function PieChart({data, size}: {data: MacroTotals; size: number}) {
     const total = data.carbs + data.protein + data.fat + data.fibre;
 
     const slices = [
-        { label: "Carbs", value: data.carbs, color: "#facc15" },
-        { label: "Protein", value: data.protein, color: "#4ade80" },
-        { label: "Fat", value: data.fat, color: "#fb7185" },
-        { label: "Fibre", value: data.fibre, color: "#60a5fa" }
+        {label: 'Carbs', value: data.carbs, color: '#facc15'},
+        {label: 'Protein', value: data.protein, color: '#4ade80'},
+        {label: 'Fat', value: data.fat, color: '#fb7185'},
+        {label: 'Fibre', value: data.fibre, color: '#60a5fa'},
     ];
 
     let cumulative = 0;
@@ -160,9 +156,7 @@ function PieChart({ data, size }: { data: MacroTotals; size: number }) {
                             key={i}
                             d={path}
                             fill={slice.color}
-                            onMouseEnter={() =>
-                                setHoverText(`${slice.label} - ${slice.value.toFixed(2)}g`)
-                            }
+                            onMouseEnter={() => setHoverText(`${slice.label} - ${slice.value.toFixed(2)}g`)}
                             onMouseLeave={() => setHoverText(null)}
                         />
                     );
@@ -170,20 +164,13 @@ function PieChart({ data, size }: { data: MacroTotals; size: number }) {
             </svg>
 
             {/* Display hover text next to the chart */}
-            {hoverText && (
-                <div className="text-white font-bold text-lg">
-                    {hoverText}
-                </div>
-            )}
+            {hoverText && <div className="text-white font-bold text-lg">{hoverText}</div>}
 
             {/* Legend */}
             <div className="flex gap-4 mt-4">
                 {slices.map((slice, i) => (
                     <div key={i} className="flex items-center gap-1">
-                        <div
-                            style={{ backgroundColor: slice.color }}
-                            className="w-4 h-4 rounded-full"
-                        />
+                        <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                         <span className="text-white text-sm">
                             {slice.label} ({slice.value.toFixed(2)}g)
                         </span>
@@ -199,11 +186,7 @@ function buildTodayMacros(rows: TblUserFoodLog[]): MacroTotals {
     const isToday = (date: string | number) => {
         const d = new Date(date);
         const today = new Date();
-        return (
-            d.getFullYear() === today.getFullYear() &&
-            d.getMonth() === today.getMonth() &&
-            d.getDate() === today.getDate()
-        );
+        return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
     };
 
     const todayMeals = rows.filter((r) => r.user_time && isToday(r.user_time));
@@ -215,7 +198,7 @@ function buildTodayMacros(rows: TblUserFoodLog[]): MacroTotals {
             fat: acc.fat + Number(m.fat || 0),
             fibre: acc.fibre + Number(m.fibre || 0),
         }),
-        { carbs: 0, protein: 0, fat: 0, fibre: 0 }
+        {carbs: 0, protein: 0, fat: 0, fibre: 0}
     );
 }
 
@@ -231,32 +214,23 @@ function describeArc(x: number, y: number, r: number, startAngle: number, endAng
     const end = polarToCartesian(x, y, r, startAngle);
     const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 
-    return [
-        "M", x, y,
-        "L", start.x, start.y,
-        "A", r, r, 0, largeArc, 0, end.x, end.y,
-        "Z"
-    ].join(" ");
+    return ['M', x, y, 'L', start.x, start.y, 'A', r, r, 0, largeArc, 0, end.x, end.y, 'Z'].join(' ');
 }
 function buildRangeData(events: TblUserEventLog[], range: RangeType) {
-    const carbEvents = events.filter((e) => typeof e.net_carbs === "number");
+    const carbEvents = events.filter((e) => typeof e.net_carbs === 'number');
     const now = new Date();
 
     // Filter by current period
     const filtered = carbEvents.filter((e) => {
         const d = new Date(e.user_time);
         switch (range) {
-            case "daily":
-                return (
-                    d.getFullYear() === now.getFullYear() &&
-                    d.getMonth() === now.getMonth() &&
-                    d.getDate() === now.getDate()
-                );
-            case "weekly":
+            case 'daily':
+                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+            case 'weekly':
                 return getWeek(d) === getWeek(now) && d.getFullYear() === now.getFullYear();
-            case "monthly":
+            case 'monthly':
                 return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-            case "yearly":
+            case 'yearly':
                 return d.getFullYear() === now.getFullYear();
         }
     });
@@ -265,22 +239,22 @@ function buildRangeData(events: TblUserEventLog[], range: RangeType) {
 
     for (const e of filtered) {
         const d = new Date(e.user_time);
-        let key = "";
+        let key = '';
 
         switch (range) {
-            case "daily":
+            case 'daily':
                 key = d.toISOString(); // show each event
                 grouped[key] = e.net_carbs;
                 break;
-            case "weekly":
-                key = d.toISOString().split("T")[0]; // sum per day
+            case 'weekly':
+                key = d.toISOString().split('T')[0]; // sum per day
                 grouped[key] = (grouped[key] || 0) + e.net_carbs;
                 break;
-            case "monthly":
+            case 'monthly':
                 key = `${getWeek(d)}`; // sum per week
                 grouped[key] = (grouped[key] || 0) + e.net_carbs;
                 break;
-            case "yearly":
+            case 'yearly':
                 key = `${d.getMonth() + 1}`; // sum per month
                 grouped[key] = (grouped[key] || 0) + e.net_carbs;
                 break;
@@ -289,7 +263,7 @@ function buildRangeData(events: TblUserEventLog[], range: RangeType) {
 
     return Object.keys(grouped)
         .sort()
-        .map((k) => ({ date: k, carbs: grouped[k] }));
+        .map((k) => ({date: k, carbs: grouped[k]}));
 }
 
 function getWeek(d: Date): number {
@@ -302,13 +276,13 @@ function getWeek(d: Date): number {
 
 function formatXLabel(key: string, range: RangeType) {
     switch (range) {
-        case "daily":
-            return new Date(key).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        case "weekly":
+        case 'daily':
+            return new Date(key).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        case 'weekly':
             return key; // show day
-        case "monthly":
+        case 'monthly':
             return `Week ${key}`;
-        case "yearly":
+        case 'yearly':
             return `Month ${key}`;
     }
 }
