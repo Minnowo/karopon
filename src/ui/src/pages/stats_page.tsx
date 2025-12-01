@@ -189,13 +189,11 @@ export function StatsPage(state: BaseState) {
                         const height = 300;
                         const padding = 40;
 
-                        // Compute max value across all macros
                         const maxVal = Math.max(
                             ...data.flatMap((d) => [d.carbs, d.protein, d.fat, d.fibre]),
                             10
                         );
 
-                        // Build points for each macro
                         const buildPoints = (key: keyof Omit<MacroPoint, 'date'>) =>
                             data.map((d, i) => {
                                 const rawX = data.length <= 1
@@ -248,7 +246,6 @@ export function StatsPage(state: BaseState) {
                                         </g>
                                 ))}
 
-                                {/* X-axis labels */}
                                 {data.map((d, i) => {
                                     const x =
                                         data.length <= 1
@@ -308,7 +305,6 @@ export function StatsPage(state: BaseState) {
         <main className="p-8">
             <h1 className="text-3xl mb-6">Stats Summary</h1>
 
-            {/* Today's Nutrition Pie Chart on top */}
             {macros && (
                 <div className="mb-8">
                     <h2 className="text-2xl mb-4">Today's Nutrition Breakdown</h2>
