@@ -6,16 +6,16 @@ export function formatSmartTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
     const now = new Date();
 
-    const isSameDay =
-        date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+    // const isSameDay =
+    //     date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
 
-    if (isSameDay) {
-        return date.toLocaleTimeString(undefined, {
-            hour: '2-digit',
-            minute: '2-digit',
-            hourCycle: 'h24',
-        });
-    }
+    // if (isSameDay) {
+    //     return date.toLocaleTimeString(undefined, {
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         hourCycle: 'h24',
+    //     });
+    // }
 
     const isSameYear = date.getFullYear() === now.getFullYear();
 

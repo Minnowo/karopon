@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
+    --color-c-background: rgb(32, 28, 28);
     --color-c-d-black: rgb(31, 31, 31);
     --color-c-black: rgb(38, 38, 38);
     --color-c-red: rgb(244, 71, 71);
@@ -31,7 +32,7 @@
 
     html {
         color: var(--color-c-white);
-        background-color: var(--color-c-black);
+        background-color: var(--color-c-background);
     }
 
     a {

@@ -104,9 +104,9 @@ export function App() {
                             />
                         </Route>
                         <Route path="/stats">
-                        <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                    </Route>
-                    <Route path="/logout">
+                            <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                        </Route>
+                        <Route path="/logout">
                             <LogoutPage />
                         </Route>
                         <Route>

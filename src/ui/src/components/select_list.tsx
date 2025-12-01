@@ -125,7 +125,21 @@ export function FuzzySearch<T>({
         if (!open || matches === null || matches.length === 0) {
             return;
         }
-        if (event.key === 'Tab') {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (selectedIndex === null) {
+                setSelectedIndex(0);
+            } else {
+                setSelectedIndex((selectedIndex + 1) % matches.length);
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (selectedIndex === null) {
+                setSelectedIndex(0);
+            } else {
+                setSelectedIndex((selectedIndex - 1 + matches.length) % matches.length);
+            }
+        } else if (event.key === 'Tab') {
             event.preventDefault();
 
             if (selectedIndex === null) {
@@ -157,14 +171,14 @@ export function FuzzySearch<T>({
                             <li
                                 tabindex={0}
                                 key={item[searchKey]}
-                                class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-gray-100 cursor-pointer`}
+                                class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-c-l-black cursor-pointer`}
                                 onClick={() => doSelect(item)}
                             >
                                 {item[searchKey] as string}
                             </li>
                         ))
                     ) : (
-                        <li class="bg-c-black  p-2 hover:bg-gray-100 cursor-pointer"> {noResultsText} </li>
+                        <li class="bg-c-black  p-2 hover:bg-c-l-black cursor-pointer"> {noResultsText} </li>
                     )}
                 </ul>
             )}

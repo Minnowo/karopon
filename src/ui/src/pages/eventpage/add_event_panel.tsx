@@ -27,7 +27,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 
     return (
         <>
-            <tr key={foodTemplate.current.id}>
+            <tr>
                 <td className="whitespace-nowrap w-full pr-1">
                     <FuzzySearch<TblUserFood>
                         query={foodTemplate.current.name}
@@ -65,8 +65,10 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="whitespace-nowrap w-full pr-1">
                     <input
                         className="w-full min-w-8"
+                        tabindex={-1}
                         type="text"
                         value={food.unit}
+                        placeholder={'g'}
                         onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
                             food.unit = e.currentTarget.value;
                             render();
@@ -94,6 +96,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.protein}
@@ -106,6 +109,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.carb}
@@ -118,6 +122,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.fibre}
@@ -130,6 +135,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.fat}
@@ -139,8 +145,9 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         }}
                     />
                 </td>
+                <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>
                 <td>
-                    <button className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
+                    <button tabindex={-1} className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
                     </button>
                 </td>
@@ -159,6 +166,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [event, setEvent] = useState<string>('');
     const [eventTime, setEventTime] = useState<Date>(new Date());
     const [bloodSugar, setBloodSugar] = useState<number>(0);
+    const [insulinSensitivity, setInsulinSensitivity] = useState<number>(0);
     const [insulinTaken, setInsulinTaken] = useState<number>(0);
     const foods = useRef<TblUserFoodLog[]>([
         TblUserFoodLogFactory.empty(),
@@ -185,7 +193,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     })();
 
     const netCarb = totals.carb - totals.fibre;
-    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
+    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
 
     const clear = () => {
         setEvent('');
@@ -203,7 +211,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             {
                 blood_glucose: bloodSugar,
                 blood_glucose_target: 0,
-                insulin_sensitivity_factor: 0,
+                insulin_sensitivity_factor: insulinSensitivity,
                 insulin_to_carb_ratio: 0,
                 recommended_insulin_amount: 0,
                 actual_insulin_taken: insulinTaken,
@@ -251,13 +259,15 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <td className="text-center pr-1">{totals.protein.toFixed(1)}</td>
                 <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
                 <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
-                <td className="text-center"> {totals.fat.toFixed(1)}</td>
+                <td className="text-center pr-1"> {totals.fat.toFixed(1)}</td>
+                <td className="text-center font-bold"> {netCarb.toFixed(1)}</td>
             </tr>
         );
     };
 
     return (
-        <div className="w-full p-2 container-theme">
+        <div className="w-full p-2 container-theme bg-c-black">
+            <span className="text-lg font-bold">Create New Event</span>
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
@@ -284,73 +294,87 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 />
             </div>
 
-            <table className="w-full text-sm border-collapse">
-                <thead>
-                    <tr className="font-semibold text-xs border-b">
-                        <th className="text-left py-1">
-                            {' '}
-                            <button
-                                onClick={() => {
-                                    foods.current.push(TblUserFoodLogFactory.empty());
+            <div className="overflow-x-scroll">
+                <table className="w-full text-sm border-collapse">
+                    <thead>
+                        <tr className="font-semibold text-xs border-b">
+                            <th className="text-left py-1">
+                                {' '}
+                                <button
+                                    onClick={() => {
+                                        foods.current.push(TblUserFoodLogFactory.empty());
+                                        render();
+                                    }}
+                                >
+                                    Add Row
+                                </button>
+                            </th>
+                            <th className="text-center py-1">Unit</th>
+                            <th className="text-center py-1">Amount</th>
+                            <th className="text-center py-1">Protein</th>
+                            <th className="text-center py-1">Carbs</th>
+                            <th className="text-center py-1">Fibre</th>
+                            <th className="text-center py-1">Fat</th>
+                            <th className="text-center py-1">NetCarb</th>
+                            <th className="text-center py-1" />
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {buildSumHeader()}
+                        {foods.current.map((food: TblUserFoodLog, index: number) => (
+                            <AddEventsPanelRow
+                                key={index}
+                                foods={p.foods}
+                                food={food}
+                                render={render}
+                                deleteSelf={() => {
+                                    foods.current.splice(index, 1);
                                     render();
                                 }}
-                            >
-                                Add Row
-                            </button>
-                        </th>
-                        <th className="text-center py-1">Unit</th>
-                        <th className="text-center py-1">Amount</th>
-                        <th className="text-center py-1">Protein</th>
-                        <th className="text-center py-1">Carbs</th>
-                        <th className="text-center py-1">Fibre</th>
-                        <th className="text-center py-1">Fat</th>
-                        <th className="text-center py-1" />
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {buildSumHeader()}
-                    {foods.current.map((food: TblUserFoodLog, index: number) => (
-                        <AddEventsPanelRow
-                            key={index}
-                            foods={p.foods}
-                            food={food}
-                            render={render}
-                            deleteSelf={() => {
-                                foods.current.splice(index, 1);
-                                render();
-                            }}
-                        />
-                    ))}
-                </tbody>
-            </table>
+                            />
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             <div className="w-full flex flex-none justify-end">
+                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
                     Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}
                 </span>
-                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
-                <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(1)} </span>
             </div>
 
-            <div className="w-full flex flex-col sm:flex-row sm:justify-evenly justify-end">
+            <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
-                    innerClassName="w-full"
+                    className="my-1 sm:mr-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
                     label="Blood Sugar"
                     value={bloodSugar}
                     onValueChange={setBloodSugar}
                     min={0}
                 />
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
-                    innerClassName="w-full"
+                    className="my-1 sm:mx-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
+                    label="Insulin Sensitivity"
+                    value={insulinSensitivity}
+                    onValueChange={setInsulinSensitivity}
+                    min={0}
+                />
+                <NumberInput2
+                    className="my-1 sm:mx-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
                     label="Insulin Taken"
                     value={insulinTaken}
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Cancel" />
-                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
+                <input
+                    className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
+                    type="submit"
+                    value="Create Event"
+                    onClick={onCreateClick}
+                />
             </div>
         </div>
     );

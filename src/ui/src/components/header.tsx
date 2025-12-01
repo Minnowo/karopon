@@ -15,25 +15,25 @@ export function Header(state: HeaderState) {
         <>
             <header>
                 <div className="w-full flex flex-wrap">
-                    [
-                    <a className={`${currentHash === '#events' ? css : ''} `} href="#events">
-                        events
-                    </a>{' '}
-                    &nbsp; &nbsp;
-                    <a className={`${currentHash === '#foods' ? css : ''} `} href="#foods">
-                        foods
-                    </a>{' '}
-                    &nbsp; &nbsp;
-                    <a className={`${currentHash === '#bloodsugar' ? css : ''} `} href="#bloodsugar">
-                        bloodsugar
-                    </a>{' '}
-                    &nbsp; &nbsp;
-                    <a className={`${currentHash === '#stats' ? css : ''} `} href="#stats">
-                        stats
-                    </a>
-                    ]
+                    <span>
+                        <a className={`${currentHash === '#events' ? css : ''} `} href="#events">
+                            events
+                        </a>
+                        &nbsp;&nbsp;&nbsp;
+                        <a className={`${currentHash === '#foods' ? css : ''} `} href="#foods">
+                            foods
+                        </a>
+                        &nbsp;&nbsp;&nbsp;
+                        <a className={`${currentHash === '#bloodsugar' ? css : ''} `} href="#bloodsugar">
+                            bloodsugar
+                        </a>
+                        &nbsp;&nbsp;&nbsp;
+                        <a className={`${currentHash === '#stats' ? css : ''} `} href="#stats">
+                            stats
+                        </a>
+                    </span>
                     <span className="ml-auto">
-                        [<a href="#/logout">logout</a> &nbsp; &nbsp; {state.user.name}]
+                        <a href="#/logout">logout</a>&nbsp;&nbsp;&nbsp;{state.user.name}
                     </span>
                 </div>
                 <hr />
