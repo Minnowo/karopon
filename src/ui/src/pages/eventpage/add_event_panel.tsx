@@ -146,7 +146,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 </td>
                 <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>
                 <td>
-                    <button className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
+                    <button tabindex={-1} className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
                     </button>
                 </td>
@@ -192,7 +192,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     })();
 
     const netCarb = totals.carb - totals.fibre;
-    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, 3);
+    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
 
     const clear = () => {
         setEvent('');
@@ -210,7 +210,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             {
                 blood_glucose: bloodSugar,
                 blood_glucose_target: 0,
-                insulin_sensitivity_factor: 0,
+                insulin_sensitivity_factor: insulinSensitivity,
                 insulin_to_carb_ratio: 0,
                 recommended_insulin_amount: 0,
                 actual_insulin_taken: insulinTaken,
