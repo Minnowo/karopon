@@ -14,10 +14,11 @@ export function EventsPage(state: BaseState) {
     const onCreateEvent = (eventlog: CreateUserEventLog, clear: () => void) => {
         LogEvent(eventlog)
             .then((newEventlog: UserEventLogWithFoodLog) => {
+                clear();
                 state.setEventlog((e) => [newEventlog.eventlog, ...(e === null ? [] : e)]);
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
                 setShowNewEventPanel(false);
-                clear();
+                setErrorMsg(null);
             })
             .catch((e: Error) => setErrorMsg(e.message));
     };
