@@ -57,7 +57,14 @@ export const GenerateEventTableText = (events: UserEventLogWithFoodLog[]): strin
 
             return [
                 '-'.repeat(maxLen),
-                `${eventlog.event}      ${formatSmartTimestamp(eventlog.user_time)}`,
+                `Time                    ${formatSmartTimestamp(eventlog.user_time)}`,
+                `Event Title             ${eventlog.event}`,
+                `Blood Sugar             ${eventlog.blood_glucose}`,
+                `Blood Sugar Target      ${eventlog.blood_glucose_target}`,
+                `Insulin Sensitivity     ${eventlog.insulin_sensitivity_factor}`,
+                `Insulin To Carb Ratio   ${eventlog.insulin_to_carb_ratio}`,
+                `Insulin Rec             ${eventlog.recommended_insulin_amount}`,
+                `Insulin Taken           ${eventlog.actual_insulin_taken}`,
                 '-'.repeat(maxLen),
                 foodRows.map((row) => row.map((v, i) => v.padEnd(foodColWidths[i], ' ')).join(' | ')).join('\n'),
                 '-'.repeat(maxLen),
