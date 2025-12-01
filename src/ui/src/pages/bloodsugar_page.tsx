@@ -10,11 +10,12 @@ import {encodeCSVField} from '../utils/csv';
 import {formatSmartTimestamp} from '../utils/date_utils';
 
 type EventLogForm = {
+    className?: string;
     eventLog: TblUserEventLog | null;
     onSave: (form: TblUserEventLog) => void;
 };
 
-function EditEventLogForm({eventLog, onSave}: EventLogForm) {
+function EditEventLogForm({className, eventLog, onSave}: EventLogForm) {
     const [form, setForm] = useState<TblUserEventLog>({
         id: 0,
         user_id: 0,
@@ -63,50 +64,48 @@ function EditEventLogForm({eventLog, onSave}: EventLogForm) {
     };
 
     return (
-        <>
-            <div className={`rounded-sm p-2 border container-theme bg-c-black`}>
-                <span className="text-lg font-bold">Create New Event</span>
+        <div className={`rounded-sm p-2 border container-theme bg-c-black ${className !== undefined ? className : ''}`}>
+            <span className="text-lg font-bold">{eventLog === null ? 'Create New Event' : 'Update Event'}</span>
 
-                <div className="flex flex-col font-semibold">
-                    {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
+            <div className="flex flex-col font-semibold">
+                {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
 
-                    <input
-                        className="mb-2 whitespace-nowrap flex-auto"
-                        type="text"
-                        value={form.event}
-                        onInput={(e) => update('event', e.currentTarget.value.toString())}
-                        placeholder="Event Name"
+                <input
+                    className="mb-2 whitespace-nowrap flex-auto"
+                    type="text"
+                    value={form.event}
+                    onInput={(e) => update('event', e.currentTarget.value.toString())}
+                    placeholder="Event Name"
+                />
+
+                <div className="flex flex-col sm:flex-row flex-wrap justify-evenly">
+                    <NumberInput2
+                        className="my-1 sm:mr-1 sm:w-auto flex-1 flex-grow"
+                        innerClassName="w-full min-w-12"
+                        min={0}
+                        max={1_000_000_000}
+                        numberList={[1, 2, 5, 10, 50, 100, 200]}
+                        label={'Blood Sugar'}
+                        value={form.blood_glucose}
+                        onValueChange={(portion: number) => update('blood_glucose', portion)}
                     />
 
-                    <div className="flex flex-col sm:flex-row flex-wrap justify-evenly">
-                        <NumberInput2
-                            className="my-1 sm:mr-1 sm:w-auto flex-1 flex-grow"
-                            innerClassName="w-full min-w-12"
-                            min={0}
-                            max={1_000_000_000}
-                            numberList={[1, 2, 5, 10, 50, 100, 200]}
-                            label={'Blood Sugar'}
-                            value={form.blood_glucose}
-                            onValueChange={(portion: number) => update('blood_glucose', portion)}
-                        />
+                    <input
+                        class="my-1 sm:mx-1 sm:w-auto"
+                        type="datetime-local"
+                        name="Event Date"
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            update('created', new Date(e.currentTarget.value).getTime());
+                        }}
+                        value={new Date(form.created).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
+                    />
 
-                        <input
-                            class="my-1 sm:mx-1 sm:w-auto"
-                            type="datetime-local"
-                            name="Event Date"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                update('created', new Date(e.currentTarget.value).getTime());
-                            }}
-                            value={new Date(form.created).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
-                        />
-
-                        <button className="ml-auto my-1 sm:ml-1 text-c-l-green min-w-32" onClick={handleSubmit}>
-                            Create Event
-                        </button>
-                    </div>
+                    <button className="ml-auto my-1 sm:ml-1 text-c-l-green min-w-32" onClick={handleSubmit}>
+                        {eventLog === null ? 'Create Event' : 'Update Event'}
+                    </button>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
 
@@ -214,10 +213,10 @@ export function BloodSugarPage(state: BaseState) {
                 if (eventLog.id === editingID) {
                     return (
                         <EditEventLogForm
+                            className="mt-3"
                             key={eventLog.id}
                             eventLog={eventLog}
                             onSave={(form) => updateEventLog(form)}
-                            onCancel={() => setEditing(null)}
                         />
                     );
                 }

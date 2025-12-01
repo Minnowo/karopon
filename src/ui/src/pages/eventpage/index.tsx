@@ -6,17 +6,19 @@ import {formatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
+import {UserEventLogWithFoodLogFactory} from '../../api/factories';
 
 export function EventsPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [newEvent, setNewEvent] = useState<UserEventLogWithFoodLog>(UserEventLogWithFoodLogFactory.empty());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const onCreateEvent = (eventlog: CreateUserEventLog, clear: () => void) => {
+    const onCreateEvent = (eventlog: CreateUserEventLog) => {
         LogEvent(eventlog)
             .then((newEventlog: UserEventLogWithFoodLog) => {
-                clear();
                 state.setEventlog((e) => [newEventlog.eventlog, ...(e === null ? [] : e)]);
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
+                setNewEvent(UserEventLogWithFoodLogFactory.empty());
                 setShowNewEventPanel(false);
                 setErrorMsg(null);
             })
@@ -26,7 +28,13 @@ export function EventsPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-                <button className={`w-32 ${showNewEventPanel && 'bg-c-l-red'}`} onClick={() => setShowNewEventPanel((x) => !x)}>
+                <button
+                    className={`w-32 ${showNewEventPanel && 'bg-c-l-red'}`}
+                    onClick={() => {
+                        setShowNewEventPanel((x) => !x);
+                        setNewEvent(UserEventLogWithFoodLogFactory.empty());
+                    }}
+                >
                     {!showNewEventPanel ? 'Add New Event' : 'Cancel'}
                 </button>
                 <button className="w-32">Import</button>
@@ -59,7 +67,7 @@ export function EventsPage(state: BaseState) {
             {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
             {showNewEventPanel && (
                 <>
-                    <AddEventsPanel foods={state.foods} events={state.events} createEvent={onCreateEvent} />
+                    <AddEventsPanel foods={state.foods} events={state.events} fromEvent={newEvent} createEvent={onCreateEvent} />
                 </>
             )}
 
@@ -74,7 +82,14 @@ export function EventsPage(state: BaseState) {
                                 </span>
                                 <DropdownButton
                                     actions={[
-                                        {label: 'Copy', onClick: () => {}},
+                                        {
+                                            label: 'Copy',
+                                            onClick: () => {
+                                                setNewEvent({...foodGroup});
+                                                setShowNewEventPanel(true);
+                                                window.scrollTo({top: 0, behavior: 'smooth'});
+                                            },
+                                        },
                                         {label: 'Edit', onClick: () => {}},
                                         {label: 'Delete', onClick: () => {}},
                                     ]}

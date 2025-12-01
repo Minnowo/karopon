@@ -1,5 +1,12 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
-import {CreateUserEventLog, InsertUserFoodLog, TblUserEvent, TblUserFood, TblUserFoodLog} from '../../api/types';
+import {
+    CreateUserEventLog,
+    InsertUserFoodLog,
+    TblUserEvent,
+    TblUserFood,
+    TblUserFoodLog,
+    UserEventLogWithFoodLog,
+} from '../../api/types';
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
@@ -159,22 +166,28 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 interface AddEventsPanelState {
     foods: TblUserFood[];
     events: TblUserEvent[];
-    createEvent: (e: CreateUserEventLog, doClear: () => void) => void;
+    fromEvent: UserEventLogWithFoodLog;
+    createEvent: (e: CreateUserEventLog) => void;
 }
 
 export function AddEventsPanel(p: AddEventsPanelState) {
-    const [event, setEvent] = useState<string>('');
+    const [event, setEvent] = useState<string>(p.fromEvent.eventlog.event);
     const [eventTime, setEventTime] = useState<Date>(new Date());
-    const [bloodSugar, setBloodSugar] = useState<number>(0);
-    const [insulinSensitivity, setInsulinSensitivity] = useState<number>(0);
-    const [insulinTaken, setInsulinTaken] = useState<number>(0);
-    const foods = useRef<TblUserFoodLog[]>([
-        TblUserFoodLogFactory.empty(),
-        TblUserFoodLogFactory.empty(),
-        TblUserFoodLogFactory.empty(),
-    ]);
+    const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
+    const [insulinSensitivity, setInsulinSensitivity] = useState<number>(p.fromEvent.eventlog.insulin_sensitivity_factor);
+    const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
+    const foods = useRef<TblUserFoodLog[]>(p.fromEvent.foodlogs);
 
     const render = DoRender();
+
+    useEffect(() => {
+        setEvent(p.fromEvent.eventlog.event);
+        setEventTime(new Date()); /// don't copy this because they're gonna just assume current time
+        setBloodSugar(p.fromEvent.eventlog.blood_glucose);
+        setInsulinSensitivity(p.fromEvent.eventlog.insulin_sensitivity_factor);
+        setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
+        foods.current = p.fromEvent.foodlogs;
+    }, [p.fromEvent]);
 
     const totals = (() => {
         const cols = [0, 0, 0, 0];
@@ -195,48 +208,34 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const netCarb = totals.carb - totals.fibre;
     const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
 
-    const clear = () => {
-        setEvent('');
-        setEventTime(new Date());
-        setBloodSugar(0);
-        setInsulinTaken(0);
-        foods.current.length = 0;
-        foods.current.push(TblUserFoodLogFactory.empty());
-        foods.current.push(TblUserFoodLogFactory.empty());
-        foods.current.push(TblUserFoodLogFactory.empty());
-    };
-
     const onCreateClick = () => {
-        p.createEvent(
-            {
-                blood_glucose: bloodSugar,
-                blood_glucose_target: 0,
-                insulin_sensitivity_factor: insulinSensitivity,
-                insulin_to_carb_ratio: 0,
-                recommended_insulin_amount: 0,
-                actual_insulin_taken: insulinTaken,
-                event: {
-                    id: 0,
-                    user_id: 0,
-                    name: event.trim(),
-                },
-                foods: foods.current
-                    .map((x: TblUserFoodLog): InsertUserFoodLog => {
-                        return {
-                            name: x.name.trim(),
-                            event: x.event.trim(),
-                            unit: x.unit.trim(),
-                            portion: x.portion,
-                            protein: x.protein,
-                            carb: x.carb,
-                            fibre: x.fibre,
-                            fat: x.fat,
-                        };
-                    })
-                    .filter((x) => x.name.length > 0),
+        p.createEvent({
+            blood_glucose: bloodSugar,
+            blood_glucose_target: 0,
+            insulin_sensitivity_factor: insulinSensitivity,
+            insulin_to_carb_ratio: 0,
+            recommended_insulin_amount: 0,
+            actual_insulin_taken: insulinTaken,
+            event: {
+                id: 0,
+                user_id: 0,
+                name: event.trim(),
             },
-            clear
-        );
+            foods: foods.current
+                .map((x: TblUserFoodLog): InsertUserFoodLog => {
+                    return {
+                        name: x.name.trim(),
+                        event: x.event.trim(),
+                        unit: x.unit.trim(),
+                        portion: x.portion,
+                        protein: x.protein,
+                        carb: x.carb,
+                        fibre: x.fibre,
+                        fat: x.fat,
+                    };
+                })
+                .filter((x) => x.name.length > 0),
+        });
     };
 
     const onEventTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
