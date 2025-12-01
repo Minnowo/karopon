@@ -65,6 +65,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="whitespace-nowrap w-full pr-1">
                     <input
                         className="w-full min-w-8"
+                        tabindex={-1}
                         type="text"
                         value={food.unit}
                         onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
@@ -94,6 +95,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.protein}
@@ -106,6 +108,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.carb}
@@ -118,6 +121,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.fibre}
@@ -130,6 +134,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                 <td className="pr-1">
                     <NumberInput2
                         innerClassName="w-8"
+                        innerTabIndex={-1}
                         round={1}
                         min={0}
                         value={food.fat}
@@ -160,6 +165,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [event, setEvent] = useState<string>('');
     const [eventTime, setEventTime] = useState<Date>(new Date());
     const [bloodSugar, setBloodSugar] = useState<number>(0);
+    const [insulinSensitivity, setInsulinSensitivity] = useState<number>(0);
     const [insulinTaken, setInsulinTaken] = useState<number>(0);
     const foods = useRef<TblUserFoodLog[]>([
         TblUserFoodLogFactory.empty(),
@@ -252,8 +258,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <td className="text-center pr-1">{totals.protein.toFixed(1)}</td>
                 <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
                 <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
-                <td className="text-center"> {totals.fat.toFixed(1)}</td>
-                <td className="text-center"> {netCarb.toFixed(1)}</td>
+                <td className="text-center pr-1"> {totals.fat.toFixed(1)}</td>
+                <td className="text-center font-bold"> {netCarb.toFixed(1)}</td>
             </tr>
         );
     };
@@ -328,31 +334,37 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </tbody>
             </table>
             <div className="w-full flex flex-none justify-end">
+                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
                     Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}
                 </span>
-                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
-                <span className="px-2 font-bold"> Net Carbs: {netCarb.toFixed(1)} </span>
             </div>
 
-            <div className="w-full flex flex-col sm:flex-row sm:justify-evenly justify-end">
+            <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
-                    innerClassName="w-full"
+                    className="my-1 mx-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
                     label="Blood Sugar"
                     value={bloodSugar}
                     onValueChange={setBloodSugar}
                     min={0}
                 />
                 <NumberInput2
-                    className="whitespace-nowrap my-1 mx-1 min-w-32 w-full"
-                    innerClassName="w-full"
+                    className="my-1 mx-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
+                    label="Insulin Sensitivity"
+                    value={insulinSensitivity}
+                    onValueChange={setInsulinSensitivity}
+                    min={0}
+                />
+                <NumberInput2
+                    className="my-1 mx-1 flex-1 flex-grow"
+                    innerClassName="w-full min-w-12"
                     label="Insulin Taken"
                     value={insulinTaken}
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Cancel" />
                 <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
             </div>
         </div>

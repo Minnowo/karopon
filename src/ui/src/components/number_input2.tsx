@@ -4,6 +4,7 @@ import {JSX} from 'preact';
 type Props = {
     className?: string;
     innerClassName?: string;
+    innerTabIndex?: number;
     label?: string;
     value: number;
     onValueChange: (value: number) => void;
@@ -81,6 +82,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                 </button>
             )}
             <input
+                tabindex={p.innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none rounded-r-none`}
                 type="text"
                 inputmode="decimal"
