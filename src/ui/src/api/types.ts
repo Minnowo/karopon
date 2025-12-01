@@ -93,3 +93,12 @@ export interface CreateUserEventLog {
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
 }
+
+export interface TblUserSettings {
+    id: number;
+    user_id: number;
+    dark_mode: boolean;
+    show_diabetes: boolean;
+    caloric_calc_method: string;
+    insulin_sensitivity_factor: boolean;
+}

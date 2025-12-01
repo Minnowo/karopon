@@ -112,3 +112,12 @@ type TblUserFoodLog struct {
 	Fibre   float32 `db:"fibre" json:"fibre"`
 	Fat     float32 `db:"fat" json:"fat"`
 }
+
+type TblUserSettings struct {
+	ID                       int    `db:"id" json:"id"`
+	UserID                   int    `db:"user_id" json:"user_id"`
+	DarkMode                 bool   `db:"dark_mode" json"dark_mode"`
+	ShowDiabetes             bool   `db:"show_diabetes" json"show_diabetes"`
+	CaloricCalcMethod        string `db:"caloric_calc_method" json"caloric_calc_method"`
+	InsulinSensitivityFactor bool   `db:"insulin_sensitivity_factor" json"insulin_sensitivity_factor"`
+}

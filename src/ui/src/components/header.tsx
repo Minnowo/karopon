@@ -1,4 +1,5 @@
 import {HeaderState} from '../state/header_state';
+import {UserHeader} from './user_header';
 
 export function Header(state: HeaderState) {
     return (
@@ -10,12 +11,10 @@ export function Header(state: HeaderState) {
                 &nbsp; &nbsp;
                 <a href="#/bloodsugar">bloodsugar</a>
                 &nbsp; &nbsp;
-                <a href="#/stats">stats</a>]
-                <span className="ml-auto">
-                    [<a href="#/login">login</a>
-                    &nbsp; &nbsp;
-                    <a href="#/logout">logout</a>] &nbsp; &nbsp; [{state.user.name}]
-                </span>
+                <a href="#/stats">stats</a>]{/* <span className="ml-auto mr-5">{state.user.name}</span> */}
+                <div className="ml-auto mr-10 flex items-center">
+                    [<UserHeader state={state}></UserHeader>]
+                </div>
             </div>
             <hr />
         </header>
