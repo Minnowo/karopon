@@ -17,6 +17,13 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 		if time.Time(event.UserTime).IsZero() {
 			event.UserTime = database.UnixMillis(time.Now())
 		}
+
+		event.NetCarbs = 0
+
+		for _, food := range foodlogs {
+			event.NetCarbs += food.Carb - food.Fibre
+		}
+
 		eventLogID, err := db.AddUserEventLogTx(tx, event)
 
 		if err != nil {
@@ -84,13 +91,58 @@ func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEven
 	return id, err
 }
 
+func (db *PGDatabase) LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]database.UserEventLogWithFoodLog) error {
+
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
+		var eventlogs []database.TblUserEventLog
+
+		if err := db.LoadUserEventLogsTx(tx, userId, &eventlogs); err != nil {
+			return err
+		}
+
+		eventlogsWithFood := make([]database.UserEventLogWithFoodLog, len(eventlogs))
+
+		for i, eventlog := range eventlogs {
+
+			ewfood := &eventlogsWithFood[i]
+
+			if err := db.LoadUserFoodLogByEventLogTx(tx, userId, eventlog.ID, &ewfood.Foodlogs); err != nil {
+				return err
+			}
+
+			ewfood.Eventlog = eventlog
+
+			for _, foodlog := range ewfood.Foodlogs {
+				ewfood.TotalCarb += foodlog.Carb
+				ewfood.TotalProtein += foodlog.Protein
+				ewfood.TotalFat += foodlog.Fat
+				ewfood.TotalFibre += foodlog.Fibre
+			}
+			if ewfood.Foodlogs == nil {
+				ewfood.Foodlogs = make([]database.TblUserFoodLog, 0)
+			}
+		}
+
+		*eventWithFood = eventlogsWithFood
+
+		return nil
+	})
+}
+
 func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]database.TblUserEventLog) error {
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+		return db.LoadUserEventLogsTx(tx, userId, out)
+	})
+}
+
+func (db *PGDatabase) LoadUserEventLogsTx(tx *sqlx.Tx, userId int, out *[]database.TblUserEventLog) error {
 	query := `
 		SELECT * FROM PON.USER_EVENTLOG el
 		WHERE el.USER_ID = $1
 		ORDER BY el.CREATED DESC
 	`
-	return db.SelectContext(ctx, out, query, userId)
+	return tx.Select(out, query, userId)
 }
 
 func (db *PGDatabase) UpdateUserEventLog(ctx context.Context, eventlog *database.TblUserEventLog) error {

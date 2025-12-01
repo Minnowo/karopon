@@ -10,6 +10,7 @@ type FuzzySearchProps<T> = {
     onQueryChange?: (query: string) => void;
     placeholder?: string;
     className?: string;
+    noResultsText?: string;
 };
 
 export function FuzzySearch<T>({
@@ -18,6 +19,7 @@ export function FuzzySearch<T>({
     data,
     searchKey,
     placeholder = '',
+    noResultsText = 'No Results',
     className,
     onSelect,
 }: FuzzySearchProps<T>) {
@@ -136,8 +138,6 @@ export function FuzzySearch<T>({
         }
     };
 
-    console.info(open);
-
     return (
         <div ref={container} class={className} onFocusOut={onFocusOut}>
             <input
@@ -164,7 +164,7 @@ export function FuzzySearch<T>({
                             </li>
                         ))
                     ) : (
-                        <li class="bg-c-black  p-2 hover:bg-gray-100 cursor-pointer"> no results </li>
+                        <li class="bg-c-black  p-2 hover:bg-gray-100 cursor-pointer"> {noResultsText} </li>
                     )}
                 </ul>
             )}

@@ -11,7 +11,7 @@ type UnixMillis time.Time
 
 func (t UnixMillis) MarshalJSON() ([]byte, error) {
 	ms := time.Time(t).UnixNano() / int64(time.Millisecond)
-	return []byte(fmt.Sprintf("%d", ms)), nil
+	return fmt.Appendf(nil, "%d", ms), nil
 }
 
 func (t *UnixMillis) UnmarshalJSON(b []byte) error {
@@ -27,7 +27,7 @@ func (t UnixMillis) Value() (driver.Value, error) {
 	return time.Time(t), nil
 }
 
-func (t *UnixMillis) Scan(value interface{}) error {
+func (t *UnixMillis) Scan(value any) error {
 	switch v := value.(type) {
 	case time.Time:
 		*t = UnixMillis(v)
