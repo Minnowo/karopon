@@ -68,9 +68,8 @@ export function FoodPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-
                 <button className={`w-32 ${showAddFoodPanel && 'bg-c-l-red'}`} onClick={() => setShowAddFoodPanel((x) => !x)}>
-                { !showAddFoodPanel ? 'Add New Food' : 'Cancel'}
+                    {!showAddFoodPanel ? 'Add New Food' : 'Cancel'}
                 </button>
                 <button className="w-32">Import</button>
                 <DropdownButton

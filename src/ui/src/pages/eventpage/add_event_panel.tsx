@@ -295,47 +295,47 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             <div className="overflow-x-scroll">
-            <table className="w-full text-sm border-collapse">
-                <thead>
-                    <tr className="font-semibold text-xs border-b">
-                        <th className="text-left py-1">
-                            {' '}
-                            <button
-                                onClick={() => {
-                                    foods.current.push(TblUserFoodLogFactory.empty());
+                <table className="w-full text-sm border-collapse">
+                    <thead>
+                        <tr className="font-semibold text-xs border-b">
+                            <th className="text-left py-1">
+                                {' '}
+                                <button
+                                    onClick={() => {
+                                        foods.current.push(TblUserFoodLogFactory.empty());
+                                        render();
+                                    }}
+                                >
+                                    Add Row
+                                </button>
+                            </th>
+                            <th className="text-center py-1">Unit</th>
+                            <th className="text-center py-1">Amount</th>
+                            <th className="text-center py-1">Protein</th>
+                            <th className="text-center py-1">Carbs</th>
+                            <th className="text-center py-1">Fibre</th>
+                            <th className="text-center py-1">Fat</th>
+                            <th className="text-center py-1">NetCarb</th>
+                            <th className="text-center py-1" />
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {buildSumHeader()}
+                        {foods.current.map((food: TblUserFoodLog, index: number) => (
+                            <AddEventsPanelRow
+                                key={index}
+                                foods={p.foods}
+                                food={food}
+                                render={render}
+                                deleteSelf={() => {
+                                    foods.current.splice(index, 1);
                                     render();
                                 }}
-                            >
-                                Add Row
-                            </button>
-                        </th>
-                        <th className="text-center py-1">Unit</th>
-                        <th className="text-center py-1">Amount</th>
-                        <th className="text-center py-1">Protein</th>
-                        <th className="text-center py-1">Carbs</th>
-                        <th className="text-center py-1">Fibre</th>
-                        <th className="text-center py-1">Fat</th>
-                        <th className="text-center py-1">NetCarb</th>
-                        <th className="text-center py-1" />
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {buildSumHeader()}
-                    {foods.current.map((food: TblUserFoodLog, index: number) => (
-                        <AddEventsPanelRow
-                            key={index}
-                            foods={p.foods}
-                            food={food}
-                            render={render}
-                            deleteSelf={() => {
-                                foods.current.splice(index, 1);
-                                render();
-                            }}
-                        />
-                    ))}
-                </tbody>
-            </table>
+                            />
+                        ))}
+                    </tbody>
+                </table>
             </div>
             <div className="w-full flex flex-none justify-end">
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
@@ -369,7 +369,12 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green" type="submit" value="Create Event" onClick={onCreateClick} />
+                <input
+                    className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
+                    type="submit"
+                    value="Create Event"
+                    onClick={onCreateClick}
+                />
             </div>
         </div>
     );
