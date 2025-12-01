@@ -104,6 +104,12 @@ type DB interface {
 
 	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
 
+	// Loads user setting based on current userId
+	LoadUserSettings(ctx context.Context, userId int, out *TblUserSettings) error
+	// Creates a preset user setting and adds to database
+	AddUserSetting(ctx context.Context, user *TblUserSettings) (int, error)
+	AddUserSettingTx(tx *sqlx.Tx, user *TblUserSettings) (int, error)
+
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
 	Base() *SQLxDB
 }

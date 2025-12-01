@@ -10,6 +10,7 @@ import (
 var postgresMigrations = []database.Migration{
 	database.NewFileMigration(database.VERSION_NONE, database.VERSION_0, "pg/0001_system"),
 	database.NewFileMigration(database.VERSION_0, database.VERSION_1, "pg/0002_allow_null_user_food_food_id"),
+	database.NewFileMigration(database.VERSION_1, database.VERSION_2, "pg/0003_settings_table"),
 }
 
 func (db *PGDatabase) Migrate(ctx context.Context) error {

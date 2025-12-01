@@ -9,10 +9,11 @@ import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import {StatsPage} from './pages/stats_page.js';
 
 import {useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog} from './api/types';
-import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
+import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog, TblUserSettings} from './api/types';
+import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog, GetUserSettings} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
+import {SettingsPage} from './pages/settings_page.js';
 import {NotFound} from './pages/_404.js';
 
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
     const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
     const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventLogWithFoodLog> | null>(null);
+    const [settings, setSettings] = useState<TblUserSettings | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, doRefresh] = useState<number>(0);
 
@@ -33,6 +35,7 @@ export function App() {
             UserEvents().then((myEvents) => setEvents(myEvents));
             GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
             GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
+            GetUserSettings().then((mySettings) => setSettings(mySettings));
             setUser(me);
         });
     }, [refresh]);
@@ -62,6 +65,8 @@ export function App() {
                                 eventlogs={eventlogsWithFoodlogs}
                                 setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
+                                settings={settings}
+                                setSettings={setSettings}
                             />
                         </Route>
                         <Route path="/foods">
@@ -76,6 +81,8 @@ export function App() {
                                 eventlogs={eventlogsWithFoodlogs}
                                 setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
+                                settings={settings}
+                                setSettings={setSettings}
                             />
                         </Route>
                         <Route path="/bloodsugar">
@@ -90,6 +97,8 @@ export function App() {
                                 eventlogs={eventlogsWithFoodlogs}
                                 setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
+                                settings={settings}
+                                setSettings={setSettings}
                             />
                         </Route>
                         <Route path="/stats">
@@ -104,11 +113,31 @@ export function App() {
                                 eventlogs={eventlogsWithFoodlogs}
                                 setEventLogs={setEventlogsWithFoodlogs}
                                 setErrorMsg={setErrorMsg}
+                                settings={settings}
+                                setSettings={setSettings}
                             />
                         </Route>
                         <Route path="/logout">
                             <LogoutPage />
                         </Route>
+
+                        <Route path="/settings">
+                            <SettingsPage
+                                user={user}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlog={eventlog}
+                                setEventlog={setEventlog}
+                                eventlogs={eventlogsWithFoodlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                settings={settings}
+                                setSettings={setSettings}
+                            />
+                        </Route>
+
                         <Route>
                             <NotFound />
                         </Route>

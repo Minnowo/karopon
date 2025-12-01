@@ -7,6 +7,7 @@ import {
     InsertUserFoodLog,
     TblUserEventLog,
     UserEventLogWithFoodLog,
+    TblUserSettings,
 } from './types';
 
 // export const base = 'http://localhost:9070';
@@ -222,6 +223,20 @@ export async function LogEvent(food: CreateUserEventLog): Promise<UserEventLogWi
             method: 'POST',
             body: JSON.stringify(food),
         });
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
+export async function GetUserSettings(): Promise<TblUserSettings> {
+    try {
+        const response = await fetch(`${base}/api/usersettings`);
 
         if (response.status !== 200) {
             await throwFailureReason(response);

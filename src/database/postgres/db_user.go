@@ -3,19 +3,43 @@ package postgres
 import (
 	"context"
 	"karopon/src/database"
+
+	"github.com/jmoiron/sqlx"
 )
 
 func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int, error) {
+	var retUserId int = -1
 
-	query := `
-        INSERT INTO PON.USER (NAME, PASSWORD)
-        VALUES (:name, :password)
-        RETURNING ID;
-    `
+	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
+		query := `
+    	    INSERT INTO PON.USER (NAME, PASSWORD)
+    	    VALUES (:name, :password)
+    	    RETURNING ID;
+    	`
 
-	id, err := db.InsertOneNamedGetID(ctx, query, user)
+		id, err := db.InsertOneNamedGetIDTx(tx, query, user)
+		if err != nil {
+			return err
+		}
 
-	return id, err
+		retUserId = id
+
+		var userSettings database.TblUserSettings
+		userSettings.UserID = id
+		userSettings.DarkMode = true
+		userSettings.ShowDiabetes = true
+		userSettings.CaloricCalcMethod = "auto"
+		userSettings.InsulinSensitivityFactor = 0.01
+
+		_, err = db.AddUserSettingTx(tx, &userSettings)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return retUserId, err
 }
 
 func (db *PGDatabase) LoadUser(ctx context.Context, username string, user *database.TblUser) error {

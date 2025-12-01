@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'preact/hooks';
 import {HeaderState} from '../state/header_state';
+import {UserHeader} from './user_header';
 
 export function Header(state: HeaderState) {
     const [currentHash, setCurrentHash] = useState(window.location.hash);
@@ -12,7 +13,6 @@ export function Header(state: HeaderState) {
 
     const css = 'font-bold text-c-l-green';
     return (
-        <>
             <header>
                 <div className="w-full flex flex-wrap">
                     <span>
@@ -32,12 +32,11 @@ export function Header(state: HeaderState) {
                             stats
                         </a>
                     </span>
-                    <span className="ml-auto">
-                        <a href="#/logout">logout</a>&nbsp;&nbsp;&nbsp;{state.user.name}
-                    </span>
+                    <div className="ml-auto mr-10 flex items-center">
+                        [<UserHeader state={state}></UserHeader>]
+                    </div>
                 </div>
                 <hr />
             </header>
-        </>
     );
 }
