@@ -139,6 +139,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         }}
                     />
                 </td>
+                <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>
                 <td>
                     <button className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
@@ -252,6 +253,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
                 <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
                 <td className="text-center"> {totals.fat.toFixed(1)}</td>
+                <td className="text-center"> {netCarb.toFixed(1)}</td>
             </tr>
         );
     };
@@ -304,6 +306,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         <th className="text-center py-1">Carbs</th>
                         <th className="text-center py-1">Fibre</th>
                         <th className="text-center py-1">Fat</th>
+                        <th className="text-center py-1">NetCarb</th>
                         <th className="text-center py-1" />
                     </tr>
                 </thead>
