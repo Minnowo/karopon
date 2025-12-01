@@ -31,10 +31,9 @@ func (v Version) String() string {
 	return strconv.Itoa(int(v))
 }
 func (v Version) Valid() bool {
+	migrationLogger.Info().Int("version", int(v)).Msg("test")
 	switch v {
-	case VERSION_0:
-	case VERSION_1:
-	case VERSION_2:
+	case VERSION_0, VERSION_1, VERSION_2:
 		return true
 	}
 	return false

@@ -13,4 +13,4 @@ SELECT id, true, true, 'auto', 0.01
 FROM PON.USER u
 WHERE NOT EXISTS (
     SELECT 1 FROM PON.USER_SETTINGS s WHERE s.USER_ID = u.id
-)
+);
