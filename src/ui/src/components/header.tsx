@@ -38,6 +38,5 @@ export function Header(state: HeaderState) {
                 </div>
                 <hr />
             </header>
-        </>
     );
 }
