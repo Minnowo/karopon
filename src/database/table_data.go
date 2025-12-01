@@ -114,7 +114,6 @@ type TblUserFoodLog struct {
 }
 
 type TblUserSettings struct {
-	ID                       int     `db:"id" json:"id"`
 	UserID                   int     `db:"user_id" json:"user_id"`
 	DarkMode                 bool    `db:"dark_mode" json:"dark_mode"`
 	ShowDiabetes             bool    `db:"show_diabetes" json:"show_diabetes"`

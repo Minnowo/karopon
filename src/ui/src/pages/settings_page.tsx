@@ -9,7 +9,6 @@ export function SettingsPage(state: BaseState) {
     return (
         <main className="flex flex-col">
             <span>SETTINGS</span>
-            <span>ID: {state.settings?.id}</span>
             <span>DARK_MODE: {state.settings?.dark_mode ? 'TRUE' : 'FALSE'}</span>
             <span>INSULIN_SENSITIVITY_FACTOR: {state.settings?.insulin_sensitivity_factor}</span>
             <span>SHOW_DIABETES: {state.settings?.show_diabetes ? 'TRUE' : 'FALSE'}</span>

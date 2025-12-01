@@ -95,7 +95,6 @@ export interface CreateUserEventLog {
 }
 
 export interface TblUserSettings {
-    id: number;
     user_id: number;
     dark_mode: boolean;
     show_diabetes: boolean;

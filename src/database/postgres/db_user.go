@@ -31,12 +31,10 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 		userSettings.CaloricCalcMethod = "auto"
 		userSettings.InsulinSensitivityFactor = 0.01
 
-		settingsId, err := db.AddUserSettingTx(tx, &userSettings)
+		_, err = db.AddUserSettingTx(tx, &userSettings)
 		if err != nil {
 			return err
 		}
-
-		userSettings.ID = settingsId
 
 		return nil
 	})

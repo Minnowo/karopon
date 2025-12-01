@@ -13,6 +13,7 @@ func (db *PGDatabase) LoadUserSettings(ctx context.Context, userId int, out *dat
 		WHERE tbl.USER_ID = $1
 	`
 	return db.GetContext(ctx, out, query, userId)
+
 }
 
 func (db *PGDatabase) AddUserSetting(ctx context.Context, settings *database.TblUserSettings) (int, error) {
