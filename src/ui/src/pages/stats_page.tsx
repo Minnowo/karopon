@@ -1,7 +1,7 @@
-import { BaseState } from '../state/basestate';
-import { useEffect, useState } from 'preact/hooks';
-import { TblUserEventLog, TblUserFoodLog } from '../api/types';
-import { GetUserFoodLog } from '../api/api';
+import {BaseState} from '../state/basestate';
+import {useEffect, useState} from 'preact/hooks';
+import {TblUserEventLog, TblUserFoodLog} from '../api/types';
+import {GetUserFoodLog} from '../api/api';
 
 type RangeType = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
@@ -31,8 +31,8 @@ export function StatsPage(state: BaseState) {
     const [insulinRange, setInsulinRange] = useState<RangeType>('daily');
 
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
-    const [bloodData, setBloodData] = useState<{ date: string; blood_glucose: number }[]>([]);
-    const [insulinData, setInsulinData] = useState<{ date: string; actual_insulin_taken: number }[]>([]);
+    const [bloodData, setBloodData] = useState<{date: string; blood_glucose: number}[]>([]);
+    const [insulinData, setInsulinData] = useState<{date: string; actual_insulin_taken: number}[]>([]);
     const [macros, setMacros] = useState<MacroTotals | null>(null);
 
     const [visibleMacros, setVisibleMacros] = useState<string[]>(['carbs', 'protein', 'fat', 'fibre']);
@@ -59,7 +59,7 @@ export function StatsPage(state: BaseState) {
     if (!eventLogs) return <div className="p-4">Loading...</div>;
 
     /* --------------------------- SINGLE LINE GRAPH --------------------------- */
-    const renderGraph = <T extends { date: string }>(
+    const renderGraph = <T extends {date: string}>(
         data: T[],
         range: RangeType,
         valueKey: keyof T,
@@ -87,21 +87,19 @@ export function StatsPage(state: BaseState) {
                     ))}
                 </div>
                 {isEmpty ? (
-                    <div className="p-6 text-center text-yellow-400">
-                        Please enter an event to see data
-                    </div>
+                    <div className="p-6 text-center text-yellow-400">Please enter an event to see data</div>
                 ) : (
                     (() => {
                         const maxVal = Math.max(...data.map((d) => Number(d[valueKey])), 10);
                         const points =
                             data.length <= 1
-                                ? data.map((d) => ({ x: 300, y: 150, value: Number(d[valueKey]), date: d.date }))
+                                ? data.map((d) => ({x: 300, y: 150, value: Number(d[valueKey]), date: d.date}))
                                 : data.map((d, i) => {
-                                    const rawX = 40 + (i / (data.length - 1)) * (600 - 40 * 2);
-                                    const x = Math.max(40, Math.min(600 - 40, rawX));
-                                    const y = 300 - 40 - (Number(d[valueKey]) / maxVal) * (300 - 40 * 2);
-                                    return { x, y, value: Number(d[valueKey]), date: d.date };
-                                });
+                                      const rawX = 40 + (i / (data.length - 1)) * (600 - 40 * 2);
+                                      const x = Math.max(40, Math.min(600 - 40, rawX));
+                                      const y = 300 - 40 - (Number(d[valueKey]) / maxVal) * (300 - 40 * 2);
+                                      return {x, y, value: Number(d[valueKey]), date: d.date};
+                                  });
 
                         return (
                             <svg
@@ -126,14 +124,7 @@ export function StatsPage(state: BaseState) {
                                     </g>
                                 ))}
                                 {points.map((p) => (
-                                    <text
-                                        key={p.date + '-x'}
-                                        x={p.x}
-                                        y={300 - 5}
-                                        fill="white"
-                                        fontSize="10"
-                                        textAnchor="end"
-                                    >
+                                    <text key={p.date + '-x'} x={p.x} y={300 - 5} fill="white" fontSize="10" textAnchor="end">
                                         {formatXLabel(p.date, range)}
                                     </text>
                                 ))}
@@ -157,7 +148,7 @@ export function StatsPage(state: BaseState) {
             carbs: '#facc15',
             protein: '#4ade80',
             fat: '#fb7185',
-            fibre: '#60a5fa'
+            fibre: '#60a5fa',
         };
 
         const isEmpty = data.length === 0;
@@ -180,35 +171,29 @@ export function StatsPage(state: BaseState) {
                 </div>
 
                 {isEmpty ? (
-                    <div className="p-6 text-center text-yellow-400">
-                        Please log food to see nutrient data
-                    </div>
+                    <div className="p-6 text-center text-yellow-400">Please log food to see nutrient data</div>
                 ) : (
                     (() => {
                         const width = 600;
                         const height = 300;
                         const padding = 40;
 
-                        const maxVal = Math.max(
-                            ...data.flatMap((d) => [d.carbs, d.protein, d.fat, d.fibre]),
-                            10
-                        );
+                        const maxVal = Math.max(...data.flatMap((d) => [d.carbs, d.protein, d.fat, d.fibre]), 10);
 
                         const buildPoints = (key: keyof Omit<MacroPoint, 'date'>) =>
                             data.map((d, i) => {
-                                const rawX = data.length <= 1
-                                ? width / 2
-                                : padding + (i / (data.length - 1)) * (width - padding * 2);
+                                const rawX =
+                                    data.length <= 1 ? width / 2 : padding + (i / (data.length - 1)) * (width - padding * 2);
                                 const x = Math.max(padding, Math.min(width - padding, rawX));
                                 const y = height - padding - (d[key] / maxVal) * (height - padding * 2);
-                                return { x, y, value: d[key], date: d.date };
+                                return {x, y, value: d[key], date: d.date};
                             });
 
                         const lines = {
                             carbs: buildPoints('carbs'),
                             protein: buildPoints('protein'),
                             fat: buildPoints('fat'),
-                            fibre: buildPoints('fibre')
+                            fibre: buildPoints('fibre'),
                         };
 
                         return (
@@ -223,34 +208,26 @@ export function StatsPage(state: BaseState) {
                                     .filter(([key]) => visibleMacros.includes(key))
                                     .map(([key, pts]) => (
                                         <g key={key}>
-                                        <polyline
-                                            fill="none"
-                                            stroke={(colors as any)[key]}
-                                            strokeWidth="2"
-                                            points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
-                                        />
-                                        {pts.map((p) => (
-                                            <g key={p.date + key}>
-                                            <circle cx={p.x} cy={p.y} r="5" fill={(colors as any)[key]} />
-                                            <text
-                                                x={p.x}
-                                                y={p.y - 10}
-                                                fill="white"
-                                                fontSize="10"
-                                                textAnchor="middle"
-                                            >
-                                                {Number(p.value).toFixed(2)}
-                                            </text>
-                                            </g>
-                                        ))}
+                                            <polyline
+                                                fill="none"
+                                                stroke={(colors as any)[key]}
+                                                strokeWidth="2"
+                                                points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
+                                            />
+                                            {pts.map((p) => (
+                                                <g key={p.date + key}>
+                                                    <circle cx={p.x} cy={p.y} r="5" fill={(colors as any)[key]} />
+                                                    <text x={p.x} y={p.y - 10} fill="white" fontSize="10" textAnchor="middle">
+                                                        {Number(p.value).toFixed(2)}
+                                                    </text>
+                                                </g>
+                                            ))}
                                         </g>
-                                ))}
+                                    ))}
 
                                 {data.map((d, i) => {
                                     const x =
-                                        data.length <= 1
-                                            ? width / 2
-                                            : padding + (i / (data.length - 1)) * (width - padding * 2);
+                                        data.length <= 1 ? width / 2 : padding + (i / (data.length - 1)) * (width - padding * 2);
                                     return (
                                         <text
                                             key={d.date + '-x'}
@@ -274,33 +251,26 @@ export function StatsPage(state: BaseState) {
                     {Object.entries(colors).map(([k, c]) => {
                         const isActive = visibleMacros.includes(k);
                         return (
-                        <div
-                            key={k}
-                            className={`flex items-center gap-2 cursor-pointer ${
-                            isActive ? '' : 'opacity-40'
-                            }`}
-                            onClick={() => {
-                            setVisibleMacros(
-                                isActive
-                                ? visibleMacros.filter((m) => m !== k)
-                                : [...visibleMacros, k]
-                            );
-                            }}
-                        >
                             <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: c }}
-                            />
-                            <span>{k.toUpperCase()}</span>
-                        </div>
+                                key={k}
+                                className={`flex items-center gap-2 cursor-pointer ${isActive ? '' : 'opacity-40'}`}
+                                onClick={() => {
+                                    setVisibleMacros(isActive ? visibleMacros.filter((m) => m !== k) : [...visibleMacros, k]);
+                                }}
+                            >
+                                <div className="w-4 h-4 rounded-full" style={{backgroundColor: c}} />
+                                <span>{k.toUpperCase()}</span>
+                            </div>
                         );
                     })}
                 </div>
+                <p className="mt-1">
+                    <strong>Note:</strong> You can toggle graphs by clicking the legend components
+                </p>
             </div>
         );
     };
 
-    
     return (
         <main className="p-8">
             <h1 className="text-3xl mb-6">Stats Summary</h1>
@@ -322,10 +292,26 @@ export function StatsPage(state: BaseState) {
             {renderMultiLineGraph(macroData, carbRange, 'Macronutrients Consumed (g)', setCarbRange, carbRange)}
 
             {/* Blood Glucose */}
-            {renderGraph(bloodData, bloodRange, 'blood_glucose', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange, bloodRange)}
+            {renderGraph(
+                bloodData,
+                bloodRange,
+                'blood_glucose',
+                'Blood Glucose (mmol/L)',
+                'lightblue',
+                setBloodRange,
+                bloodRange
+            )}
 
             {/* Insulin */}
-            {renderGraph(insulinData, insulinRange, 'actual_insulin_taken', 'Insulin Taken (mL)', 'green', setInsulinRange, insulinRange)}
+            {renderGraph(
+                insulinData,
+                insulinRange,
+                'actual_insulin_taken',
+                'Insulin Taken (mL)',
+                'green',
+                setInsulinRange,
+                insulinRange
+            )}
         </main>
     );
 }
@@ -333,7 +319,7 @@ export function StatsPage(state: BaseState) {
 /* --------------------------- MACRO DATA HELPERS --------------------------- */
 function buildMacroChartData(rows: TblUserFoodLog[], range: RangeType): MacroPoint[] {
     const now = new Date();
-    const inRange = rows.filter(r => {
+    const inRange = rows.filter((r) => {
         const d = new Date(r.user_time);
         switch (range) {
             case 'daily':
@@ -353,35 +339,35 @@ function buildMacroChartData(rows: TblUserFoodLog[], range: RangeType): MacroPoi
         let key = '';
         switch (range) {
             case 'daily':
-                key = d.getTime().toString(); 
+                key = d.getTime().toString();
                 break;
             case 'weekly':
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime().toString(); 
+                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime().toString();
                 break;
             case 'monthly':
-                key = getWeek(d).toString(); 
+                key = getWeek(d).toString();
                 break;
             case 'yearly':
-                key = (d.getMonth() + 1).toString(); 
+                key = (d.getMonth() + 1).toString();
                 break;
         }
-        if (!buckets[key]) buckets[key] = { date: key, carbs: 0, protein: 0, fat: 0, fibre: 0 };
-        buckets[key].carbs   += Number(r.carb || 0);
+        if (!buckets[key]) buckets[key] = {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0};
+        buckets[key].carbs += Number(r.carb || 0);
         buckets[key].protein += Number(r.protein || 0);
-        buckets[key].fat     += Number(r.fat || 0);
-        buckets[key].fibre   += Number(r.fibre || 0);
+        buckets[key].fat += Number(r.fat || 0);
+        buckets[key].fibre += Number(r.fibre || 0);
     }
     return Object.values(buckets);
 }
 
 /* --- Pie Chart ------------------------------------------------------------ */
-function PieChart({ data, size }: { data: MacroTotals; size: number }) {
+function PieChart({data, size}: {data: MacroTotals; size: number}) {
     const total = data.carbs + data.protein + data.fat + data.fibre;
     const slices = [
-        { label: 'Carbs', value: data.carbs, color: '#facc15' },
-        { label: 'Protein', value: data.protein, color: '#4ade80' },
-        { label: 'Fat', value: data.fat, color: '#fb7185' },
-        { label: 'Fibre', value: data.fibre, color: '#60a5fa' },
+        {label: 'Carbs', value: data.carbs, color: '#facc15'},
+        {label: 'Protein', value: data.protein, color: '#4ade80'},
+        {label: 'Fat', value: data.fat, color: '#fb7185'},
+        {label: 'Fibre', value: data.fibre, color: '#60a5fa'},
     ];
 
     let cumulative = 0;
@@ -418,7 +404,7 @@ function PieChart({ data, size }: { data: MacroTotals; size: number }) {
             <div className="flex gap-4 mt-4">
                 {slices.map((slice, i) => (
                     <div key={i} className="flex items-center gap-1">
-                        <div style={{ backgroundColor: slice.color }} className="w-4 h-4 rounded-full" />
+                        <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                         <span className="text-white text-sm">
                             {slice.label} ({slice.value.toFixed(2)}g)
                         </span>
@@ -430,21 +416,17 @@ function PieChart({ data, size }: { data: MacroTotals; size: number }) {
 }
 
 /* --- Helpers ------------------------------------------------------------ */
-function buildChartData(
-    events: TblUserEventLog[],
-    key: 'net_carbs',
-    range: RangeType
-): { date: string; net_carbs: number }[];
+function buildChartData(events: TblUserEventLog[], key: 'net_carbs', range: RangeType): {date: string; net_carbs: number}[];
 function buildChartData(
     events: TblUserEventLog[],
     key: 'blood_glucose',
     range: RangeType
-): { date: string; blood_glucose: number }[];
+): {date: string; blood_glucose: number}[];
 function buildChartData(
     events: TblUserEventLog[],
     key: 'actual_insulin_taken',
     range: RangeType
-): { date: string; actual_insulin_taken: number }[];
+): {date: string; actual_insulin_taken: number}[];
 function buildChartData(events: TblUserEventLog[], key: EventKey, range: RangeType) {
     const filteredEvents = events.filter((e) => typeof e[key] === 'number');
     const now = new Date();
@@ -489,9 +471,9 @@ function buildChartData(events: TblUserEventLog[], key: EventKey, range: RangeTy
     return Object.keys(grouped)
         .sort()
         .map((k) => {
-            if (key === 'net_carbs') return { date: k, net_carbs: grouped[k] };
-            if (key === 'blood_glucose') return { date: k, blood_glucose: grouped[k] };
-            if (key === 'actual_insulin_taken') return { date: k, actual_insulin_taken: grouped[k] };
+            if (key === 'net_carbs') return {date: k, net_carbs: grouped[k]};
+            if (key === 'blood_glucose') return {date: k, blood_glucose: grouped[k]};
+            if (key === 'actual_insulin_taken') return {date: k, actual_insulin_taken: grouped[k]};
             throw new Error('Unknown key');
         });
 }
@@ -507,7 +489,7 @@ function getWeek(d: Date): number {
 function formatXLabel(key: string, range: RangeType) {
     switch (range) {
         case 'daily':
-            return new Date(Number(key)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return new Date(Number(key)).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
         case 'weekly':
             return new Date(Number(key)).toLocaleDateString();
         case 'monthly':
@@ -532,7 +514,7 @@ function buildTodayMacros(rows: TblUserFoodLog[]): MacroTotals {
             fat: acc.fat + Number(m.fat || 0),
             fibre: acc.fibre + Number(m.fibre || 0),
         }),
-        { carbs: 0, protein: 0, fat: 0, fibre: 0 }
+        {carbs: 0, protein: 0, fat: 0, fibre: 0}
     );
 }
 
