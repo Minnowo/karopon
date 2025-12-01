@@ -24,15 +24,19 @@ export function Footer() {
         const target = e.target as HTMLInputElement; //error pre this
         const newSize = parseInt(target.value, 10);
         setFontSize(newSize);
-        document.documentElement.style.fontSize = `${newSize}px`;
+    };
+
+    const finalizeFontChange = () => {
+        setTimeout(() => {
+            document.documentElement.style.fontSize = `${fontSize}px`;
+        }, 100);
     };
 
     return (
         <div className="fixed bottom-4 right-4 flex flex-col items-end gap-4 bg-c-d-black border border-c-yellow rounded-lg p-4 shadow-lg z-50">
             <label className=" relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" onChange={toggleTheme} />
-                <div className="w-12 h-6 bg-cl-black peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-yellow-400 rounded-full peer  peer-checked:bg-c-yellow transition-colors"></div>
-                <span className="ml-2 text-sm font-medium text-c-white ">Dark or Light Mode</span>
+                <input type="checkbox" onChange={toggleTheme} />
+                <span className="ml-2 text-sm font-medium text-c-white ">Light Mode</span>
             </label>
 
             <div className="flex items-center gap-2">
@@ -43,6 +47,7 @@ export function Footer() {
                     max="30"
                     value={fontSize}
                     onInput={handleFontSize}
+                    onPointerUp={finalizeFontChange}
                     className="w-32 h-2 bg-c-yellow peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-c-l-yellow rounded-lg appearance-none cursor-pointer " //TODO: time-permitting add color change
                 />
                 <span className="text-sm text-c-white ">Font Size: {fontSize}px</span>

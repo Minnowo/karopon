@@ -13,7 +13,7 @@ import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoo
 import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
-import { NotFound } from './pages/_404.js';
+import {NotFound} from './pages/_404.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -22,20 +22,23 @@ export function App() {
     const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
     const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventLogWithFoodLog> | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [refresh, doRefresh] = useState<number>(0);
 
     useEffect(() => {
-        WhoAmI().then((me) => setUser(me));
-        UserFoods().then((myFood) => {
-            myFood.sort((a, b) => a.name.localeCompare(b.name));
-            setFoods(myFood);
+        WhoAmI().then((me) => {
+            UserFoods().then((myFood) => {
+                myFood.sort((a, b) => a.name.localeCompare(b.name));
+                setFoods(myFood);
+            });
+            UserEvents().then((myEvents) => setEvents(myEvents));
+            GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
+            GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
+            setUser(me);
         });
-        UserEvents().then((myEvents) => setEvents(myEvents));
-        GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
-        GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
-    }, []);
+    }, [refresh]);
 
     if (user === null) {
-        return <LoginPage />;
+        return <LoginPage doRefresh={doRefresh} />;
     }
 
     return (
