@@ -100,5 +100,5 @@ export interface TblUserSettings {
     dark_mode: boolean;
     show_diabetes: boolean;
     caloric_calc_method: string;
-    insulin_sensitivity_factor: boolean;
+    insulin_sensitivity_factor: number;
 }

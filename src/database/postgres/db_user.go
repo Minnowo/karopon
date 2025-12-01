@@ -29,7 +29,7 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 		userSettings.DarkMode = true
 		userSettings.ShowDiabetes = true
 		userSettings.CaloricCalcMethod = "auto"
-		userSettings.InsulinSensitivityFactor = true
+		userSettings.InsulinSensitivityFactor = 0.01
 
 		settingsId, err := db.AddUserSettingTx(tx, &userSettings)
 		if err != nil {

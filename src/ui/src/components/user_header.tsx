@@ -19,7 +19,7 @@ export function UserHeader({state}: UserHeaderProps) {
                 }
             }}
         >
-            <a className="" onClick={() => setShowDropDown(true)}>
+            <a onClick={() => setShowDropDown(true)}>
                 {state.user.name}
             </a>
             {showDropDown && (
@@ -28,13 +28,6 @@ export function UserHeader({state}: UserHeaderProps) {
                         [
                         <a href="#/settings" onClick={() => setShowDropDown(false)}>
                             Settings
-                        </a>
-                        ]
-                    </div>
-                    <div>
-                        [
-                        <a href="#/login" onClick={() => setShowDropDown(false)}>
-                            login
                         </a>
                         ]
                     </div>

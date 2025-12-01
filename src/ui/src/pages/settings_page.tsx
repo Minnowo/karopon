@@ -11,7 +11,7 @@ export function SettingsPage(state: BaseState) {
             <span>SETTINGS</span>
             <span>ID: {state.settings?.id}</span>
             <span>DARK_MODE: {state.settings?.dark_mode ? 'TRUE' : 'FALSE'}</span>
-            <span>INSULIN_SENSITIVITY_FACTOR: {state.settings?.insulin_sensitivity_factor ? 'TRUE' : 'FALSE'}</span>
+            <span>INSULIN_SENSITIVITY_FACTOR: {state.settings?.insulin_sensitivity_factor}</span>
             <span>SHOW_DIABETES: {state.settings?.show_diabetes ? 'TRUE' : 'FALSE'}</span>
             <span>CALORIC_CALC_METHOD: {state.settings?.caloric_calc_method}</span>
             <span>USER_ID: {state.settings?.user_id}</span>
