@@ -266,7 +266,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     };
 
     return (
-        <div className="w-full p-2 container-theme">
+        <div className="w-full p-2 container-theme bg-c-black">
+            <span className="text-lg font-bold">Create New Event</span>
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
@@ -345,7 +346,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 <NumberInput2
-                    className="my-1 sm:mx-1 flex-1 flex-grow"
+                    className="my-1 sm:mr-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Blood Sugar"
                     value={bloodSugar}
@@ -368,7 +369,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 sm:mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
+                <input className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green" type="submit" value="Create Event" onClick={onCreateClick} />
             </div>
         </div>
     );

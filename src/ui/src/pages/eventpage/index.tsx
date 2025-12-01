@@ -21,9 +21,10 @@ export function EventsPage(state: BaseState) {
 
     return (
         <>
-            <div className="w-full flex justify-evenly p-4">
-                <button className="w-32" onClick={() => setShowNewEventPanel((x) => !x)}>
-                    Add New Food
+            <div className="w-full flex justify-evenly my-4">
+                <button className={`w-32 ${showNewEventPanel && 'bg-c-l-red'}`} onClick={() => setShowNewEventPanel((x) => !x)}>
+                { !showNewEventPanel ? 'Add New Event' : 'Cancel'}
+
                 </button>
                 <button className="w-32">Import</button>
                 <DropdownButton
@@ -44,9 +45,11 @@ export function EventsPage(state: BaseState) {
             </div>
 
             {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
-            {showNewEventPanel && <AddEventsPanel foods={state.foods} events={state.events} createEvent={onCreateEvent} />}
+            {showNewEventPanel && <>
+                <AddEventsPanel foods={state.foods} events={state.events} createEvent={onCreateEvent} />
+            </>}
 
-            <div className="w-full space-y-4">
+            <div className={`w-full space-y-4 ${showNewEventPanel && 'mt-4'}`}>
                 {state.eventlogs.map((foodGroup: UserEventLogWithFoodLog) => {
                     return (
                         <div key={foodGroup.eventlog.id} className="w-full p-2 border container-theme">
@@ -70,6 +73,7 @@ export function EventsPage(state: BaseState) {
                                 </span>
                             </div>
 
+                            { foodGroup.foodlogs.length > 0 &&
                             <div className="w-full mt-2 overflow-x-scroll">
                                 <table className="w-full text-sm border-collapse">
                                     <thead>
@@ -117,6 +121,7 @@ export function EventsPage(state: BaseState) {
                                     </tbody>
                                 </table>
                             </div>
+                            }
                         </div>
                     );
                 })}
