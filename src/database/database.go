@@ -89,6 +89,10 @@ type DB interface {
 	// The given foods are also updated by any modifications made by AddUserFoodLogTx.
 	AddUserEventLogWith(ctx context.Context, event *TblUserEventLog, foodlogs []TblUserFoodLog) (int, error)
 
+	// Read a single event log and it's food into the given array.
+	// Returns an error or nil.
+	LoadUserEventLogWithFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *UserEventLogWithFoodLog) error
+
 	// Read all the event logs and their food into the given array.
 	// Returns an error or nil.
 	LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]UserEventLogWithFoodLog) error
