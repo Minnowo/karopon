@@ -10,6 +10,7 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 
+
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState<string>('');
@@ -147,6 +148,8 @@ export function FoodPage(state: BaseState) {
                         })}
                 </div>
             </div>
+
         </>
+        
     );
 }
