@@ -100,9 +100,19 @@ func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userEventLog.ID = id
+	var eventlogwithfoodlog database.UserEventLogWithFoodLog
+
+	if err := a.Db.LoadUserEventLogWithFoodLog(r.Context(), user.ID, id, &eventlogwithfoodlog); err != nil {
+		api.ServerErr(w, "The eventlog was created successfully! But, an unexpected error occurred reading it from the database.")
+		log.Error().
+			Err(err).
+			Str("event", event.Event.Name).
+			Int("userid", user.ID).
+			Msg("The eventlog was created successfully! But, an unexpected error occurred reading it from the database.")
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(userEventLog)
+	json.NewEncoder(w).Encode(eventlogwithfoodlog)
 }

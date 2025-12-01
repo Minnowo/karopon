@@ -17,6 +17,13 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 		if time.Time(event.UserTime).IsZero() {
 			event.UserTime = database.UnixMillis(time.Now())
 		}
+
+		event.NetCarbs = 0
+
+		for _, food := range foodlogs {
+			event.NetCarbs += food.Carb - food.Fibre
+		}
+
 		eventLogID, err := db.AddUserEventLogTx(tx, event)
 
 		if err != nil {
@@ -84,6 +91,40 @@ func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEven
 	return id, err
 }
 
+func (db *PGDatabase) LoadUserEventLogWithFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *database.UserEventLogWithFoodLog) error {
+
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
+		var eventlog database.TblUserEventLog
+
+		if err := db.LoadUserEventLogTx(tx, userId, eventlogId, &eventlog); err != nil {
+			return err
+		}
+
+		var eventlogWithFood database.UserEventLogWithFoodLog
+
+		if err := db.LoadUserFoodLogByEventLogTx(tx, userId, eventlogId, &eventlogWithFood.Foodlogs); err != nil {
+			return err
+		}
+
+		eventlogWithFood.Eventlog = eventlog
+
+		for _, foodlog := range eventlogWithFood.Foodlogs {
+			eventlogWithFood.TotalCarb += foodlog.Carb
+			eventlogWithFood.TotalProtein += foodlog.Protein
+			eventlogWithFood.TotalFat += foodlog.Fat
+			eventlogWithFood.TotalFibre += foodlog.Fibre
+		}
+		if eventlogWithFood.Foodlogs == nil {
+			eventlogWithFood.Foodlogs = make([]database.TblUserFoodLog, 0)
+		}
+
+		*eventWithFood = eventlogWithFood
+
+		return nil
+	})
+}
+
 func (db *PGDatabase) LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]database.UserEventLogWithFoodLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
@@ -136,6 +177,14 @@ func (db *PGDatabase) LoadUserEventLogsTx(tx *sqlx.Tx, userId int, out *[]databa
 		ORDER BY el.CREATED DESC
 	`
 	return tx.Select(out, query, userId)
+}
+
+func (db *PGDatabase) LoadUserEventLogTx(tx *sqlx.Tx, userId int, eventlogId int, out *database.TblUserEventLog) error {
+	query := `
+		SELECT * FROM PON.USER_EVENTLOG el
+		WHERE el.USER_ID = $1 AND el.ID = $2
+	`
+	return tx.Get(out, query, userId, eventlogId)
 }
 
 func (db *PGDatabase) UpdateUserEventLog(ctx context.Context, eventlog *database.TblUserEventLog) error {

@@ -214,7 +214,7 @@ export async function LogFood(food: InsertUserFoodLog): Promise<TblUserFoodLog> 
     }
 }
 
-export async function LogEvent(food: CreateUserEventLog): Promise<TblUserFoodLog> {
+export async function LogEvent(food: CreateUserEventLog): Promise<UserEventLogWithFoodLog> {
     try {
         const response: Response = await fetch(`${base}/api/eventlog/new`, {
             headers: {

@@ -82,11 +82,16 @@ type DB interface {
 
 	// Add the given event log to the database.
 	// If the TblUserEventLog.UserTime IsZero it is set as the current UTC time.
+	// The given TblUserEventLog.NetCarbs is updated with the net carbs of the given foods.
 	// The given foods are updated with the event's UserID, Event, EventLogID.
 	// The given foods UserTime are updated if their usertime IsZero.
 	// The given foods ID are updated.
 	// The given foods are also updated by any modifications made by AddUserFoodLogTx.
 	AddUserEventLogWith(ctx context.Context, event *TblUserEventLog, foodlogs []TblUserFoodLog) (int, error)
+
+	// Read a single event log and it's food into the given array.
+	// Returns an error or nil.
+	LoadUserEventLogWithFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *UserEventLogWithFoodLog) error
 
 	// Read all the event logs and their food into the given array.
 	// Returns an error or nil.
