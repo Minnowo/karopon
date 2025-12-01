@@ -35,7 +35,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
     };
 
     return (
-        <div key={food.id} className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
+        <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
             <span className="text-lg font-bold">Create New Food</span>
             <div className="flex justify-between font-semibold">
                 <div className="w-full">
@@ -122,7 +122,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                         render();
                     }}
                 />
-                <button className="my-1 sm:ml-1 text-c-l-green max-w-32" onClick={onSaveClick}>
+                <button className="ml-auto my-1 sm:ml-1 text-c-l-green max-w-32" onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>

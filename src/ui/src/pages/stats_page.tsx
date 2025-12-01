@@ -339,7 +339,7 @@ function buildMacroChartData(rows: TblUserFoodLog[], range: RangeType): MacroPoi
         let key = '';
         switch (range) {
             case 'daily':
-                key = d.getTime().toString();
+                key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime().toString();
                 break;
             case 'weekly':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime().toString();
@@ -357,7 +357,7 @@ function buildMacroChartData(rows: TblUserFoodLog[], range: RangeType): MacroPoi
         buckets[key].fat += Number(r.fat || 0);
         buckets[key].fibre += Number(r.fibre || 0);
     }
-    return Object.values(buckets);
+    return Object.values(buckets).sort((a, b) => Number(a.date) - Number(b.date));
 }
 
 /* --- Pie Chart ------------------------------------------------------------ */

@@ -3,7 +3,6 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
@@ -15,6 +14,7 @@ import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventL
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
+import {NotFound} from './pages/_404.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -24,21 +24,24 @@ export function App() {
     const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventLogWithFoodLog> | null>(null);
     const [settings, setSettings] = useState<TblUserSettings | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [refresh, doRefresh] = useState<number>(0);
 
     useEffect(() => {
-        WhoAmI().then((me) => setUser(me));
-        UserFoods().then((myFood) => {
-            myFood.sort((a, b) => a.name.localeCompare(b.name));
-            setFoods(myFood);
+        WhoAmI().then((me) => {
+            UserFoods().then((myFood) => {
+                myFood.sort((a, b) => a.name.localeCompare(b.name));
+                setFoods(myFood);
+            });
+            UserEvents().then((myEvents) => setEvents(myEvents));
+            GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
+            GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
+            GetUserSettings().then((mySettings) => setSettings(mySettings));
+            setUser(me);
         });
-        UserEvents().then((myEvents) => setEvents(myEvents));
-        GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
-        GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
-        GetUserSettings().then((mySettings) => setSettings(mySettings));
-    }, []);
+    }, [refresh]);
 
     if (user === null) {
-        return <LoginPage />;
+        return <LoginPage doRefresh={doRefresh} />;
     }
 
     return (
@@ -136,20 +139,7 @@ export function App() {
                         </Route>
 
                         <Route>
-                            <HomePage
-                                user={user}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlog={eventlog}
-                                setEventlog={setEventlog}
-                                eventlogs={eventlogsWithFoodlogs}
-                                setEventLogs={setEventlogsWithFoodlogs}
-                                setErrorMsg={setErrorMsg}
-                                settings={settings}
-                                setSettings={setSettings}
-                            />
+                            <NotFound />
                         </Route>
                     </Switch>
                 )}
