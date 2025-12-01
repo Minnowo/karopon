@@ -39,24 +39,24 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
             <span className="text-lg font-bold">Create New Food</span>
             <div className="flex justify-between font-semibold">
                 <div className="w-full">
-                <div className="flex flex-row flex-wrap">
-                    <input
-                        className="mb-2 whitespace-nowrap flex-auto mr-1"
-                        type="text"
-                        ref={foodName}
-                        value={food.name}
-                        onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
-                        placeholder="Food Name"
-                    />
-                    <input
-                        className="mb-2 whitespace-nowrap flex-auto max-w-32"
-                        type="text"
-                        ref={foodUnit}
-                        value={food.unit}
-                        onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
-                        placeholder="Portion Unit"
-                    />
-                </div>
+                    <div className="flex flex-row flex-wrap">
+                        <input
+                            className="mb-2 whitespace-nowrap flex-auto mr-1"
+                            type="text"
+                            ref={foodName}
+                            value={food.name}
+                            onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
+                            placeholder="Food Name"
+                        />
+                        <input
+                            className="mb-2 whitespace-nowrap flex-auto max-w-32"
+                            type="text"
+                            ref={foodUnit}
+                            value={food.unit}
+                            onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
+                            placeholder="Portion Unit"
+                        />
+                    </div>
                     <NumberInput2
                         className={'w-full mb-1'}
                         innerClassName={'w-full'}
@@ -71,7 +71,6 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
                         }}
                     />
                 </div>
-
             </div>
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">

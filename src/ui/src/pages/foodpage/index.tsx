@@ -10,7 +10,6 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 
-
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState<string>('');
@@ -69,9 +68,8 @@ export function FoodPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-
                 <button className={`w-32 ${showAddFoodPanel && 'bg-c-l-red'}`} onClick={() => setShowAddFoodPanel((x) => !x)}>
-                { !showAddFoodPanel ? 'Add New Food' : 'Cancel'}
+                    {!showAddFoodPanel ? 'Add New Food' : 'Cancel'}
                 </button>
                 <button className="w-32">Import</button>
                 <DropdownButton
@@ -148,8 +146,6 @@ export function FoodPage(state: BaseState) {
                         })}
                 </div>
             </div>
-
         </>
-        
     );
 }

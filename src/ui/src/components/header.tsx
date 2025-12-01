@@ -1,7 +1,6 @@
 import {useState, useEffect} from 'preact/hooks';
 import {HeaderState} from '../state/header_state';
 
-
 export function Header(state: HeaderState) {
     const [currentHash, setCurrentHash] = useState(window.location.hash);
 
@@ -42,12 +41,3 @@ export function Header(state: HeaderState) {
         </>
     );
 }
-
-
-
-
-
-
-
-
-
