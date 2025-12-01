@@ -16,7 +16,7 @@ export function DropdownButton({
     actions,
     label = '[:]',
     className,
-    buttonClassName = 'w-full h-full font-mono p-0.5 m-0 border-none bg-c-d-black hover:bg-c-black',
+    buttonClassName = 'w-8 h-8 p-0 m-0 border-none bg-c-d-black hover:bg-c-black',
 }: DropdownProps) {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -34,9 +34,17 @@ export function DropdownButton({
     }, []);
 
     return (
-        <div className={`relative ${className}`} ref={menuRef}>
+        <div className={`relative ${className !== undefined ? className : ''}`} ref={menuRef}>
             <button onClick={() => setOpen(!open)} className={buttonClassName}>
-                {label}
+                {label === '[:]' ? (
+                    <svg className="w-full h-full p-0 m-0 border-none" viewBox="0 0 32 32" fill="currentColor">
+                        <circle cx="16" cy="8" r="2.5" />
+                        <circle cx="16" cy="16" r="2.5" />
+                        <circle cx="16" cy="24" r="2.5" />
+                    </svg>
+                ) : (
+                    label
+                )}
             </button>
 
             {open && (
