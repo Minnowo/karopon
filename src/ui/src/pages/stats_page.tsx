@@ -15,16 +15,6 @@ type MacroPoint = {
     fibre: number;
 };
 
-type EventKey = 'net_carbs' | 'blood_glucose' | 'actual_insulin_taken';
-
-type MacroPoint = {
-    date: string;
-    carbs: number;
-    protein: number;
-    fat: number;
-    fibre: number;
-};
-
 type MacroTotals = {
     carbs: number;
     protein: number;
@@ -43,31 +33,16 @@ export function StatsPage(state: BaseState) {
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
     const [bloodData, setBloodData] = useState<{date: string; blood_glucose: number}[]>([]);
     const [insulinData, setInsulinData] = useState<{date: string; actual_insulin_taken: number}[]>([]);
-    const eventLogs = state.eventlog ?? [];
-    const [foodLogs, setFoodLogs] = useState<TblUserFoodLog[]>([]);
-
-    const [carbRange, setCarbRange] = useState<RangeType>('daily');
-    const [bloodRange, setBloodRange] = useState<RangeType>('daily');
-    const [insulinRange, setInsulinRange] = useState<RangeType>('daily');
-
-    const [macroData, setMacroData] = useState<MacroPoint[]>([]);
-    const [bloodData, setBloodData] = useState<{date: string; blood_glucose: number}[]>([]);
-    const [insulinData, setInsulinData] = useState<{date: string; actual_insulin_taken: number}[]>([]);
     const [macros, setMacros] = useState<MacroTotals | null>(null);
 
     const [visibleMacros, setVisibleMacros] = useState<string[]>(['carbs', 'protein', 'fat', 'fibre']);
 
     // Load food logs
-    const [visibleMacros, setVisibleMacros] = useState<string[]>(['carbs', 'protein', 'fat', 'fibre']);
-
-    // Load food logs
     useEffect(() => {
-        GetUserFoodLog().then((data) => setFoodLogs(data || []));
         GetUserFoodLog().then((data) => setFoodLogs(data || []));
     }, []);
 
     // Build macro graph data
-    // Build macro graph data
     useEffect(() => {
         setMacroData(buildMacroChartData(foodLogs, carbRange));
     }, [foodLogs, carbRange]);
@@ -77,63 +52,10 @@ export function StatsPage(state: BaseState) {
     useEffect(() => setInsulinData(buildChartData(eventLogs, 'actual_insulin_taken', insulinRange)), [eventLogs, insulinRange]);
 
     // Build today's totals for pie chart
-        setMacroData(buildMacroChartData(foodLogs, carbRange));
-    }, [foodLogs, carbRange]);
-
-    // Build blood and insulin graph data
-    useEffect(() => setBloodData(buildChartData(eventLogs, 'blood_glucose', bloodRange)), [eventLogs, bloodRange]);
-    useEffect(() => setInsulinData(buildChartData(eventLogs, 'actual_insulin_taken', insulinRange)), [eventLogs, insulinRange]);
-
-    // Build today's totals for pie chart
     useEffect(() => {
-        if (foodLogs.length) setMacros(buildTodayMacros(foodLogs));
         if (foodLogs.length) setMacros(buildTodayMacros(foodLogs));
     }, [foodLogs]);
 
-    if (!eventLogs) return <div className="p-4">Loading...</div>;
-
-    /* --------------------------- SINGLE LINE GRAPH --------------------------- */
-    const renderGraph = <T extends {date: string}>(
-        data: T[],
-        range: RangeType,
-        valueKey: keyof T,
-        title: string,
-        color: string,
-        setRange: (r: RangeType) => void,
-        currentRange: RangeType = range
-    ) => {
-        const isEmpty = data.length === 0;
-
-        return (
-            <div className="mb-8">
-                <h1 className="text-2xl mb-2">{title}</h1>
-                <div className="flex gap-4 mb-4">
-                    {['daily', 'weekly', 'monthly', 'yearly'].map((r) => (
-                        <button
-                            key={r}
-                            className={`px-3 py-1 border rounded ${
-                                currentRange === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'
-                            }`}
-                            onClick={() => setRange(r as RangeType)}
-                        >
-                            {r.toUpperCase()}
-                        </button>
-                    ))}
-                </div>
-                {isEmpty ? (
-                    <div className="p-6 text-center text-yellow-400">Please enter an event to see data</div>
-                ) : (
-                    (() => {
-                        const maxVal = Math.max(...data.map((d) => Number(d[valueKey])), 10);
-                        const points =
-                            data.length <= 1
-                                ? data.map((d) => ({x: 300, y: 150, value: Number(d[valueKey]), date: d.date}))
-                                : data.map((d, i) => {
-                                      const rawX = 40 + (i / (data.length - 1)) * (600 - 40 * 2);
-                                      const x = Math.max(40, Math.min(600 - 40, rawX));
-                                      const y = 300 - 40 - (Number(d[valueKey]) / maxVal) * (300 - 40 * 2);
-                                      return {x, y, value: Number(d[valueKey]), date: d.date};
-                                  });
     if (!eventLogs) return <div className="p-4">Loading...</div>;
 
     /* --------------------------- SINGLE LINE GRAPH --------------------------- */
