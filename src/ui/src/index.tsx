@@ -103,7 +103,10 @@ export function App() {
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>
-                        <Route path="/logout">
+                        <Route path="/stats">
+                        <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
+                    </Route>
+                    <Route path="/logout">
                             <LogoutPage />
                         </Route>
                         <Route>
