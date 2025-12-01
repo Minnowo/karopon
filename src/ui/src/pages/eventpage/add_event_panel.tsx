@@ -27,7 +27,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 
     return (
         <>
-            <tr key={foodTemplate.current.id}>
+            <tr>
                 <td className="whitespace-nowrap w-full pr-1">
                     <FuzzySearch<TblUserFood>
                         query={foodTemplate.current.name}
