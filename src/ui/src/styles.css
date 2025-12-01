@@ -30,7 +30,6 @@
         box-sizing: border-box;
     }
 
-    /*for font size*/
     :root {
         --base-font-size: 16px;
     }
@@ -38,10 +37,8 @@
     body {
         color: var(--color-c-white);
         background-color: var(--color-c-background);
-        background-color: var(--color-c-black);
         font-size: var(--base-font-size);
     }
-    /* light mode switch*/
 
     body.light {
         --color-c-d-black: rgb(255, 255, 255);

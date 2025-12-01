@@ -339,13 +339,7 @@ function buildMacroChartData(rows: TblUserFoodLog[], range: RangeType): MacroPoi
         let key = '';
         switch (range) {
             case 'daily':
-                key = new Date(
-                    d.getFullYear(),
-                    d.getMonth(),
-                    d.getDate(),
-                    d.getHours(),
-                    d.getMinutes()
-                ).getTime().toString();
+                key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime().toString();
                 break;
             case 'weekly':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime().toString();

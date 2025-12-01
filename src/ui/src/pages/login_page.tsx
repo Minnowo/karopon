@@ -14,16 +14,14 @@ export function LoginPage() {
                             <tr title="Your username">
                                 <td className="px-2"> Username </td>
                                 <td>
-                                    {' '}
-                                    <input type="text" name="pon_username" required />{' '}
+                                    <input type="text" name="pon_username" required />
                                 </td>
                             </tr>
 
                             <tr title="Your password">
                                 <td className="px-2"> Password </td>
                                 <td>
-                                    {' '}
-                                    <input type="password" name="pon_password" required />{' '}
+                                    <input type="password" name="pon_password" required />
                                 </td>
                             </tr>
 

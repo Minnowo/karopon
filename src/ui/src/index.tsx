@@ -3,7 +3,6 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {HomePage} from './pages/home_page.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
@@ -14,6 +13,7 @@ import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoo
 import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
+import { NotFound } from './pages/_404.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
@@ -103,25 +103,11 @@ export function App() {
                                 setErrorMsg={setErrorMsg}
                             />
                         </Route>
-                        <Route path="/stats">
-                            <StatsPage user={user} foods={foods} setFoods={setFoods} events={events} setEvents={setEvents} />
-                        </Route>
                         <Route path="/logout">
                             <LogoutPage />
                         </Route>
                         <Route>
-                            <HomePage
-                                user={user}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlog={eventlog}
-                                setEventlog={setEventlog}
-                                eventlogs={eventlogsWithFoodlogs}
-                                setEventLogs={setEventlogsWithFoodlogs}
-                                setErrorMsg={setErrorMsg}
-                            />
+                            <NotFound />
                         </Route>
                     </Switch>
                 )}
