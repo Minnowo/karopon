@@ -68,6 +68,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         tabindex={-1}
                         type="text"
                         value={food.unit}
+                        placeholder={'g'}
                         onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
                             food.unit = e.currentTarget.value;
                             render();
@@ -292,6 +293,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 />
             </div>
 
+            <div className="overflow-x-scroll">
             <table className="w-full text-sm border-collapse">
                 <thead>
                     <tr className="font-semibold text-xs border-b">
@@ -333,6 +335,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     ))}
                 </tbody>
             </table>
+            </div>
             <div className="w-full flex flex-none justify-end">
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
@@ -342,7 +345,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 <NumberInput2
-                    className="my-1 mx-1 flex-1 flex-grow"
+                    className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Blood Sugar"
                     value={bloodSugar}
@@ -350,7 +353,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     min={0}
                 />
                 <NumberInput2
-                    className="my-1 mx-1 flex-1 flex-grow"
+                    className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Insulin Sensitivity"
                     value={insulinSensitivity}
@@ -358,14 +361,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     min={0}
                 />
                 <NumberInput2
-                    className="my-1 mx-1 flex-1 flex-grow"
+                    className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Insulin Taken"
                     value={insulinTaken}
                     onValueChange={setInsulinTaken}
                     min={0}
                 />
-                <input className="w-full my-1 mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
+                <input className="w-full my-1 sm:mx-1 sm:max-w-24" type="submit" value="Create" onClick={onCreateClick} />
             </div>
         </div>
     );
