@@ -12,6 +12,7 @@ type Props = {
     step?: number;
     min?: number;
     max?: number;
+    round?: number;
 };
 
 export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
@@ -25,6 +26,20 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
     const numberList: number[] | undefined = p.distinctNumberList
         ? [...new Set(p.numberList)].sort((a, b) => a - b)
         : p.numberList;
+
+    const className = p.className !== undefined ? p.className : '';
+    const innerClassName = p.innerClassName !== undefined ? p.innerClassName : 'w-12';
+
+    const value = (() => {
+        const strValue = p.value.toString();
+
+        if (p.round !== undefined) {
+            if (strValue.indexOf('.') !== -1) {
+                return p.value.toFixed(p.round);
+            }
+        }
+        return `${p.value}`;
+    })();
 
     useEffect(() => {
         valueRef.current = p.value;
@@ -53,9 +68,6 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
         p.onValueChange(valueRef.current - step);
     };
 
-    const className = p.className !== undefined ? p.className : '';
-    const innerClassName = p.innerClassName !== undefined ? p.innerClassName : 'w-12';
-
     return (
         <div className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap ${className}`}>
             {p.label && (
@@ -73,7 +85,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                 type="text"
                 inputmode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*$"
-                value={p.value}
+                value={value}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setOpen(false)}
                 onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {

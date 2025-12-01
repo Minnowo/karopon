@@ -89,11 +89,14 @@ export function EventsPage(state: BaseState) {
                                             <tr>
                                                 <td className="whitespace-nowrap">Total</td>
                                                 <td className="text-right">-</td>
-                                                <td className="text-right pr-1">{foodGroup.total_protein.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{foodGroup.total_carb.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{foodGroup.total_fibre.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{foodGroup.total_fat.toFixed(3)}</td>
-                                                <th className="text-right"> {(foodGroup.total_carb - foodGroup.total_fibre).toFixed(3)} </th>
+                                                <td className="text-right pr-1">{foodGroup.total_protein.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{foodGroup.total_carb.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{foodGroup.total_fibre.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{foodGroup.total_fat.toFixed(1)}</td>
+                                                <th className="text-right">
+                                                    {' '}
+                                                    {(foodGroup.total_carb - foodGroup.total_fibre).toFixed(1)}{' '}
+                                                </th>
                                             </tr>
                                         )}
                                         {foodGroup.foodlogs.map((food: TblUserFoodLog) => (
@@ -104,11 +107,11 @@ export function EventsPage(state: BaseState) {
                                                 <td className="text-right whitespace-nowrap pr-1">
                                                     {food.portion} {food.unit}
                                                 </td>
-                                                <td className="text-right pr-1">{food.protein.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{food.carb.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{food.fibre.toFixed(3)}</td>
-                                                <td className="text-right pr-1">{food.fat.toFixed(3)}</td>
-                                                <td className="text-right"     >{(food.carb - food.fibre).toFixed(3)}</td>
+                                                <td className="text-right pr-1">{food.protein.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{food.carb.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{food.fibre.toFixed(1)}</td>
+                                                <td className="text-right pr-1">{food.fat.toFixed(1)}</td>
+                                                <td className="text-right">{(food.carb - food.fibre).toFixed(1)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

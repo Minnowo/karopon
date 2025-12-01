@@ -10,7 +10,7 @@ type FuzzySearchProps<T> = {
     onQueryChange?: (query: string) => void;
     placeholder?: string;
     className?: string;
-    noResultsText?:string;
+    noResultsText?: string;
 };
 
 export function FuzzySearch<T>({
