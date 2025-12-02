@@ -3,13 +3,13 @@ VERSION := $(shell git describe --tags --abbrev=0)
 COMMIT  := $(shell git rev-parse --verify HEAD)
 DATE    := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-LDFLAGS := -s -w -linkmode external -extldflags -static
+LDFLAGS := -s -w
 LDFLAGS += -X main.BuildMode=prod
 LDFLAGS += -X main.BuildDate=$(DATE)
 LDFLAGS += -X main.BuildCommit=$(COMMIT)
 LDFLAGS += -X main.BuildVersion=$(VERSION)
 
-TAGS    := netgo osusergo sqlite_omit_load_extension
+TAGS    := netgo osusergo
 
 UI       := ./src/ui
 ASSETS   := ./src/assets
@@ -47,6 +47,13 @@ test-clean: format generate
 
 build-site:
 	go build -ldflags "$(LDFLAGS)" -tags="$(TAGS)" -o $(SITE_DST) $(SITE_SRC)
+
+build-site-windows:
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build \
+		-ldflags "$(LDFLAGS)" \
+		-tags="$(TAGS)" \
+		-o $(SITE_DST).exe \
+		$(SITE_SRC)
 
 run: format generate
 	LOG_LEVEL=debug go run $(SITE_SRC) run
