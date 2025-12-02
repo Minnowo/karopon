@@ -45,7 +45,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                         }}
                         data={foods}
                         searchKey={'name'}
-                        className="w-full my-1 sm:mr-1"
+                        className="w-full min-w-32 my-1 sm:mr-1"
                         placeholder="Food Name"
                         noResultsText="New Food"
                         onSelect={(newFood: TblUserFood | null) => {
