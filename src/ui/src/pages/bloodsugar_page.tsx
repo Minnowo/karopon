@@ -227,7 +227,7 @@ export function BloodSugarPage(state: BaseState) {
                         className="flex flex-row container-theme mt-3 rounded-sm justify-between items-center p-4"
                     >
                         <div className="w-full flex flex-col sm:flex-row">
-                            <span className="w-full sm:w-2/5  font-medium h-fit truncate" title={eventLog.event}>
+                            <span className="w-full sm:w-2/5 font-medium h-fit" title={eventLog.event}>
                                 {eventLog.event}
                             </span>
 

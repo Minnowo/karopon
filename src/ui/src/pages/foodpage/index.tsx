@@ -10,11 +10,13 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 import {TblUserFoodFactory} from '../../api/factories';
+import {NumberInput2} from '../../components/number_input2';
 
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState<string>('');
     const [showAddFoodPanel, setShowAddFoodPanel] = useState<boolean>(false);
+    const [numberToShow, setNumberToShow] = useState<number>(15);
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
     const addNewFood = (food: TblUserFood) => {
@@ -68,7 +70,14 @@ export function FoodPage(state: BaseState) {
                 >
                     {!showAddFoodPanel ? 'Add New Food' : 'Cancel'}
                 </button>
-                <button className="w-32">Import</button>
+                <NumberInput2
+                    label={'Show Last'}
+                    min={1}
+                    step={5}
+                    value={numberToShow}
+                    onValueChange={setNumberToShow}
+                    numberList={[1, 2, 5, 10, 20, 50]}
+                />
                 <DropdownButton
                     buttonClassName="w-full h-full"
                     className="w-32"
@@ -127,6 +136,7 @@ export function FoodPage(state: BaseState) {
                         .filter((x: TblUserFood) => {
                             return x.name.toLowerCase().includes(search);
                         })
+                        .slice(0, numberToShow)
                         .map((food: TblUserFood) => {
                             return (
                                 <FoodEditPanel

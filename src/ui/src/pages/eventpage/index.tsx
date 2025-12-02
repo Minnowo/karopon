@@ -7,9 +7,11 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
 import {UserEventLogWithFoodLogFactory} from '../../api/factories';
+import {NumberInput2} from '../../components/number_input2';
 
 export function EventsPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [numberToShow, setNumberToShow] = useState<number>(15);
     const [newEvent, setNewEvent] = useState<UserEventLogWithFoodLog>(UserEventLogWithFoodLogFactory.empty());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -37,7 +39,16 @@ export function EventsPage(state: BaseState) {
                 >
                     {!showNewEventPanel ? 'Add New Event' : 'Cancel'}
                 </button>
-                <button className="w-32">Import</button>
+
+                <NumberInput2
+                    label={'Show Last'}
+                    min={1}
+                    step={5}
+                    value={numberToShow}
+                    onValueChange={setNumberToShow}
+                    numberList={[1, 2, 5, 10, 20, 50]}
+                />
+
                 <DropdownButton
                     buttonClassName="w-full h-full"
                     className="w-32"
@@ -72,7 +83,7 @@ export function EventsPage(state: BaseState) {
             )}
 
             <div className={`w-full space-y-4 ${showNewEventPanel && 'mt-4'}`}>
-                {state.eventlogs.map((foodGroup: UserEventLogWithFoodLog) => {
+                {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventLogWithFoodLog) => {
                     return (
                         <div key={foodGroup.eventlog.id} className="w-full p-2 border container-theme">
                             <div className="flex flex-row flex-wrap w-full justify-between align-middle">

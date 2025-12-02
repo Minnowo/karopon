@@ -13,30 +13,30 @@ export function Header(state: HeaderState) {
 
     const css = 'font-bold text-c-l-green';
     return (
-            <header>
-                <div className="w-full flex flex-wrap">
-                    <span>
-                        <a className={`${currentHash === '#events' ? css : ''} `} href="#events">
-                            events
-                        </a>
-                        &nbsp;&nbsp;&nbsp;
-                        <a className={`${currentHash === '#foods' ? css : ''} `} href="#foods">
-                            foods
-                        </a>
-                        &nbsp;&nbsp;&nbsp;
-                        <a className={`${currentHash === '#bloodsugar' ? css : ''} `} href="#bloodsugar">
-                            bloodsugar
-                        </a>
-                        &nbsp;&nbsp;&nbsp;
-                        <a className={`${currentHash === '#stats' ? css : ''} `} href="#stats">
-                            stats
-                        </a>
-                    </span>
-                    <div className="ml-auto mr-10 flex items-center">
-                        [<UserHeader state={state}></UserHeader>]
-                    </div>
+        <header>
+            <div className="w-full flex flex-wrap">
+                <span>
+                    <a className={`${currentHash === '#events' ? css : ''} `} href="#events">
+                        events
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#foods' ? css : ''} `} href="#foods">
+                        foods
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#bloodsugar' ? css : ''} `} href="#bloodsugar">
+                        bloodsugar
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#stats' ? css : ''} `} href="#stats">
+                        stats
+                    </a>
+                </span>
+                <div className="ml-auto mr-10 flex items-center">
+                    <UserHeader state={state} />
                 </div>
-                <hr />
-            </header>
+            </div>
+            <hr />
+        </header>
     );
 }
