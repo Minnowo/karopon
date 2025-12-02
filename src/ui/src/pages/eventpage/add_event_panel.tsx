@@ -176,6 +176,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
     const [insulinSensitivity, setInsulinSensitivity] = useState<number>(p.fromEvent.eventlog.insulin_sensitivity_factor);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const foods = useRef<TblUserFoodLog[]>(p.fromEvent.foodlogs);
 
     const render = DoRender();
@@ -209,6 +210,24 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
 
     const onCreateClick = () => {
+
+        setErrorMsg(null);
+
+        if(event.trim() === ''){
+            setErrorMsg("Event name should not be empty");
+            return;
+        }
+
+        if(bloodSugar <= 0){
+            setErrorMsg("Blood sugar should be a positive number");
+            return;
+        }
+
+        if(insulinSensitivity <= 0){
+            setErrorMsg("Insulin sensitivity should be a positive number");
+            return;
+        }
+
         p.createEvent({
             blood_glucose: bloodSugar,
             blood_glucose_target: 0,
@@ -267,6 +286,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     return (
         <div className="w-full p-2 container-theme bg-c-black">
             <span className="text-lg font-bold">Create New Event</span>
+            {errorMsg !== null && <div className="text-c-l-red font-bold">{errorMsg}</div>}
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
@@ -289,7 +309,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     type="datetime-local"
                     name="Event Date"
                     onChange={onEventTimeChange}
-                    value={eventTime.toISOString().substring(0, 16)}
+                        value={eventTime.toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
                 />
             </div>
 
@@ -337,6 +357,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </table>
             </div>
             <div className="w-full flex flex-none justify-end">
+                <span className="px-2"> AI Insulin Rec: {(insulin + 1.1344).toFixed(1)} </span>
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
                     Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}

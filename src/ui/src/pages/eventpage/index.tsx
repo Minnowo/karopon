@@ -83,6 +83,10 @@ export function EventsPage(state: BaseState) {
             )}
 
             <div className={`w-full space-y-4 ${showNewEventPanel && 'mt-4'}`}>
+            {state.eventlogs.length===0 &&
+                <div className="text-center font-bold p-32">
+                    Shhh… the list is taking a nap right now. Try adding something to wake it up!
+                    </div>}
                 {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventLogWithFoodLog) => {
                     return (
                         <div key={foodGroup.eventlog.id} className="w-full p-2 border container-theme">

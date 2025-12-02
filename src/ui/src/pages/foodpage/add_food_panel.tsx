@@ -9,10 +9,11 @@ type AddFoodPanelProps = {
     className?: string;
 };
 
-export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodPanelProps) {
+export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
     const tmpFood = useRef<TblUserFood>({...food});
     const foodName = useRef<HTMLInputElement>(null);
     const foodUnit = useRef<HTMLInputElement>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [, setRender] = useState<number>(0);
 
@@ -24,6 +25,24 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
     }, [food]);
 
     const onSaveClick = () => {
+
+        setErrorMsg(null);
+
+        if (tmpFood.current.name.trim() === "") {
+            setErrorMsg("Food cannot have empty name");
+            return;
+        }
+
+        if (tmpFood.current.unit.trim() === "") {
+            setErrorMsg("Food unit cannot be empty");
+            return;
+        }
+
+        if (tmpFood.current.portion <= 0) {
+            setErrorMsg("Food portion must be a positive number");
+            return;
+        }
+
         const newFood = {...food, ...tmpFood.current};
         if (foodName.current?.value) {
             newFood.name = foodName.current.value;
@@ -37,6 +56,7 @@ export function AddFoodPanel({food, addFood, className, onCancelClick}: AddFoodP
     return (
         <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
             <span className="text-lg font-bold">Create New Food</span>
+            {errorMsg !== null && <div className="text-c-l-red font-bold">{errorMsg}</div>}
             <div className="flex justify-between font-semibold">
                 <div className="w-full">
                     <div className="flex flex-row flex-wrap">

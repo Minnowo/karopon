@@ -32,9 +32,8 @@ export function LoginPage({doRefresh}: Props) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center ">
-            <div className="flex-grow">
-                <br />
+        <div className="flex flex-col items-center justify-center align-middle h-screen">
+            <div className="text-center font-bold mb-32">
                 <h1>Karopon</h1>
                 <br />
 

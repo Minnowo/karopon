@@ -149,7 +149,16 @@ export function BloodSugarPage(state: BaseState) {
         };
         LogEvent(createEventLogData)
             .then(() => {
-                state.setEventlog([...state.eventlog!, eventLog]);
+                const elwf = {
+                    eventlog: eventLog,
+                    foodlogs: [],
+                    total_protein: 0,
+                    total_carb: 0,
+                    total_fibre: 0,
+                    total_fat: 0,
+                }
+                state.setEventlog([{...eventLog}, ...state.eventlog! ]);
+                state.setEventLogs([elwf, ...state.eventlogs!]);
                 setErrorMsg(null);
                 setAddingNewEvent(false);
             })
@@ -206,8 +215,15 @@ export function BloodSugarPage(state: BaseState) {
                 />
             </div>
 
-            {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
+            {errorMsg !== null && <div className="text-c-l-red font-bold">{errorMsg}</div>}
             {isAddingNewEvent && <EditEventLogForm eventLog={null} onSave={(form) => createEventLog(form)} />}
+
+            {state.eventlog.length === 0 &&
+                <div className="text-center font-bold p-32">
+                    No entries found! Karopon did a tiny dance anyway.
+                        <br />
+                    Try adding a new event!
+                </div>}
 
             {state.eventlog.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
                 if (eventLog.id === editingID) {
