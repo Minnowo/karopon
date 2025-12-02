@@ -1,11 +1,11 @@
-import { Dispatch, StateUpdater } from 'preact/hooks';
+import {Dispatch, StateUpdater} from 'preact/hooks';
 import {base} from '../api/api';
 import {Footer} from '../components/footer';
 
 interface Props {
-doRefresh:Dispatch<StateUpdater<number>>;
+    doRefresh: Dispatch<StateUpdater<number>>;
 }
-export function LoginPage({doRefresh }: Props) {
+export function LoginPage({doRefresh}: Props) {
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 

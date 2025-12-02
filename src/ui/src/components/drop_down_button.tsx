@@ -56,7 +56,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className="w-full text-left rounded-none border-none hover:bg-c-black px-2 py-1"
+                            className="w-full text-left whitespace-nowrap rounded-none border-none hover:bg-c-black px-2 py-1"
                         >
                             {action.label}
                         </button>

@@ -1,4 +1,20 @@
-import {TblUserFoodLog} from './types';
+import {TblUserFoodLog, UserEventLogWithFoodLog, TblUserFood} from './types';
+
+export const TblUserFoodFactory = {
+    empty(): TblUserFood {
+        return {
+            id: 0,
+            user_id: 0,
+            name: '',
+            unit: '',
+            portion: 0,
+            protein: 0,
+            carb: 0,
+            fibre: 0,
+            fat: 0,
+        };
+    },
+};
 
 export const TblUserFoodLogFactory = {
     empty(): TblUserFoodLog {
@@ -18,6 +34,33 @@ export const TblUserFoodLogFactory = {
             carb: 0,
             fibre: 0,
             fat: 0,
+        };
+    },
+};
+
+export const UserEventLogWithFoodLogFactory = {
+    empty(): UserEventLogWithFoodLog {
+        return {
+            eventlog: {
+                id: 0,
+                user_id: 0,
+                event_id: 0,
+                created: 0,
+                user_time: 0,
+                event: '',
+                net_carbs: 0,
+                blood_glucose: 0,
+                blood_glucose_target: 0,
+                insulin_sensitivity_factor: 0,
+                insulin_to_carb_ratio: 0,
+                recommended_insulin_amount: 0,
+                actual_insulin_taken: 0,
+            },
+            foodlogs: [TblUserFoodLogFactory.empty(), TblUserFoodLogFactory.empty(), TblUserFoodLogFactory.empty()],
+            total_protein: 0,
+            total_carb: 0,
+            total_fibre: 0,
+            total_fat: 0,
         };
     },
 };
