@@ -8,6 +8,7 @@ import {
     TblUserEventLog,
     UserEventLogWithFoodLog,
     TblUserSettings,
+    ServerTime,
 } from './types';
 
 // export const base = 'http://localhost:9070';
@@ -42,6 +43,10 @@ export async function WhoAmI(): Promise<TblUser> {
     } catch (err: unknown) {
         rethrow(err);
     }
+}
+
+export async function GetTime(): Promise<Date> {
+    return fetch(`${base}/api/time`).then((r) => r.json()).then((j: ServerTime) => new Date(j.time));
 }
 
 export async function UserFoods(): Promise<Array<TblUserFood>> {

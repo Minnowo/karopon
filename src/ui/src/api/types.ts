@@ -8,6 +8,10 @@ export interface TblConfig {
     version: string;
 }
 
+export interface ServerTime {
+	time: number;
+}
+
 export interface TblUserEvent {
     id: number;
     user_id: number;
@@ -92,6 +96,7 @@ export interface CreateUserEventLog {
     insulin_to_carb_ratio: number;
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
+    created_time: number;
 }
 
 export interface TblUserSettings {

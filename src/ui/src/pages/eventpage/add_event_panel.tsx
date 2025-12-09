@@ -15,6 +15,7 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {Calories} from '../../utils/calories';
 import {JSX} from 'preact';
+import { GetTime } from '../../api/api';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -173,6 +174,7 @@ interface AddEventsPanelState {
 export function AddEventsPanel(p: AddEventsPanelState) {
     const [event, setEvent] = useState<string>(p.fromEvent.eventlog.event);
     const [eventTime, setEventTime] = useState<Date>(new Date());
+    const [didChangeTime, setDidChangeTime] = useState<boolean>(false);
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
     const [insulinSensitivity, setInsulinSensitivity] = useState<number>(p.fromEvent.eventlog.insulin_sensitivity_factor);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
@@ -235,6 +237,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             insulin_to_carb_ratio: 0,
             recommended_insulin_amount: 0,
             actual_insulin_taken: insulinTaken,
+            created_time: didChangeTime ? eventTime.getTime() : 0, // for server generates the time
             event: {
                 id: 0,
                 user_id: 0,
@@ -261,6 +264,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         if (e.target) {
             const value = e.currentTarget.value;
             setEventTime(new Date(value));
+            setDidChangeTime(true);
         }
     };
 

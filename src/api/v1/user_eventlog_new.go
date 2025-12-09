@@ -17,12 +17,13 @@ type CreateUserEventLog struct {
 	Event database.TblUserEvent     `json:"event"`
 	Foods []database.TblUserFoodLog `json:"foods"`
 
-	BloodGlucose             float32 `json:"blood_glucose"`
-	BloodGlucoseTarget       float32 `json:"blood_glucose_target"`
-	InsulinSensitivityFactor float32 `json:"insulin_sensitivity_factor"`
-	InsulinToCarbRatio       float32 `json:"insulin_to_carb_ratio"`
-	RecommendedInsulinAmount float32 `json:"recommended_insulin_amount"`
-	ActualInsulinTaken       float32 `json:"actual_insulin_taken"`
+	BloodGlucose             float32             `json:"blood_glucose"`
+	BloodGlucoseTarget       float32             `json:"blood_glucose_target"`
+	InsulinSensitivityFactor float32             `json:"insulin_sensitivity_factor"`
+	InsulinToCarbRatio       float32             `json:"insulin_to_carb_ratio"`
+	RecommendedInsulinAmount float32             `json:"recommended_insulin_amount"`
+	ActualInsulinTaken       float32             `json:"actual_insulin_taken"`
+	CreatedTime              database.UnixMillis `json:"created_time"`
 }
 
 func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +82,11 @@ func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
 	userEventLog.UserID = user.ID
 	userEventLog.EventID = event.Event.ID
 	userEventLog.Event = event.Event.Name
-	userEventLog.UserTime = database.UnixMillis(time.Now().UTC())
+	if event.CreatedTime.Time().IsZero() {
+		userEventLog.UserTime = database.UnixMillis(time.Now().UTC())
+	} else {
+		userEventLog.UserTime = event.CreatedTime
+	}
 	userEventLog.BloodGlucose = event.BloodGlucose
 	userEventLog.BloodGlucoseTarget = event.BloodGlucoseTarget
 	userEventLog.InsulinSensitivityFactor = event.InsulinSensitivityFactor

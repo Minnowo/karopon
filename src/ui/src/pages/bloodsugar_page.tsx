@@ -1,7 +1,7 @@
 import {BaseState} from '../state/basestate';
 import {CreateUserEventLog, TblUserEventLog} from '../api/types';
 import {Dispatch, StateUpdater, useEffect, useState} from 'preact/hooks';
-import {GetUserEventLog, LogEvent, UpdateUserEventLog} from '../api/api';
+import {GetTime, GetUserEventLog, LogEvent, UpdateUserEventLog} from '../api/api';
 import {NumberInput2} from '../components/number_input2';
 import {ChangeEvent, Fragment} from 'preact/compat';
 import {DownloadData} from '../utils/download';
