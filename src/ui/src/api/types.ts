@@ -9,7 +9,7 @@ export interface TblConfig {
 }
 
 export interface ServerTime {
-	time: number;
+    time: number;
 }
 
 export interface TblUserEvent {

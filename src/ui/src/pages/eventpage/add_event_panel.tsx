@@ -15,7 +15,7 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {Calories} from '../../utils/calories';
 import {JSX} from 'preact';
-import { GetTime } from '../../api/api';
+import {GetTime} from '../../api/api';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -212,21 +212,20 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
 
     const onCreateClick = () => {
-
         setErrorMsg(null);
 
-        if(event.trim() === ''){
-            setErrorMsg("Event name should not be empty");
+        if (event.trim() === '') {
+            setErrorMsg('Event name should not be empty');
             return;
         }
 
-        if(bloodSugar <= 0){
-            setErrorMsg("Blood sugar should be a positive number");
+        if (bloodSugar <= 0) {
+            setErrorMsg('Blood sugar should be a positive number');
             return;
         }
 
-        if(insulinSensitivity <= 0){
-            setErrorMsg("Insulin sensitivity should be a positive number");
+        if (insulinSensitivity <= 0) {
+            setErrorMsg('Insulin sensitivity should be a positive number');
             return;
         }
 
@@ -313,7 +312,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     type="datetime-local"
                     name="Event Date"
                     onChange={onEventTimeChange}
-                        value={eventTime.toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
+                    value={eventTime.toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
                 />
             </div>
 

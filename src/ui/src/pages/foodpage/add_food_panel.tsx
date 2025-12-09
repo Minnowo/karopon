@@ -25,21 +25,20 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
     }, [food]);
 
     const onSaveClick = () => {
-
         setErrorMsg(null);
 
-        if (tmpFood.current.name.trim() === "") {
-            setErrorMsg("Food cannot have empty name");
+        if (tmpFood.current.name.trim() === '') {
+            setErrorMsg('Food cannot have empty name');
             return;
         }
 
-        if (tmpFood.current.unit.trim() === "") {
-            setErrorMsg("Food unit cannot be empty");
+        if (tmpFood.current.unit.trim() === '') {
+            setErrorMsg('Food unit cannot be empty');
             return;
         }
 
         if (tmpFood.current.portion <= 0) {
-            setErrorMsg("Food portion must be a positive number");
+            setErrorMsg('Food portion must be a positive number');
             return;
         }
 

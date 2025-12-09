@@ -46,7 +46,9 @@ export async function WhoAmI(): Promise<TblUser> {
 }
 
 export async function GetTime(): Promise<Date> {
-    return fetch(`${base}/api/time`).then((r) => r.json()).then((j: ServerTime) => new Date(j.time));
+    return fetch(`${base}/api/time`)
+        .then((r) => r.json())
+        .then((j: ServerTime) => new Date(j.time));
 }
 
 export async function UserFoods(): Promise<Array<TblUserFood>> {
