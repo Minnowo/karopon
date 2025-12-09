@@ -36,10 +36,7 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 			food.Event = event.Event
 			food.EventID = &event.EventID
 			food.EventLogID = &eventLogID
-
-			if time.Time(food.UserTime).IsZero() {
-				food.UserTime = event.UserTime
-			}
+			food.UserTime = event.UserTime
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
 

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"karopon/src/database"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
@@ -126,8 +125,6 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 			VALUES (:user_id, :food_id, :user_time, :name, :event, :unit, :portion, :protein, :carb, :fibre, :fat, :event_id, :eventlog_id)
 			RETURNING ID;
 		`
-
-	food.UserTime = database.UnixMillis(time.Now().UTC())
 
 	id, err := db.InsertOneNamedGetIDTx(tx, query, food)
 
