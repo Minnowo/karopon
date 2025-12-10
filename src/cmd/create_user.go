@@ -51,6 +51,12 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
 	user.Name = username
 	user.Password = pass
+	user.DarkMode = true
+	user.ShowDiabetes = true
+	user.CaloricCalcMethod = "auto"
+	user.EventHistoryFetchLimit = 50
+	user.InsulinSensitivityFactor = 3
+	user.TargetBloodSugar = 5.6
 
 	if _, err := conn.AddUser(ctx, &user); err != nil {
 		return err
