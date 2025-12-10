@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-karopon-2
+    # ports:
+    #   - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    restart: unless-stopped
+
+  karopon:
+    image: karopon/server:amd64-latest
+    container_name: karopon-server
+    ports:
+      - "9070:9070"
+    environment:
+      DATABASE_CONN: "user=postgres password=postgres port=5432 host=postgres sslmode=disable"
+      DATABASE_VENDOR: "postgres"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
