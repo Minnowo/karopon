@@ -61,3 +61,16 @@ run: format generate
 docker-pg:
 	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
 
+.PHONY: release
+release:
+	docker build -t karopon:build -f docker/Dockerfile.build docker
+	docker run \
+		--rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $$PWD:/work \
+		-w /work \
+		karopon:build \
+		release --skip-validate --clean --snapshot
+
+
+

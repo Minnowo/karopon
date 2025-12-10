@@ -1,0 +1,5 @@
+/docker/Dockerfile.dev
+/src/ui/node_modules
+.idea/
+build/
+dist/
