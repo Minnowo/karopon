@@ -54,6 +54,7 @@ export function App() {
                         <Route path="/events">
                             <EventsPage
                                 user={user}
+                                setUser={setUser}
                                 foods={foods}
                                 setFoods={setFoods}
                                 events={events}
@@ -68,6 +69,7 @@ export function App() {
                         <Route path="/foods">
                             <FoodPage
                                 user={user}
+                                setUser={setUser}
                                 foods={foods}
                                 setFoods={setFoods}
                                 events={events}
@@ -82,6 +84,7 @@ export function App() {
                         <Route path="/bloodsugar">
                             <BloodSugarPage
                                 user={user}
+                                setUser={setUser}
                                 foods={foods}
                                 setFoods={setFoods}
                                 events={events}
@@ -96,6 +99,7 @@ export function App() {
                         <Route path="/stats">
                             <StatsPage
                                 user={user}
+                                setUser={setUser}
                                 foods={foods}
                                 setFoods={setFoods}
                                 events={events}
@@ -114,6 +118,7 @@ export function App() {
                         <Route path="/settings">
                             <SettingsPage
                                 user={user}
+                                setUser={setUser}
                                 foods={foods}
                                 setFoods={setFoods}
                                 events={events}

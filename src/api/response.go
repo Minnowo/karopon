@@ -17,6 +17,9 @@ func Donef(w http.ResponseWriter, code int, msg string, a ...any) {
 func BadReq(w http.ResponseWriter, msg string) {
 	Done(w, http.StatusBadRequest, msg)
 }
+func BadReqf(w http.ResponseWriter, msg string, a ...any) {
+	Donef(w, http.StatusBadRequest, msg, a...)
+}
 func ServerErr(w http.ResponseWriter, msg string) {
 	Done(w, http.StatusInternalServerError, msg)
 }

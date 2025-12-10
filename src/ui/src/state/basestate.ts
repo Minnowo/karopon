@@ -3,6 +3,7 @@ import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoo
 
 export interface BaseState {
     user: TblUser;
+    setUser: Dispatch<StateUpdater<TblUser | null>>;
 
     foods: TblUserFood[];
     setFoods: Dispatch<StateUpdater<Array<TblUserFood> | null>>;

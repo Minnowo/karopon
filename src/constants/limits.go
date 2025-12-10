@@ -18,6 +18,7 @@ const MAX_USERNAME_LENGTH int = 20
 const MAX_USER_PASSWORD_LENGTH int = 72
 
 const MAX_PASSWORD_LENGTH int = 72 // bcrypt max allowed
+const MIN_PASSWORD_LENGTH int = 1
 
 const SHOW_DOWNLOAD_EXPIRE_TIME bool = true
 const SHOW_DOWNLOAD_EXPIRE_TIME_REMAINING bool = true

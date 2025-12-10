@@ -70,6 +70,32 @@ type TblUser struct {
 	TargetBloodSugar         float32 `db:"target_blood_sugar" json:"target_blood_sugar"`
 }
 
+func (u *TblUser) Copy() *TblUser {
+
+	if u == nil {
+		return nil
+	}
+
+	var pw []byte
+	if u.Password != nil {
+		pw = make([]byte, len(u.Password))
+		copy(pw, u.Password)
+	}
+
+	return &TblUser{
+		ID:                       u.ID,
+		Name:                     u.Name,
+		Password:                 pw,
+		Created:                  u.Created,
+		DarkMode:                 u.DarkMode,
+		ShowDiabetes:             u.ShowDiabetes,
+		CaloricCalcMethod:        u.CaloricCalcMethod,
+		InsulinSensitivityFactor: u.InsulinSensitivityFactor,
+		EventHistoryFetchLimit:   u.EventHistoryFetchLimit,
+		TargetBloodSugar:         u.TargetBloodSugar,
+	}
+}
+
 type TblUserEventLog struct {
 	ID                       int        `db:"id" json:"id"`
 	UserID                   int        `db:"user_id" json:"user_id"`

@@ -14,9 +14,10 @@ import {DoRender} from '../../hooks/doRender';
 import {NumberInput2} from '../../components/number_input2';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
-import {Calories} from '../../utils/calories';
+import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {JSX} from 'preact';
 import {FormatDateForInput} from '../../utils/date_utils';
+import {ErrorDiv} from '../../components/error_div';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -297,7 +298,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     return (
         <div className="w-full p-2 container-theme bg-c-black">
             <span className="text-lg font-bold">Create New Event</span>
-            {errorMsg !== null && <div className="text-c-l-red font-bold">{errorMsg}</div>}
+            <ErrorDiv errorMsg={errorMsg} />
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
@@ -370,7 +371,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <div className="w-full flex flex-none justify-end">
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
-                    Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}
+                    Calories:{' '}
+                    {CalculateCalories(
+                        totals.protein,
+                        totals.carb,
+                        totals.fibre,
+                        totals.fat,
+                        Str2CalorieFormula(p.user.caloric_calc_method)
+                    ).toFixed(1)}
                 </span>
             </div>
 

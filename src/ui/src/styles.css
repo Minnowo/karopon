@@ -93,10 +93,40 @@
 
     input,
     button,
+    select,
     textarea {
-        @apply outline-none rounded-sm border px-0.5 py-1
-    bg-c-d-black text-c-white      placeholder-c-l-black      border-c-yellow  focus:border-c-l-green hover:border-c-l-yellow;
+        @apply input-like;
     }
+}
+
+@utility input-like {
+    @apply outline-none
+        rounded-sm
+        border
+        px-0.5
+        py-1
+        bg-c-d-black
+        text-c-white
+        placeholder-c-l-black
+        border-c-yellow
+        focus:border-c-l-green
+        hover:border-c-l-yellow
+
+        disabled:bg-c-d-black/60
+        disabled:text-c-white/85
+        disabled:placeholder-c-l-black/80
+        disabled:border-c-yellow/65
+        disabled:cursor-not-allowed
+        disabled:hover:border-c-yellow/65
+        disabled:focus:border-c-yellow/65
+
+        aria-disabled:bg-c-d-black/60
+        aria-disabled:text-c-white/85
+        aria-disabled:placeholder-c-l-black/80
+        aria-disabled:border-c-yellow/65
+        aria-disabled:cursor-not-allowed
+        aria-disabled:hover:border-c-yellow/65
+        aria-disabled:focus:border-c-yellow/65;
 }
 
 @utility table-bordered {

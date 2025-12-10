@@ -30,6 +30,13 @@ type DB interface {
 	// Does not edit the given struct.
 	AddUser(ctx context.Context, user *TblUser) (int, error)
 
+	// Update the user's information with this data.
+	UpdateUser(ctx context.Context, user *TblUser) error
+
+	// Returns true if the username is taken by another user or false if it's not.
+	// Returns an error otherwise.
+	UsernameTaken(ctx context.Context, userId int, username string) (bool, error)
+
 	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
 

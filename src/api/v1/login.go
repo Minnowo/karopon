@@ -39,7 +39,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(constants.MAX_LOGIN_FORM_SIZE); err != nil {
 		log.Debug().Err(err).Msg("failed to get multipartReader")
-		api.Done(w, http.StatusBadRequest, "failed to parse form")
+		api.BadReqf(w, "Failed to parse the given form data, the size must be less than %d bytes.", constants.MAX_LOGIN_FORM_SIZE)
 		return
 	}
 
@@ -49,29 +49,34 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("pon_password")
 
 	if username == "" || password == "" {
-		api.Done(w, http.StatusBadRequest, "missing username or password")
+		api.BadReq(w, "The username or password cannot be empty.")
 		return
 	}
 
 	if len(username) > constants.MAX_USERNAME_LENGTH {
-		api.BadReq(w, "username is too long")
+		api.BadReqf(w, "Username is too long, it should be less than %d characters.", constants.MAX_USERNAME_LENGTH)
+		return
+	}
+
+	if len(password) < constants.MIN_PASSWORD_LENGTH {
+		api.BadReqf(w, "Password is too short, it should be longer than %d characters.", constants.MIN_PASSWORD_LENGTH)
 		return
 	}
 
 	if len(password) > constants.MAX_USER_PASSWORD_LENGTH {
-		api.BadReq(w, "password is too long")
+		api.BadReqf(w, "Password is too long, it should be shorter than %d characters.", constants.MAX_USER_PASSWORD_LENGTH)
 		return
 	}
 
 	if !a.UserReg.HasUser(username) {
-		api.Done(w, http.StatusUnauthorized, "username or password is incorrect")
+		api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
 		return
 	}
 
 	token, ok := a.UserReg.Login(username, password)
 
 	if !ok {
-		api.Done(w, http.StatusUnauthorized, "username or password is incorrect")
+		api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
 		return
 	}
 

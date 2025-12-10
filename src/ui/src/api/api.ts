@@ -7,8 +7,8 @@ import {
     InsertUserFoodLog,
     TblUserEventLog,
     UserEventLogWithFoodLog,
-    TblUserSettings,
     ServerTime,
+    TblUpdateUser,
 } from './types';
 
 // export const base = 'http://localhost:9070';
@@ -34,6 +34,26 @@ export async function Logout(): Promise<boolean> {
 export async function WhoAmI(): Promise<TblUser> {
     try {
         const response = await fetch(`${base}/api/whoami`);
+
+        if (response.status !== 200) {
+            await throwFailureReason(response);
+        }
+
+        return await response.json();
+    } catch (err: unknown) {
+        rethrow(err);
+    }
+}
+
+export async function UpdateUser(user: TblUpdateUser): Promise<TblUser> {
+    try {
+        const response = await fetch(`${base}/api/user/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(user),
+        });
 
         if (response.status !== 200) {
             await throwFailureReason(response);
@@ -128,20 +148,6 @@ export async function DeleteUserFood(food: TblUserFood): Promise<boolean> {
 export async function UserEvents(): Promise<Array<TblUserEvent>> {
     try {
         const response = await fetch(`${base}/api/events`);
-
-        if (response.status !== 200) {
-            await throwFailureReason(response);
-        }
-
-        return await response.json();
-    } catch (err: unknown) {
-        rethrow(err);
-    }
-}
-
-export async function GetUserFoodLog(): Promise<Array<TblUserFoodLog>> {
-    try {
-        const response = await fetch(`${base}/api/foodlogs`);
 
         if (response.status !== 200) {
             await throwFailureReason(response);

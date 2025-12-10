@@ -1,6 +1,7 @@
 export enum CalorieFormula {
-    Atwater = 'ATWATER',
-    AtwaterNoFibre = 'ATWATER_NO_FIBRE',
+    Auto = 'auto',
+    Atwater = 'atwater',
+    AtwaterNoFibre = 'atwater_no_fibre',
 }
 
 const CaloriesAtwater = (protein: number, carbs: number, fibre: number, fat: number): number => {
@@ -11,7 +12,20 @@ const CaloriesAtwaterNoFibre = (protein: number, carbs: number, fibre: number, f
     return protein * 4 + carbs * 4 + fibre * 0 + fat * 9;
 };
 
-export const Calories = (
+export const Str2CalorieFormula = (str: string): CalorieFormula => {
+    switch (str) {
+        case CalorieFormula.Atwater:
+            return CalorieFormula.Atwater;
+
+        case CalorieFormula.AtwaterNoFibre:
+            return CalorieFormula.AtwaterNoFibre;
+
+        default:
+        case CalorieFormula.Auto:
+            return CalorieFormula.Auto;
+    }
+};
+export const CalculateCalories = (
     protein: number,
     carbs: number,
     fibre: number,
@@ -26,7 +40,7 @@ export const Calories = (
             return CaloriesAtwaterNoFibre(protein, carbs, fibre, fat);
 
         default:
-            // fallback safety
+        case CalorieFormula.Auto:
             return CaloriesAtwater(protein, carbs, fibre, fat);
     }
 };

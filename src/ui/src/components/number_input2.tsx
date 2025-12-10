@@ -14,6 +14,7 @@ type Props = {
     min?: number;
     max?: number;
     round?: number;
+    disabled?: boolean;
 };
 
 export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
@@ -52,6 +53,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
     };
 
     const doInc = () => {
+        if (p.disabled) return;
         const step = p.step === undefined ? 1 : p.step;
         if (max !== undefined && valueRef.current + step > max) {
             p.onValueChange(max);
@@ -61,6 +63,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
     };
 
     const doDec = () => {
+        if (p.disabled) return;
         const step = p.step === undefined ? 1 : p.step;
         if (p.min !== undefined && valueRef.current - step < p.min) {
             p.onValueChange(p.min);
@@ -70,12 +73,15 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
     };
 
     return (
-        <div className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap ${className}`}>
+        <div
+            aria-disabled={p.disabled}
+            className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like px-0 py-0 ${className}`}
+        >
             {p.label && (
                 <button
                     tabindex={-1}
                     className="border-none select-none rounded-r-none pr-1"
-                    onClick={() => setOpen(!open)}
+                    onClick={() => !p.disabled && setOpen(!open)}
                     onBlur={() => setOpen(false)}
                 >
                     {p.label}
@@ -88,8 +94,9 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                 inputmode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*$"
                 value={value}
-                onFocus={() => setOpen(true)}
+                onFocus={() => !p.disabled && setOpen(true)}
                 onBlur={() => setOpen(false)}
+                disabled={p.disabled}
                 onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
                     if (e === null || e.currentTarget.value.length <= 0) {
                         return;
@@ -119,6 +126,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
             />
             <div className="flex flex-col justify-between">
                 <button
+                    disabled={p.disabled}
                     tabindex={-1}
                     className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}
@@ -137,6 +145,7 @@ export function NumberInput2({max = 1_000_000_000, ...p}: Props) {
                     ▲
                 </button>
                 <button
+                    disabled={p.disabled}
                     tabindex={-1}
                     className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
                     onPointerUp={stopHoldRepeat}

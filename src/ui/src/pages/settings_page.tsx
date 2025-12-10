@@ -1,76 +1,185 @@
-import {useEffect, useState} from 'preact/hooks';
+import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../state/basestate';
-
-type ItemCheckBox = {
-    label: string;
-    data: boolean;
-};
-
-function InputItemCheckBox({label, data}: ItemCheckBox) {
-    const [target, setForm] = useState<boolean>(data);
-
-    return (
-        <div className="flex space-x-5">
-            <span>{label} </span>
-            <input type="checkbox"></input>
-        </div>
-    );
-}
-
-type ItemInputField = {
-    label: string;
-    data: string | number;
-};
-
-function InputItemInputField({label, data}: ItemInputField) {
-    const [target, setForm] = useState<string | number>(data);
-
-    return (
-        <div className="flex space-x-5">
-            <span>{label} </span>
-            <input type="" />
-        </div>
-    );
-}
+import {DoRender} from '../hooks/doRender';
+import {TblUpdateUser, TblUser} from '../api/types';
+import {NumberInput2} from '../components/number_input2';
+import {CalorieFormula} from '../utils/calories';
+import {FlipSwitch} from '../components/flip_switch';
+import {UpdateUser} from '../api/api';
+import {ErrorDiv} from '../components/error_div';
 
 export function SettingsPage(state: BaseState) {
-    const [darkMode, setDarkMode] = useState<boolean>(state.user.dark_mode);
-    const [showDiabetes, setShowDiabetes] = useState<boolean>(state.user.show_diabetes);
-    const [caloricCalcMethod, setCaloricCalcMethod] = useState<string>(state.user.caloric_calc_method);
-    const [insulinSensitivityFactor, setInsulinSensitivityFactor] = useState<number>(state.user.insulin_sensitivity_factor);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [newPassword, setNewPassword] = useState<string>('');
+    const [confirmPassword, setConfirmPassword] = useState<string>('');
+    const userRef = useRef({...state.user});
+
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const render = DoRender();
 
     useEffect(() => {
-        setDarkMode(state.user.dark_mode);
-        setShowDiabetes(state.user.show_diabetes);
-        setCaloricCalcMethod(state.user.caloric_calc_method);
-        setInsulinSensitivityFactor(state.user.insulin_sensitivity_factor);
+        userRef.current = {...state.user};
     }, [state.user]);
 
+    function update<K extends keyof TblUser>(key: K, value: TblUser[K]) {
+        userRef.current[key] = value;
+        render();
+    }
+
+    function save() {
+        setErrorMsg(null);
+
+        if (userRef.current.name.length > 20) {
+            setErrorMsg('Username must be less than 20 characters!');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setErrorMsg('New password does not match the confirm password!');
+            return;
+        }
+        if (newPassword !== '') {
+            if (newPassword.length > 72) {
+                setErrorMsg('Password must be less than 72 characters long.');
+                return;
+            }
+            if (newPassword.length < 1) {
+                setErrorMsg('Password must be at least 1 character long.');
+                return;
+            }
+        }
+
+        const uuser: TblUpdateUser = {
+            user: userRef.current,
+            new_password: newPassword,
+        };
+
+        UpdateUser(uuser)
+            .then((u: TblUser) => {
+                state.setUser(u);
+                setIsEditing(false);
+                setErrorMsg(null);
+            })
+            .catch((e: Error) => setErrorMsg(e.message));
+    }
+
     return (
-        <main className="flex flex-col ml-10 space-y-10">
-            <div>
-                <span>Site Settings</span>
-                <div className="flex flex-col items-center">
-                    <InputItemCheckBox label="Dark Mode" data={darkMode} />
-                </div>
+        <main className="flex flex-col space-y-4 sm:px-16 lg:px-32">
+            <div className="w-full flex justify-evenly my-4">
+                <button
+                    className={`w-48 ${isEditing && 'bg-c-l-red'}`}
+                    onClick={() => {
+                        setIsEditing((x) => !x);
+                    }}
+                >
+                    {!isEditing ? 'Change Settings' : 'Cancel'}
+                </button>
             </div>
 
-            <div>
-                <span>Calculation Settings</span>
-                <div className="flex flex-col items-center">
-                    <InputItemInputField label="Insulin Sensitivity Factor" data={insulinSensitivityFactor} />
-                    <InputItemInputField label="Caloric calculation method" data={caloricCalcMethod} />
-                </div>
-            </div>
+            <ErrorDiv errorMsg={errorMsg} />
 
             <div>
-                <span>Preference Settings</span>
-                <div className="flex flex-col items-center">
-                    <InputItemCheckBox label="Show Diabetes" data={showDiabetes} />
-                </div>
+                <div className="font-bold">Username:</div>
+                <input
+                    className="w-full"
+                    type="text"
+                    value={userRef.current.name}
+                    disabled={!isEditing}
+                    onInput={(e) => update('name', (e.target as HTMLInputElement).value)}
+                />
             </div>
 
-            <button>Submit</button>
+            {isEditing && (
+                <>
+                    <div>
+                        <div className="font-bold">Change Password:</div>
+                        <input
+                            className="w-full"
+                            type="password"
+                            maxlength={72}
+                            value={newPassword}
+                            onInput={(e) => setNewPassword((e.target as HTMLInputElement).value)}
+                        />
+                    </div>
+                    <div>
+                        <div className="font-bold">Confirm Password:</div>
+                        <input
+                            className="w-full"
+                            type="password"
+                            maxlength={72}
+                            value={confirmPassword}
+                            onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
+                        />
+                    </div>
+                </>
+            )}
+
+            <NumberInput2
+                className="w-full input-like"
+                innerClassName="w-full text-right"
+                label="Target Blood Sugar"
+                value={userRef.current.target_blood_sugar}
+                onValueChange={(value: number) => update('target_blood_sugar', value)}
+                disabled={!isEditing}
+            />
+            <NumberInput2
+                className="w-full input-like"
+                innerClassName="w-full text-right"
+                label="Insulin Sensitivity Factor"
+                value={userRef.current.insulin_sensitivity_factor}
+                onValueChange={(value: number) => update('insulin_sensitivity_factor', value)}
+                disabled={!isEditing}
+            />
+            <NumberInput2
+                className="w-full input-like"
+                innerClassName="w-full text-right"
+                label="Event History Fetch Limit"
+                value={userRef.current.event_history_fetch_limit}
+                onValueChange={(value: number) => update('event_history_fetch_limit', value)}
+                disabled={!isEditing}
+            />
+
+            <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-lg font-medium">Dark Mode</span>
+                <FlipSwitch
+                    disabled={!isEditing}
+                    value={userRef.current.dark_mode}
+                    onValueChanged={(v) => update('dark_mode', v)}
+                />
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-lg font-medium">Show Diabetes Features</span>
+                <FlipSwitch
+                    disabled={!isEditing}
+                    value={userRef.current.show_diabetes}
+                    onValueChanged={(v) => update('show_diabetes', v)}
+                />
+            </label>
+
+            <div>
+                <div className="font-bold">Caloric Calculation Method</div>
+                <select
+                    className="w-full"
+                    disabled={!isEditing}
+                    value={userRef.current.caloric_calc_method}
+                    onInput={(e) => update('caloric_calc_method', (e.target as HTMLSelectElement).value)}
+                >
+                    {[CalorieFormula.Auto, CalorieFormula.Atwater, CalorieFormula.AtwaterNoFibre].map((x) => (
+                        <option key={x} value={x}>
+                            {x}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {isEditing && (
+                <input
+                    className="w-full my-1 sm:ml-auto sm:max-w-32 text-c-l-green"
+                    type="submit"
+                    value="Save Settings"
+                    onClick={save}
+                />
+            )}
         </main>
     );
 }

@@ -13,6 +13,11 @@ export interface TblUser {
     target_blood_sugar: number;
 }
 
+export interface TblUpdateUser {
+    user: TblUser;
+    new_password: string;
+}
+
 export interface TblConfig {
     version: string;
 }

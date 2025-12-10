@@ -1,6 +1,7 @@
 import {useState, useRef, useEffect} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
 import {NumberInput2} from '../../components/number_input2';
+import {ErrorDiv} from '../../components/error_div';
 
 type AddFoodPanelProps = {
     food: TblUserFood;
@@ -55,7 +56,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
     return (
         <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
             <span className="text-lg font-bold">Create New Food</span>
-            {errorMsg !== null && <div className="text-c-l-red font-bold">{errorMsg}</div>}
+            <ErrorDiv errorMsg={errorMsg} />
             <div className="flex justify-between font-semibold">
                 <div className="w-full">
                     <div className="flex flex-row flex-wrap">

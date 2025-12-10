@@ -11,6 +11,8 @@ import (
 )
 
 type UserRegistry struct {
+
+	// The pointer in this map is the SAME pointer in the Session object of the sessions map
 	users     map[string]*database.TblUser
 	usersLock sync.RWMutex
 
@@ -93,9 +95,9 @@ func (u *UserRegistry) CheckToken(tokenStr string) (*database.TblUser, bool) {
 		defer u.sessionsLock.RUnlock()
 	}
 
-	userCopy := *session.user
+	userCopy := session.user.Copy()
 
-	return &userCopy, true
+	return userCopy, true
 }
 
 func (u *UserRegistry) HasUser(name string) bool {
@@ -132,6 +134,29 @@ func (u *UserRegistry) Login(name, password string) (string, bool) {
 	token := u.NewToken(user)
 
 	return token.String(), true
+}
+
+// / ReplaceUser updates all sessions and loaded users for when a user changes their name.
+func (u *UserRegistry) ReplaceUser(name string, user *database.TblUser) {
+
+	u.usersLock.Lock()
+
+	oldUsrPtr, ok := u.users[name]
+
+	if ok {
+		u.sessionsLock.Lock()
+
+		delete(u.users, name)
+
+		// update the user, but keep the pointer which is used in the sessions array
+		*oldUsrPtr = *user.Copy()
+
+		u.users[user.Name] = oldUsrPtr
+
+		u.sessionsLock.Unlock()
+	}
+
+	u.usersLock.Unlock()
 }
 
 func (u *UserRegistry) AddUser(user database.TblUser) {
