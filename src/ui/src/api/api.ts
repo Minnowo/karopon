@@ -167,9 +167,9 @@ export async function GetUserEventLog(): Promise<Array<TblUserEventLog>> {
     }
 }
 
-export async function GetUserEventLogWithFoodLog(): Promise<Array<UserEventLogWithFoodLog>> {
+export async function GetUserEventLogWithFoodLog(n: number = -1): Promise<Array<UserEventLogWithFoodLog>> {
     try {
-        const response = await fetch(`${base}/api/eventlogs_with_foodlogs`);
+        const response = await fetch(`${base}/api/eventlogs_with_foodlogs?n=${n}`);
 
         if (response.status !== 200) {
             await throwFailureReason(response);

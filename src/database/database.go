@@ -97,6 +97,10 @@ type DB interface {
 	// Returns an error or nil.
 	LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]UserEventLogWithFoodLog) error
 
+	// Read at most n event logs and their food into the given array.
+	// Returns an error or nil.
+	LoadUserEventLogsWithFoodLogN(ctx context.Context, userId int, n int, eventWithFood *[]UserEventLogWithFoodLog) error
+
 	// Add the given TblUserFoodLog to the databasea, and sets the UserTime, FoodID, and EventID, on the given food
 	// Returns the TblUserFoodLog ID or an error.
 	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)

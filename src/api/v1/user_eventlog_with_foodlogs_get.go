@@ -6,6 +6,7 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
+	"strconv"
 
 	"github.com/rs/zerolog/log"
 )
@@ -19,9 +20,17 @@ func (a *APIV1) get_usereventlog_with_food_logs(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	var err error
 	var eventlogs []database.UserEventLogWithFoodLog
 
-	err := a.Db.LoadUserEventLogsWithFoodLog(r.Context(), user.ID, &eventlogs)
+	if limit := r.URL.Query().Get("n"); limit == "" {
+		err = a.Db.LoadUserEventLogsWithFoodLog(r.Context(), user.ID, &eventlogs)
+	} else if n, err := strconv.Atoi(limit); err == nil {
+		err = a.Db.LoadUserEventLogsWithFoodLogN(r.Context(), user.ID, n, &eventlogs)
+	} else {
+		api.ServerErr(w, "Query parameter 'n' could not be parsed as an integer")
+		return
+	}
 
 	if err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user event logs and their food")

@@ -33,7 +33,7 @@ export function App() {
             });
             UserEvents().then((myEvents) => setEvents(myEvents));
             GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
-            GetUserEventLogWithFoodLog().then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
+            GetUserEventLogWithFoodLog(me.event_history_fetch_limit).then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
             setUser(me);
         });
     }, [refresh]);
