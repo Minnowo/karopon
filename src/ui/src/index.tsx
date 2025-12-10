@@ -6,7 +6,7 @@ import {Header} from './components/header.jsx';
 import {LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
-import {StatsPage} from './pages/stats_page.js';
+import {StatsPage} from './pages/statspage';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog} from './api/types';
