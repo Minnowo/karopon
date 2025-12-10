@@ -15,8 +15,7 @@ func main() {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error loading .env file")
-		return
+		log.Info().Err(err).Msg("Error loading .env file")
 	}
 
 	cmd := &cli.Command{
