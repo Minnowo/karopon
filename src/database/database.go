@@ -104,12 +104,6 @@ type DB interface {
 
 	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
 
-	// Loads user setting based on current userId
-	LoadUserSettings(ctx context.Context, userId int, out *TblUserSettings) error
-	// Creates a preset user setting and adds to database
-	AddUserSetting(ctx context.Context, user *TblUserSettings) (int, error)
-	AddUserSettingTx(tx *sqlx.Tx, user *TblUserSettings) (int, error)
-
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
 	Base() *SQLxDB
 }
@@ -122,7 +116,7 @@ func (db *SQLxDB) Base() *SQLxDB {
 	return db
 }
 
-func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...interface{}) (int, error) {
+func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...any) (int, error) {
 
 	rows, err := db.QueryContext(ctx, query, arg...)
 
@@ -141,7 +135,8 @@ func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...inter
 
 	return id, nil
 }
-func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg interface{}) (int, error) {
+
+func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg any) (int, error) {
 
 	rows, err := tx.NamedQuery(query, arg)
 
@@ -160,7 +155,7 @@ func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg interface
 
 	return id, nil
 }
-func (db *SQLxDB) InsertOneNamedGetID(ctx context.Context, query string, arg interface{}) (int, error) {
+func (db *SQLxDB) InsertOneNamedGetID(ctx context.Context, query string, arg any) (int, error) {
 
 	rows, err := db.NamedQueryContext(ctx, query, arg)
 

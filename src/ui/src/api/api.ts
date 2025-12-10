@@ -240,17 +240,3 @@ export async function LogEvent(food: CreateUserEventLog): Promise<UserEventLogWi
         rethrow(err);
     }
 }
-
-export async function GetUserSettings(): Promise<TblUserSettings> {
-    try {
-        const response = await fetch(`${base}/api/usersettings`);
-
-        if (response.status !== 200) {
-            await throwFailureReason(response);
-        }
-
-        return await response.json();
-    } catch (err: unknown) {
-        rethrow(err);
-    }
-}

@@ -78,7 +78,13 @@ export function EventsPage(state: BaseState) {
             {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
             {showNewEventPanel && (
                 <>
-                    <AddEventsPanel foods={state.foods} events={state.events} fromEvent={newEvent} createEvent={onCreateEvent} />
+                    <AddEventsPanel
+                        user={state.user}
+                        foods={state.foods}
+                        events={state.events}
+                        fromEvent={newEvent}
+                        createEvent={onCreateEvent}
+                    />
                 </>
             )}
 

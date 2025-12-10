@@ -28,56 +28,47 @@ function InputItemInputField({label, data}: ItemInputField) {
     return (
         <div className="flex space-x-5">
             <span>{label} </span>
-            <input type=""></input>
+            <input type="" />
         </div>
     );
 }
 
 export function SettingsPage(state: BaseState) {
-    const [darkMode, setDarkMode] = useState<boolean>(state.settings?.dark_mode ?? true);
-    const [showDiabetes, setShowDiabetes] = useState<boolean>(state.settings?.show_diabetes ?? true);
-    const [caloricCalcMethod, setCaloricCalcMethod] = useState<string>(state.settings?.caloric_calc_method ?? 'auto');
-    const [insulinSensitivityFactor, setInsulinSensitivityFactor] = useState<number>(
-        state.settings?.insulin_sensitivity_factor ?? 0.01
-    );
+    const [darkMode, setDarkMode] = useState<boolean>(state.user.dark_mode);
+    const [showDiabetes, setShowDiabetes] = useState<boolean>(state.user.show_diabetes);
+    const [caloricCalcMethod, setCaloricCalcMethod] = useState<string>(state.user.caloric_calc_method);
+    const [insulinSensitivityFactor, setInsulinSensitivityFactor] = useState<number>(state.user.insulin_sensitivity_factor);
 
     useEffect(() => {
-        console.log(state.settings);
-    }, []);
+        setDarkMode(state.user.dark_mode);
+        setShowDiabetes(state.user.show_diabetes);
+        setCaloricCalcMethod(state.user.caloric_calc_method);
+        setInsulinSensitivityFactor(state.user.insulin_sensitivity_factor);
+    }, [state.user]);
 
     return (
         <main className="flex flex-col ml-10 space-y-10">
-            <span>USER_ID: {state.settings?.user_id}</span>
-
-            <hr></hr>
-
             <div>
                 <span>Site Settings</span>
                 <div className="flex flex-col items-center">
-                    <InputItemCheckBox label="Dark Mode" data={darkMode}></InputItemCheckBox>
+                    <InputItemCheckBox label="Dark Mode" data={darkMode} />
                 </div>
             </div>
-
-            <hr></hr>
 
             <div>
                 <span>Calculation Settings</span>
                 <div className="flex flex-col items-center">
-                    <InputItemInputField label="Insulin Sensitivity Factor" data={insulinSensitivityFactor}></InputItemInputField>
-                    <InputItemInputField label="Caloric calculation method" data={caloricCalcMethod}></InputItemInputField>
+                    <InputItemInputField label="Insulin Sensitivity Factor" data={insulinSensitivityFactor} />
+                    <InputItemInputField label="Caloric calculation method" data={caloricCalcMethod} />
                 </div>
             </div>
-
-            <hr></hr>
 
             <div>
                 <span>Preference Settings</span>
                 <div className="flex flex-col items-center">
-                    <InputItemCheckBox label="Show Diabetes" data={showDiabetes}></InputItemCheckBox>
+                    <InputItemCheckBox label="Show Diabetes" data={showDiabetes} />
                 </div>
             </div>
-
-            <hr></hr>
 
             <button>Submit</button>
         </main>

@@ -60,6 +60,14 @@ type TblUser struct {
 	Name     string     `db:"name" json:"name"`
 	Password []byte     `db:"password" json:"-"`
 	Created  UnixMillis `db:"created" json:"created"`
+
+	// settings
+	DarkMode                 bool    `db:"dark_mode" json:"dark_mode"`
+	ShowDiabetes             bool    `db:"show_diabetes" json:"show_diabetes"`
+	CaloricCalcMethod        string  `db:"caloric_calc_method" json:"caloric_calc_method"`
+	InsulinSensitivityFactor float32 `db:"insulin_sensitivity_factor" json:"insulin_sensitivity_factor"`
+	EventHistoryFetchLimit   int     `db:"event_history_fetch_limit" json:"event_history_fetch_limit"`
+	TargetBloodSugar         float32 `db:"target_blood_sugar" json:"target_blood_sugar"`
 }
 
 type TblUserEventLog struct {
@@ -119,12 +127,4 @@ type TblUserFoodLog struct {
 	Carb    float32 `db:"carb" json:"carb"`
 	Fibre   float32 `db:"fibre" json:"fibre"`
 	Fat     float32 `db:"fat" json:"fat"`
-}
-
-type TblUserSettings struct {
-	UserID                   int     `db:"user_id" json:"user_id"`
-	DarkMode                 bool    `db:"dark_mode" json:"dark_mode"`
-	ShowDiabetes             bool    `db:"show_diabetes" json:"show_diabetes"`
-	CaloricCalcMethod        string  `db:"caloric_calc_method" json:"caloric_calc_method"`
-	InsulinSensitivityFactor float32 `db:"insulin_sensitivity_factor" json:"insulin_sensitivity_factor"`
 }

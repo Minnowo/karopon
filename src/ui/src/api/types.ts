@@ -2,6 +2,15 @@ export interface TblUser {
     id: number;
     name: string;
     created: string;
+
+    // settings
+    user_id: number;
+    dark_mode: boolean;
+    show_diabetes: boolean;
+    caloric_calc_method: string;
+    insulin_sensitivity_factor: number;
+    event_history_fetch_limit: number;
+    target_blood_sugar: number;
 }
 
 export interface TblConfig {
@@ -97,12 +106,4 @@ export interface CreateUserEventLog {
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
     created_time: number;
-}
-
-export interface TblUserSettings {
-    user_id: number;
-    dark_mode: boolean;
-    show_diabetes: boolean;
-    caloric_calc_method: string;
-    insulin_sensitivity_factor: number;
 }

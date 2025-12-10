@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'preact/hooks';
 import {
     CreateUserEventLog,
     InsertUserFoodLog,
+    TblUser,
     TblUserEvent,
     TblUserFood,
     TblUserFoodLog,
@@ -15,7 +16,6 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {Calories} from '../../utils/calories';
 import {JSX} from 'preact';
-import {GetTime} from '../../api/api';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -165,6 +165,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 }
 
 interface AddEventsPanelState {
+    user: TblUser;
     foods: TblUserFood[];
     events: TblUserEvent[];
     fromEvent: UserEventLogWithFoodLog;
@@ -176,7 +177,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [eventTime, setEventTime] = useState<Date>(new Date());
     const [didChangeTime, setDidChangeTime] = useState<boolean>(false);
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
-    const [insulinSensitivity, setInsulinSensitivity] = useState<number>(p.fromEvent.eventlog.insulin_sensitivity_factor);
+    const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const foods = useRef<TblUserFoodLog[]>(p.fromEvent.foodlogs);
@@ -187,7 +188,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         setEvent(p.fromEvent.eventlog.event);
         setEventTime(new Date()); /// don't copy this because they're gonna just assume current time
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
-        setInsulinSensitivity(p.fromEvent.eventlog.insulin_sensitivity_factor);
+        setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
         foods.current = p.fromEvent.foodlogs;
     }, [p.fromEvent]);
@@ -209,7 +210,13 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     })();
 
     const netCarb = totals.carb - totals.fibre;
-    const insulin = CalcInsulin(netCarb, bloodSugar, 5.7, 10, insulinSensitivity);
+    const insulin = CalcInsulin(
+        netCarb,
+        bloodSugar,
+        p.user.target_blood_sugar,
+        insulinToCarbRatio,
+        p.user.insulin_sensitivity_factor
+    );
 
     const onCreateClick = () => {
         setErrorMsg(null);
@@ -224,22 +231,22 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             return;
         }
 
-        if (insulinSensitivity <= 0) {
+        if (insulinToCarbRatio <= 0) {
             setErrorMsg('Insulin sensitivity should be a positive number');
             return;
         }
 
         p.createEvent({
             blood_glucose: bloodSugar,
-            blood_glucose_target: 0,
-            insulin_sensitivity_factor: insulinSensitivity,
-            insulin_to_carb_ratio: 0,
-            recommended_insulin_amount: 0,
+            blood_glucose_target: p.user.target_blood_sugar,
+            insulin_sensitivity_factor: p.user.insulin_sensitivity_factor,
+            insulin_to_carb_ratio: insulinToCarbRatio,
+            recommended_insulin_amount: insulin,
             actual_insulin_taken: insulinTaken,
             created_time: didChangeTime ? eventTime.getTime() : 0, // for server generates the time
             event: {
                 id: 0,
-                user_id: 0,
+                user_id: p.user.id,
                 name: event.trim(),
             },
             foods: foods.current
@@ -360,7 +367,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </table>
             </div>
             <div className="w-full flex flex-none justify-end">
-                <span className="px-2"> AI Insulin Rec: {(insulin + 1.1344).toFixed(1)} </span>
                 <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
                 <span className="px-2">
                     Calories: {Calories(totals.protein, totals.carb, totals.fibre, totals.fat).toFixed(1)}
@@ -379,9 +385,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <NumberInput2
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
-                    label="Insulin Sensitivity"
-                    value={insulinSensitivity}
-                    onValueChange={setInsulinSensitivity}
+                    label="Insulin To Carb Ratio"
+                    value={insulinToCarbRatio}
+                    onValueChange={setInsulinToCarbRatio}
                     min={0}
                 />
                 <NumberInput2
