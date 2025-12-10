@@ -27,8 +27,7 @@ const buildTodayMacros = (rows: UserEventLogWithFoodLog[]): MacroTotals => {
 };
 
 const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType): MacroPoint[] => {
-    const now = new Date();
-    const nowMs = now.getTime();
+    const nowMs = new Date().getTime();
     const buckets: Record<string, MacroPoint> = {};
     for (let i = 0; i < rows.length; i++) {
         const event = rows[i];
@@ -82,8 +81,7 @@ const buildChartData = (
     keyGetter: (e: UserEventLogWithFoodLog) => number,
     range: RangeType
 ): ChartPoint[] => {
-    const now = new Date();
-    const nowMs = now.getTime();
+    const nowMs = new Date().getTime();
     const grouped = new Map<number, number>();
 
     for (let i = 0; i < events.length; i++) {

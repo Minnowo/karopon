@@ -10,11 +10,11 @@ import (
 type UnixMillis time.Time
 
 func (t UnixMillis) Time() time.Time {
-	return time.Time(t)
+	return time.Time(t).UTC()
 }
 
 func (t UnixMillis) MarshalJSON() ([]byte, error) {
-	ms := time.Time(t).UnixNano() / int64(time.Millisecond)
+	ms := time.Time(t).UTC().UnixNano() / int64(time.Millisecond)
 	return fmt.Appendf(nil, "%d", ms), nil
 }
 
@@ -24,9 +24,9 @@ func (t *UnixMillis) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if ms == 0 {
-		*t = UnixMillis(time.Time{})
+		*t = UnixMillis(time.Time{}.UTC())
 	} else {
-		*t = UnixMillis(time.Unix(0, ms*int64(time.Millisecond)))
+		*t = UnixMillis(time.Unix(0, ms*int64(time.Millisecond)).UTC())
 	}
 	return nil
 }

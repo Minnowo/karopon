@@ -16,6 +16,7 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {Calories} from '../../utils/calories';
 import {JSX} from 'preact';
+import {FormatDateForInput} from '../../utils/date_utils';
 
 interface AddEventsPanelRowState {
     food: TblUserFoodLog;
@@ -319,7 +320,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     type="datetime-local"
                     name="Event Date"
                     onChange={onEventTimeChange}
-                    value={eventTime.toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)}
+                    value={FormatDateForInput(eventTime)}
                 />
             </div>
 
