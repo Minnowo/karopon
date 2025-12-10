@@ -33,11 +33,6 @@ const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType):
         const event = rows[i];
 
         switch (range) {
-            case 'today':
-                if (!IsSameDay(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
             case '24 hours':
                 if (!Within24Hour(nowMs, event.eventlog.user_time)) {
                     continue;
@@ -58,7 +53,6 @@ const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType):
         const d = new Date(event.eventlog.user_time);
         let key: number = 0;
         switch (range) {
-            case 'today':
             case '24 hours':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
                 break;
@@ -88,11 +82,6 @@ const buildChartData = (
         const event = events[i];
         const d = new Date(event.eventlog.user_time);
         switch (range) {
-            case 'today':
-                if (!IsSameDay(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
             case '24 hours':
                 if (!Within24Hour(nowMs, event.eventlog.user_time)) {
                     continue;
@@ -112,7 +101,6 @@ const buildChartData = (
 
         let key: number = 0;
         switch (range) {
-            case 'today':
             case '24 hours':
                 key = d.getTime();
                 break;
@@ -131,9 +119,9 @@ const buildChartData = (
 };
 
 export function StatsPage(state: BaseState) {
-    const [carbRange, setCarbRange] = useState<RangeType>('today');
-    const [bloodRange, setBloodRange] = useState<RangeType>('today');
-    const [insulinRange, setInsulinRange] = useState<RangeType>('today');
+    const [carbRange, setCarbRange] = useState<RangeType>('24 hours');
+    const [bloodRange, setBloodRange] = useState<RangeType>('24 hours');
+    const [insulinRange, setInsulinRange] = useState<RangeType>('24 hours');
 
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
     const [bloodData, setBloodData] = useState<ChartPoint[]>([]);
