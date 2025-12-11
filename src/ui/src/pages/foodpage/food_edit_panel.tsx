@@ -1,9 +1,8 @@
 import {useState, useRef} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
-import {NumberInput} from '../../components/number_input';
 import {DropdownButton} from '../../components/drop_down_button';
 import {JSX} from 'preact/jsx-runtime';
-import {NumberInput2} from '../../components/number_input2';
+import {NumberInput} from '../../components/number_input';
 
 type FoodEditPanelProps = {
     food: TblUserFood;
@@ -61,7 +60,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                         <div class="w-full px-1">
                             <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodName} value={food.name} />
                             <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodUnit} value={food.unit} />
-                            <NumberInput2
+                            <NumberInput
                                 className={'whitespace-nowrap'}
                                 label={'Portion'}
                                 value={tmpFood.current.portion}
@@ -85,7 +84,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                     <div className="w-full flex flex-col">
                         <span className="w-full text-lg mb-2">{food.name}</span>
                         <div className="w-full flex flex-row items-center justify-between mb-2">
-                            <NumberInput2
+                            <NumberInput
                                 innerClassName="w-24"
                                 label={food.unit}
                                 numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
@@ -130,7 +129,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
 
             {showUpdatePanel ? (
                 <div className="flex flex-wrap">
-                    <NumberInput2
+                    <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Protein'}
                         value={tmpFood.current.protein}
@@ -139,7 +138,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                             render();
                         }}
                     />
-                    <NumberInput2
+                    <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Carb'}
                         value={tmpFood.current.carb}
@@ -148,7 +147,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                             render();
                         }}
                     />
-                    <NumberInput2
+                    <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Fibre'}
                         value={tmpFood.current.fibre}
@@ -157,7 +156,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                             render();
                         }}
                     />
-                    <NumberInput2
+                    <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         label={'Fat'}
                         value={tmpFood.current.fat}

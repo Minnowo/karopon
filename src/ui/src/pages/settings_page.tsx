@@ -2,10 +2,10 @@ import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../state/basestate';
 import {DoRender} from '../hooks/doRender';
 import {TblUpdateUser, TblUser} from '../api/types';
-import {NumberInput2} from '../components/number_input2';
+import {NumberInput} from '../components/number_input';
 import {CalorieFormula} from '../utils/calories';
 import {FlipSwitch} from '../components/flip_switch';
-import {UpdateUser} from '../api/api';
+import {ApiUpdateUser} from '../api/api';
 import {ErrorDiv} from '../components/error_div';
 
 export function SettingsPage(state: BaseState) {
@@ -53,7 +53,7 @@ export function SettingsPage(state: BaseState) {
             new_password: newPassword,
         };
 
-        UpdateUser(uuser)
+        ApiUpdateUser(uuser)
             .then((u: TblUser) => {
                 state.setUser(u);
                 setIsEditing(false);
@@ -113,7 +113,7 @@ export function SettingsPage(state: BaseState) {
                 </>
             )}
 
-            <NumberInput2
+            <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Target Blood Sugar"
@@ -121,7 +121,7 @@ export function SettingsPage(state: BaseState) {
                 onValueChange={(value: number) => update('target_blood_sugar', value)}
                 disabled={!isEditing}
             />
-            <NumberInput2
+            <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Insulin Sensitivity Factor"
@@ -129,7 +129,7 @@ export function SettingsPage(state: BaseState) {
                 onValueChange={(value: number) => update('insulin_sensitivity_factor', value)}
                 disabled={!isEditing}
             />
-            <NumberInput2
+            <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Event History Fetch Limit"

@@ -1,6 +1,6 @@
 import {useState, useRef, useEffect} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
-import {NumberInput2} from '../../components/number_input2';
+import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
 
 type AddFoodPanelProps = {
@@ -77,7 +77,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                             placeholder="Portion Unit"
                         />
                     </div>
-                    <NumberInput2
+                    <NumberInput
                         className={'w-full mb-1'}
                         innerClassName={'w-full'}
                         min={0}
@@ -94,7 +94,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
             </div>
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mr-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label={'Protein'}
@@ -106,7 +106,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         render();
                     }}
                 />
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label={'Carb'}
@@ -118,7 +118,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         render();
                     }}
                 />
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label={'Fibre'}
@@ -130,7 +130,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         render();
                     }}
                 />
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label={'Fat'}

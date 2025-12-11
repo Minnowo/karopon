@@ -10,7 +10,7 @@ import {StatsPage} from './pages/statspage';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog} from './api/types';
-import {GetUserEventLogWithFoodLog, WhoAmI, UserFoods, UserEvents, GetUserEventLog} from './api/api';
+import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventLog, ApiGetUserEventLogWithFoodLog, ApiWhoAmI} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
@@ -26,14 +26,16 @@ export function App() {
     const [refresh, doRefresh] = useState<number>(0);
 
     useEffect(() => {
-        WhoAmI().then((me) => {
-            UserFoods().then((myFood) => {
+        ApiWhoAmI().then((me) => {
+            ApiGetUserFoods().then((myFood) => {
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
                 setFoods(myFood);
             });
-            UserEvents().then((myEvents) => setEvents(myEvents));
-            GetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
-            GetUserEventLogWithFoodLog(me.event_history_fetch_limit).then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
+            ApiGetUserEvents().then((myEvents) => setEvents(myEvents));
+            ApiGetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
+            ApiGetUserEventLogWithFoodLog(me.event_history_fetch_limit).then((myEventLogs) =>
+                setEventlogsWithFoodlogs(myEventLogs)
+            );
             setUser(me);
         });
     }, [refresh]);

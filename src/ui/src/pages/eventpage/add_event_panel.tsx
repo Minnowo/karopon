@@ -11,7 +11,7 @@ import {
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
-import {NumberInput2} from '../../components/number_input2';
+import {NumberInput} from '../../components/number_input';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
@@ -86,7 +86,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     />
                 </td>
                 <td className="pr-1">
-                    <NumberInput2
+                    <NumberInput
                         innerClassName="w-8"
                         round={1}
                         min={0}
@@ -104,7 +104,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     />
                 </td>
                 <td className="pr-1">
-                    <NumberInput2
+                    <NumberInput
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -117,7 +117,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     />
                 </td>
                 <td className="pr-1">
-                    <NumberInput2
+                    <NumberInput
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -130,7 +130,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     />
                 </td>
                 <td className="pr-1">
-                    <NumberInput2
+                    <NumberInput
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -143,7 +143,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     />
                 </td>
                 <td className="pr-1">
-                    <NumberInput2
+                    <NumberInput
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -383,7 +383,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mr-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Blood Sugar"
@@ -391,7 +391,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onValueChange={setBloodSugar}
                     min={0}
                 />
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Insulin To Carb Ratio"
@@ -399,7 +399,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onValueChange={setInsulinToCarbRatio}
                     min={0}
                 />
-                <NumberInput2
+                <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
                     label="Insulin Taken"

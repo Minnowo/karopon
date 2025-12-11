@@ -1,7 +1,7 @@
 import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
-import {UpdateUserFood, NewUserFood, DeleteUserFood} from '../../api/api';
+import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood} from '../../api/api';
 import {FoodEditPanel} from './food_edit_panel';
 import {ErrorDiv} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
@@ -10,7 +10,7 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 import {TblUserFoodFactory} from '../../api/factories';
-import {NumberInput2} from '../../components/number_input2';
+import {NumberInput} from '../../components/number_input';
 
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export function FoodPage(state: BaseState) {
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
     const addNewFood = (food: TblUserFood) => {
-        NewUserFood(food)
+        ApiNewUserFood(food)
             .then((newFood) => {
                 const foods = [...state.foods, ...[newFood]];
                 foods.sort((a, b) => a.name.localeCompare(b.name));
@@ -30,7 +30,7 @@ export function FoodPage(state: BaseState) {
             .catch((err: Error) => setErrorMsg(err.message));
     };
     const deleteFood = (food: TblUserFood) => {
-        DeleteUserFood(food)
+        ApiDeleteUserFood(food)
             .then(() => {
                 const foods = state.foods.filter((x) => x.id != food.id);
                 state.setFoods(foods);
@@ -39,7 +39,7 @@ export function FoodPage(state: BaseState) {
     };
 
     const updateFood = (food: TblUserFood) => {
-        UpdateUserFood(food)
+        ApiUpdateUserFood(food)
             .then(() => {
                 const foods = [...state.foods];
                 for (let i = 0; i < foods.length; i++) {
@@ -70,7 +70,7 @@ export function FoodPage(state: BaseState) {
                 >
                     {!showAddFoodPanel ? 'Add New Food' : 'Cancel'}
                 </button>
-                <NumberInput2
+                <NumberInput
                     label={'Show Last'}
                     min={1}
                     step={5}

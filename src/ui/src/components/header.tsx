@@ -1,6 +1,38 @@
 import {useState, useEffect} from 'preact/hooks';
 import {HeaderState} from '../state/header_state';
-import {UserHeader} from './user_header';
+
+type UserHeaderProps = {
+    state: HeaderState;
+};
+
+export function UserHeader({state}: UserHeaderProps) {
+    const [showDropDown, setShowDropDown] = useState<boolean>(false);
+
+    return (
+        <div
+            className="relative"
+            tabIndex={0}
+            onBlur={(e) => {
+                const next = e.relatedTarget as Node | null;
+                if (!e.currentTarget.contains(next)) {
+                    setShowDropDown(false);
+                }
+            }}
+        >
+            <a onClick={() => setShowDropDown(true)}>{state.user.name}</a>
+            {showDropDown && (
+                <div className="flex flex-col absolute left-0 z-10 container-theme p-2">
+                        <a href="#settings" onClick={() => setShowDropDown(false)}>
+                            Settings
+                        </a>
+                        <a href="#logout" onClick={() => setShowDropDown(false)}>
+                            logout
+                        </a>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export function Header(state: HeaderState) {
     const [currentHash, setCurrentHash] = useState(window.location.hash);

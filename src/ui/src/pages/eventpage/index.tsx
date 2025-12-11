@@ -1,13 +1,13 @@
 import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {CreateUserEventLog, TblUserFoodLog, UserEventLogWithFoodLog} from '../../api/types';
-import {LogEvent} from '../../api/api';
+import {ApiNewEventLog} from '../../api/api';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
 import {UserEventLogWithFoodLogFactory} from '../../api/factories';
-import {NumberInput2} from '../../components/number_input2';
+import {NumberInput} from '../../components/number_input';
 
 export function EventsPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
@@ -16,7 +16,7 @@ export function EventsPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const onCreateEvent = (eventlog: CreateUserEventLog) => {
-        LogEvent(eventlog)
+        ApiNewEventLog(eventlog)
             .then((newEventlog: UserEventLogWithFoodLog) => {
                 state.setEventlog((e) => [newEventlog.eventlog, ...(e === null ? [] : e)]);
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
@@ -40,7 +40,7 @@ export function EventsPage(state: BaseState) {
                     {!showNewEventPanel ? 'Add New Event' : 'Cancel'}
                 </button>
 
-                <NumberInput2
+                <NumberInput
                     label={'Show Last'}
                     min={1}
                     step={5}

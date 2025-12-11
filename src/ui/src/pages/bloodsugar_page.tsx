@@ -1,7 +1,7 @@
 import {BaseState} from '../state/basestate';
 import {TblUserEventLog} from '../api/types';
 import {useState} from 'preact/hooks';
-import {NumberInput2} from '../components/number_input2';
+import {NumberInput} from '../components/number_input';
 import {DownloadData} from '../utils/download';
 import {DropdownButton} from '../components/drop_down_button';
 import {encodeCSVField} from '../utils/csv';
@@ -13,7 +13,7 @@ export function BloodSugarPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-                <NumberInput2
+                <NumberInput
                     label={'Show Last'}
                     min={1}
                     step={5}
