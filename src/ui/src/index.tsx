@@ -1,3 +1,5 @@
+import './styles.css';
+
 import {render} from 'preact';
 import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
