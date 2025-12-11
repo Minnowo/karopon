@@ -38,6 +38,7 @@ func serveFile(name, contentType string) http.HandlerFunc {
 
 	return func(writer http.ResponseWriter, reg *http.Request) {
 		writer.Header().Set("Content-Type", contentType)
+		writer.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		_, _ = writer.Write(content)
 	}
 }
