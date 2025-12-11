@@ -22,12 +22,12 @@ export function UserHeader({state}: UserHeaderProps) {
             <a onClick={() => setShowDropDown(true)}>{state.user.name}</a>
             {showDropDown && (
                 <div className="flex flex-col absolute left-0 z-10 container-theme p-2">
-                        <a href="#settings" onClick={() => setShowDropDown(false)}>
-                            Settings
-                        </a>
-                        <a href="#logout" onClick={() => setShowDropDown(false)}>
-                            logout
-                        </a>
+                    <a href="#settings" onClick={() => setShowDropDown(false)}>
+                        Settings
+                    </a>
+                    <a href="#logout" onClick={() => setShowDropDown(false)}>
+                        logout
+                    </a>
                 </div>
             )}
         </div>

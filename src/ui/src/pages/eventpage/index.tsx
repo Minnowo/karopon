@@ -196,15 +196,13 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                 )}
                                 {foodGroup.foodlogs.map((food: TblUserFoodLog, i: number) => {
                                     const shown = i == curRow;
-                                    const toggle = () =>  setCurRow(shown ? -1 : i) ;
+                                    const toggle = () => setCurRow(shown ? -1 : i);
                                     return (
                                         <Fragment key={food.id}>
                                             {shown && (
                                                 <tr className="cursor-pointer" onClick={toggle}>
                                                     <td className="border-c-l-green border-t border-l " colSpan={7}>
-                                                    <div className="mx-1">
-                                                    {food.name}
-                                                    </div>
+                                                        <div className="mx-1">{food.name}</div>
                                                     </td>
                                                 </tr>
                                             )}
@@ -213,9 +211,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>
                                                     ) : (
-                                                        <div className="border-c-l-green border-b border-l w-full">
-                                                        &nbsp;
-                                                        </div>
+                                                        <div className="border-c-l-green border-b border-l w-full">&nbsp;</div>
                                                     )}
                                                 </td>
                                                 <td className="text-right whitespace-nowrap pr-2">
