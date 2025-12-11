@@ -62,13 +62,13 @@ export function FoodPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-32 ${showAddFoodPanel && 'bg-c-l-red'}`}
+                    className={`w-24 ${showAddFoodPanel && 'bg-c-l-red'}`}
                     onClick={() => {
                         setShowAddFoodPanel((x) => !x);
                         setBaseFood(TblUserFoodFactory.empty());
                     }}
                 >
-                    {!showAddFoodPanel ? 'Add New Food' : 'Cancel'}
+                    {!showAddFoodPanel ? 'New Food' : 'Cancel'}
                 </button>
                 <NumberInput
                     label={'Show Last'}
@@ -80,7 +80,7 @@ export function FoodPage(state: BaseState) {
                 />
                 <DropdownButton
                     buttonClassName="w-full h-full"
-                    className="w-32"
+                    className="w-24"
                     label="Export"
                     actions={[
                         {

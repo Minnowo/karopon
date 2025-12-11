@@ -24,7 +24,7 @@ export function BloodSugarPage(state: BaseState) {
 
                 <DropdownButton
                     buttonClassName="w-full h-full"
-                    className="w-32"
+                    className="w-24"
                     label="Export"
                     actions={[
                         {

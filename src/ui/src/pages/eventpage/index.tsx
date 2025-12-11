@@ -31,13 +31,13 @@ export function EventsPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-32 ${showNewEventPanel && 'bg-c-l-red'}`}
+                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red'}`}
                     onClick={() => {
                         setShowNewEventPanel((x) => !x);
                         setNewEvent(UserEventLogWithFoodLogFactory.empty());
                     }}
                 >
-                    {!showNewEventPanel ? 'Add New Event' : 'Cancel'}
+                    {!showNewEventPanel ? 'New Event' : 'Cancel'}
                 </button>
 
                 <NumberInput
@@ -51,7 +51,7 @@ export function EventsPage(state: BaseState) {
 
                 <DropdownButton
                     buttonClassName="w-full h-full"
-                    className="w-32"
+                    className="w-24"
                     label="Export"
                     actions={[
                         {
