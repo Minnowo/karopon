@@ -8,6 +8,7 @@ import {PieChart} from './pie_chart';
 import {ChartPoint, MacroPoint, MacroTotals, RangeType} from './common';
 
 import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
+import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 
 const buildTodayMacros = (rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
     const nowMs = new Date().getTime();
@@ -136,10 +137,12 @@ const buildChartData = (
 export function StatsPage(state: BaseState) {
     const [carbRange, setCarbRange] = useState<RangeType>('24 hours');
     const [bloodRange, setBloodRange] = useState<RangeType>('24 hours');
+    const [calorieRange, setCalorieRange] = useState<RangeType>('24 hours');
     const [insulinRange, setInsulinRange] = useState<RangeType>('24 hours');
     const [pieChartRange, setPieChartRange] = useState<RangeType>('24 hours');
 
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
+    const [calorieData, setCalorieData] = useState<ChartPoint[]>([]);
     const [bloodData, setBloodData] = useState<ChartPoint[]>([]);
     const [insulinData, setInsulinData] = useState<ChartPoint[]>([]);
     const [macros, setMacros] = useState<MacroTotals | null>(null);
@@ -150,6 +153,24 @@ export function StatsPage(state: BaseState) {
         setMacroData(buildMacroChartData(state.eventlogs, carbRange));
     }, [state.eventlogs, carbRange]);
 
+    useEffect(
+        () =>
+            setCalorieData(
+                buildChartData(
+                    state.eventlogs,
+                    (e) =>
+                        CalculateCalories(
+                            e.total_protein,
+                            e.total_carb,
+                            e.total_fibre,
+                            e.total_fat,
+                            Str2CalorieFormula(state.user.caloric_calc_method)
+                        ),
+                    calorieRange
+                )
+            ),
+        [state.user.caloric_calc_method, state.eventlogs, calorieRange]
+    );
     useEffect(
         () => setBloodData(buildChartData(state.eventlogs, (e) => e.eventlog.blood_glucose, bloodRange)),
         [state.eventlogs, bloodRange]
@@ -186,13 +207,14 @@ export function StatsPage(state: BaseState) {
                 'Macronutrients Consumed (g)',
                 visibleMacros,
                 setVisibleMacros,
-                setCarbRange,
-                carbRange
+                setCarbRange
             )}
 
-            {RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange, bloodRange)}
+            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', 'yellow', setCalorieRange)}
 
-            {RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'green', setInsulinRange, insulinRange)}
+            {RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}
+
+            {RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'green', setInsulinRange)}
         </>
     );
 }

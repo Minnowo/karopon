@@ -31,7 +31,7 @@ export const FormatXLabel = (key: number, range: RangeType): string => {
         case '24 hours':
             return new Date(key).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
         case '7 days':
-            return new Date(key).toLocaleDateString([], {month: 'narrow', day: '2-digit'});
+            return new Date(key).toLocaleDateString([], {weekday: 'short', month: 'narrow', day: '2-digit'});
         case '28 days':
             return new Date(key).toLocaleDateString([], {month: 'narrow', day: '2-digit'});
     }
