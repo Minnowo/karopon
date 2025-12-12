@@ -44,6 +44,13 @@ export function FoodPage(state: BaseState) {
                 const foods = [...state.foods];
                 for (let i = 0; i < foods.length; i++) {
                     if (foods[i].id === food.id) {
+                        if (food.portion !== 1) {
+                            food.protein /= food.portion;
+                            food.carb /= food.portion;
+                            food.fibre /= food.portion;
+                            food.fat /= food.portion;
+                            food.portion = 1;
+                        }
                         foods[i] = food;
                         break;
                     }

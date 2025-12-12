@@ -3,6 +3,7 @@ import {TblUserFood} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {JSX} from 'preact/jsx-runtime';
 import {NumberInput} from '../../components/number_input';
+import {DoRender} from '../../hooks/doRender';
 
 type FoodEditPanelProps = {
     food: TblUserFood;
@@ -18,12 +19,21 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
     const [showUpdatePanel, setShowUpdatePanel] = useState<boolean>(false);
     const [portion, setPortion] = useState<number>(food.portion);
 
-    const [, setRender] = useState<number>(0);
-
-    const render = () => setRender((x) => x + 1);
+    const render = DoRender();
 
     const onEditClicked = () => {
-        setShowUpdatePanel(!showUpdatePanel);
+        tmpFood.current = {
+            id: food.id,
+            user_id: food.user_id,
+            name: food.name,
+            unit: food.unit,
+            fat: food.fat * portion,
+            carb: food.carb * portion,
+            fibre: food.fibre * portion,
+            protein: food.protein * portion,
+            portion,
+        };
+        setShowUpdatePanel(true);
     };
 
     const onCancelClick = () => {
@@ -40,16 +50,6 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
         }
         updateFood(newFood);
         setShowUpdatePanel(false);
-    };
-
-    const updatePortion = (e: JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        const raw = e.currentTarget.value;
-
-        const num = raw === '' ? null : Number(raw);
-
-        if (num !== null) {
-            setPortion(num);
-        }
     };
 
     return (
@@ -131,8 +131,10 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                 <div className="flex flex-wrap">
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
+                        innerClassName="w-16"
                         label={'Protein'}
                         value={tmpFood.current.protein}
+                        round={3}
                         onValueChange={(protein: number) => {
                             tmpFood.current.protein = protein;
                             render();
@@ -140,8 +142,10 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                     />
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
+                        innerClassName="w-16"
                         label={'Carb'}
                         value={tmpFood.current.carb}
+                        round={3}
                         onValueChange={(carb: number) => {
                             tmpFood.current.carb = carb;
                             render();
@@ -149,8 +153,10 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                     />
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
+                        innerClassName="w-16"
                         label={'Fibre'}
                         value={tmpFood.current.fibre}
+                        round={3}
                         onValueChange={(fibre: number) => {
                             tmpFood.current.fibre = fibre;
                             render();
@@ -158,8 +164,10 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                     />
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
+                        innerClassName="w-16"
                         label={'Fat'}
                         value={tmpFood.current.fat}
+                        round={3}
                         onValueChange={(fat: number) => {
                             tmpFood.current.fat = fat;
                             render();
