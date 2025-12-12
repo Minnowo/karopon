@@ -12,7 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) get_userevent(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -52,7 +52,7 @@ func (a *APIV1) get_userevent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(event)
 }
 
-func (a *APIV1) get_userevents(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUserEvents(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 

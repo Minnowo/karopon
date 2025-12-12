@@ -4,8 +4,9 @@ import {
     CreateUserEventLog,
     TblUserEvent,
     TblUserEventLog,
-    UserEventLogWithFoodLog,
+    UserEventFoodLog as UserEventFoodLog,
     TblUpdateUser,
+    UpdateUserEventLog,
 } from './types';
 
 // export const base = 'http://localhost:9070';
@@ -54,8 +55,8 @@ export const ApiGetUserEventLog = (): Promise<Array<TblUserEventLog>> => {
     return fetchJson<Array<TblUserEventLog>>(fetch(`${base}/api/eventlogs`));
 };
 
-export const ApiGetUserEventLogWithFoodLog = (n: number = -1): Promise<Array<UserEventLogWithFoodLog>> => {
-    return fetchJson<Array<UserEventLogWithFoodLog>>(fetch(`${base}/api/eventlogs_with_foodlogs?n=${n}`));
+export const ApiGetUserEventFoodLog = (n: number = -1): Promise<Array<UserEventFoodLog>> => {
+    return fetchJson<Array<UserEventFoodLog>>(fetch(`${base}/api/eventfoodlogs?n=${n}`));
 };
 
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
@@ -106,9 +107,9 @@ export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
     );
 };
 
-export const ApiUpdateUserEventLog = (eventlog: TblUserEventLog): Promise<void> => {
-    return fetchNone(
-        fetch(`${base}/api/eventlog/update`, {
+export const ApiUpdateUserEventLog = (eventlog: UpdateUserEventLog): Promise<UserEventFoodLog> => {
+    return fetchJson<UserEventFoodLog>(
+        fetch(`${base}/api/eventfoodlog/update`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -118,8 +119,20 @@ export const ApiUpdateUserEventLog = (eventlog: TblUserEventLog): Promise<void> 
     );
 };
 
-export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventLogWithFoodLog> => {
-    return fetchJson<UserEventLogWithFoodLog>(
+export const ApiDeleteUserEventLog = (eventlog: TblUserEventLog): Promise<void> => {
+    return fetchNone(
+        fetch(`${base}/api/eventlog/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(eventlog),
+        })
+    );
+};
+
+export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodLog> => {
+    return fetchJson<UserEventFoodLog>(
         fetch(`${base}/api/eventlog/new`, {
             headers: {
                 'content-type': 'application/json',

@@ -13,20 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type CreateUserEventLog struct {
-	Event database.TblUserEvent     `json:"event"`
-	Foods []database.TblUserFoodLog `json:"foods"`
-
-	BloodGlucose             float32             `json:"blood_glucose"`
-	BloodGlucoseTarget       float32             `json:"blood_glucose_target"`
-	InsulinSensitivityFactor float32             `json:"insulin_sensitivity_factor"`
-	InsulinToCarbRatio       float32             `json:"insulin_to_carb_ratio"`
-	RecommendedInsulinAmount float32             `json:"recommended_insulin_amount"`
-	ActualInsulinTaken       float32             `json:"actual_insulin_taken"`
-	CreatedTime              database.UnixMillis `json:"created_time"`
-}
-
-func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -35,7 +22,7 @@ func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event CreateUserEventLog
+	var event database.CreateUserEventLog
 
 	err := json.NewDecoder(r.Body).Decode(&event)
 
@@ -105,9 +92,9 @@ func (a *APIV1) create_userevent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var eventlogwithfoodlog database.UserEventLogWithFoodLog
+	var eventlogwithfoodlog database.UserEventFoodLog
 
-	if err := a.Db.LoadUserEventLogWithFoodLog(r.Context(), user.ID, id, &eventlogwithfoodlog); err != nil {
+	if err := a.Db.LoadUserEventFoodLog(r.Context(), user.ID, id, &eventlogwithfoodlog); err != nil {
 		api.ServerErr(w, "The eventlog was created successfully! But, an unexpected error occurred reading it from the database.")
 		log.Error().
 			Err(err).

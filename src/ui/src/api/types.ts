@@ -81,13 +81,18 @@ export interface TblUserFoodLog {
     fat: number;
 }
 
-export interface UserEventLogWithFoodLog {
+export interface UserEventFoodLog {
     eventlog: TblUserEventLog;
     foodlogs: TblUserFoodLog[];
     total_protein: number;
     total_carb: number;
     total_fibre: number;
     total_fat: number;
+}
+
+export interface UpdateUserEventLog {
+    eventlog: TblUserEventLog;
+    foodlogs: TblUserFoodLog[];
 }
 
 export interface InsertUserFoodLog {

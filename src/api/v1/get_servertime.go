@@ -13,7 +13,7 @@ type ServerTime struct {
 	Time database.UnixMillis `json:"time"`
 }
 
-func (a *APIV1) get_servertime(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getServerTime(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 

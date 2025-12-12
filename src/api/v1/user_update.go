@@ -18,7 +18,7 @@ type UpdateUser struct {
 	NewPassword string           `json:"new_password"`
 }
 
-func (a *APIV1) update_user(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 

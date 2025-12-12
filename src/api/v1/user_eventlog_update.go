@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) update_usereventlog(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -19,9 +19,9 @@ func (a *APIV1) update_usereventlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var eventlog database.TblUserEventLog
+	var ueflog database.UpdateUserEventLog
 
-	err := json.NewDecoder(r.Body).Decode(&eventlog)
+	err := json.NewDecoder(r.Body).Decode(&ueflog)
 
 	if err != nil {
 		log.Debug().Err(err).Msg("invalid json")
@@ -29,19 +29,19 @@ func (a *APIV1) update_usereventlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if eventlog.BloodGlucose <= 0 {
+	if ueflog.Eventlog.BloodGlucose <= 0 {
 		http.Error(w, "blood glucose cannot be <= 0", http.StatusBadRequest)
 		return
 	}
 
-	if eventlog.ID <= 0 {
+	if ueflog.Eventlog.ID <= 0 {
 		http.Error(w, "eventlog ID should be > 0", http.StatusBadRequest)
 		return
 	}
 
-	eventlog.UserID = user.ID
+	ueflog.Eventlog.UserID = user.ID
 
-	err = a.Db.UpdateUserEventLog(r.Context(), &eventlog)
+	err = a.Db.UpdateUserEventFoodLog(r.Context(), &ueflog)
 
 	if err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user event log")
@@ -49,5 +49,18 @@ func (a *APIV1) update_usereventlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	out := database.UserEventFoodLog{
+		Eventlog: ueflog.Eventlog,
+		Foodlogs: ueflog.Foodlogs,
+	}
+	for _, foodlog := range ueflog.Foodlogs {
+		out.TotalProtein += foodlog.Protein
+		out.TotalCarb += foodlog.Carb
+		out.TotalFibre += foodlog.Fibre
+		out.TotalFat += foodlog.Fat
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(out)
 }

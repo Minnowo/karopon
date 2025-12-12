@@ -1,4 +1,4 @@
-import {TblUserFoodLog, UserEventLogWithFoodLog, TblUserFood} from './types';
+import {TblUserFoodLog, UserEventFoodLog, TblUserFood} from './types';
 
 export const TblUserFoodFactory = {
     empty(): TblUserFood {
@@ -17,9 +17,9 @@ export const TblUserFoodFactory = {
 };
 
 export const TblUserFoodLogFactory = {
-    empty(): TblUserFoodLog {
+    empty(id: number = 0): TblUserFoodLog {
         return {
-            id: 0,
+            id,
             user_id: 0,
             food_id: 0,
             created: 0,
@@ -38,8 +38,8 @@ export const TblUserFoodLogFactory = {
     },
 };
 
-export const UserEventLogWithFoodLogFactory = {
-    empty(): UserEventLogWithFoodLog {
+export const UserEventFoodLogFactory = {
+    empty(): UserEventFoodLog {
         return {
             eventlog: {
                 id: 0,

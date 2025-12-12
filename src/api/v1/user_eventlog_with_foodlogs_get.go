@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) get_usereventlog_with_food_logs(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -21,12 +21,12 @@ func (a *APIV1) get_usereventlog_with_food_logs(w http.ResponseWriter, r *http.R
 	}
 
 	var err error
-	var eventlogs []database.UserEventLogWithFoodLog
+	var eventlogs []database.UserEventFoodLog
 
 	if limit := r.URL.Query().Get("n"); limit == "" {
-		err = a.Db.LoadUserEventLogsWithFoodLog(r.Context(), user.ID, &eventlogs)
+		err = a.Db.LoadUserEventFoodFoodLogs(r.Context(), user.ID, &eventlogs)
 	} else if n, err := strconv.Atoi(limit); err == nil {
-		err = a.Db.LoadUserEventLogsWithFoodLogN(r.Context(), user.ID, n, &eventlogs)
+		err = a.Db.LoadUserEventFoodLogsN(r.Context(), user.ID, n, &eventlogs)
 	} else {
 		api.ServerErr(w, "Query parameter 'n' could not be parsed as an integer")
 		return

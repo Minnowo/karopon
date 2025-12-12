@@ -6,7 +6,7 @@ import {
     TblUserEvent,
     TblUserFood,
     TblUserFoodLog,
-    UserEventLogWithFoodLog,
+    UserEventFoodLog,
 } from '../../api/types';
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
@@ -29,11 +29,24 @@ interface AddEventsPanelRowState {
 export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPanelRowState) {
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
     // We use this to scale by the portion, but still let the user type manually.
-    const foodTemplate = useRef<TblUserFoodLog>({...food});
+    const foodTemplate = useRef<TblUserFoodLog>({name: food.name} as TblUserFoodLog);
 
     useEffect(() => {
-        foodTemplate.current = {...food};
-    }, [food]);
+        if (food.name !== '')
+            for (let i = 0; i < foods.length; i++) {
+                const match = foods[i];
+                if (match.name === food.name) {
+                    foodTemplate.current.id = match.id;
+                    foodTemplate.current.unit = match.unit;
+                    foodTemplate.current.portion = 1;
+                    foodTemplate.current.protein = match.protein;
+                    foodTemplate.current.carb = match.carb;
+                    foodTemplate.current.fibre = match.fibre;
+                    foodTemplate.current.fat = match.fat;
+                    break;
+                }
+            }
+    }, [food, foods]);
 
     return (
         <>
@@ -167,33 +180,67 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
 }
 
 interface AddEventsPanelState {
+    dialogTitle: string;
+    saveButtonTitle: string;
     user: TblUser;
     foods: TblUserFood[];
     events: TblUserEvent[];
-    fromEvent: UserEventLogWithFoodLog;
+    fromEvent: UserEventFoodLog;
     createEvent: (e: CreateUserEventLog) => void;
+    actionButtons?: Array<JSX.Element>;
+    copyDate?: boolean;
 }
 
+type TblUserFoodLogWithKey = TblUserFoodLog & {
+    key: number;
+};
+
 export function AddEventsPanel(p: AddEventsPanelState) {
+    // Used for the foods array key={} when rendering the food list.
+    // The foods array is a ref which is passed into the row component, where it is edited by ref.
+    // This ensures that each row in the array has a unique key for proper re-render.
+    const keyRef = useRef<number>(-1);
+
+    const mutateWithKey = (l: TblUserFoodLog): TblUserFoodLogWithKey => {
+        (l as TblUserFoodLogWithKey).key = --keyRef.current;
+        return l as TblUserFoodLogWithKey;
+    };
+
     const [event, setEvent] = useState<string>(p.fromEvent.eventlog.event);
-    const [eventTime, setEventTime] = useState<Date>(new Date());
+    const [eventTime, setEventTime] = useState<Date>(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
     const [didChangeTime, setDidChangeTime] = useState<boolean>(false);
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
     const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const foods = useRef<TblUserFoodLog[]>(p.fromEvent.foodlogs);
+    const foods = useRef<TblUserFoodLogWithKey[]>([]);
 
     const render = DoRender();
 
     useEffect(() => {
         setEvent(p.fromEvent.eventlog.event);
-        setEventTime(new Date()); /// don't copy this because they're gonna just assume current time
+        setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
         setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
-        foods.current = p.fromEvent.foodlogs;
-    }, [p.fromEvent]);
+        foods.current = p.fromEvent.foodlogs.map((x: TblUserFoodLog) => {
+            return {...x, key: --keyRef.current};
+        });
+    }, [p.fromEvent, p.copyDate]);
+
+    const reset = () => {
+        setEvent('');
+        setEventTime(new Date()); /// don't copy this because they're gonna just assume current time
+        setBloodSugar(0);
+        setInsulinToCarbRatio(0);
+        setInsulinTaken(0);
+        foods.current = [
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+        ];
+        DoRender();
+    };
 
     const totals = (() => {
         const cols = [0, 0, 0, 0];
@@ -245,7 +292,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             insulin_to_carb_ratio: insulinToCarbRatio,
             recommended_insulin_amount: insulin,
             actual_insulin_taken: insulinTaken,
-            created_time: didChangeTime ? eventTime.getTime() : 0, // for server generates the time
+            created_time: didChangeTime || p.copyDate ? eventTime.getTime() : 0, // for server generates the time
             event: {
                 id: 0,
                 user_id: p.user.id,
@@ -297,7 +344,15 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     return (
         <div className="w-full p-2 container-theme bg-c-black">
-            <span className="text-lg font-bold">Create New Event</span>
+            <div className="flex w-full justify-between">
+                <span className="text-lg font-bold">{p.dialogTitle}</span>
+                <div>
+                    {p.actionButtons}
+                    <button className="text-sm text-c-l-red font-bold w-24 mx-1" onClick={reset}>
+                        Reset
+                    </button>
+                </div>
+            </div>
             <ErrorDiv errorMsg={errorMsg} />
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
@@ -330,10 +385,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     <thead>
                         <tr className="font-semibold text-xs border-b">
                             <th className="text-left py-1">
-                                {' '}
                                 <button
                                     onClick={() => {
-                                        foods.current.push(TblUserFoodLogFactory.empty());
+                                        foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
                                         render();
                                     }}
                                 >
@@ -353,18 +407,20 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
                     <tbody>
                         {buildSumHeader()}
-                        {foods.current.map((food: TblUserFoodLog, index: number) => (
-                            <AddEventsPanelRow
-                                key={index}
-                                foods={p.foods}
-                                food={food}
-                                render={render}
-                                deleteSelf={() => {
-                                    foods.current.splice(index, 1);
-                                    render();
-                                }}
-                            />
-                        ))}
+                        {foods.current.map((food: TblUserFoodLogWithKey, index: number) => {
+                            return (
+                                <AddEventsPanelRow
+                                    key={food.key}
+                                    foods={p.foods}
+                                    food={food}
+                                    render={render}
+                                    deleteSelf={() => {
+                                        foods.current.splice(index, 1);
+                                        render();
+                                    }}
+                                />
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
@@ -410,7 +466,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <input
                     className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
                     type="submit"
-                    value="Create Event"
+                    value={p.saveButtonTitle}
                     onClick={onCreateClick}
                 />
             </div>

@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) get_userfood(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUserFoods(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 

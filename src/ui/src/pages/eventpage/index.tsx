@@ -1,12 +1,19 @@
 import {useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {CreateUserEventLog, TblUser, TblUserFoodLog, UserEventLogWithFoodLog} from '../../api/types';
-import {ApiNewEventLog} from '../../api/api';
+import {
+    CreateUserEventLog,
+    TblUser,
+    TblUserEventLog,
+    TblUserFoodLog,
+    UpdateUserEventLog,
+    UserEventFoodLog,
+} from '../../api/types';
+import {ApiDeleteUserEventLog, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton, DropdownButtonAction} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
-import {UserEventLogWithFoodLogFactory} from '../../api/factories';
+import {UserEventFoodLogFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {Fragment} from 'preact/jsx-runtime';
@@ -15,16 +22,85 @@ import {DoRender} from '../../hooks/doRender';
 export function EventsPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
     const [numberToShow, setNumberToShow] = useState<number>(15);
-    const [newEvent, setNewEvent] = useState<UserEventLogWithFoodLog>(UserEventLogWithFoodLogFactory.empty());
+    const [newEvent, setNewEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
+    const [editEvent, setEditEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const onCreateEvent = (eventlog: CreateUserEventLog) => {
         ApiNewEventLog(eventlog)
-            .then((newEventlog: UserEventLogWithFoodLog) => {
+            .then((newEventlog: UserEventFoodLog) => {
                 state.setEventlog((e) => [newEventlog.eventlog, ...(e === null ? [] : e)]);
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
-                setNewEvent(UserEventLogWithFoodLogFactory.empty());
+                setNewEvent(UserEventFoodLogFactory.empty());
                 setShowNewEventPanel(false);
+                setErrorMsg(null);
+            })
+            .catch((e: Error) => setErrorMsg(e.message));
+    };
+
+    const onUpdateEvent = (eventlogId: number, eventlog: CreateUserEventLog) => {
+        const updateEventLog: UpdateUserEventLog = {
+            eventlog: {
+                // server ignores these
+                created: 0,
+                event_id: 0,
+                user_id: 0,
+                net_carbs: 0,
+                // server ignores these
+                id: eventlogId,
+                user_time: eventlog.created_time,
+                event: eventlog.event.name,
+                blood_glucose: eventlog.blood_glucose,
+                blood_glucose_target: eventlog.blood_glucose_target,
+                insulin_sensitivity_factor: eventlog.insulin_sensitivity_factor,
+                insulin_to_carb_ratio: eventlog.insulin_to_carb_ratio,
+                recommended_insulin_amount: eventlog.recommended_insulin_amount,
+                actual_insulin_taken: eventlog.actual_insulin_taken,
+            },
+            foodlogs: eventlog.foods as TblUserFoodLog[],
+        };
+
+        ApiUpdateUserEventLog(updateEventLog)
+            .then((newEventlog: UserEventFoodLog) => {
+                state.setEventlog((e: TblUserEventLog[] | null) =>
+                    e === null
+                        ? e
+                        : e.map((log: TblUserEventLog) => {
+                              if (log.id === newEventlog.eventlog.id) {
+                                  return newEventlog.eventlog;
+                              }
+                              return log;
+                          })
+                );
+
+                state.setEventLogs((e: UserEventFoodLog[] | null) =>
+                    e === null
+                        ? e
+                        : e.map((log: UserEventFoodLog) => {
+                              if (log.eventlog.id === newEventlog.eventlog.id) {
+                                  return newEventlog;
+                              }
+                              return log;
+                          })
+                );
+
+                setEditEvent(UserEventFoodLogFactory.empty());
+                setErrorMsg(null);
+            })
+            .catch((e: Error) => setErrorMsg(e.message));
+    };
+
+    const onDeleteEvent = (eventlog: UserEventFoodLog) => {
+        ApiDeleteUserEventLog(eventlog.eventlog)
+            .then(() => {
+                state.setEventlog((old: TblUserEventLog[] | null) => {
+                    return old ? old.filter((x: TblUserEventLog) => x.id !== eventlog.eventlog.id) : null;
+                });
+
+                state.setEventLogs((old: UserEventFoodLog[] | null) => {
+                    return old ? old.filter((x: UserEventFoodLog) => x.eventlog.id !== eventlog.eventlog.id) : null;
+                });
+
                 setErrorMsg(null);
             })
             .catch((e: Error) => setErrorMsg(e.message));
@@ -37,7 +113,7 @@ export function EventsPage(state: BaseState) {
                     className={`w-24 ${showNewEventPanel && 'bg-c-l-red'}`}
                     onClick={() => {
                         setShowNewEventPanel((x) => !x);
-                        setNewEvent(UserEventLogWithFoodLogFactory.empty());
+                        setNewEvent(UserEventFoodLogFactory.empty());
                     }}
                 >
                     {!showNewEventPanel ? 'New Event' : 'Cancel'}
@@ -82,6 +158,8 @@ export function EventsPage(state: BaseState) {
             {showNewEventPanel && (
                 <>
                     <AddEventsPanel
+                        dialogTitle={'Create New Event'}
+                        saveButtonTitle={'Create Event'}
                         user={state.user}
                         foods={state.foods}
                         events={state.events}
@@ -98,25 +176,51 @@ export function EventsPage(state: BaseState) {
                         <br /> Try adding something to wake it up!
                     </div>
                 )}
-                {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventLogWithFoodLog) => (
-                    <EventPanel
-                        key={foodGroup.eventlog.id}
-                        user={state.user}
-                        foodGroup={foodGroup}
-                        actions={[
-                            {
-                                label: 'Copy',
-                                onClick: () => {
-                                    setNewEvent({...foodGroup});
-                                    setShowNewEventPanel(true);
-                                    window.scrollTo({top: 0, behavior: 'smooth'});
+                {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventFoodLog) =>
+                    editEvent.eventlog.id === foodGroup.eventlog.id ? (
+                        <AddEventsPanel
+                            key={`e-${editEvent.eventlog.id}`}
+                            copyDate={true}
+                            dialogTitle={`Update Event: ${editEvent.eventlog.id}`}
+                            saveButtonTitle={'Update Event'}
+                            user={state.user}
+                            foods={state.foods}
+                            events={state.events}
+                            fromEvent={editEvent}
+                            createEvent={(n: CreateUserEventLog) => onUpdateEvent(foodGroup.eventlog.id, n)}
+                            actionButtons={[
+                                <button
+                                    key={`c-${editEvent.eventlog.id}`}
+                                    className="text-sm text-c-l-red font-bold w-24 mx-1"
+                                    onClick={() => setEditEvent(UserEventFoodLogFactory.empty())}
+                                >
+                                    Cancel
+                                </button>,
+                            ]}
+                        />
+                    ) : (
+                        <EventPanel
+                            key={foodGroup.eventlog.id}
+                            user={state.user}
+                            foodGroup={foodGroup}
+                            actions={[
+                                {
+                                    label: 'Copy',
+                                    onClick: () => {
+                                        setNewEvent(foodGroup);
+                                        setShowNewEventPanel(true);
+                                        window.scrollTo({top: 0, behavior: 'smooth'});
+                                    },
                                 },
-                            },
-                            {label: 'Edit', onClick: () => {}},
-                            {label: 'Delete', onClick: () => {}},
-                        ]}
-                    />
-                ))}
+                                {
+                                    label: 'Edit',
+                                    onClick: () => setEditEvent(foodGroup),
+                                },
+                                {label: 'Delete', onClick: () => onDeleteEvent(foodGroup)},
+                            ]}
+                        />
+                    )
+                )}
             </div>
         </>
     );
@@ -124,7 +228,7 @@ export function EventsPage(state: BaseState) {
 
 interface EventPanelState {
     user: TblUser;
-    foodGroup: UserEventLogWithFoodLog;
+    foodGroup: UserEventFoodLog;
     actions: DropdownButtonAction[];
 }
 export function EventPanel({user, foodGroup, actions}: EventPanelState) {

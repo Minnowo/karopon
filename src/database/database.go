@@ -55,9 +55,9 @@ type DB interface {
 	// Does not edit the given structs.
 	UpdateUserFood(ctx context.Context, food *TblUserFood) error
 
-	// Update the given eventlog.
-	// Does not edit the given structs.
-	UpdateUserEventLog(ctx context.Context, food *TblUserEventLog) error
+	// Delete the eventlog with the given ID.
+	// If deleteFoodLogs is true, also delete any associated foodlogs.
+	DeleteUserEventLog(ctx context.Context, userId int, eventlogId int, deleteFoodLogs bool) error
 
 	// Delete a food by it's ID.
 	DeleteUserFood(ctx context.Context, userId int, foodId int) error
@@ -77,6 +77,9 @@ type DB interface {
 
 	// Read all the users events into the given array, or returns an error.
 	LoadUserEvents(ctx context.Context, userId int, events *[]TblUserEvent) error
+
+	// Load or creates and then loads the event with the given name into the output, or returns an error.
+	LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, name string, out *TblUserEvent) error
 
 	// Read all the users eventlogs into the given array, or returns an error.
 	LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
@@ -98,17 +101,24 @@ type DB interface {
 
 	// Read a single event log and it's food into the given array.
 	// Returns an error or nil.
-	LoadUserEventLogWithFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *UserEventLogWithFoodLog) error
+	LoadUserEventFoodLog(ctx context.Context, userId int, eventlogId int, eflog *UserEventFoodLog) error
 
 	// Read all the event logs and their food into the given array.
 	// Returns an error or nil.
-	LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]UserEventLogWithFoodLog) error
+	LoadUserEventFoodFoodLogs(ctx context.Context, userId int, eflogs *[]UserEventFoodLog) error
 
 	// Read at most n event logs and their food into the given array.
 	// Returns an error or nil.
-	LoadUserEventLogsWithFoodLogN(ctx context.Context, userId int, n int, eventWithFood *[]UserEventLogWithFoodLog) error
+	LoadUserEventFoodLogsN(ctx context.Context, userId int, n int, eflogs *[]UserEventFoodLog) error
 
-	// Add the given TblUserFoodLog to the databasea, and sets the UserTime, FoodID, and EventID, on the given food
+	// Update the given eventlog, removing the foodlogs and creating new ones from this struct.
+	// The given struct is updated with proper EventID, FoodID, and UserTime.
+	UpdateUserEventFoodLog(ctx context.Context, eflog *UpdateUserEventLog) error
+
+	// Add the given TblUserFoodLog to the database.
+	// Sets the UserTime, FoodID, and EventID, on the given food
+	// If the EventID is null or 0, loads or creates the event based off the name.
+	// Loads or creates the given food.
 	// Returns the TblUserFoodLog ID or an error.
 	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
 	AddUserFoodLogTx(tx *sqlx.Tx, food *TblUserFoodLog) (int, error)

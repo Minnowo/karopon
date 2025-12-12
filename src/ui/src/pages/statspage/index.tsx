@@ -1,6 +1,6 @@
 import {BaseState} from '../../state/basestate';
 import {useEffect, useState} from 'preact/hooks';
-import {UserEventLogWithFoodLog} from '../../api/types';
+import {UserEventFoodLog} from '../../api/types';
 
 import {RenderGraph} from './single_line_graph';
 import {RenderMultiLineGraph} from './multi_line_graph';
@@ -9,7 +9,7 @@ import {ChartPoint, MacroPoint, MacroTotals, RangeType} from './common';
 
 import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
 
-const buildTodayMacros = (rows: UserEventLogWithFoodLog[], range: RangeType): MacroTotals => {
+const buildTodayMacros = (rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
     const nowMs = new Date().getTime();
     const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
     for (let i = 0; i < rows.length; i++) {
@@ -41,7 +41,7 @@ const buildTodayMacros = (rows: UserEventLogWithFoodLog[], range: RangeType): Ma
     return totals;
 };
 
-const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType): MacroPoint[] => {
+const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroPoint[] => {
     const nowMs = new Date().getTime();
     const buckets: Record<string, MacroPoint> = {};
     for (let i = 0; i < rows.length; i++) {
@@ -86,8 +86,8 @@ const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType):
 };
 
 const buildChartData = (
-    events: UserEventLogWithFoodLog[],
-    keyGetter: (e: UserEventLogWithFoodLog) => number,
+    events: UserEventFoodLog[],
+    keyGetter: (e: UserEventFoodLog) => number,
     range: RangeType
 ): ChartPoint[] => {
     const nowMs = new Date().getTime();

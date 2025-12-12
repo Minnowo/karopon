@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) api_logout(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getLogout(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 

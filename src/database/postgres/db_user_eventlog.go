@@ -88,7 +88,7 @@ func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEven
 	return id, err
 }
 
-func (db *PGDatabase) LoadUserEventLogWithFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *database.UserEventLogWithFoodLog) error {
+func (db *PGDatabase) LoadUserEventFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *database.UserEventFoodLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -98,7 +98,7 @@ func (db *PGDatabase) LoadUserEventLogWithFoodLog(ctx context.Context, userId in
 			return err
 		}
 
-		var eventlogWithFood database.UserEventLogWithFoodLog
+		var eventlogWithFood database.UserEventFoodLog
 
 		if err := db.LoadUserFoodLogByEventLogTx(tx, userId, eventlogId, &eventlogWithFood.Foodlogs); err != nil {
 			return err
@@ -122,7 +122,7 @@ func (db *PGDatabase) LoadUserEventLogWithFoodLog(ctx context.Context, userId in
 	})
 }
 
-func (db *PGDatabase) LoadUserEventLogsWithFoodLogN(ctx context.Context, userId int, n int, eventWithFood *[]database.UserEventLogWithFoodLog) error {
+func (db *PGDatabase) LoadUserEventFoodLogsN(ctx context.Context, userId int, n int, eventWithFood *[]database.UserEventFoodLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -132,7 +132,7 @@ func (db *PGDatabase) LoadUserEventLogsWithFoodLogN(ctx context.Context, userId 
 			return err
 		}
 
-		eventlogsWithFood := make([]database.UserEventLogWithFoodLog, len(eventlogs))
+		eventlogsWithFood := make([]database.UserEventFoodLog, len(eventlogs))
 
 		for i, eventlog := range eventlogs {
 
@@ -161,8 +161,8 @@ func (db *PGDatabase) LoadUserEventLogsWithFoodLogN(ctx context.Context, userId 
 	})
 }
 
-func (db *PGDatabase) LoadUserEventLogsWithFoodLog(ctx context.Context, userId int, eventWithFood *[]database.UserEventLogWithFoodLog) error {
-	return db.LoadUserEventLogsWithFoodLogN(ctx, userId, -1, eventWithFood)
+func (db *PGDatabase) LoadUserEventFoodFoodLogs(ctx context.Context, userId int, eventWithFood *[]database.UserEventFoodLog) error {
+	return db.LoadUserEventFoodLogsN(ctx, userId, -1, eventWithFood)
 }
 
 func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]database.TblUserEventLog) error {
@@ -198,26 +198,97 @@ func (db *PGDatabase) LoadUserEventLogTx(tx *sqlx.Tx, userId int, eventlogId int
 	return tx.Get(out, query, userId, eventlogId)
 }
 
-func (db *PGDatabase) UpdateUserEventLog(ctx context.Context, eventlog *database.TblUserEventLog) error {
+func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *database.UpdateUserEventLog) error {
 
-	query := `
-		UPDATE PON.USER_EVENTLOG
-		SET
-			USER_ID						= :user_id,
-			EVENT_ID  					= :event_id,
-			USER_TIME					= :user_time,
-			EVENT						= :event,
-			NET_CARBS					= :net_carbs,
-			BLOOD_GLUCOSE				= :blood_glucose,
-			INSULIN_SENSITIVITY_FACTOR	= :insulin_sensitivity_factor,
-			INSULIN_TO_CARB_RATIO		= :insulin_to_carb_ratio,
-			BLOOD_GLUCOSE_TARGET		= :blood_glucose_target,
-			RECOMMENDED_INSULIN_AMOUNT	= :recommended_insulin_amount,
-			ACTUAL_INSULIN_TAKEN		= :actual_insulin_taken
-		WHERE USER_ID = :user_id AND ID = :id 
-    `
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
-	_, err := db.NamedExecContext(ctx, query, eventlog)
+		var err error
 
-	return err
+		_, err = tx.Exec(`DELETE FROM PON.USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, eventlog.Eventlog.UserID, eventlog.Eventlog.ID)
+
+		if err != nil {
+			return err
+		}
+
+		if eventlog.Eventlog.UserTime.Time().IsZero() {
+			eventlog.Eventlog.UserTime = database.UnixMillis(time.Now().UTC())
+		}
+
+		{ // if the user changed the name of the event
+			var event database.TblUserEvent
+
+			if err = db.LoadAndOrCreateUserEventByNameTx(tx, eventlog.Eventlog.UserID, eventlog.Eventlog.Event, &event); err != nil {
+				return err
+			}
+
+			eventlog.Eventlog.EventID = event.ID
+		}
+
+		eventlog.Eventlog.NetCarbs = 0
+
+		for _, food := range eventlog.Foodlogs {
+
+			eventlog.Eventlog.NetCarbs = food.Carb - food.Fibre
+
+			food.UserID = eventlog.Eventlog.UserID
+			food.UserTime = eventlog.Eventlog.UserTime
+			food.Event = eventlog.Eventlog.Event
+			food.EventID = &eventlog.Eventlog.EventID
+			food.EventLogID = &eventlog.Eventlog.ID
+
+			id, err := db.AddUserFoodLogTx(tx, &food)
+
+			if err != nil {
+				return err
+			}
+
+			food.ID = id
+		}
+
+		query := `UPDATE PON.USER_EVENTLOG SET ` +
+			`EVENT_ID  					= :event_id,` +
+			`USER_TIME					= :user_time,` +
+			`EVENT						= :event,` +
+			`NET_CARBS					= :net_carbs,` +
+			`BLOOD_GLUCOSE				= :blood_glucose,` +
+			`INSULIN_SENSITIVITY_FACTOR	= :insulin_sensitivity_factor,` +
+			`INSULIN_TO_CARB_RATIO		= :insulin_to_carb_ratio,` +
+			`BLOOD_GLUCOSE_TARGET		= :blood_glucose_target,` +
+			`RECOMMENDED_INSULIN_AMOUNT	= :recommended_insulin_amount,` +
+			`ACTUAL_INSULIN_TAKEN		= :actual_insulin_taken ` +
+			`WHERE USER_ID = :user_id AND ID = :id`
+
+		_, err = db.NamedExecContext(ctx, query, eventlog.Eventlog)
+
+		return err
+
+	})
+}
+
+func (db *PGDatabase) DeleteUserEventLog(ctx context.Context, userId int, eventlogId int, deleteFoodLogs bool) error {
+
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
+		var err error
+
+		if deleteFoodLogs {
+
+			_, err = tx.Exec(`DELETE FROM PON.USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
+
+			if err != nil {
+				return err
+			}
+		} else {
+
+			_, err = tx.Exec(`UPDATE PON.USER_FOODLOG SET EVENTLOG_ID = null WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = tx.Exec(`DELETE FROM PON.USER_EVENTLOG WHERE USER_ID = $1 AND ID = $2`, userId, eventlogId)
+
+		return err
+	})
 }

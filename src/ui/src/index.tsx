@@ -11,8 +11,8 @@ import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import {StatsPage} from './pages/statspage';
 
 import {useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventLogWithFoodLog} from './api/types';
-import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventLog, ApiGetUserEventLogWithFoodLog, ApiWhoAmI} from './api/api';
+import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventFoodLog} from './api/types';
+import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventLog, ApiGetUserEventFoodLog, ApiWhoAmI} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
@@ -23,7 +23,7 @@ export function App() {
     const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
     const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
     const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
-    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventLogWithFoodLog> | null>(null);
+    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventFoodLog> | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, doRefresh] = useState<number>(0);
 
@@ -35,9 +35,7 @@ export function App() {
             });
             ApiGetUserEvents().then((myEvents) => setEvents(myEvents));
             ApiGetUserEventLog().then((myEventlog) => setEventlog(myEventlog));
-            ApiGetUserEventLogWithFoodLog(me.event_history_fetch_limit).then((myEventLogs) =>
-                setEventlogsWithFoodlogs(myEventLogs)
-            );
+            ApiGetUserEventFoodLog(me.event_history_fetch_limit).then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
             setUser(me);
         });
     }, [refresh]);

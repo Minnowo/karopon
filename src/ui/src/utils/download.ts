@@ -1,4 +1,4 @@
-import {TblUserFoodLog, UserEventLogWithFoodLog} from '../api/types';
+import {TblUserFoodLog, UserEventFoodLog} from '../api/types';
 import {formatSmartTimestamp} from './date_utils';
 
 /**
@@ -16,7 +16,7 @@ export function DownloadData(data: Blob, filename: string) {
     a.remove();
 }
 
-export const GenerateEventTableText = (events: UserEventLogWithFoodLog[]): string => {
+export const GenerateEventTableText = (events: UserEventFoodLog[]): string => {
     return events
         .map((eventItem) => {
             const {eventlog, foodlogs, total_protein, total_carb, total_fibre, total_fat} = eventItem;

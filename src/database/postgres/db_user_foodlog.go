@@ -33,21 +33,18 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 	var query string
 
 	{ // USER_FOOD table stuff
-		query = `
-			SELECT ID FROM PON.USER_FOOD f
-			WHERE f.USER_ID = $1 AND f.NAME = $2 AND f.UNIT = $3
-			LIMIT 1
-			`
+		query = `SELECT ID FROM PON.USER_FOOD f ` +
+			`WHERE f.USER_ID = $1 AND f.NAME = $2 AND f.UNIT = $3 ` +
+			`LIMIT 1`
 
 		if err := tx.QueryRow(query, food.UserID, food.Name, food.Unit).Scan(&food.FoodID); err == sql.ErrNoRows {
 
 			log.Debug().Msg("got error no rows")
 
-			query = `
-				INSERT INTO PON.USER_FOOD (USER_ID, NAME, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
-				VALUES (:user_id, :name, :unit, :portion, :protein, :carb, :fibre, :fat)
-				RETURNING ID;
-				`
+			query = `INSERT INTO PON.USER_FOOD ` +
+				`(USER_ID, NAME, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT) VALUES ` +
+				`(:user_id, :name, :unit, :portion, :protein, :carb, :fibre, :fat) ` +
+				`RETURNING ID;`
 
 			if food.Portion == 0 {
 				return -1, fmt.Errorf("portion cannot be 0")
@@ -83,23 +80,16 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 		}
 	}
 
-	if food.Event != "" { // USER_EVENT table stuff
+	// Load or create the event based off the name, if we have a name, and no ID.
+	if food.Event != "" && (food.EventID == nil || *food.EventID <= 0) {
 
-		query = `
-			SELECT ID FROM PON.USER_EVENT e
-			WHERE e.USER_ID = $1 AND e.NAME = $2
-			LIMIT 1
-			`
+		query = `SELECT ID FROM PON.USER_EVENT e WHERE e.USER_ID = $1 AND e.NAME = $2 LIMIT 1`
 
 		if err := tx.QueryRow(query, food.UserID, food.Event).Scan(&food.EventID); err == sql.ErrNoRows {
 
 			log.Debug().Msg("got error no rows")
 
-			query = `
-				INSERT INTO PON.USER_EVENT (USER_ID, NAME)
-				VALUES (:user_id, :name)
-				RETURNING ID;
-				`
+			query = `INSERT INTO PON.USER_EVENT (USER_ID, NAME) VALUES (:user_id, :name) RETURNING ID;`
 
 			event := database.TblUserEvent{
 				UserID: food.UserID,
@@ -120,11 +110,10 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 		}
 	}
 
-	query = `
-			INSERT INTO PON.USER_FOODLOG (USER_ID, FOOD_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT, EVENT_ID, EVENTLOG_ID)
-			VALUES (:user_id, :food_id, :user_time, :name, :event, :unit, :portion, :protein, :carb, :fibre, :fat, :event_id, :eventlog_id)
-			RETURNING ID;
-		`
+	query = `INSERT INTO PON.USER_FOODLOG ` +
+		`(USER_ID, FOOD_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT, EVENT_ID, EVENTLOG_ID) VALUES ` +
+		`(:user_id, :food_id, :user_time, :name, :event, :unit, :portion, :protein, :carb, :fibre, :fat, :event_id, :eventlog_id) ` +
+		`RETURNING ID;`
 
 	id, err := db.InsertOneNamedGetIDTx(tx, query, food)
 
@@ -136,28 +125,23 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 }
 
 func (db *PGDatabase) LoadUserFoodLogs(ctx context.Context, userId int, out *[]database.TblUserFoodLog) error {
-	query := `
-		SELECT * FROM PON.USER_FOODLOG fl
-		WHERE fl.USER_ID = $1
-		ORDER BY fl.USER_TIME DESC
-	`
+	query := `SELECT * FROM PON.USER_FOODLOG fl ` +
+		`WHERE fl.USER_ID = $1 ` +
+		`ORDER BY fl.USER_TIME DESC`
+
 	return db.SelectContext(ctx, out, query, userId)
 }
 
 func (db *PGDatabase) LoadUserFoodLogByEvent(ctx context.Context, userId int, eventId int, out *[]database.TblUserFoodLog) error {
-	query := `
-		SELECT * FROM PON.USER_FOODLOG fl
-		WHERE fl.USER_ID = $1 AND fl.EVENT_ID = $2
-		ORDER BY fl.USER_TIME DESC
-	`
+	query := `SELECT * FROM PON.USER_FOODLOG fl ` +
+		`WHERE fl.USER_ID = $1 AND fl.EVENT_ID = $2 ` +
+		`ORDER BY fl.USER_TIME DESC`
 	return db.SelectContext(ctx, out, query, userId, eventId)
 }
 
 func (db *PGDatabase) LoadUserFoodLogByEventLogTx(tx *sqlx.Tx, userId int, eventLogId int, out *[]database.TblUserFoodLog) error {
-	query := `
-		SELECT * FROM PON.USER_FOODLOG fl
-		WHERE fl.USER_ID = $1 AND fl.EVENTLOG_ID = $2
-		ORDER BY fl.USER_TIME DESC
-	`
+	query := `SELECT * FROM PON.USER_FOODLOG fl ` +
+		`WHERE fl.USER_ID = $1 AND fl.EVENTLOG_ID = $2 ` +
+		`ORDER BY fl.USER_TIME DESC`
 	return tx.Select(out, query, userId, eventLogId)
 }

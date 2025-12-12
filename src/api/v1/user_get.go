@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (a *APIV1) get_user(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUser(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
