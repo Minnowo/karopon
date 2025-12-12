@@ -1,5 +1,5 @@
 import {useState} from 'preact/hooks';
-import {MacroTotals, Point2D} from './common';
+import {MacroTotals, Point2D, RangeTypeKeys, RangeType} from './common';
 
 const PolarToCartesian = (cx: number, cy: number, r: number, rad: number): Point2D => {
     return {
@@ -15,7 +15,13 @@ const DescribeArc = (x: number, y: number, r: number, startAngle: number, endAng
     return ['M', x, y, 'L', start.x, start.y, 'A', r, r, 0, largeArc, 0, end.x, end.y, 'Z'].join(' ');
 };
 
-export const PieChart = ({data, size}: {data: MacroTotals; size: number}) => {
+interface Props {
+    data: MacroTotals;
+    size: number;
+    range: RangeType;
+    setRange: (r: RangeType) => void;
+}
+export const PieChart = ({data, size, range, setRange}: Props) => {
     const [hoverText, setHoverText] = useState<string | null>(null);
 
     const total = data.carbs + data.protein + data.fat + data.fibre;
@@ -40,6 +46,17 @@ export const PieChart = ({data, size}: {data: MacroTotals; size: number}) => {
 
     return (
         <div className="flex flex-col">
+            <div className="flex gap-4 mb-4">
+                {RangeTypeKeys.map((r) => (
+                    <button
+                        key={r}
+                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                        onClick={() => setRange(r as RangeType)}
+                    >
+                        {r.toUpperCase()}
+                    </button>
+                ))}
+            </div>
             <svg width={size} height={size}>
                 {slices.map((slice, i) => {
                     const [start, end] = makeArc(slice.value);

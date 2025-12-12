@@ -8,8 +8,7 @@ export const RenderMultiLineGraph = (
     title: string,
     visibleMacros: string[],
     setVisibleMacros: (m: string[]) => void,
-    setRange: (r: RangeType) => void,
-    currentRange: RangeType
+    setRange: (r: RangeType) => void
 ) => {
     const colors = {
         carbs: '#facc15',
@@ -48,7 +47,7 @@ export const RenderMultiLineGraph = (
                 {RangeTypeKeys.map((r) => (
                     <button
                         key={r}
-                        className={`px-3 py-1 border rounded ${currentRange === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
                         onClick={() => setRange(r as RangeType)}
                     >
                         {r.toUpperCase()}

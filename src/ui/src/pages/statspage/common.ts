@@ -1,4 +1,4 @@
-export const RangeTypeKeys = ['24 hours', 'last week', 'last month'] as const;
+export const RangeTypeKeys = ['24 hours', '7 days', '28 days'] as const;
 export type RangeType = (typeof RangeTypeKeys)[number];
 
 export interface ChartPoint {
@@ -30,9 +30,9 @@ export const FormatXLabel = (key: number, range: RangeType): string => {
     switch (range) {
         case '24 hours':
             return new Date(key).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-        case 'last week':
+        case '7 days':
             return new Date(key).toLocaleDateString([], {month: 'narrow', day: '2-digit'});
-        case 'last month':
+        case '28 days':
             return new Date(key).toLocaleDateString([], {month: 'narrow', day: '2-digit'});
     }
 };

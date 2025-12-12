@@ -7,15 +7,30 @@ import {RenderMultiLineGraph} from './multi_line_graph';
 import {PieChart} from './pie_chart';
 import {ChartPoint, MacroPoint, MacroTotals, RangeType} from './common';
 
-import {IsSameDay, Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
+import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
 
-const buildTodayMacros = (rows: UserEventLogWithFoodLog[]): MacroTotals => {
+const buildTodayMacros = (rows: UserEventLogWithFoodLog[], range: RangeType): MacroTotals => {
     const nowMs = new Date().getTime();
     const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        if (!IsSameDay(nowMs, row.eventlog.user_time)) {
-            continue;
+
+        switch (range) {
+            case '24 hours':
+                if (!Within24Hour(nowMs, row.eventlog.user_time)) {
+                    continue;
+                }
+                break;
+            case '7 days':
+                if (!WithinWeek(nowMs, row.eventlog.user_time)) {
+                    continue;
+                }
+                break;
+            case '28 days':
+                if (!WithinMonth(nowMs, row.eventlog.user_time)) {
+                    continue;
+                }
+                break;
         }
 
         totals.carbs += row.total_carb;
@@ -38,12 +53,12 @@ const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType):
                     continue;
                 }
                 break;
-            case 'last week':
+            case '7 days':
                 if (!WithinWeek(nowMs, event.eventlog.user_time)) {
                     continue;
                 }
                 break;
-            case 'last month':
+            case '28 days':
                 if (!WithinMonth(nowMs, event.eventlog.user_time)) {
                     continue;
                 }
@@ -56,8 +71,8 @@ const buildMacroChartData = (rows: UserEventLogWithFoodLog[], range: RangeType):
             case '24 hours':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
                 break;
-            case 'last week':
-            case 'last month':
+            case '7 days':
+            case '28 days':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
         }
@@ -87,12 +102,12 @@ const buildChartData = (
                     continue;
                 }
                 break;
-            case 'last week':
+            case '7 days':
                 if (!WithinWeek(nowMs, event.eventlog.user_time)) {
                     continue;
                 }
                 break;
-            case 'last month':
+            case '28 days':
                 if (!WithinMonth(nowMs, event.eventlog.user_time)) {
                     continue;
                 }
@@ -104,8 +119,8 @@ const buildChartData = (
             case '24 hours':
                 key = d.getTime();
                 break;
-            case 'last week':
-            case 'last month':
+            case '7 days':
+            case '28 days':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
         }
@@ -122,6 +137,7 @@ export function StatsPage(state: BaseState) {
     const [carbRange, setCarbRange] = useState<RangeType>('24 hours');
     const [bloodRange, setBloodRange] = useState<RangeType>('24 hours');
     const [insulinRange, setInsulinRange] = useState<RangeType>('24 hours');
+    const [pieChartRange, setPieChartRange] = useState<RangeType>('24 hours');
 
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
     const [bloodData, setBloodData] = useState<ChartPoint[]>([]);
@@ -144,8 +160,8 @@ export function StatsPage(state: BaseState) {
     );
 
     useEffect(() => {
-        if (state.eventlogs.length) setMacros(buildTodayMacros(state.eventlogs));
-    }, [state.eventlogs]);
+        if (state.eventlogs.length) setMacros(buildTodayMacros(state.eventlogs, pieChartRange));
+    }, [state.eventlogs, pieChartRange]);
 
     return (
         <>
@@ -159,7 +175,7 @@ export function StatsPage(state: BaseState) {
                             Please enter a meal today to see your daily nutrient information
                         </div>
                     ) : (
-                        <PieChart data={macros} size={250} />
+                        <PieChart data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
                     )}
                 </div>
             )}

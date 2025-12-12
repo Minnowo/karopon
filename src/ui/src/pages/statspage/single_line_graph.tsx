@@ -8,8 +8,7 @@ export const RenderGraph = <T extends ChartPoint>(
     valueKey: keyof T,
     title: string,
     color: string,
-    setRange: (r: RangeType) => void,
-    currentRange: RangeType = range
+    setRange: (r: RangeType) => void
 ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -41,7 +40,7 @@ export const RenderGraph = <T extends ChartPoint>(
                 {RangeTypeKeys.map((r) => (
                     <button
                         key={r}
-                        className={`px-3 py-1 border rounded ${currentRange === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
                         onClick={() => setRange(r as RangeType)}
                     >
                         {r.toUpperCase()}
