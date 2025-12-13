@@ -42,7 +42,7 @@ export function LoginPage({doRefresh}: Props) {
                         <tr title="Your username">
                             <td className="px-2">Username</td>
                             <td>
-                                <input type="text" name="pon_username" required />
+                                <input type="text" name="pon_username" required autofocus />
                             </td>
                         </tr>
 
