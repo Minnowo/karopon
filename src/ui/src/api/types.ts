@@ -1,4 +1,4 @@
-export interface TblUser {
+export type TblUser = {
     id: number;
     name: string;
     created: string;
@@ -11,28 +11,28 @@ export interface TblUser {
     insulin_sensitivity_factor: number;
     event_history_fetch_limit: number;
     target_blood_sugar: number;
-}
+};
 
-export interface TblUpdateUser {
+export type TblUpdateUser = {
     user: TblUser;
     new_password: string;
-}
+};
 
-export interface TblConfig {
+export type TblConfig = {
     version: string;
-}
+};
 
-export interface ServerTime {
+export type ServerTime = {
     time: number;
-}
+};
 
-export interface TblUserEvent {
+export type TblUserEvent = {
     id: number;
     user_id: number;
     name: string;
-}
+};
 
-export interface TblUserEventLog {
+export type TblUserEventLog = {
     id: number;
     user_id: number;
     event_id: number;
@@ -46,9 +46,9 @@ export interface TblUserEventLog {
     insulin_to_carb_ratio: number;
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
-}
+};
 
-export interface TblUserFood {
+export type TblUserFood = {
     id: number;
     user_id: number;
     name: string;
@@ -58,9 +58,9 @@ export interface TblUserFood {
     carb: number;
     fibre: number;
     fat: number;
-}
+};
 
-export interface TblUserFoodLog {
+export type TblUserFoodLog = {
     id: number;
     user_id: number;
     food_id: number | null;
@@ -79,23 +79,23 @@ export interface TblUserFoodLog {
     carb: number;
     fibre: number;
     fat: number;
-}
+};
 
-export interface UserEventFoodLog {
+export type UserEventFoodLog = {
     eventlog: TblUserEventLog;
     foodlogs: TblUserFoodLog[];
     total_protein: number;
     total_carb: number;
     total_fibre: number;
     total_fat: number;
-}
+};
 
-export interface UpdateUserEventLog {
+export type UpdateUserEventLog = {
     eventlog: TblUserEventLog;
     foodlogs: TblUserFoodLog[];
-}
+};
 
-export interface InsertUserFoodLog {
+export type InsertUserFoodLog = {
     name: string;
     event: string;
     unit: string;
@@ -104,9 +104,9 @@ export interface InsertUserFoodLog {
     carb: number;
     fibre: number;
     fat: number;
-}
+};
 
-export interface CreateUserEventLog {
+export type CreateUserEventLog = {
     event: TblUserEvent;
     foods: InsertUserFoodLog[];
     blood_glucose: number;
@@ -116,4 +116,4 @@ export interface CreateUserEventLog {
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
     created_time: number;
-}
+};

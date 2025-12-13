@@ -1,7 +1,6 @@
 import {useState, useRef} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
-import {JSX} from 'preact/jsx-runtime';
 import {NumberInput} from '../../components/number_input';
 import {DoRender} from '../../hooks/doRender';
 
@@ -64,8 +63,8 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                                 className={'whitespace-nowrap'}
                                 label={'Portion'}
                                 value={tmpFood.current.portion}
-                                onValueChange={(portion: number) => {
-                                    tmpFood.current.portion = portion;
+                                onValueChange={(p: number) => {
+                                    tmpFood.current.portion = p;
                                     render();
                                 }}
                             />
@@ -99,7 +98,7 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                                     {
                                         label: 'Copy',
                                         onClick: () => {
-                                            if (copyFood)
+                                            if (copyFood) {
                                                 copyFood({
                                                     id: food.id,
                                                     user_id: food.user_id,
@@ -111,13 +110,16 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                                                     protein: food.protein * portion,
                                                     portion,
                                                 });
+                                            }
                                         },
                                     },
                                     {label: 'Edit', onClick: onEditClicked},
                                     {
                                         label: 'Delete',
                                         onClick: () => {
-                                            if (deleteFood) deleteFood(food);
+                                            if (deleteFood) {
+                                                deleteFood(food);
+                                            }
                                         },
                                     },
                                 ]}

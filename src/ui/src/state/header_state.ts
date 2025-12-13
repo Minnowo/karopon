@@ -1,5 +1,5 @@
 import {TblUser} from '../api/types';
 
-export interface HeaderState {
+export type HeaderState = {
     user: TblUser;
-}
+};

@@ -1,4 +1,3 @@
-import {Ref} from 'preact';
 import {useEffect, useRef, useState, useCallback} from 'preact/hooks';
 import {useDebouncedCallback} from '../hooks/useDebounce';
 
@@ -33,13 +32,13 @@ export function FuzzySearch<T>({
     const [matches, setMatches] = useState<T[] | null>(null);
 
     const doSearch = useCallback(
-        (query: string) => {
-            if (!query) {
+        (search: string) => {
+            if (!search) {
                 setMatches(null);
                 setOpen(false);
                 setSelectedIndex(null);
             } else {
-                const m = data.filter((item) => String(item[searchKey]).toLowerCase().includes(query.toLowerCase()));
+                const m = data.filter((item) => String(item[searchKey]).toLowerCase().includes(search.toLowerCase()));
 
                 if (m && m.length > 0) {
                     setSelectedIndex(0);
@@ -67,7 +66,9 @@ export function FuzzySearch<T>({
             onSelect(null);
             return;
         }
-        onQueryChange && onQueryChange(item[searchKey] as string);
+        if (onQueryChange) {
+            onQueryChange(item[searchKey] as string);
+        }
         setMatches(null);
         setOpen(false);
         setSelectedIndex(null);
@@ -116,7 +117,7 @@ export function FuzzySearch<T>({
                 doSelect(null);
             } else if (selectedIndex === null) {
                 setOpen(false);
-            } else if (!matches || matches.length == 0) {
+            } else if (!matches || matches.length === 0) {
                 setOpen(false);
             } else if (selectedIndex >= 0 && selectedIndex < matches.length) {
                 doSelect(matches[selectedIndex]);

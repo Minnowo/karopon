@@ -4,7 +4,7 @@ import {
     CreateUserEventLog,
     TblUserEvent,
     TblUserEventLog,
-    UserEventFoodLog as UserEventFoodLog,
+    UserEventFoodLog,
     TblUpdateUser,
     UpdateUserEventLog,
 } from './types';
@@ -43,20 +43,20 @@ export const ApiWhoAmI = (): Promise<TblUser> => {
     return fetchJson<TblUser>(fetch(`${base}/api/whoami`));
 };
 
-export const ApiGetUserFoods = (): Promise<Array<TblUserFood>> => {
-    return fetchJson<Array<TblUserFood>>(fetch(`${base}/api/foods`));
+export const ApiGetUserFoods = (): Promise<TblUserFood[]> => {
+    return fetchJson<TblUserFood[]>(fetch(`${base}/api/foods`));
 };
 
-export const ApiGetUserEvents = (): Promise<Array<TblUserEvent>> => {
-    return fetchJson<Array<TblUserEvent>>(fetch(`${base}/api/events`));
+export const ApiGetUserEvents = (): Promise<TblUserEvent[]> => {
+    return fetchJson<TblUserEvent[]>(fetch(`${base}/api/events`));
 };
 
-export const ApiGetUserEventLog = (): Promise<Array<TblUserEventLog>> => {
-    return fetchJson<Array<TblUserEventLog>>(fetch(`${base}/api/eventlogs`));
+export const ApiGetUserEventLog = (): Promise<TblUserEventLog[]> => {
+    return fetchJson<TblUserEventLog[]>(fetch(`${base}/api/eventlogs`));
 };
 
-export const ApiGetUserEventFoodLog = (n: number = -1): Promise<Array<UserEventFoodLog>> => {
-    return fetchJson<Array<UserEventFoodLog>>(fetch(`${base}/api/eventfoodlogs?n=${n}`));
+export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
+    return fetchJson<UserEventFoodLog[]>(fetch(`${base}/api/eventfoodlogs?n=${n}`));
 };
 
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {

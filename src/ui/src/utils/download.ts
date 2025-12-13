@@ -1,4 +1,4 @@
-import {TblUserFoodLog, UserEventFoodLog} from '../api/types';
+import {UserEventFoodLog} from '../api/types';
 import {formatSmartTimestamp} from './date_utils';
 
 /**

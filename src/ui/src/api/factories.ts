@@ -17,7 +17,7 @@ export const TblUserFoodFactory = {
 };
 
 export const TblUserFoodLogFactory = {
-    empty(id: number = 0): TblUserFoodLog {
+    empty(id = 0): TblUserFoodLog {
         return {
             id,
             user_id: 0,

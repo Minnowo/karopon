@@ -30,7 +30,7 @@ export function BloodSugarPage(state: BaseState) {
                         {
                             label: 'As CSV',
                             onClick: () => {
-                                const headers = Object.keys(state.eventlog[0]) as (keyof TblUserEventLog)[];
+                                const headers = Object.keys(state.eventlog[0]) as Array<keyof TblUserEventLog>;
                                 const csvRows: string[] = [];
 
                                 csvRows.push(headers.join(','));

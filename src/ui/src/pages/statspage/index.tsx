@@ -5,7 +5,7 @@ import {UserEventFoodLog} from '../../api/types';
 import {RenderGraph} from './single_line_graph';
 import {RenderMultiLineGraph} from './multi_line_graph';
 import {PieChart} from './pie_chart';
-import {ChartPoint, MacroPoint, MacroTotals, RangeType} from './common';
+import {ChartPoint, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
 
 import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
@@ -67,7 +67,7 @@ const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroP
         }
 
         const d = new Date(event.eventlog.user_time);
-        let key: number = 0;
+        let key = 0;
         switch (range) {
             case '24 hours':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
@@ -77,7 +77,9 @@ const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroP
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
         }
-        if (!buckets[key]) buckets[key] = {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0};
+        if (!buckets[key]) {
+            buckets[key] = {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0};
+        }
         buckets[key].carbs += event.total_carb;
         buckets[key].protein += event.total_protein;
         buckets[key].fat += event.total_fat;
@@ -115,7 +117,7 @@ const buildChartData = (
                 break;
         }
 
-        let key: number = 0;
+        let key = 0;
         switch (range) {
             case '24 hours':
                 key = d.getTime();
@@ -145,9 +147,9 @@ export function StatsPage(state: BaseState) {
     const [calorieData, setCalorieData] = useState<ChartPoint[]>([]);
     const [bloodData, setBloodData] = useState<ChartPoint[]>([]);
     const [insulinData, setInsulinData] = useState<ChartPoint[]>([]);
-    const [macros, setMacros] = useState<MacroTotals | null>(null);
+    const [macros, setMacros] = useState<MacroTotals>({carbs: 0, protein: 0, fat: 0, fibre: 0} as MacroTotals);
 
-    const [visibleMacros, setVisibleMacros] = useState<string[]>(['carbs', 'protein', 'fat', 'fibre']);
+    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['carbs', 'protein', 'fat', 'fibre']);
 
     useEffect(() => {
         setMacroData(buildMacroChartData(state.eventlogs, carbRange));
@@ -180,26 +182,13 @@ export function StatsPage(state: BaseState) {
         [state.eventlogs, insulinRange]
     );
 
-    useEffect(() => {
-        if (state.eventlogs.length) setMacros(buildTodayMacros(state.eventlogs, pieChartRange));
-    }, [state.eventlogs, pieChartRange]);
+    useEffect(() => setMacros(buildTodayMacros(state.eventlogs, pieChartRange)), [state.eventlogs, pieChartRange]);
 
     return (
         <>
             <h1 className="text-3xl mb-6">Stats Summary</h1>
 
-            {macros && (
-                <div className="mb-8">
-                    <h2 className="text-2xl mb-4">Today's Nutrition Breakdown</h2>
-                    {macros.carbs + macros.protein + macros.fat + macros.fibre === 0 ? (
-                        <div className="p-4 text-center text-yellow-400">
-                            Please enter a meal today to see your daily nutrient information
-                        </div>
-                    ) : (
-                        <PieChart data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
-                    )}
-                </div>
-            )}
+            <PieChart data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
 
             {RenderMultiLineGraph(
                 macroData,

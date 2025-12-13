@@ -1,21 +1,21 @@
 import {Dispatch, StateUpdater} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent, TblUserEventLog, UserEventFoodLog} from '../api/types';
 
-export interface BaseState {
+export type BaseState = {
     user: TblUser;
     setUser: Dispatch<StateUpdater<TblUser | null>>;
 
     foods: TblUserFood[];
-    setFoods: Dispatch<StateUpdater<Array<TblUserFood> | null>>;
+    setFoods: Dispatch<StateUpdater<TblUserFood[] | null>>;
 
     events: TblUserEvent[];
-    setEvents: Dispatch<StateUpdater<Array<TblUserEvent> | null>>;
+    setEvents: Dispatch<StateUpdater<TblUserEvent[] | null>>;
 
     eventlog: TblUserEventLog[];
-    setEventlog: Dispatch<StateUpdater<Array<TblUserEventLog> | null>>;
+    setEventlog: Dispatch<StateUpdater<TblUserEventLog[] | null>>;
 
     eventlogs: UserEventFoodLog[];
-    setEventLogs: Dispatch<StateUpdater<Array<UserEventFoodLog> | null>>;
+    setEventLogs: Dispatch<StateUpdater<UserEventFoodLog[] | null>>;
 
     setErrorMsg: Dispatch<StateUpdater<string | null>>;
-}
+};

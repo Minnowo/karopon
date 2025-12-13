@@ -20,10 +20,10 @@ import {NotFound} from './pages/_404.js';
 
 export function App() {
     const [user, setUser] = useState<TblUser | null>(null);
-    const [foods, setFoods] = useState<Array<TblUserFood> | null>(null);
-    const [events, setEvents] = useState<Array<TblUserEvent> | null>(null);
-    const [eventlog, setEventlog] = useState<Array<TblUserEventLog> | null>(null);
-    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<Array<UserEventFoodLog> | null>(null);
+    const [foods, setFoods] = useState<TblUserFood[] | null>(null);
+    const [events, setEvents] = useState<TblUserEvent[] | null>(null);
+    const [eventlog, setEventlog] = useState<TblUserEventLog[] | null>(null);
+    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, doRefresh] = useState<number>(0);
 

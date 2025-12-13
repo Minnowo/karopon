@@ -53,7 +53,9 @@ export function NumberInput({max = 1_000_000_000, ...p}: Props) {
     };
 
     const doInc = () => {
-        if (p.disabled) return;
+        if (p.disabled) {
+            return;
+        }
         const step = p.step === undefined ? 1 : p.step;
         if (max !== undefined && valueRef.current + step > max) {
             p.onValueChange(max);
@@ -63,7 +65,9 @@ export function NumberInput({max = 1_000_000_000, ...p}: Props) {
     };
 
     const doDec = () => {
-        if (p.disabled) return;
+        if (p.disabled) {
+            return;
+        }
         const step = p.step === undefined ? 1 : p.step;
         if (p.min !== undefined && valueRef.current - step < p.min) {
             p.onValueChange(p.min);
@@ -112,7 +116,7 @@ export function NumberInput({max = 1_000_000_000, ...p}: Props) {
                         e.currentTarget.value = `${p.value}`;
                         return;
                     }
-                    if (number == p.value) {
+                    if (number === p.value) {
                         return;
                     }
                     if (max !== undefined && number > max) {

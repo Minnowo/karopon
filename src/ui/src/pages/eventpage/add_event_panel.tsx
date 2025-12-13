@@ -19,12 +19,12 @@ import {JSX} from 'preact';
 import {FormatDateForInput} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
 
-interface AddEventsPanelRowState {
+type AddEventsPanelRowState = {
     food: TblUserFoodLog;
     foods: TblUserFood[];
     render: () => void;
     deleteSelf: () => void;
-}
+};
 
 export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPanelRowState) {
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
@@ -32,7 +32,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
     const foodTemplate = useRef<TblUserFoodLog>({name: food.name} as TblUserFoodLog);
 
     useEffect(() => {
-        if (food.name !== '')
+        if (food.name !== '') {
             for (let i = 0; i < foods.length; i++) {
                 const match = foods[i];
                 if (match.name === food.name) {
@@ -46,6 +46,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
                     break;
                 }
             }
+        }
     }, [food, foods]);
 
     return (
@@ -179,7 +180,7 @@ export function AddEventsPanelRow({foods, food, render, deleteSelf}: AddEventsPa
     );
 }
 
-interface AddEventsPanelState {
+type AddEventsPanelState = {
     dialogTitle: string;
     saveButtonTitle: string;
     user: TblUser;
@@ -187,9 +188,9 @@ interface AddEventsPanelState {
     events: TblUserEvent[];
     fromEvent: UserEventFoodLog;
     createEvent: (e: CreateUserEventLog) => void;
-    actionButtons?: Array<JSX.Element>;
+    actionButtons?: JSX.Element[];
     copyDate?: boolean;
-}
+};
 
 type TblUserFoodLogWithKey = TblUserFoodLog & {
     key: number;

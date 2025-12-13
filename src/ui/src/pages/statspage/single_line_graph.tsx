@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
-import {ChartPoint, RangeType, RangeTypeKeys, FormatXLabel} from './common';
+import {ChartPoint, RangeType, RangeTypeKeys, FormatXLabel, NoInformationMessage} from './common';
 
 export const RenderGraph = <T extends ChartPoint>(
     data: T[],
@@ -28,7 +28,6 @@ export const RenderGraph = <T extends ChartPoint>(
         };
     }, [handleResize]);
 
-    const isEmpty = data.length === 0;
     const width = size.width;
     const height = 300;
     const pad = 40;
@@ -47,20 +46,17 @@ export const RenderGraph = <T extends ChartPoint>(
                     </button>
                 ))}
             </div>
-            {isEmpty ? (
-                <div className="p-6 text-center text-yellow-400">Please enter an event to see data</div>
+            {data.length === 0 ? (
+                <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>
             ) : (
                 (() => {
                     const maxVal = Math.max(...data.map((d) => Number(d[valueKey])), 10);
-                    const points =
-                        data.length <= 1
-                            ? data.map((d) => ({x: width / 2, y: height / 2, value: Number(d[valueKey]), date: d.date}))
-                            : data.map((d, i) => {
-                                  const rawX = pad + (i / (data.length - 1)) * (width - pad * 2);
-                                  const x = Math.max(pad, Math.min(width - pad, rawX));
-                                  const y = height - pad - (Number(d[valueKey]) / maxVal) * (height - pad * 2);
-                                  return {x, y, value: Number(d[valueKey]), date: d.date};
-                              });
+                    const points = data.map((d, i) => {
+                        const rawX = pad + (i / (data.length - 1)) * (width - pad * 2);
+                        const x = Math.max(pad, Math.min(width - pad, rawX));
+                        const y = height - pad - (Number(d[valueKey]) / maxVal) * (height - pad * 2);
+                        return {x, y, value: Number(d[valueKey]), date: d.date};
+                    });
 
                     return (
                         <svg

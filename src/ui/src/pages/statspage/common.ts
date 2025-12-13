@@ -1,30 +1,26 @@
 export const RangeTypeKeys = ['24 hours', '7 days', '28 days'] as const;
 export type RangeType = (typeof RangeTypeKeys)[number];
 
-export interface ChartPoint {
+export const NoInformationMessage = 'There is no information to show for this time range';
+
+export type ChartPoint = {
     date: number;
     value: number;
-}
+};
 
-export interface MacroPoint {
+export const MacroTypeKeys = ['carbs', 'protein', 'fat', 'fibre'] as const;
+export type MacroType = (typeof MacroTypeKeys)[number];
+
+export type MacroPoint = {
     date: number;
-    carbs: number;
-    protein: number;
-    fat: number;
-    fibre: number;
-}
+} & Record<MacroType, number>;
 
-export interface MacroTotals {
-    carbs: number;
-    protein: number;
-    fat: number;
-    fibre: number;
-}
+export type MacroTotals = Record<MacroType, number>;
 
-export interface Point2D {
+export type Point2D = {
     x: number;
     y: number;
-}
+};
 
 export const FormatXLabel = (key: number, range: RangeType): string => {
     switch (range) {

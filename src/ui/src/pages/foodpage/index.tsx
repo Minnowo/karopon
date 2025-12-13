@@ -32,7 +32,7 @@ export function FoodPage(state: BaseState) {
     const deleteFood = (food: TblUserFood) => {
         ApiDeleteUserFood(food)
             .then(() => {
-                const foods = state.foods.filter((x) => x.id != food.id);
+                const foods = state.foods.filter((x) => x.id !== food.id);
                 state.setFoods(foods);
             })
             .catch((err: Error) => setErrorMsg(err.message));
@@ -93,7 +93,7 @@ export function FoodPage(state: BaseState) {
                         {
                             label: 'As CSV',
                             onClick: () => {
-                                const headers = Object.keys(state.foods[0]) as (keyof TblUserFood)[];
+                                const headers = Object.keys(state.foods[0]) as Array<keyof TblUserFood>;
                                 const csvRows: string[] = [];
 
                                 csvRows.push(headers.join(','));
@@ -151,9 +151,9 @@ export function FoodPage(state: BaseState) {
                                     food={food}
                                     deleteFood={deleteFood}
                                     updateFood={updateFood}
-                                    copyFood={(food: TblUserFood) => {
+                                    copyFood={(foodToCopy: TblUserFood) => {
                                         setShowAddFoodPanel(true);
-                                        setBaseFood(food);
+                                        setBaseFood(foodToCopy);
                                         window.scrollTo({top: 0, behavior: 'smooth'});
                                     }}
                                 />

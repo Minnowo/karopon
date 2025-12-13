@@ -1,5 +1,5 @@
 import {useState} from 'preact/hooks';
-import {MacroTotals, Point2D, RangeTypeKeys, RangeType} from './common';
+import {MacroTotals, Point2D, RangeTypeKeys, RangeType, NoInformationMessage} from './common';
 
 const PolarToCartesian = (cx: number, cy: number, r: number, rad: number): Point2D => {
     return {
@@ -15,12 +15,12 @@ const DescribeArc = (x: number, y: number, r: number, startAngle: number, endAng
     return ['M', x, y, 'L', start.x, start.y, 'A', r, r, 0, largeArc, 0, end.x, end.y, 'Z'].join(' ');
 };
 
-interface Props {
+type Props = {
     data: MacroTotals;
     size: number;
     range: RangeType;
     setRange: (r: RangeType) => void;
-}
+};
 export const PieChart = ({data, size, range, setRange}: Props) => {
     const [hoverText, setHoverText] = useState<string | null>(null);
 
@@ -57,36 +57,43 @@ export const PieChart = ({data, size, range, setRange}: Props) => {
                     </button>
                 ))}
             </div>
-            <svg width={size} height={size}>
-                {slices.map((slice, i) => {
-                    const [start, end] = makeArc(slice.value);
-                    const path = DescribeArc(center, center, radius, start, end);
-                    return (
-                        <path
-                            key={i}
-                            d={path}
-                            fill={slice.color}
-                            onMouseEnter={() =>
-                                setHoverText(
-                                    `${slice.label} - ${slice.value.toFixed(2)}g (${((slice.value / total) * 100).toFixed(1)}%)`
-                                )
-                            }
-                            onMouseLeave={() => setHoverText(null)}
-                        />
-                    );
-                })}
-            </svg>
-            {hoverText && <div className="text-white font-bold text-lg">{hoverText}</div>}
-            <div className="flex gap-4 mt-4">
-                {slices.map((slice, i) => (
-                    <div key={i} className="flex items-center gap-1">
-                        <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
-                        <span className="text-white text-sm">
-                            {slice.label} ({slice.value.toFixed(2)}g)
-                        </span>
+
+            {total === 0 ? (
+                <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>
+            ) : (
+                <>
+                    <svg width={size} height={size}>
+                        {slices.map((slice, i) => {
+                            const [start, end] = makeArc(slice.value);
+                            const path = DescribeArc(center, center, radius, start, end);
+                            return (
+                                <path
+                                    key={i}
+                                    d={path}
+                                    fill={slice.color}
+                                    onMouseEnter={() =>
+                                        setHoverText(
+                                            `${slice.label} - ${slice.value.toFixed(2)}g (${((slice.value / total) * 100).toFixed(1)}%)`
+                                        )
+                                    }
+                                    onMouseLeave={() => setHoverText(null)}
+                                />
+                            );
+                        })}
+                    </svg>
+                    {hoverText && <div className="text-white font-bold text-lg">{hoverText}</div>}
+                    <div className="flex gap-4 mt-4">
+                        {slices.map((slice, i) => (
+                            <div key={i} className="flex items-center gap-1">
+                                <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
+                                <span className="text-white text-sm">
+                                    {slice.label} ({slice.value.toFixed(2)}g)
+                                </span>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </>
+            )}
         </div>
     );
 };
