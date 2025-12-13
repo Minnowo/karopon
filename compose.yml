@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
 
   karopon:
-    image: karopon/server:amd64-latest
+    image: ghcr.io/minnowo/karopon:amd64-latest
     container_name: karopon-server
     ports:
       - "9070:9070"
