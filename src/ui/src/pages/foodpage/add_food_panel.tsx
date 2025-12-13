@@ -82,7 +82,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         innerClassName={'w-full'}
                         min={0}
                         max={1_000_000_000}
-                        numberList={[1, 2, 5, 10, 50, 100, 200]}
                         label={'Portion'}
                         value={tmpFood.current.portion}
                         onValueChange={(portion: number) => {
@@ -99,7 +98,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Protein'}
                     min={0}
-                    numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
                     value={tmpFood.current.protein}
                     onValueChange={(protein: number) => {
                         tmpFood.current.protein = protein;
@@ -111,7 +109,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Carb'}
                     min={0}
-                    numberList={[1, 2, 5, 10, 20, 30, 50, 100, 200]}
                     value={tmpFood.current.carb}
                     onValueChange={(carb: number) => {
                         tmpFood.current.carb = carb;
@@ -123,7 +120,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Fibre'}
                     min={0}
-                    numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
                     value={tmpFood.current.fibre}
                     onValueChange={(fibre: number) => {
                         tmpFood.current.fibre = fibre;
@@ -135,7 +131,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Fat'}
                     min={0}
-                    numberList={[1, 2, 5, 10, 20, 30, 50, 100]}
                     value={tmpFood.current.fat}
                     onValueChange={(fat: number) => {
                         tmpFood.current.fat = fat;
