@@ -16,6 +16,9 @@ services:
     ports:
       - "9070:9070"
     environment:
+      # See ./main.go for all environment variables.
+      # The 'run' command is what docker calls.
+      # Searching for cli.EnvVars will tell you the env vars to use.
       DATABASE_CONN: "user=postgres password=postgres port=5432 host=postgres sslmode=disable"
       DATABASE_VENDOR: "postgres"
     depends_on:
