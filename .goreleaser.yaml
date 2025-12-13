@@ -50,14 +50,14 @@ archives:
 checksum:
   disable: true
 changelog:
-  skip: true
+  disable: true
 dockers:
   - use: buildx
     goos: linux
     goarch: amd64
     image_templates:
-      - "karopon/server:amd64-latest"
-      - "karopon/server:amd64-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:amd64-latest"
+      - "ghcr.io/minnowo/karopon:amd64-{{ .RawVersion }}"
     dockerfile: docker/Dockerfile
     build_flag_templates:
       - "--platform=linux/amd64"
@@ -69,8 +69,8 @@ dockers:
     goos: linux
     goarch: '386'
     image_templates:
-      - "karopon/server:386-latest"
-      - "karopon/server:386-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:386-latest"
+      - "ghcr.io/minnowo/karopon:386-{{ .RawVersion }}"
     dockerfile: docker/Dockerfile
     build_flag_templates:
       - "--platform=linux/386"
@@ -82,8 +82,8 @@ dockers:
     goos: linux
     goarch: arm64
     image_templates:
-      - "karopon/server:arm64-latest"
-      - "karopon/server:arm64-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:arm64-latest"
+      - "ghcr.io/minnowo/karopon:arm64-{{ .RawVersion }}"
     dockerfile: docker/Dockerfile
     build_flag_templates:
       - "--platform=linux/arm64"
@@ -96,8 +96,8 @@ dockers:
     goarch: arm
     goarm: 7
     image_templates:
-      - "karopon/server:armv7-latest"
-      - "karopon/server:armv7-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:armv7-latest"
+      - "ghcr.io/minnowo/karopon:armv7-{{ .RawVersion }}"
     dockerfile: docker/Dockerfile
     build_flag_templates:
       - "--platform=linux/arm/v7"
@@ -106,15 +106,15 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
 docker_manifests:
-  - name_template: "karopon/server:latest"
+  - name_template: "ghcr.io/minnowo/karopon:latest"
     image_templates:
-      - "karopon/server:amd64-latest"
-      - "karopon/server:386-latest"
-      - "karopon/server:arm64-latest"
-      - "karopon/server:armv7-latest"
-  - name_template: "karopon/server:{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:amd64-latest"
+      - "ghcr.io/minnowo/karopon:386-latest"
+      - "ghcr.io/minnowo/karopon:arm64-latest"
+      - "ghcr.io/minnowo/karopon:armv7-latest"
+  - name_template: "ghcr.io/minnowo/karopon:{{ .RawVersion }}"
     image_templates:
-      - "karopon/server:amd64-{{ .RawVersion }}"
-      - "karopon/server:386-{{ .RawVersion }}"
-      - "karopon/server:arm64-{{ .RawVersion }}"
-      - "karopon/server:armv7-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:amd64-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:386-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:arm64-{{ .RawVersion }}"
+      - "ghcr.io/minnowo/karopon:armv7-{{ .RawVersion }}"

@@ -56,7 +56,7 @@ build-site-windows:
 		$(SITE_SRC)
 
 run: format generate
-	LOG_LEVEL=debug go run $(SITE_SRC) run
+	LOG_LEVEL=debug go run $(SITE_SRC) run --fake-auth-as-user minno
 
 docker-pg:
 	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
@@ -73,4 +73,15 @@ release:
 		release --skip-validate --clean --snapshot
 
 
+.PHONY: release-github
+release-github:
+	docker build -t karopon:build -f docker/Dockerfile.build docker
+	docker run \
+		--rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $$PWD:/work \
+		-e GITHUB_TOKEN=$$GITHUB_TOKEN \
+		-w /work \
+		karopon:build \
+		release --skip-validate --clean
 
