@@ -246,10 +246,12 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const totals = (() => {
         const cols = [0, 0, 0, 0];
         for (let i = 0; i < foods.current.length; i++) {
-            cols[0] += foods.current[i].protein;
-            cols[1] += foods.current[i].carb;
-            cols[2] += foods.current[i].fibre;
-            cols[3] += foods.current[i].fat;
+            if (foods.current[i].portion !== 0 && foods.current[i].name !== '') {
+                cols[0] += foods.current[i].protein;
+                cols[1] += foods.current[i].carb;
+                cols[2] += foods.current[i].fibre;
+                cols[3] += foods.current[i].fat;
+            }
         }
         return {
             protein: cols[0],
