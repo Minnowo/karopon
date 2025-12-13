@@ -1,17 +1,19 @@
 import {useState, useRef} from 'preact/hooks';
-import {TblUserFood} from '../../api/types';
+import {TblUser, TblUserFood} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {NumberInput} from '../../components/number_input';
 import {DoRender} from '../../hooks/doRender';
+import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 
 type FoodEditPanelProps = {
+    user: TblUser;
     food: TblUserFood;
     updateFood: (_food: TblUserFood) => void;
     deleteFood?: (food: TblUserFood) => void;
     copyFood?: (food: TblUserFood) => void;
 };
 
-export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) {
+export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) {
     const tmpFood = useRef<TblUserFood>({...food});
     const foodName = useRef<HTMLInputElement>(null);
     const foodUnit = useRef<HTMLInputElement>(null);
@@ -81,18 +83,8 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                     </>
                 ) : (
                     <div className="w-full flex flex-col">
-                        <span className="w-full text-lg mb-2">{food.name}</span>
-                        <div className="w-full flex flex-row items-center justify-between mb-2">
-                            <NumberInput
-                                innerClassName="w-24"
-                                label={food.unit}
-                                numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
-                                distinctNumberList={true}
-                                min={0}
-                                max={1_000_000_000}
-                                value={portion}
-                                onValueChange={setPortion}
-                            />
+                        <div className="w-full flex flex-row">
+                            <span className="w-full text-lg mb-2">{food.name}</span>
                             <DropdownButton
                                 actions={[
                                     {
@@ -116,6 +108,8 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                                     {label: 'Edit', onClick: onEditClicked},
                                     {
                                         label: 'Delete',
+
+                                        dangerous: true,
                                         onClick: () => {
                                             if (deleteFood) {
                                                 deleteFood(food);
@@ -124,6 +118,27 @@ export function FoodEditPanel({food, updateFood, copyFood, deleteFood}: FoodEdit
                                     },
                                 ]}
                             />
+                        </div>
+                        <div className="w-full flex flex-row items-center justify-between mb-2">
+                            <NumberInput
+                                innerClassName="w-24"
+                                label={food.unit}
+                                numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
+                                distinctNumberList={true}
+                                min={0}
+                                max={1_000_000_000}
+                                value={portion}
+                                onValueChange={setPortion}
+                            />
+                            <span>
+                                {`Callories ${CalculateCalories(
+                                    food.protein * portion,
+                                    food.carb * portion,
+                                    food.fibre * portion,
+                                    food.fat * portion,
+                                    Str2CalorieFormula(user.caloric_calc_method)
+                                ).toFixed(1)}`}
+                            </span>
                         </div>
                     </div>
                 )}

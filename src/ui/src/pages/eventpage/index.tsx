@@ -328,7 +328,15 @@ export function EventsPage(state: BaseState) {
                                     label: 'Edit',
                                     onClick: () => setEditEvent(foodGroup),
                                 },
-                                {label: 'Delete', onClick: () => onDeleteEvent(foodGroup)},
+                                {
+                                    label: 'Delete',
+                                    dangerous: true,
+                                    onClick: () => {
+                                        if (confirm('Delete this event?')) {
+                                            onDeleteEvent(foodGroup);
+                                        }
+                                    },
+                                },
                             ]}
                         />
                     )

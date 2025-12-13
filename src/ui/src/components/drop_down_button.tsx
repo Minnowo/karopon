@@ -2,6 +2,7 @@ import {useState, useRef, useEffect} from 'preact/hooks';
 
 export type DropdownButtonAction = {
     label: string;
+    dangerous?: boolean;
     onClick: () => void;
 };
 
@@ -48,7 +49,7 @@ export function DropdownButton({
             </button>
 
             {open && (
-                <div className="absolute container-theme right-0 shadow-lg z-10">
+                <div className="absolute container-theme right-0 shadow-lg z-10 font-bold text-lg">
                     {actions.map((action, i) => (
                         <button
                             key={i}
@@ -56,7 +57,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className="w-full text-left whitespace-nowrap rounded-none border-none hover:bg-c-black px-2 py-1"
+                            className={`${action.dangerous ? 'text-c-l-red' : ''} w-full text-left whitespace-nowrap rounded-none border-none hover:bg-c-black px-2 py-1`}
                         >
                             {action.label}
                         </button>

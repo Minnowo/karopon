@@ -30,12 +30,14 @@ export function FoodPage(state: BaseState) {
             .catch((err: Error) => setErrorMsg(err.message));
     };
     const deleteFood = (food: TblUserFood) => {
-        ApiDeleteUserFood(food)
-            .then(() => {
-                const foods = state.foods.filter((x) => x.id !== food.id);
-                state.setFoods(foods);
-            })
-            .catch((err: Error) => setErrorMsg(err.message));
+        if (confirm('Delete this food?')) {
+            ApiDeleteUserFood(food)
+                .then(() => {
+                    const foods = state.foods.filter((x) => x.id !== food.id);
+                    state.setFoods(foods);
+                })
+                .catch((err: Error) => setErrorMsg(err.message));
+        }
     };
 
     const updateFood = (food: TblUserFood) => {
@@ -148,6 +150,7 @@ export function FoodPage(state: BaseState) {
                             return (
                                 <FoodEditPanel
                                     key={food.id}
+                                    user={state.user}
                                     food={food}
                                     deleteFood={deleteFood}
                                     updateFood={updateFood}
