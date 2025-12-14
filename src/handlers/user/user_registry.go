@@ -47,7 +47,7 @@ func (u *UserRegistry) NewToken(user *database.TblUser) AccessToken {
 
 	u.sessions[token] = Session{
 		user:    user,
-		expires: time.Now().Add(time.Second * time.Duration(max(5, user.SessionExpireTimeSeconds))),
+		expires: time.Now().Add(time.Second * time.Duration(max(60, user.SessionExpireTimeSeconds))),
 	}
 
 	return token
