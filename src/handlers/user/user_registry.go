@@ -47,7 +47,7 @@ func (u *UserRegistry) NewToken(user *database.TblUser) AccessToken {
 
 	u.sessions[token] = Session{
 		user:    user,
-		expires: time.Now().Add(time.Hour * time.Duration(24)),
+		expires: time.Now().Add(time.Second * time.Duration(max(5, user.SessionExpireTimeSeconds))),
 	}
 
 	return token
@@ -200,6 +200,10 @@ func (u *UserRegistry) LoadFromDatabase(db database.DB) error {
 			log.Warn().Str("user", user.Name).Msg("skipping user whos password is invalid")
 			continue
 		}
+
+		log.Debug().
+			Interface("user", user).
+			Msg("")
 
 		log.Info().Str("user", user.Name).Int("cost", cost).Msg("registering user")
 

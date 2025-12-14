@@ -68,6 +68,9 @@ type TblUser struct {
 	InsulinSensitivityFactor float32 `db:"insulin_sensitivity_factor" json:"insulin_sensitivity_factor"`
 	EventHistoryFetchLimit   int     `db:"event_history_fetch_limit" json:"event_history_fetch_limit"`
 	TargetBloodSugar         float32 `db:"target_blood_sugar" json:"target_blood_sugar"`
+	SessionExpireTimeSeconds int64   `db:"session_expire_time_seconds" json:"session_expire_time_seconds"`
+	TimeFormat               string  `db:"time_format" json:"time_format"`
+	DateFormat               string  `db:"date_format" json:"date_format"`
 }
 
 func (u *TblUser) Copy() *TblUser {
@@ -93,6 +96,9 @@ func (u *TblUser) Copy() *TblUser {
 		InsulinSensitivityFactor: u.InsulinSensitivityFactor,
 		EventHistoryFetchLimit:   u.EventHistoryFetchLimit,
 		TargetBloodSugar:         u.TargetBloodSugar,
+		SessionExpireTimeSeconds: u.SessionExpireTimeSeconds,
+		TimeFormat:               u.TimeFormat,
+		DateFormat:               u.DateFormat,
 	}
 }
 

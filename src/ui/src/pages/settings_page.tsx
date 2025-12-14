@@ -137,6 +137,14 @@ export function SettingsPage(state: BaseState) {
                 onValueChange={(value: number) => update('event_history_fetch_limit', value)}
                 disabled={!isEditing}
             />
+            <NumberInput
+                className="w-full input-like"
+                innerClassName="w-full text-right"
+                label="Session Expire Time (in Seconds)"
+                value={userRef.current.session_expire_time_seconds}
+                onValueChange={(value: number) => update('session_expire_time_seconds', value)}
+                disabled={!isEditing}
+            />
 
             <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-lg font-medium">Dark Mode</span>

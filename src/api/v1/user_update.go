@@ -8,6 +8,7 @@ import (
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
@@ -40,6 +41,11 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	newUser.User.ID = user.ID
 	newUser.User.Created = user.Created
 	newUser.User.Password = user.Password
+
+	if newUser.User.SessionExpireTimeSeconds <= 0 {
+		// 50 years should be good enough for anyone
+		newUser.User.SessionExpireTimeSeconds = int64(time.Hour * time.Duration(24*365*50))
+	}
 
 	if len(newUser.User.Name) > constants.MAX_USERNAME_LENGTH {
 		api.BadReqf(w, "Username must be less than %d characters.", constants.MAX_USERNAME_LENGTH)

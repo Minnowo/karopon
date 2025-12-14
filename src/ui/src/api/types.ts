@@ -11,6 +11,9 @@ export type TblUser = {
     insulin_sensitivity_factor: number;
     event_history_fetch_limit: number;
     target_blood_sugar: number;
+	session_expire_time_seconds: number;
+	time_format: string;
+	date_format: string;
 };
 
 export type TblUpdateUser = {

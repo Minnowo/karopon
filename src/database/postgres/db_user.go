@@ -62,7 +62,10 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	CALORIC_CALC_METHOD=:caloric_calc_method,
 	INSULIN_SENSITIVITY_FACTOR=:insulin_sensitivity_factor,
 	TARGET_BLOOD_SUGAR=:target_blood_sugar,
-	EVENT_HISTORY_FETCH_LIMIT=:event_history_fetch_limit
+	EVENT_HISTORY_FETCH_LIMIT=:event_history_fetch_limit,
+	SESSION_EXPIRE_TIME_SECONDS=:session_expire_time_seconds,
+	TIME_FORMAT=:time_format,
+	DATE_FORMAT=:date_format
 	WHERE ID=:id
 	`
 
