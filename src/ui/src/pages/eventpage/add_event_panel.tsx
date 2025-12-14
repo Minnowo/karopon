@@ -278,14 +278,16 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             return;
         }
 
-        if (bloodSugar <= 0) {
-            setErrorMsg('Blood sugar should be a positive number');
-            return;
-        }
+        if (p.user.show_diabetes) {
+            if (bloodSugar <= 0) {
+                setErrorMsg('Blood sugar should be a positive number');
+                return;
+            }
 
-        if (insulinToCarbRatio <= 0) {
-            setErrorMsg('Insulin sensitivity should be a positive number');
-            return;
+            if (insulinToCarbRatio <= 0) {
+                setErrorMsg('Insulin sensitivity should be a positive number');
+                return;
+            }
         }
 
         p.createEvent({
@@ -428,7 +430,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </table>
             </div>
             <div className="w-full flex flex-none justify-end">
-                <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>
+                {p.user.show_diabetes && <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>}
                 <span className="px-2">
                     Calories:{' '}
                     {CalculateCalories(
@@ -442,30 +444,34 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
-                <NumberInput
-                    className="my-1 sm:mr-1 flex-1 flex-grow"
-                    innerClassName="w-full min-w-12"
-                    label="Blood Sugar"
-                    value={bloodSugar}
-                    onValueChange={setBloodSugar}
-                    min={0}
-                />
-                <NumberInput
-                    className="my-1 sm:mx-1 flex-1 flex-grow"
-                    innerClassName="w-full min-w-12"
-                    label="Insulin To Carb Ratio"
-                    value={insulinToCarbRatio}
-                    onValueChange={setInsulinToCarbRatio}
-                    min={0}
-                />
-                <NumberInput
-                    className="my-1 sm:mx-1 flex-1 flex-grow"
-                    innerClassName="w-full min-w-12"
-                    label="Insulin Taken"
-                    value={insulinTaken}
-                    onValueChange={setInsulinTaken}
-                    min={0}
-                />
+                {p.user.show_diabetes && (
+                    <>
+                        <NumberInput
+                            className="my-1 sm:mr-1 flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Blood Sugar"
+                            value={bloodSugar}
+                            onValueChange={setBloodSugar}
+                            min={0}
+                        />
+                        <NumberInput
+                            className="my-1 sm:mx-1 flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Insulin To Carb Ratio"
+                            value={insulinToCarbRatio}
+                            onValueChange={setInsulinToCarbRatio}
+                            min={0}
+                        />
+                        <NumberInput
+                            className="my-1 sm:mx-1 flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Insulin Taken"
+                            value={insulinTaken}
+                            onValueChange={setInsulinTaken}
+                            min={0}
+                        />
+                    </>
+                )}
                 <input
                     className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
                     type="submit"

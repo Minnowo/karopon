@@ -1,4 +1,5 @@
-import {UserEventFoodLog} from '../api/types';
+import {TblUser, UserEventFoodLog} from '../api/types';
+import {CalculateCalories, Str2CalorieFormula} from './calories';
 import {formatSmartTimestamp} from './date_utils';
 
 /**
@@ -16,7 +17,7 @@ export function DownloadData(data: Blob, filename: string) {
     a.remove();
 }
 
-export const GenerateEventTableText = (events: UserEventFoodLog[]): string => {
+export const GenerateEventTableText = (user: TblUser, events: UserEventFoodLog[]): string => {
     return events
         .map((eventItem) => {
             const {eventlog, foodlogs, total_protein, total_carb, total_fibre, total_fat} = eventItem;
@@ -59,16 +60,29 @@ export const GenerateEventTableText = (events: UserEventFoodLog[]): string => {
                 '-'.repeat(maxLen),
                 `Time                    ${formatSmartTimestamp(eventlog.user_time)}`,
                 `Event Title             ${eventlog.event}`,
-                `Blood Sugar             ${eventlog.blood_glucose}`,
-                `Blood Sugar Target      ${eventlog.blood_glucose_target}`,
-                `Insulin Sensitivity     ${eventlog.insulin_sensitivity_factor}`,
-                `Insulin To Carb Ratio   ${eventlog.insulin_to_carb_ratio}`,
-                `Insulin Rec             ${eventlog.recommended_insulin_amount}`,
-                `Insulin Taken           ${eventlog.actual_insulin_taken}`,
+                user.show_diabetes
+                    ? [
+                          `Blood Sugar             ${eventlog.blood_glucose.toFixed(2)}`,
+                          `Blood Sugar Target      ${eventlog.blood_glucose_target.toFixed(2)}`,
+                          `Insulin Sensitivity     ${eventlog.insulin_sensitivity_factor.toFixed(2)}`,
+                          `Insulin To Carb Ratio   ${eventlog.insulin_to_carb_ratio.toFixed(2)}`,
+                          `Insulin Rec             ${eventlog.recommended_insulin_amount.toFixed(2)}`,
+                          `Insulin Taken           ${eventlog.actual_insulin_taken.toFixed(2)}`,
+                      ].join('\n')
+                    : null,
+                `Calories                ${CalculateCalories(
+                    total_protein,
+                    total_carb,
+                    total_fibre,
+                    total_fat,
+                    Str2CalorieFormula(user.caloric_calc_method)
+                ).toFixed(2)}`,
                 '-'.repeat(maxLen),
                 foodRows.map((row) => row.map((v, i) => v.padEnd(foodColWidths[i], ' ')).join(' | ')).join('\n'),
                 '-'.repeat(maxLen),
-            ].join('\n');
+            ]
+                .filter((x) => x !== null)
+                .join('\n');
         })
         .join('\n\n\n\n');
 };

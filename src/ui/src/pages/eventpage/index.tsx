@@ -36,8 +36,12 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                 </div>
 
                 <div className="flex flex-row flex-wrap w-full justify-evenly">
-                    <span className="">{`BloodSugar ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
-                    <span className="mx-1">{`Insulin ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
+                    {user.show_diabetes && (
+                        <>
+                            <span className="">{`BloodSugar ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
+                            <span className="mx-1">{`Insulin ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
+                        </>
+                    )}
                     <span>
                         {`Callories ${CalculateCalories(
                             foodGroup.total_protein,
@@ -248,7 +252,7 @@ export function EventsPage(state: BaseState) {
                         {
                             label: 'As Text Render',
                             onClick: () => {
-                                const blob = new Blob([GenerateEventTableText(state.eventlogs)], {
+                                const blob = new Blob([GenerateEventTableText(state.user, state.eventlogs)], {
                                     type: 'text/plain; charset=utf-8',
                                 });
                                 DownloadData(blob, 'eventlogs.txt');

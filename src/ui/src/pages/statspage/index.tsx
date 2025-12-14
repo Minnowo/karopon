@@ -201,9 +201,11 @@ export function StatsPage(state: BaseState) {
 
             {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', 'yellow', setCalorieRange)}
 
-            {RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}
+            {state.user.show_diabetes &&
+                RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}
 
-            {RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'green', setInsulinRange)}
+            {state.user.show_diabetes &&
+                RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'green', setInsulinRange)}
         </>
     );
 }

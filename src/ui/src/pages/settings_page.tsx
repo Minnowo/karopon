@@ -113,22 +113,26 @@ export function SettingsPage(state: BaseState) {
                 </>
             )}
 
-            <NumberInput
-                className="w-full input-like"
-                innerClassName="w-full text-right"
-                label="Target Blood Sugar"
-                value={userRef.current.target_blood_sugar}
-                onValueChange={(value: number) => update('target_blood_sugar', value)}
-                disabled={!isEditing}
-            />
-            <NumberInput
-                className="w-full input-like"
-                innerClassName="w-full text-right"
-                label="Insulin Sensitivity Factor"
-                value={userRef.current.insulin_sensitivity_factor}
-                onValueChange={(value: number) => update('insulin_sensitivity_factor', value)}
-                disabled={!isEditing}
-            />
+            {state.user.show_diabetes && (
+                <>
+                    <NumberInput
+                        className="w-full input-like"
+                        innerClassName="w-full text-right"
+                        label="Target Blood Sugar"
+                        value={userRef.current.target_blood_sugar}
+                        onValueChange={(value: number) => update('target_blood_sugar', value)}
+                        disabled={!isEditing}
+                    />
+                    <NumberInput
+                        className="w-full input-like"
+                        innerClassName="w-full text-right"
+                        label="Insulin Sensitivity Factor"
+                        value={userRef.current.insulin_sensitivity_factor}
+                        onValueChange={(value: number) => update('insulin_sensitivity_factor', value)}
+                        disabled={!isEditing}
+                    />
+                </>
+            )}
             <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
