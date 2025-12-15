@@ -40,6 +40,14 @@ export function App() {
         });
     }, [refresh]);
 
+    useEffect(() => {
+        if (user === null || user.dark_mode) {
+            document.documentElement.dataset.theme = 'dark';
+        } else {
+            document.documentElement.dataset.theme = 'light';
+        }
+    }, [user]);
+
     if (user === null) {
         return <LoginPage doRefresh={doRefresh} />;
     }

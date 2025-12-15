@@ -21,7 +21,31 @@
     --color-c-l-white: rgb(255, 214, 2);
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+[data-theme="light"] {
+    --color-c-background: rgb(245, 245, 245);
+    --color-c-d-black: rgb(220, 220, 220);
+    --color-c-black: rgb(200, 200, 200);
+
+    --color-c-red: rgb(200, 40, 40);
+    --color-c-green: rgb(60, 120, 60);
+    --color-c-yellow: rgb(180, 150, 90);
+    --color-c-blue: rgb(40, 120, 180);
+    --color-c-magenta: rgb(150, 80, 150);
+    --color-c-cyan: rgb(20, 160, 140);
+    --color-c-white: rgb(30, 30, 30);
+
+    --color-c-l-black: rgb(70, 70, 70);
+    --color-c-l-red: rgb(170, 70, 70);
+    --color-c-l-green: rgb(120, 170, 120);
+    --color-c-l-yellow: rgb(180, 180, 130);
+    --color-c-l-blue: rgb(100, 170, 220);
+    --color-c-l-magenta: rgb(170, 100, 170);
+    --color-c-l-cyan: rgb(50, 150, 220);
+    --color-c-l-white: rgb(120, 120, 120);
+    background-color: var(--color-c-black);
+    color: var(--color-c-white);
+}
+
 
 @layer base {
     *,
@@ -38,31 +62,6 @@
         color: var(--color-c-white);
         background-color: var(--color-c-background);
         font-size: var(--base-font-size);
-    }
-
-    body.light {
-        --color-c-background: rgb(245, 245, 245);
-        --color-c-d-black: rgb(220, 220, 220);
-        --color-c-black: rgb(200, 200, 200);
-
-        --color-c-red: rgb(200, 40, 40);
-        --color-c-green: rgb(60, 120, 60);
-        --color-c-yellow: rgb(180, 150, 90);
-        --color-c-blue: rgb(40, 120, 180);
-        --color-c-magenta: rgb(150, 80, 150);
-        --color-c-cyan: rgb(20, 160, 140);
-        --color-c-white: rgb(30, 30, 30);
-
-        --color-c-l-black: rgb(70, 70, 70);
-        --color-c-l-red: rgb(170, 70, 70);
-        --color-c-l-green: rgb(120, 170, 120);
-        --color-c-l-yellow: rgb(180, 180, 130);
-        --color-c-l-blue: rgb(100, 170, 220);
-        --color-c-l-magenta: rgb(170, 100, 170);
-        --color-c-l-cyan: rgb(50, 150, 220);
-        --color-c-l-white: rgb(120, 120, 120);
-        background-color: var(--color-c-black);
-        color: var(--color-c-white);
     }
 
     a {
