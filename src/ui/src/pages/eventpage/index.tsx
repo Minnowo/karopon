@@ -107,11 +107,11 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                 </tr>
                                             )}
                                             <tr onClick={toggle} className="cursor-pointer">
-                                                <td className="whitespace-nowrap max-w-[100px] sm:w-full pr-2">
+                                                <td className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b border-l border-c-l-green' : ''} `}>
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>
                                                     ) : (
-                                                        <div className="border-c-l-green border-b border-l w-full">&nbsp;</div>
+                                                        <div className="w-full">&nbsp;</div>
                                                     )}
                                                 </td>
                                                 <td className="text-right whitespace-nowrap pr-2">
