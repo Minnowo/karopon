@@ -13,6 +13,7 @@ var postgresMigrations = []database.Migration{
 	database.NewFileMigration(database.VERSION_1, database.VERSION_2, "pg/0003_settings_table"),
 	database.NewFileMigration(database.VERSION_2, database.VERSION_3, "pg/0004_settings_add_cols"),
 	database.NewFileMigration(database.VERSION_3, database.VERSION_4, "pg/0005_more_settings"),
+	database.NewFileMigration(database.VERSION_4, database.VERSION_5, "pg/0006_add_more_tables"),
 }
 
 func (db *PGDatabase) Migrate(ctx context.Context) error {

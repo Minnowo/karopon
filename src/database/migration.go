@@ -27,6 +27,7 @@ const (
 	VERSION_2       Version = 2
 	VERSION_3       Version = 3
 	VERSION_4       Version = 4
+	VERSION_5       Version = 5
 )
 
 func (v Version) String() string {
@@ -34,7 +35,7 @@ func (v Version) String() string {
 }
 func (v Version) Valid() bool {
 	switch v {
-	case VERSION_0, VERSION_1, VERSION_2, VERSION_3, VERSION_4:
+	case VERSION_0, VERSION_1, VERSION_2, VERSION_3, VERSION_4, VERSION_5:
 		return true
 	}
 	return false
