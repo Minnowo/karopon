@@ -18,6 +18,7 @@ import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {JSX} from 'preact';
 import {FormatDateForInput} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
+import {DAY_IN_MS} from '../../utils/time';
 
 type AddEventsPanelRowState = {
     food: TblUserFoodLog;
@@ -261,6 +262,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         };
     })();
 
+    const days = Math.floor(eventTime.getTime() / DAY_IN_MS); // used for left-right side tracking
     const netCarb = totals.carb - totals.fibre;
     const insulin = CalcInsulin(
         netCarb,
@@ -358,6 +360,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </button>
                 </div>
             </div>
+
             <ErrorDiv errorMsg={errorMsg} />
             <div className="flex w-full mb-4">
                 <FuzzySearch<TblUserEvent>
@@ -430,9 +433,19 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </table>
             </div>
             <div className="w-full flex flex-none justify-end">
-                {p.user.show_diabetes && <span className="px-2"> Insulin Calc: {insulin.toFixed(1)} </span>}
-                <span className="px-2">
-                    Calories:{' '}
+                {p.user.show_diabetes && (
+                    <>
+                        <span className="px-2" title="Insulin injection location and blood meter prick side (changes daily)">
+                            {`${days % 4 <= 1 ? 'Upper' : 'Lower'}-${days % 2 === 0 ? 'Left' : 'Right'}`}
+                        </span>
+                        <span className="px-2" title="Insulin calculated for this event's food">
+                            {' '}
+                            Insulin Calc {insulin.toFixed(1)}{' '}
+                        </span>
+                    </>
+                )}
+                <span className="px-2" title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>
+                    Calories{' '}
                     {CalculateCalories(
                         totals.protein,
                         totals.carb - totals.fibre,
