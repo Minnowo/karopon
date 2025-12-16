@@ -70,7 +70,7 @@ release:
 		-v $$PWD:/work \
 		-w /work \
 		karopon:build \
-		release --skip-validate --clean --snapshot
+		release --skip=validate --clean --snapshot
 
 
 .PHONY: release-github
@@ -83,5 +83,5 @@ release-github:
 		-e GITHUB_TOKEN=$$GITHUB_TOKEN \
 		-w /work \
 		karopon:build \
-		release --skip-validate --clean
+		release --skip=validate --clean
 
