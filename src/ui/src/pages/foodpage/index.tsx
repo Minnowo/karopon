@@ -1,4 +1,5 @@
-import {useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useState} from 'preact/hooks';
+
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
 import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood} from '../../api/api';
@@ -11,21 +12,23 @@ import {DownloadData} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 import {TblUserFoodFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
+import {FoodBuilderPanel} from './food_builder_panel';
 
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState<string>('');
     const [showAddFoodPanel, setShowAddFoodPanel] = useState<boolean>(false);
+    const [showBuildFoodPanel, setShowBuildFoodPanel] = useState<boolean>(false);
     const [numberToShow, setNumberToShow] = useState<number>(15);
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
-    const addNewFood = (food: TblUserFood) => {
+    const addNewFood = (setPanelState: Dispatch<StateUpdater<boolean>>, food: TblUserFood) => {
         ApiNewUserFood(food)
             .then((newFood) => {
                 const foods = [...state.foods, ...[newFood]];
                 foods.sort((a, b) => a.name.localeCompare(b.name));
                 state.setFoods(foods);
-                setShowAddFoodPanel(false);
+                setPanelState(false);
             })
             .catch((err: Error) => setErrorMsg(err.message));
     };
@@ -79,8 +82,16 @@ export function FoodPage(state: BaseState) {
                 >
                     {!showAddFoodPanel ? 'New Food' : 'Cancel'}
                 </button>
+                <button
+                    className={`w-24 ${showBuildFoodPanel && 'bg-c-l-red'}`}
+                    onClick={() => {
+                        setShowBuildFoodPanel((x) => !x);
+                    }}
+                >
+                    {!showBuildFoodPanel ? 'Build Food' : 'Cancel'}
+                </button>
                 <NumberInput
-                    label={'Show Last'}
+                    label={'Show'}
                     min={1}
                     step={5}
                     value={numberToShow}
@@ -123,17 +134,17 @@ export function FoodPage(state: BaseState) {
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            {showAddFoodPanel ? (
-                <>
-                    <AddFoodPanel
-                        className="mb-4"
-                        food={baseFood}
-                        addFood={addNewFood}
-                        onCancelClick={() => setShowAddFoodPanel(false)}
-                    />
-                </>
-            ) : (
-                <> </>
+            {showAddFoodPanel && (
+                <AddFoodPanel className="mb-4" food={baseFood} addFood={(f) => addNewFood(setShowAddFoodPanel, f)} />
+            )}
+
+            {showBuildFoodPanel && (
+                <FoodBuilderPanel
+                    className="mb-4"
+                    user={state.user}
+                    foods={state.foods}
+                    addFood={(f) => addNewFood(setShowBuildFoodPanel, f)}
+                />
             )}
             <div className="w-full flex justify-evenly mb-4">
                 <input onInput={searchChange} className="w-full" type="text" placeholder="search" />

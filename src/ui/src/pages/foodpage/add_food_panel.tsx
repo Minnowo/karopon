@@ -1,55 +1,41 @@
-import {useState, useRef, useEffect} from 'preact/hooks';
+import {useState, useMemo} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
+import {DoRender} from '../../hooks/doRender';
 
 type AddFoodPanelProps = {
     food: TblUserFood;
     addFood: (food: TblUserFood) => void;
-    onCancelClick?: () => void;
     className?: string;
 };
 
 export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
-    const tmpFood = useRef<TblUserFood>({...food});
-    const foodName = useRef<HTMLInputElement>(null);
-    const foodUnit = useRef<HTMLInputElement>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const [, setRender] = useState<number>(0);
-
-    const render = () => setRender((x) => x + 1);
-
-    useEffect(() => {
-        tmpFood.current = food;
-        render();
-    }, [food]);
+    const tmpFood = useMemo<TblUserFood>(() => ({...food}), [food]);
+    const render = DoRender();
 
     const onSaveClick = () => {
         setErrorMsg(null);
 
-        if (tmpFood.current.name.trim() === '') {
+        if (tmpFood.name.trim() === '') {
             setErrorMsg('Food cannot have empty name');
             return;
         }
 
-        if (tmpFood.current.unit.trim() === '') {
+        if (tmpFood.unit.trim() === '') {
             setErrorMsg('Food unit cannot be empty');
             return;
         }
 
-        if (tmpFood.current.portion <= 0) {
+        if (tmpFood.portion <= 0) {
             setErrorMsg('Food portion must be a positive number');
             return;
         }
 
-        const newFood = {...food, ...tmpFood.current};
-        if (foodName.current?.value) {
-            newFood.name = foodName.current.value;
-        }
-        if (foodUnit.current?.value) {
-            newFood.unit = foodUnit.current.value;
-        }
+        const newFood = {...food, ...tmpFood};
+
         addFood(newFood);
     };
 
@@ -63,17 +49,15 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         <input
                             className="mb-2 whitespace-nowrap flex-auto mr-1"
                             type="text"
-                            ref={foodName}
-                            value={food.name}
-                            onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
+                            value={tmpFood.name}
+                            onInput={(e) => (tmpFood.name = e.currentTarget.value)}
                             placeholder="Food Name"
                         />
                         <input
                             className="mb-2 whitespace-nowrap flex-auto max-w-32"
                             type="text"
-                            ref={foodUnit}
-                            value={food.unit}
-                            onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
+                            value={tmpFood.unit}
+                            onInput={(e) => (tmpFood.unit = e.currentTarget.value)}
                             placeholder="Portion Unit"
                         />
                     </div>
@@ -83,9 +67,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         min={0}
                         max={1_000_000_000}
                         label={'Portion'}
-                        value={tmpFood.current.portion}
+                        value={tmpFood.portion}
                         onValueChange={(portion: number) => {
-                            tmpFood.current.portion = portion;
+                            tmpFood.portion = portion;
                             render();
                         }}
                     />
@@ -98,9 +82,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Protein'}
                     min={0}
-                    value={tmpFood.current.protein}
+                    value={tmpFood.protein}
                     onValueChange={(protein: number) => {
-                        tmpFood.current.protein = protein;
+                        tmpFood.protein = protein;
                         render();
                     }}
                 />
@@ -109,9 +93,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Carb'}
                     min={0}
-                    value={tmpFood.current.carb}
+                    value={tmpFood.carb}
                     onValueChange={(carb: number) => {
-                        tmpFood.current.carb = carb;
+                        tmpFood.carb = carb;
                         render();
                     }}
                 />
@@ -120,9 +104,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Fibre'}
                     min={0}
-                    value={tmpFood.current.fibre}
+                    value={tmpFood.fibre}
                     onValueChange={(fibre: number) => {
-                        tmpFood.current.fibre = fibre;
+                        tmpFood.fibre = fibre;
                         render();
                     }}
                 />
@@ -131,9 +115,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                     innerClassName="w-full min-w-12"
                     label={'Fat'}
                     min={0}
-                    value={tmpFood.current.fat}
+                    value={tmpFood.fat}
                     onValueChange={(fat: number) => {
-                        tmpFood.current.fat = fat;
+                        tmpFood.fat = fat;
                         render();
                     }}
                 />

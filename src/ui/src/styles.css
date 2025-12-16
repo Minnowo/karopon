@@ -21,7 +21,7 @@
     --color-c-l-white: rgb(255, 214, 2);
 }
 
-[data-theme="light"] {
+[data-theme='light'] {
     --color-c-background: rgb(245, 245, 245);
     --color-c-d-black: rgb(220, 220, 220);
     --color-c-black: rgb(200, 200, 200);
@@ -45,7 +45,6 @@
     background-color: var(--color-c-black);
     color: var(--color-c-white);
 }
-
 
 @layer base {
     *,

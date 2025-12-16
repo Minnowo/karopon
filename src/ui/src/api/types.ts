@@ -84,6 +84,10 @@ export type TblUserFoodLog = {
     fat: number;
 };
 
+export type TblUserFoodLogWithKey = TblUserFoodLog & {
+    key: number;
+};
+
 export type UserEventFoodLog = {
     eventlog: TblUserEventLog;
     foodlogs: TblUserFoodLog[];
