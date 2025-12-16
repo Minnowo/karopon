@@ -1,4 +1,4 @@
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
+export const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const WEEK_IN_MS = 7 * DAY_IN_MS;
 const MONTH_IN_MS = 28 * DAY_IN_MS;
 
