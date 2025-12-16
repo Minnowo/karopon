@@ -45,7 +45,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                     <span>
                         {`Callories ${CalculateCalories(
                             foodGroup.total_protein,
-                            foodGroup.total_carb,
+                            foodGroup.total_carb - foodGroup.total_fibre,
                             foodGroup.total_fibre,
                             foodGroup.total_fat,
                             Str2CalorieFormula(user.caloric_calc_method)

@@ -435,7 +435,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     Calories:{' '}
                     {CalculateCalories(
                         totals.protein,
-                        totals.carb,
+                        totals.carb - totals.fibre,
                         totals.fibre,
                         totals.fat,
                         Str2CalorieFormula(p.user.caloric_calc_method)

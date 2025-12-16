@@ -133,7 +133,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                             <span>
                                 {`Callories ${CalculateCalories(
                                     food.protein * portion,
-                                    food.carb * portion,
+                                    (food.carb - food.fibre) * portion,
                                     food.fibre * portion,
                                     food.fat * portion,
                                     Str2CalorieFormula(user.caloric_calc_method)

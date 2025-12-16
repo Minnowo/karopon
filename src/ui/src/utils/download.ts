@@ -72,7 +72,7 @@ export const GenerateEventTableText = (user: TblUser, events: UserEventFoodLog[]
                     : null,
                 `Calories                ${CalculateCalories(
                     total_protein,
-                    total_carb,
+                    total_carb - total_fibre,
                     total_fibre,
                     total_fat,
                     Str2CalorieFormula(user.caloric_calc_method)

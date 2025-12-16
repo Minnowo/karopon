@@ -80,7 +80,7 @@ const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroP
         if (!buckets[key]) {
             buckets[key] = {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0};
         }
-        buckets[key].carbs += event.total_carb;
+        buckets[key].carbs += (event.total_carb - event.total_fibre);
         buckets[key].protein += event.total_protein;
         buckets[key].fat += event.total_fat;
         buckets[key].fibre += event.total_fibre;
@@ -163,7 +163,7 @@ export function StatsPage(state: BaseState) {
                     (e) =>
                         CalculateCalories(
                             e.total_protein,
-                            e.total_carb,
+                            e.total_carb - e.total_fibre,
                             e.total_fibre,
                             e.total_fat,
                             Str2CalorieFormula(state.user.caloric_calc_method)
