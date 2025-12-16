@@ -47,6 +47,32 @@ func main() {
 						},
 					},
 					{
+						Name:        "import-fdc-data",
+						Description: "Import data from an FDC JSON export. See https://fdc.nal.usda.gov/download-datasets",
+						Action:      cmd.CmdCreateFDC,
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "database-conn",
+								Aliases:  []string{"c"},
+								Usage:    "The database connection string",
+								Sources:  cli.EnvVars("DATABASE_CONN"),
+								Required: false,
+							},
+							&cli.StringFlag{
+								Name:     "username",
+								Aliases:  []string{"u"},
+								Usage:    "The username",
+								Required: false,
+							},
+							&cli.StringFlag{
+								Name:     "fdc-dataset",
+								Aliases:  []string{"f"},
+								Usage:    "The file path to the downloaded JSON file. (not the .zip but the extracted .json)",
+								Required: true,
+							},
+						},
+					},
+					{
 						Name:        "create-user",
 						Description: "Creates a user",
 						Action:      cmd.CmdCreateUser,
