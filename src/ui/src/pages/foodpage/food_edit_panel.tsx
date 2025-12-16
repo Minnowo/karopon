@@ -131,7 +131,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                                 onValueChange={setPortion}
                             />
                             <span>
-                                {`Callories ${CalculateCalories(
+                                {`Calories ${CalculateCalories(
                                     food.protein * portion,
                                     (food.carb - food.fibre) * portion,
                                     food.fibre * portion,

@@ -43,7 +43,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                         </>
                     )}
                     <span>
-                        {`Callories ${CalculateCalories(
+                        {`Calories ${CalculateCalories(
                             foodGroup.total_protein,
                             foodGroup.total_carb - foodGroup.total_fibre,
                             foodGroup.total_fibre,
@@ -107,7 +107,9 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                 </tr>
                                             )}
                                             <tr onClick={toggle} className="cursor-pointer">
-                                                <td className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b border-l border-c-l-green' : ''} `}>
+                                                <td
+                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b border-l border-c-l-green' : ''} `}
+                                                >
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>
                                                     ) : (
