@@ -53,7 +53,7 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 	{
 		w.Write([]byte(`<link rel="stylesheet" crossorigin href="/static/main.css?v=`))
 		w.Write(mainCssHash)
-		w.Write([]byte(`">`))
+		w.Write([]byte(`" />`))
 
 		w.Write([]byte(`<script type="module" crossorigin src="/static/main.js?v=`))
 		w.Write(mainJsHash)
