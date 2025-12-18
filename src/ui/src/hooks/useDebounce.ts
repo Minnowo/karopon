@@ -1,6 +1,7 @@
 import {useEffect, useRef, useCallback} from 'preact/hooks';
 
-export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useDebouncedCallback<T extends (...args: any[]) => void>(
     callback: T,
     delay: number
 ): [(...args: Parameters<T>) => void, () => void] {
