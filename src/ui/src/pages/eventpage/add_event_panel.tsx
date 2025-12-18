@@ -167,6 +167,51 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         }
     };
 
+    const buildTableHead = () => {
+        return (
+            <tr className="font-semibold text-xs">
+                <th className="text-left py-1">
+                    <button
+                        className="w-full sm:w-32"
+                        onClick={() => {
+                            foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
+                            render();
+                        }}
+                    >
+                        Add Row
+                    </button>
+                </th>
+                <th className="text-center py-1">Unit</th>
+                <th className="text-center py-1">Amount</th>
+                <th className="text-center py-1">Protein</th>
+                <th className="text-center py-1">Carbs</th>
+                <th className="text-center py-1">Fibre</th>
+                <th className="text-center py-1">Fat</th>
+                <th className="text-center py-1">NetCarb</th>
+                <th className="text-center py-1" />
+            </tr>
+        );
+    };
+
+    const buildSumRow = () => {
+        return (
+            <>
+                {foods.current.length > 1 && (
+                    <tr className="text-center">
+                        <td className="text-left w-full">Total</td>
+                        <td className="pr-1">-</td>
+                        <td className="pr-1">-</td>
+                        <td className="pr-1">{totals.protein.toFixed(1)}</td>
+                        <td className="pr-1">{totals.carb.toFixed(1)}</td>
+                        <td className="pr-1">{totals.fibre.toFixed(1)}</td>
+                        <td className="pr-1"> {totals.fat.toFixed(1)}</td>
+                        <td className="font-bold"> {netCarb.toFixed(1)}</td>
+                    </tr>
+                )}
+            </>
+        );
+    };
+
     return (
         <div className="w-full p-2 container-theme bg-c-black">
             <div className="flex w-full justify-between">
@@ -208,42 +253,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
             <div className="overflow-x-scroll">
                 <table className="w-full text-sm border-collapse">
-                    <thead>
-                        <tr className="font-semibold text-xs border-b">
-                            <th className="text-left py-1">
-                                <button
-                                    onClick={() => {
-                                        foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
-                                        render();
-                                    }}
-                                >
-                                    Add Row
-                                </button>
-                            </th>
-                            <th className="text-center py-1">Unit</th>
-                            <th className="text-center py-1">Amount</th>
-                            <th className="text-center py-1">Protein</th>
-                            <th className="text-center py-1">Carbs</th>
-                            <th className="text-center py-1">Fibre</th>
-                            <th className="text-center py-1">Fat</th>
-                            <th className="text-center py-1">NetCarb</th>
-                            <th className="text-center py-1" />
-                        </tr>
-                    </thead>
-
                     <tbody>
-                        {foods.current.length > 1 && (
-                            <tr>
-                                <td className="whitespace-nowrap w-full">Total</td>
-                                <td className="text-center pr-1">-</td>
-                                <td className="text-center pr-1">-</td>
-                                <td className="text-center pr-1">{totals.protein.toFixed(1)}</td>
-                                <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
-                                <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
-                                <td className="text-center pr-1"> {totals.fat.toFixed(1)}</td>
-                                <td className="text-center font-bold"> {netCarb.toFixed(1)}</td>
-                            </tr>
-                        )}
+                        {buildTableHead()}
+                        {buildSumRow()}
                         {foods.current.map((food: TblUserFoodLogWithKey, index: number) => {
                             return (
                                 <AddFoodlogPanelRow
@@ -258,6 +270,13 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                 />
                             );
                         })}
+
+                        {buildTableHead()}
+                        {buildSumRow()}
+                        <tr>
+                            {' '}
+                            <td>&nbsp;</td>{' '}
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -268,8 +287,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                             {`${days % 4 <= 1 ? 'Upper' : 'Lower'}-${days % 2 === 0 ? 'Left' : 'Right'}`}
                         </span>
                         <span className="px-2" title="Insulin calculated for this event's food">
-                            {' '}
-                            Insulin Calc {insulin.toFixed(1)}{' '}
+                            Insulin Calc {insulin.toFixed(1)}
                         </span>
                     </>
                 )}
