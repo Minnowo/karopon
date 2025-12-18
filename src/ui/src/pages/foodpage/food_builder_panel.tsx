@@ -37,11 +37,16 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
         fibre: 0,
         fat: 0,
     });
-    const foods = useMemo<TblUserFoodLogWithKey[]>(() => [
-        mutateWithKey(TblUserFoodLogFactory.empty()),
-        mutateWithKey(TblUserFoodLogFactory.empty()),
-        mutateWithKey(TblUserFoodLogFactory.empty()),
-    ], [/* never changes */]);
+    const foods = useMemo<TblUserFoodLogWithKey[]>(
+        () => [
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+            mutateWithKey(TblUserFoodLogFactory.empty()),
+        ],
+        [
+            /* never changes */
+        ]
+    );
     const render = DoRender();
 
     const totals = (() => {
