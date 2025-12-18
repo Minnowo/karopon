@@ -17,9 +17,9 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
     const tmpFood = useMemo<TblUserFood>(() => ({...food}), [food]);
     const render = DoRender();
 
-    useEffect(()=>{
+    useEffect(() => {
         foodRef.current?.focus();
-    },[]);
+    }, []);
 
     const onSaveClick = () => {
         setErrorMsg(null);
@@ -52,7 +52,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                 <div className="w-full">
                     <div className="flex flex-row flex-wrap">
                         <input
-                        ref={foodRef}
+                            ref={foodRef}
                             className="mb-2 whitespace-nowrap flex-auto mr-1"
                             type="text"
                             value={tmpFood.name}

@@ -15,7 +15,6 @@ type FuzzySearchProps<T> = {
 };
 
 export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
-
     const {
         data,
         dataDisplayStr,
@@ -26,7 +25,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
         placeholder = '',
         noResultsText = 'No Results',
         className,
-autofocus,
+        autofocus,
     } = p;
 
     const container = useRef<HTMLDivElement | null>(null);
@@ -68,8 +67,8 @@ autofocus,
         debounceSearch(query);
     }, [query, debounceSearch]);
 
-    useEffect(()=>{
-        if(autofocus){
+    useEffect(() => {
+        if (autofocus) {
             input.current?.focus();
         }
     }, [autofocus]);
@@ -85,7 +84,6 @@ autofocus,
             }
         }
     }, [selectedIndex, matches]);
-
 
     const doSelect = (item: T | null) => {
         if (!item) {
@@ -189,16 +187,16 @@ autofocus,
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => {
                             const key = dataDisplayStr(item);
-                            return(
-                            <li
-                                tabindex={0}
-                                key={key}
-                                class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-c-l-black cursor-pointer`}
-                                onClick={() => doSelect(item)}
-                            >
-                                {key}
-                            </li>
-                        );
+                            return (
+                                <li
+                                    tabindex={0}
+                                    key={key}
+                                    class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-c-l-black cursor-pointer`}
+                                    onClick={() => doSelect(item)}
+                                >
+                                    {key}
+                                </li>
+                            );
                         })
                     ) : (
                         <li class="bg-c-black  p-2 hover:bg-c-l-black cursor-pointer"> {noResultsText} </li>

@@ -1,11 +1,10 @@
-import {useState, useRef, useEffect, useMemo} from 'preact/hooks';
-import {TblUser, TblUserEvent, TblUserFood, TblUserFoodLog, TblUserFoodLogWithKey} from '../../api/types';
+import {useState, useRef, useMemo} from 'preact/hooks';
+import {TblUser, TblUserFood, TblUserFoodLog, TblUserFoodLogWithKey} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
-import {AddFoodPanel} from './add_food_panel';
 
 type FoodBuilderPanelProps = {
     user: TblUser;

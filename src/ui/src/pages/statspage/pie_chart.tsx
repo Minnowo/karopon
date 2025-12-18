@@ -19,7 +19,7 @@ type Props = {
     data: MacroTotals;
     size: number;
     range: RangeType;
-    title: string,
+    title: string;
     setRange: (r: RangeType) => void;
 };
 export const PieChart = ({title, data, size, range, setRange}: Props) => {
