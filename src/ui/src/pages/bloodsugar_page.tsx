@@ -1,5 +1,5 @@
 import {BaseState} from '../state/basestate';
-import {TblUserEventLog} from '../api/types';
+import {UserEventFoodLog} from '../api/types';
 import {useState} from 'preact/hooks';
 import {NumberInput} from '../components/number_input';
 import {DownloadData} from '../utils/download';
@@ -21,42 +21,9 @@ export function BloodSugarPage(state: BaseState) {
                     onValueChange={setNumberToShow}
                     numberList={[1, 2, 5, 10, 20, 50]}
                 />
-
-                <DropdownButton
-                    buttonClassName="w-full h-full"
-                    className="w-24"
-                    label="Export"
-                    actions={[
-                        {
-                            label: 'As CSV',
-                            onClick: () => {
-                                const headers = Object.keys(state.eventlog[0]) as Array<keyof TblUserEventLog>;
-                                const csvRows: string[] = [];
-
-                                csvRows.push(headers.join(','));
-
-                                for (const item of state.eventlog) {
-                                    csvRows.push(headers.map((key) => encodeCSVField(String(item[key]))).join(','));
-                                }
-
-                                const csvContent = csvRows.join('\n');
-                                const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-                                DownloadData(blob, 'eventlog.csv');
-                            },
-                        },
-                        {
-                            label: 'As JSON',
-                            onClick: () => {
-                                const json = JSON.stringify(state.eventlog, null, 2);
-                                const blob = new Blob([json], {type: 'application/json'});
-                                DownloadData(blob, 'eventlog.json');
-                            },
-                        },
-                    ]}
-                />
             </div>
 
-            {state.eventlog.length === 0 && (
+            {state.eventlogs.length === 0 && (
                 <div className="text-center font-bold p-32">
                     No entries found! Karopon did a tiny dance anyway.
                     <br />
@@ -64,22 +31,22 @@ export function BloodSugarPage(state: BaseState) {
                 </div>
             )}
 
-            {state.eventlog.slice(0, numberToShow).map((eventLog: TblUserEventLog) => {
+            {state.eventlogs.slice(0, numberToShow).map((eventLog: UserEventFoodLog) => {
                 return (
                     <div
-                        key={eventLog.id}
+                        key={eventLog.eventlog.id}
                         className="flex flex-row container-theme mt-3 rounded-sm justify-between items-center p-4"
                     >
-                        <span className="w-full sm:w-2/5 font-medium h-fit" title={eventLog.event}>
-                            {eventLog.event}
+                        <span className="w-full sm:w-2/5 font-medium h-fit" title={eventLog.eventlog.event}>
+                            {eventLog.eventlog.event}
                         </span>
 
                         <div className="w-full sm:w-3/5 flex flex-row flex-wrap justify-evenly items-center">
                             <span className="h-fit">
-                                <strong>Blood Sugar:</strong> {eventLog.blood_glucose}
+                                <strong>Blood Sugar:</strong> {eventLog.eventlog.blood_glucose.toFixed(1)}
                             </span>
 
-                            <span className="h-fit">{formatSmartTimestamp(eventLog.user_time)}</span>
+                            <span className="h-fit">{formatSmartTimestamp(eventLog.eventlog.user_time)}</span>
                         </div>
                     </div>
                 );
