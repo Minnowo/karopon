@@ -122,11 +122,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 setErrorMsg('Blood sugar should be a positive number');
                 return;
             }
-
-            if (insulinToCarbRatio <= 0) {
-                setErrorMsg('Insulin sensitivity should be a positive number');
-                return;
-            }
         }
 
         p.createEvent({
