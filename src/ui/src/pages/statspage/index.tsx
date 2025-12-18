@@ -186,9 +186,7 @@ export function StatsPage(state: BaseState) {
 
     return (
         <>
-            <h1 className="text-3xl mb-6">Stats Summary</h1>
-
-            <PieChart data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
+            <PieChart title='Macronutrient Totals' data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
 
             {RenderMultiLineGraph(
                 macroData,
