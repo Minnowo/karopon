@@ -59,6 +59,7 @@ export function App() {
 
                 {errorMsg !== null && <div className="text-c-l-red"> {errorMsg} </div>}
 
+                <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
                 {foods !== null && events !== null && eventlog !== null && eventlogsWithFoodlogs !== null && (
                     <Switch>
                         <Route path="/events">
@@ -146,6 +147,7 @@ export function App() {
                         </Route>
                     </Switch>
                 )}
+            </div>
             </Router>
         </main>
     );
