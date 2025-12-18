@@ -29,8 +29,8 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ueflog.Eventlog.BloodGlucose <= 0 {
-		http.Error(w, "blood glucose cannot be <= 0", http.StatusBadRequest)
+	if len(ueflog.Eventlog.Event) == 0 {
+		http.Error(w, "Event name not be empty", http.StatusBadRequest)
 		return
 	}
 
