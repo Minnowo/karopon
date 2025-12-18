@@ -147,7 +147,6 @@ export function EventsPage(state: BaseState) {
     const onCreateEvent = (eventlog: CreateUserEventLog) => {
         ApiNewEventLog(eventlog)
             .then((newEventlog: UserEventFoodLog) => {
-                state.setEventlog((e) => [newEventlog.eventlog, ...(e === null ? [] : e)]);
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
                 setNewEvent(UserEventFoodLogFactory.empty());
                 setShowNewEventPanel(false);
@@ -180,17 +179,6 @@ export function EventsPage(state: BaseState) {
 
         ApiUpdateUserEventLog(updateEventLog)
             .then((newEventlog: UserEventFoodLog) => {
-                state.setEventlog((e: TblUserEventLog[] | null) =>
-                    e === null
-                        ? e
-                        : e.map((log: TblUserEventLog) => {
-                              if (log.id === newEventlog.eventlog.id) {
-                                  return newEventlog.eventlog;
-                              }
-                              return log;
-                          })
-                );
-
                 state.setEventLogs((e: UserEventFoodLog[] | null) =>
                     e === null
                         ? e
@@ -211,10 +199,6 @@ export function EventsPage(state: BaseState) {
     const onDeleteEvent = (eventlog: UserEventFoodLog) => {
         ApiDeleteUserEventLog(eventlog.eventlog)
             .then(() => {
-                state.setEventlog((old: TblUserEventLog[] | null) => {
-                    return old ? old.filter((x: TblUserEventLog) => x.id !== eventlog.eventlog.id) : null;
-                });
-
                 state.setEventLogs((old: UserEventFoodLog[] | null) => {
                     return old ? old.filter((x: UserEventFoodLog) => x.eventlog.id !== eventlog.eventlog.id) : null;
                 });
