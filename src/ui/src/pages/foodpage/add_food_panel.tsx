@@ -1,4 +1,4 @@
-import {useState, useMemo} from 'preact/hooks';
+import {useState, useMemo, useRef, useEffect} from 'preact/hooks';
 import {TblUserFood} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
@@ -13,8 +13,13 @@ type AddFoodPanelProps = {
 export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const foodRef = useRef<HTMLInputElement>(null);
     const tmpFood = useMemo<TblUserFood>(() => ({...food}), [food]);
     const render = DoRender();
+
+    useEffect(()=>{
+        foodRef.current?.focus();
+    },[]);
 
     const onSaveClick = () => {
         setErrorMsg(null);
@@ -47,6 +52,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                 <div className="w-full">
                     <div className="flex flex-row flex-wrap">
                         <input
+                        ref={foodRef}
                             className="mb-2 whitespace-nowrap flex-auto mr-1"
                             type="text"
                             value={tmpFood.name}
