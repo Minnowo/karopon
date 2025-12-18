@@ -230,7 +230,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     query={event}
                     onQueryChange={setEvent}
                     data={p.events}
-                    searchKey={'name'}
+                    dataDisplayStr={(d: TblUserEvent) => d.name}
+                    dataSearchStr={(d: TblUserEvent) => d.name}
                     className="w-full my-1 sm:mr-1"
                     placeholder="Event Name"
                     noResultsText="New Event"
@@ -239,6 +240,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                             setEvent(evnt.name);
                         }
                     }}
+                    autofocus={true}
                 />
 
                 <input

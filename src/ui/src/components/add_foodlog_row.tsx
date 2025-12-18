@@ -46,7 +46,8 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                             render();
                         }}
                         data={foods}
-                        searchKey={'name'}
+                        dataDisplayStr={(d: TblUserFood) => `${d.name} (${d.unit})`}
+                        dataSearchStr={(d: TblUserFood) => d.name}
                         className="w-full min-w-32 my-1 sm:mr-1"
                         placeholder="Food Name"
                         noResultsText="New Food"
