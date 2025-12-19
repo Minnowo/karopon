@@ -26,7 +26,7 @@ export function formatSmartTimestamp(timestamp: number): string {
 
     // Show date, with or without year
     return date.toLocaleDateString(undefined, {
-        weekday:'short',
+        weekday: 'short',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',

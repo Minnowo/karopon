@@ -172,7 +172,9 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                 onInput={(e) => {
                     const val = (e.target as HTMLInputElement).value;
                     debounceSearch(val);
-                    if (p.onQueryChange) { p.onQueryChange(val); }
+                    if (p.onQueryChange) {
+                        p.onQueryChange(val);
+                    }
                 }}
                 onKeyDown={onKeyDown}
                 onFocusIn={openOnFocusIn}
