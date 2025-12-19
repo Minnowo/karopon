@@ -8,6 +8,7 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -25,6 +26,8 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 	var event database.CreateUserEventLog
 
 	err := json.NewDecoder(r.Body).Decode(&event)
+
+	event.Event.Name = strings.TrimSpace(event.Event.Name)
 
 	if err != nil {
 		log.Debug().Err(err).Msg("invalid json")
@@ -63,6 +66,11 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 		}
 
 		event.Event.ID = id
+	}
+
+	for _, food := range event.Foods {
+		food.Name = strings.TrimSpace(food.Name)
+		food.Unit = strings.TrimSpace(food.Unit)
 	}
 
 	var userEventLog database.TblUserEventLog

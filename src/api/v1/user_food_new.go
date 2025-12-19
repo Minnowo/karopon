@@ -6,6 +6,7 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -28,6 +29,9 @@ func (a *APIV1) addUserFood(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
+
+	food.Name = strings.TrimSpace(food.Name)
+	food.Unit = strings.TrimSpace(food.Unit)
 
 	if len(food.Name) == 0 {
 		http.Error(w, "food cannot have empty name", http.StatusBadRequest)

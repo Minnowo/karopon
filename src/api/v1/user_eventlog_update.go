@@ -6,6 +6,7 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -29,6 +30,8 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ueflog.Eventlog.Event = strings.TrimSpace(ueflog.Eventlog.Event)
+
 	if len(ueflog.Eventlog.Event) == 0 {
 		http.Error(w, "Event name not be empty", http.StatusBadRequest)
 		return
@@ -40,6 +43,10 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ueflog.Eventlog.UserID = user.ID
+	for _, food := range ueflog.Foodlogs {
+		food.Name = strings.TrimSpace(food.Name)
+		food.Unit = strings.TrimSpace(food.Unit)
+	}
 
 	err = a.Db.UpdateUserEventFoodLog(r.Context(), &ueflog)
 
