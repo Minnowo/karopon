@@ -105,6 +105,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                 </td>
                 <td className="pr-1">
                     <NumberInput
+                        buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -118,6 +119,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                 </td>
                 <td className="pr-1">
                     <NumberInput
+                        buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -131,6 +133,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                 </td>
                 <td className="pr-1">
                     <NumberInput
+                        buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}
@@ -144,6 +147,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                 </td>
                 <td className="pr-1">
                     <NumberInput
+                        buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
                         round={1}

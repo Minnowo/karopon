@@ -4,6 +4,7 @@ import {JSX} from 'preact';
 type Props = {
     className?: string;
     innerClassName?: string;
+    buttonClassName?: string;
     innerTabIndex?: number;
     label?: string;
     value: number;
@@ -93,7 +94,7 @@ export function NumberInput({max = 1_000_000_000, ...p}: Props) {
             )}
             <input
                 tabindex={p.innerTabIndex}
-                className={`${innerClassName} pl-1 border-none focus:outline-none rounded-r-none`}
+                className={`${innerClassName} pl-1 border-none focus:outline-none`}
                 type="text"
                 inputmode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*$"
@@ -128,7 +129,7 @@ export function NumberInput({max = 1_000_000_000, ...p}: Props) {
                     }
                 }}
             />
-            <div className="flex flex-col justify-between">
+            <div className={`flex flex-col justify-between ${p.buttonClassName}`}>
                 <button
                     disabled={p.disabled}
                     tabindex={-1}
