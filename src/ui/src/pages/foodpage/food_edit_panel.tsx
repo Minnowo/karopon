@@ -4,6 +4,7 @@ import {DropdownButton} from '../../components/drop_down_button';
 import {NumberInput} from '../../components/number_input';
 import {DoRender} from '../../hooks/doRender';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
+import {ErrorDiv} from '../../components/error_div';
 
 type FoodEditPanelProps = {
     user: TblUser;
@@ -14,11 +15,10 @@ type FoodEditPanelProps = {
 };
 
 export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) {
-    const tmpFood = useRef<TblUserFood>({...food});
-    const foodName = useRef<HTMLInputElement>(null);
-    const foodUnit = useRef<HTMLInputElement>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [showUpdatePanel, setShowUpdatePanel] = useState<boolean>(false);
     const [portion, setPortion] = useState<number>(food.portion);
+    const tmpFood = useRef<TblUserFood>({...food});
 
     const render = DoRender();
 
@@ -39,28 +39,56 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
 
     const onCancelClick = () => {
         setShowUpdatePanel(false);
+        setErrorMsg(null);
     };
 
     const onSaveClick = () => {
         const newFood = {...food, ...tmpFood.current};
-        if (foodName.current?.value) {
-            newFood.name = foodName.current.value;
+
+        newFood.name = newFood.name.trim();
+        newFood.unit = newFood.unit.trim();
+
+        if (newFood.name === '') {
+            setErrorMsg('Food cannot have empty name');
+            return;
         }
-        if (foodUnit.current?.value) {
-            newFood.unit = foodUnit.current.value;
+
+        if (newFood.unit === '') {
+            setErrorMsg('Food unit cannot be empty');
+            return;
         }
+
+        if (newFood.portion <= 0) {
+            setErrorMsg('Food portion must be a positive number');
+            return;
+        }
+
         updateFood(newFood);
         setShowUpdatePanel(false);
+        setErrorMsg(null);
     };
 
     return (
         <div key={food.id} className="rounded-sm p-2 border container-theme">
+            <ErrorDiv errorMsg={errorMsg} />
             <div className="flex justify-between font-semibold">
                 {showUpdatePanel ? (
                     <>
                         <div class="w-full px-1">
-                            <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodName} value={food.name} />
-                            <input class="mb-2 whitespace-nowrap w-full" type="text" ref={foodUnit} value={food.unit} />
+                            <input
+                                class="mb-2 whitespace-nowrap w-full"
+                                type="text"
+                                onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
+                                value={tmpFood.current.name}
+                                placeholder="Food Name"
+                            />
+                            <input
+                                class="mb-2 whitespace-nowrap w-full"
+                                type="text"
+                                onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
+                                value={tmpFood.current.unit}
+                                placeholder="Portion Unit"
+                            />
                             <NumberInput
                                 className={'whitespace-nowrap'}
                                 label={'Portion'}
