@@ -5,6 +5,7 @@ import (
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -20,13 +21,22 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var n int
 	var err error
 	var eventlogs []database.UserEventFoodLog
 
 	if limit := r.URL.Query().Get("n"); limit == "" {
 		err = a.Db.LoadUserEventFoodFoodLogs(r.Context(), user.ID, &eventlogs)
-	} else if n, err := strconv.Atoi(limit); err == nil {
+	} else if n, err = strconv.Atoi(limit); err == nil {
+
+		if n == 0 {
+			n = user.EventHistoryFetchLimit
+		} else if n < 0 {
+			n = math.MaxInt
+		}
+
 		err = a.Db.LoadUserEventFoodLogsN(r.Context(), user.ID, n, &eventlogs)
+
 	} else {
 		api.ServerErr(w, "Query parameter 'n' could not be parsed as an integer")
 		return
