@@ -96,7 +96,7 @@ export function App() {
     }
 
     return (
-        <main className="p-4 sm:p-8 md:p-16">
+        <main className="pt-12 pb-16 px-4 sm:px-8 md:px-16">
             <Router hook={useHashLocation}>
                 <Header user={user} />
 
