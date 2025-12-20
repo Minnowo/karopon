@@ -17,6 +17,7 @@ import {UserEventFoodLogFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {Fragment} from 'preact/jsx-runtime';
+import { ErrorDiv } from '../../components/error_div';
 
 type EventPanelState = {
     user: TblUser;
@@ -269,7 +270,7 @@ export function EventsPage(state: BaseState) {
                 />
             </div>
 
-            {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
+            <ErrorDiv errorMsg={errorMsg} />
             {showNewEventPanel && (
                 <>
                     <AddEventsPanel
