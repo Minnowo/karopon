@@ -1,3 +1,4 @@
+import {GetCookieValue} from '../utils/cookies';
 import {
     TblUser,
     TblUserFood,
@@ -8,9 +9,6 @@ import {
     TblUpdateUser,
     UpdateUserEventLog,
 } from './types';
-
-// export const base = 'http://localhost:9070';
-export const base = '';
 
 export class ApiError extends Error {
     public readonly status: number;
@@ -51,33 +49,64 @@ const fetchJson = async <T>(req: Promise<Response>): Promise<T> => {
     return (await response.json()) as T;
 };
 
+let ApiBase = '';
+export const GetApiBase = () => ApiBase;
+export const SetApiBase = (base: string) => {
+    ApiBase = base;
+};
+
+let authToken = '';
+export const SetAuthToken = (base: string) => {
+    authToken = base;
+};
+
+const apiFetch = (path: string, args?: RequestInit) => {
+    const headers = new Headers(args?.headers);
+    if (authToken) {
+        headers.set('Auth-Token', authToken);
+    }
+    return fetch(path, {...args, headers});
+};
+
+export const HasAuth = () => {
+    if (authToken) {
+        return true;
+    }
+    return GetCookieValue('ponponpon') !== null;
+};
+
+export const IsCrossOrigin = (base: string) => {
+    const apiUrl = new URL(base, window.location.origin);
+    return apiUrl.origin !== window.location.origin;
+};
+
 export const ApiLogout = async (): Promise<boolean> => {
-    return fetch(`${base}/api/logout`).then((r) => r.status === 200);
+    return apiFetch(`${ApiBase}/api/logout`).then((r) => r.status === 200);
 };
 
 export const ApiWhoAmI = (): Promise<TblUser> => {
-    return fetchJson<TblUser>(fetch(`${base}/api/whoami`));
+    return fetchJson<TblUser>(apiFetch(`${ApiBase}/api/whoami`));
 };
 
 export const ApiGetUserFoods = (): Promise<TblUserFood[]> => {
-    return fetchJson<TblUserFood[]>(fetch(`${base}/api/foods`));
+    return fetchJson<TblUserFood[]>(apiFetch(`${ApiBase}/api/foods`));
 };
 
 export const ApiGetUserEvents = (): Promise<TblUserEvent[]> => {
-    return fetchJson<TblUserEvent[]>(fetch(`${base}/api/events`));
+    return fetchJson<TblUserEvent[]>(apiFetch(`${ApiBase}/api/events`));
 };
 
 export const ApiGetUserEventLog = (): Promise<TblUserEventLog[]> => {
-    return fetchJson<TblUserEventLog[]>(fetch(`${base}/api/eventlogs`));
+    return fetchJson<TblUserEventLog[]>(apiFetch(`${ApiBase}/api/eventlogs`));
 };
 
 export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
-    return fetchJson<UserEventFoodLog[]>(fetch(`${base}/api/eventfoodlogs?n=${n}`));
+    return fetchJson<UserEventFoodLog[]>(apiFetch(`${ApiBase}/api/eventfoodlogs?n=${n}`));
 };
 
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
     return fetchJson<TblUser>(
-        fetch(`${base}/api/user/update`, {
+        apiFetch(`${ApiBase}/api/user/update`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -89,7 +118,7 @@ export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
 
 export const ApiUpdateUserFood = (food: TblUserFood): Promise<void> => {
     return fetchNone(
-        fetch(`${base}/api/food/update`, {
+        apiFetch(`${ApiBase}/api/food/update`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -101,7 +130,7 @@ export const ApiUpdateUserFood = (food: TblUserFood): Promise<void> => {
 
 export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
     return fetchJson<TblUserFood>(
-        fetch(`${base}/api/food/new`, {
+        apiFetch(`${ApiBase}/api/food/new`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -113,7 +142,7 @@ export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
 
 export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
     return fetchNone(
-        fetch(`${base}/api/food/delete`, {
+        apiFetch(`${ApiBase}/api/food/delete`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -125,7 +154,7 @@ export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
 
 export const ApiUpdateUserEventLog = (eventlog: UpdateUserEventLog): Promise<UserEventFoodLog> => {
     return fetchJson<UserEventFoodLog>(
-        fetch(`${base}/api/eventfoodlog/update`, {
+        apiFetch(`${ApiBase}/api/eventfoodlog/update`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -137,7 +166,7 @@ export const ApiUpdateUserEventLog = (eventlog: UpdateUserEventLog): Promise<Use
 
 export const ApiDeleteUserEventLog = (eventlog: TblUserEventLog): Promise<void> => {
     return fetchNone(
-        fetch(`${base}/api/eventlog/delete`, {
+        apiFetch(`${ApiBase}/api/eventlog/delete`, {
             headers: {
                 'content-type': 'application/json',
             },
@@ -149,7 +178,7 @@ export const ApiDeleteUserEventLog = (eventlog: TblUserEventLog): Promise<void> 
 
 export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodLog> => {
     return fetchJson<UserEventFoodLog>(
-        fetch(`${base}/api/eventlog/new`, {
+        apiFetch(`${ApiBase}/api/eventlog/new`, {
             headers: {
                 'content-type': 'application/json',
             },

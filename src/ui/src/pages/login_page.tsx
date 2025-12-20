@@ -1,5 +1,5 @@
-import {Dispatch, StateUpdater} from 'preact/hooks';
-import {base} from '../api/api';
+import {Dispatch, StateUpdater, useRef} from 'preact/hooks';
+import {GetApiBase, IsCrossOrigin, SetApiBase, SetAuthToken} from '../api/api';
 import {ErrorDiv} from '../components/error_div';
 
 type Props = {
@@ -7,16 +7,25 @@ type Props = {
     setErrorMsg: Dispatch<StateUpdater<string | null>>;
     doRefresh: () => void;
 };
-
 export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
+    const serverInputRef = useRef<HTMLInputElement>(null);
+
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
+        if (serverInputRef.current?.value !== undefined) {
+            SetApiBase(serverInputRef.current?.value);
+        }
+
         const form = e.currentTarget as HTMLFormElement;
         const formData = new FormData(form);
+        const wantToken = IsCrossOrigin(GetApiBase());
 
+        if (wantToken) {
+            formData.set('pon_token_type', 'token');
+        }
         try {
-            const res = await fetch(`${base}/api/login`, {
+            const res = await fetch(`${GetApiBase()}/api/login`, {
                 method: 'POST',
                 body: formData,
             });
@@ -24,6 +33,10 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
             if (!res.ok) {
                 setErrorMsg(await res.text());
             } else {
+                if (wantToken) {
+                    const js: {token: string; expires: number} = await res.json();
+                    SetAuthToken(js.token);
+                }
                 doRefresh();
             }
         } catch (err: unknown) {
@@ -41,6 +54,17 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
             <form className="flex flex-col align-middle items-center" encType="multipart/form-data" onSubmit={handleSubmit}>
                 <table className="table-auto table-padded">
                     <tbody className="text-right">
+                        <tr title="The server to login to">
+                            <td className="px-2">Server</td>
+                            <td title="To login to a different server, enter it's URL here">
+                                <input
+                                    ref={serverInputRef}
+                                    type="text"
+                                    placeholder="Server URL (empty=default)"
+                                    value={GetApiBase()}
+                                />
+                            </td>
+                        </tr>
                         <tr title="Your username">
                             <td className="px-2">Username</td>
                             <td>

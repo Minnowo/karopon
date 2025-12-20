@@ -34,6 +34,16 @@
         "plugins": [
             "@typescript-eslint"
         ],
+        "env": {
+            "browser": true,
+            "es2021": true
+        },
+        "globals": {
+            "RequestInit": "readonly",
+            "fetch": "readonly",
+            "Headers": "readonly",
+            "URL": "readonly"
+        },
         "rules": {
             "no-unused-vars": "off",
             "@typescript-eslint/no-unused-vars": "error",

@@ -15,6 +15,7 @@ var (
 	ctxUserKey         = struct{ name string }{name: "user"}
 	sessionCookie      = constants.SESSION_COOKIE
 	sessionValidCookie = constants.SESSION_VALID_COOKIE
+	tokenHeader        = constants.SESSION_AUTH_HEADER
 )
 
 // todo: make this a server setting?
@@ -67,14 +68,25 @@ func ParseAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler 
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			authToken, err := r.Cookie(sessionCookie)
-			_, err2 := r.Cookie(sessionValidCookie)
+			token := r.Header.Get(tokenHeader)
 
-			if err != nil || err2 != nil {
-				ExpireAuthToken(w)
-			} else {
+			if token == "" {
 
-				user, ok := userReg.CheckToken(authToken.Value)
+				authToken, err := r.Cookie(sessionCookie)
+				_, err2 := r.Cookie(sessionValidCookie)
+
+				if err != nil || err2 != nil {
+					if err == nil || err2 == nil {
+						ExpireAuthToken(w)
+					}
+				} else {
+					token = authToken.Value
+				}
+			}
+
+			if token != "" {
+
+				user, ok := userReg.CheckToken(token)
 
 				if ok {
 					if user == nil {

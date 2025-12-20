@@ -63,7 +63,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	api.HandleFunc("/login", a.api_login).Methods("POST")
 	api.HandleFunc("/logout", a.getLogout)
 
-	get := api.Methods("GET").Subrouter()
+	get := api.Methods("GET", "OPTIONS").Subrouter()
 	get.Use(auth.RequireAuth())
 	get.HandleFunc("/whoami", a.getUser)
 	get.HandleFunc("/user", a.getUser)
@@ -74,7 +74,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/eventfoodlogs", a.getUserEventFoodLogs)
 	get.HandleFunc("/time", a.getServerTime)
 
-	post := api.Methods("POST").Subrouter()
+	post := api.Methods("POST", "OPTIONS").Subrouter()
 	post.Use(auth.RequireAuth())
 	post.HandleFunc("/user/update", a.updateUser)
 	post.HandleFunc("/food/new", a.addUserFood)

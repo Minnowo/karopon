@@ -12,7 +12,7 @@ import {StatsPage} from './pages/statspage';
 
 import {useEffect, useState} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog} from './api/types';
-import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventFoodLog, ApiWhoAmI} from './api/api';
+import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventFoodLog, ApiWhoAmI, HasAuth} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
@@ -27,12 +27,11 @@ import {
     LocalStoreFoods,
     LocalStoreUser,
 } from './utils/localstate';
-import {GetCookieValue} from './utils/cookies';
 import {ErrorDiv} from './components/error_div';
 
 export function App() {
     // This cookie is set when there is a valid auth token cookie.
-    const hasAuthCookie = GetCookieValue('ponponpon') !== null;
+    const hasAuthCookie = HasAuth();
 
     const [user, setUser] = useState<TblUser | null>(LocalGetUser());
     const [foods, setFoods] = useState<TblUserFood[] | null>(LocalGetFoods());

@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/constants"
+	"karopon/src/database"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -39,6 +41,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 
 	username := r.PostFormValue("pon_username")
 	password := r.PostFormValue("pon_password")
+	tokenType := r.PostFormValue("pon_token_type")
 
 	if username == "" || password == "" {
 		api.BadReq(w, "The username or password cannot be empty.")
@@ -72,6 +75,15 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth.SetAuthToken(w, token, expires)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	if tokenType == "token" {
+		var tokenRes struct {
+			Token   string              `json:"token"`
+			Expires database.UnixMillis `json:"expires"`
+		}
+		tokenRes.Token = token
+		tokenRes.Expires = database.UnixMillis(expires)
+		json.NewEncoder(w).Encode(tokenRes)
+	} else {
+		auth.SetAuthToken(w, token, expires)
+	}
 }
