@@ -50,19 +50,19 @@ func TestAuthMiddleware(t *testing.T) {
 	reg := user.NewRegistry()
 	reg.AddUser(*session)
 
-	authToken, ok := reg.Login(username, password)
+	authToken, _, ok := reg.Login(username, password)
 	assert.True(t, ok, "login should be valid")
 
 	r := mux.NewRouter()
 	r.PathPrefix("/no-auth").HandlerFunc(expectContext(t, session, false))
 
 	noAuth := r.NewRoute().Subrouter()
-	noAuth.Use(ParseAuth(constants.SESSION_COOKIE, reg))
+	noAuth.Use(ParseAuth(reg))
 	noAuth.PathPrefix("/no-require-auth1").HandlerFunc(expectContext(t, session, false))
 	noAuth.PathPrefix("/no-require-auth2").HandlerFunc(expectContext(t, session, true))
 
 	yesAuth := r.NewRoute().Subrouter()
-	yesAuth.Use(ParseAuth(constants.SESSION_COOKIE, reg), RequireAuth())
+	yesAuth.Use(ParseAuth(reg), RequireAuth())
 	yesAuth.PathPrefix("/yes-require-auth").HandlerFunc(expectContext(t, session, true))
 
 	t.Run("test no auth route", func(t *testing.T) {
