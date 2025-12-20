@@ -15,4 +15,5 @@ export type BaseState = {
     setEventLogs: Dispatch<StateUpdater<UserEventFoodLog[] | null>>;
 
     setErrorMsg: Dispatch<StateUpdater<string | null>>;
+    doRefresh: () => void;
 };

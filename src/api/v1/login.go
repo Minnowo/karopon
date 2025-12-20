@@ -5,7 +5,6 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/constants"
 	"net/http"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -22,14 +21,7 @@ func (a *APIV1) getLogout(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Path:     "/",
-		Name:     constants.SESSION_COOKIE,
-		Value:    "",
-		MaxAge:   -1,
-		Secure:   true,
-		HttpOnly: true,
-	})
+	auth.ExpireAuthToken(w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -73,21 +65,13 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, ok := a.UserReg.Login(username, password)
+	token, expires, ok := a.UserReg.Login(username, password)
 
 	if !ok {
 		api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Path:    "/",
-		Name:    constants.SESSION_COOKIE,
-		Value:   token,
-		Expires: time.Now().Add(time.Hour * 24),
-		// Secure:   true,
-		HttpOnly: true,
-	})
-
+	auth.SetAuthToken(w, token, expires)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/handlers/user"
 	"net/http"
@@ -11,19 +12,67 @@ import (
 )
 
 var (
-	ctxUserKey = struct{ name string }{name: "user"}
+	ctxUserKey         = struct{ name string }{name: "user"}
+	sessionCookie      = constants.SESSION_COOKIE
+	sessionValidCookie = constants.SESSION_VALID_COOKIE
 )
 
+// todo: make this a server setting?
+const secure bool = false
+
+func ExpireAuthToken(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+		Name:     sessionCookie,
+		Value:    "",
+		MaxAge:   -1,
+		Secure:   secure,
+		HttpOnly: true,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+		Name:     sessionValidCookie,
+		Value:    "",
+		MaxAge:   -1,
+		Secure:   secure,
+		HttpOnly: true,
+	})
+}
+
+func SetAuthToken(w http.ResponseWriter, token string, expires time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Path:     "/",
+		Name:     sessionCookie,
+		Value:    token,
+		Expires:  expires,
+		Secure:   secure,
+		HttpOnly: true,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Path:     "/",
+		Name:     sessionValidCookie,
+		Value:    "peko!",
+		Expires:  expires,
+		Secure:   secure,
+		HttpOnly: false,
+	})
+}
+
 // ParseAuth parses the session cookie into a user from the userReg and adds it to the request.
-func ParseAuth(sessionCookie string, userReg *user.UserRegistry) func(next http.Handler) http.Handler {
+func ParseAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			authToken, err := r.Cookie(sessionCookie)
+			_, err2 := r.Cookie(sessionValidCookie)
 
-			if err == nil {
+			if err != nil || err2 != nil {
+				ExpireAuthToken(w)
+			} else {
 
 				user, ok := userReg.CheckToken(authToken.Value)
 
@@ -31,17 +80,14 @@ func ParseAuth(sessionCookie string, userReg *user.UserRegistry) func(next http.
 					if user == nil {
 						log.Debug().Str("user", "nil").Msg("valid session")
 					} else {
-						log.Debug().Str("user", user.Name).Msg("valid session")
+						log.Debug().Str("user", user.Name).Int("id", user.ID).Msg("valid session")
 					}
 
 					r = PutUser(r, user)
 				} else {
 					log.Debug().Msg("expired session")
 
-					authToken.Expires = time.Unix(0, 0)
-					authToken.MaxAge = -1
-					authToken.Value = ""
-					http.SetCookie(w, authToken)
+					ExpireAuthToken(w)
 				}
 			}
 
@@ -58,7 +104,7 @@ func RequireAuth() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			if !IsAuthed(r) {
-				http.Error(w, "401 unauthorized", http.StatusUnauthorized)
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
 

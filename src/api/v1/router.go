@@ -5,7 +5,6 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
 	"karopon/src/config"
-	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/handlers/user"
 
@@ -59,13 +58,13 @@ func (a *APIV1) Register(r *mux.Router) {
 
 		api.Use(auth.FakeAuth(&user, a.UserReg))
 	}
-	api.Use(auth.ParseAuth(constants.SESSION_COOKIE, a.UserReg))
+	api.Use(auth.ParseAuth(a.UserReg))
 
 	api.HandleFunc("/login", a.api_login).Methods("POST")
+	api.HandleFunc("/logout", a.getLogout)
 
 	get := api.Methods("GET").Subrouter()
 	get.Use(auth.RequireAuth())
-	get.HandleFunc("/logout", a.getLogout)
 	get.HandleFunc("/whoami", a.getUser)
 	get.HandleFunc("/user", a.getUser)
 	get.HandleFunc("/foods", a.getUserFoods)

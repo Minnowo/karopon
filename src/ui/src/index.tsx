@@ -5,7 +5,7 @@ import {Router, Route, Switch} from 'wouter-preact';
 import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
-import {LoginPage} from './pages/login_page.jsx';
+import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import {StatsPage} from './pages/statspage';
@@ -17,25 +17,71 @@ import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
 import {NotFound} from './pages/_404.js';
+import {
+    LocalGetEventlogs,
+    LocalGetEvents,
+    LocalGetFoods,
+    LocalGetUser,
+    LocalStoreEventlogs,
+    LocalStoreEvents,
+    LocalStoreFoods,
+    LocalStoreUser,
+} from './utils/localstate';
+import {GetCookieValue} from './utils/cookies';
+import {ErrorDiv} from './components/error_div';
 
 export function App() {
-    const [user, setUser] = useState<TblUser | null>(null);
-    const [foods, setFoods] = useState<TblUserFood[] | null>(null);
-    const [events, setEvents] = useState<TblUserEvent[] | null>(null);
-    const [eventlogsWithFoodlogs, setEventlogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(null);
+    // This cookie is set when there is a valid auth token cookie.
+    const hasAuthCookie = GetCookieValue('ponponpon') !== null;
+
+    const [user, setUser] = useState<TblUser | null>(LocalGetUser());
+    const [foods, setFoods] = useState<TblUserFood[] | null>(LocalGetFoods());
+    const [events, setEvents] = useState<TblUserEvent[] | null>(LocalGetEvents());
+    const [eventlogs, setEventlogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventlogs());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [refresh, doRefresh] = useState<number>(0);
+    const [refresh, setRefresh] = useState<number>(0);
+    const doRefresh = () => setRefresh((x) => x + 1);
 
     useEffect(() => {
-        ApiWhoAmI().then((me) => {
-            ApiGetUserFoods().then((myFood) => {
+        if (user !== null) {
+            LocalStoreUser(user);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (foods !== null) {
+            LocalStoreFoods(foods);
+        }
+    }, [foods]);
+
+    useEffect(() => {
+        if (events !== null) {
+            LocalStoreEvents(events);
+        }
+    }, [events]);
+
+    useEffect(() => {
+        if (eventlogs !== null) {
+            LocalStoreEventlogs(eventlogs);
+        }
+    }, [eventlogs]);
+
+    useEffect(() => {
+        ApiWhoAmI()
+            .then(async (me) => {
+                const myFood = await ApiGetUserFoods();
+                const myEvents = await ApiGetUserEvents();
+                const myEventLogs = await ApiGetUserEventFoodLog(me.event_history_fetch_limit);
+
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
+
+                setUser(me);
                 setFoods(myFood);
-            });
-            ApiGetUserEvents().then((myEvents) => setEvents(myEvents));
-            ApiGetUserEventFoodLog(me.event_history_fetch_limit).then((myEventLogs) => setEventlogsWithFoodlogs(myEventLogs));
-            setUser(me);
-        });
+                setEvents(myEvents);
+                setEventlogsWithFoodlogs(myEventLogs);
+                setErrorMsg(null);
+            })
+            .catch((e: Error) => setErrorMsg(e.message));
     }, [refresh]);
 
     useEffect(() => {
@@ -46,8 +92,8 @@ export function App() {
         }
     }, [user]);
 
-    if (user === null) {
-        return <LoginPage doRefresh={doRefresh} />;
+    if (user === null || foods === null || events === null || eventlogs === null) {
+        return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
 
     return (
@@ -55,86 +101,99 @@ export function App() {
             <Router hook={useHashLocation}>
                 <Header user={user} />
 
-                {errorMsg !== null && <div className="text-c-l-red"> {errorMsg} </div>}
+                <>
+                    {/* need this inside a component to prevent a remount of the router when this changes */}
+                    {hasAuthCookie ? (
+                        <ErrorDiv errorMsg={errorMsg} />
+                    ) : (
+                        <div className="flex flex-col justify-center items-center py-4">
+                            <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
+                            <span className="font-bold">Your session has expired, please login again.</span>
+                        </div>
+                    )}
+                </>
 
                 <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
-                    {foods !== null && events !== null && eventlogsWithFoodlogs !== null && (
-                        <Switch>
-                            <Route path="/events">
-                                <EventsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogsWithFoodlogs}
-                                    setEventLogs={setEventlogsWithFoodlogs}
-                                    setErrorMsg={setErrorMsg}
-                                />
-                            </Route>
-                            <Route path="/foods">
-                                <FoodPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogsWithFoodlogs}
-                                    setEventLogs={setEventlogsWithFoodlogs}
-                                    setErrorMsg={setErrorMsg}
-                                />
-                            </Route>
-                            <Route path="/bloodsugar">
-                                <BloodSugarPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogsWithFoodlogs}
-                                    setEventLogs={setEventlogsWithFoodlogs}
-                                    setErrorMsg={setErrorMsg}
-                                />
-                            </Route>
-                            <Route path="/stats">
-                                <StatsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogsWithFoodlogs}
-                                    setEventLogs={setEventlogsWithFoodlogs}
-                                    setErrorMsg={setErrorMsg}
-                                />
-                            </Route>
-                            <Route path="/logout">
-                                <LogoutPage />
-                            </Route>
+                    <Switch>
+                        <Route path="/events">
+                            <EventsPage
+                                user={user}
+                                setUser={setUser}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlogs={eventlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                doRefresh={doRefresh}
+                            />
+                        </Route>
+                        <Route path="/foods">
+                            <FoodPage
+                                user={user}
+                                setUser={setUser}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlogs={eventlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                doRefresh={doRefresh}
+                            />
+                        </Route>
+                        <Route path="/bloodsugar">
+                            <BloodSugarPage
+                                user={user}
+                                setUser={setUser}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlogs={eventlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                doRefresh={doRefresh}
+                            />
+                        </Route>
+                        <Route path="/stats">
+                            <StatsPage
+                                user={user}
+                                setUser={setUser}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlogs={eventlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                doRefresh={doRefresh}
+                            />
+                        </Route>
+                        <Route path="/logout">
+                            <LogoutPage />
+                        </Route>
 
-                            <Route path="/settings">
-                                <SettingsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogsWithFoodlogs}
-                                    setEventLogs={setEventlogsWithFoodlogs}
-                                    setErrorMsg={setErrorMsg}
-                                />
-                            </Route>
+                        <Route path="/settings">
+                            <SettingsPage
+                                user={user}
+                                setUser={setUser}
+                                foods={foods}
+                                setFoods={setFoods}
+                                events={events}
+                                setEvents={setEvents}
+                                eventlogs={eventlogs}
+                                setEventLogs={setEventlogsWithFoodlogs}
+                                setErrorMsg={setErrorMsg}
+                                doRefresh={doRefresh}
+                            />
+                        </Route>
 
-                            <Route>
-                                <NotFound />
-                            </Route>
-                        </Switch>
-                    )}
+                        <Route>
+                            <NotFound />
+                        </Route>
+                    </Switch>
                 </div>
             </Router>
         </main>

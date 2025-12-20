@@ -1,10 +1,14 @@
 import {Dispatch, StateUpdater} from 'preact/hooks';
 import {base} from '../api/api';
+import {ErrorDiv} from '../components/error_div';
 
 type Props = {
-    doRefresh: Dispatch<StateUpdater<number>>;
+    error: string | null;
+    setErrorMsg: Dispatch<StateUpdater<string | null>>;
+    doRefresh: () => void;
 };
-export function LoginPage({doRefresh}: Props) {
+
+export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
@@ -18,24 +22,23 @@ export function LoginPage({doRefresh}: Props) {
             });
 
             if (!res.ok) {
-                console.info(await res.text());
-                alert('Login failed.');
-                return;
+                setErrorMsg(await res.text());
+            } else {
+                doRefresh();
             }
-
-            window.location.href = '#events';
-            doRefresh((x) => x + 1);
-        } catch (err) {
-            console.error(err);
-            alert('Network error.');
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setErrorMsg(err.message);
+            } else {
+                setErrorMsg(String(err));
+            }
         }
     };
 
     return (
-        <div className="flex flex-col items-center text-center font-bold my-32">
+        <>
             <h1 className="mb-4">Karopon</h1>
-
-            <form encType="multipart/form-data" onSubmit={handleSubmit}>
+            <form className="flex flex-col align-middle items-center" encType="multipart/form-data" onSubmit={handleSubmit}>
                 <table className="table-auto table-padded">
                     <tbody className="text-right">
                         <tr title="Your username">
@@ -59,7 +62,16 @@ export function LoginPage({doRefresh}: Props) {
                         </tr>
                     </tbody>
                 </table>
+                <ErrorDiv errorMsg={error} />
             </form>
+        </>
+    );
+}
+
+export function LoginPage(p: Props) {
+    return (
+        <div className="flex flex-col items-center text-center font-bold my-32">
+            <LoginDialog {...p} />
         </div>
     );
 }

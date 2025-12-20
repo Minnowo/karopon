@@ -43,8 +43,8 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	newUser.User.Password = user.Password
 
 	if newUser.User.SessionExpireTimeSeconds <= 0 {
-		// 50 years should be good enough for anyone
-		newUser.User.SessionExpireTimeSeconds = int64(time.Hour * time.Duration(24*365*50))
+		// 1 years should be good enough
+		newUser.User.SessionExpireTimeSeconds = int64(time.Hour * time.Duration(24*365*1))
 	}
 
 	if len(newUser.User.Name) > constants.MAX_USERNAME_LENGTH {

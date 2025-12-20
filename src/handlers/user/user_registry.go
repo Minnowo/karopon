@@ -27,7 +27,7 @@ func NewRegistry() *UserRegistry {
 	}
 }
 
-func (u *UserRegistry) NewToken(user *database.TblUser) AccessToken {
+func (u *UserRegistry) NewToken(user *database.TblUser) (AccessToken, time.Time) {
 
 	var token AccessToken
 	token.New()
@@ -45,12 +45,14 @@ func (u *UserRegistry) NewToken(user *database.TblUser) AccessToken {
 		token.New()
 	}
 
+	expires := time.Now().Add(time.Second * time.Duration(max(60, user.SessionExpireTimeSeconds)))
+
 	u.sessions[token] = Session{
 		user:    user,
-		expires: time.Now().Add(time.Second * time.Duration(max(60, user.SessionExpireTimeSeconds))),
+		expires: expires,
 	}
 
-	return token
+	return token, expires
 }
 
 func (u *UserRegistry) ExpireToken(tokenStr string) {
@@ -110,14 +112,14 @@ func (u *UserRegistry) HasUser(name string) bool {
 	return ok
 }
 
-func (u *UserRegistry) Login(name, password string) (string, bool) {
+func (u *UserRegistry) Login(name, password string) (string, time.Time, bool) {
 
 	u.usersLock.RLock()
 	user, ok := u.users[name]
 	u.usersLock.RUnlock()
 
 	if !ok {
-		return "", false
+		return "", time.Time{}, false
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
@@ -128,12 +130,12 @@ func (u *UserRegistry) Login(name, password string) (string, bool) {
 			log.Warn().Err(err).Msg("")
 		}
 
-		return "", false
+		return "", time.Time{}, false
 	}
 
-	token := u.NewToken(user)
+	token, expires := u.NewToken(user)
 
-	return token.String(), true
+	return token.String(), expires, true
 }
 
 // / ReplaceUser updates all sessions and loaded users for when a user changes their name.

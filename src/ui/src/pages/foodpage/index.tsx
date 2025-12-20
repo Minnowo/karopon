@@ -1,8 +1,8 @@
-import {Dispatch, StateUpdater, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useEffect, useState} from 'preact/hooks';
 
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
-import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood} from '../../api/api';
+import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood, ApiError} from '../../api/api';
 import {FoodEditPanel} from './food_edit_panel';
 import {ErrorDiv} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
@@ -22,6 +22,19 @@ export function FoodPage(state: BaseState) {
     const [numberToShow, setNumberToShow] = useState<number>(15);
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
+    const handleErr = (e: unknown) => {
+        if (e instanceof ApiError) {
+            setErrorMsg(e.message);
+            if (e.isUnauthorizedError()) {
+                state.doRefresh();
+            }
+        } else if (e instanceof Error) {
+            setErrorMsg(e.message);
+        } else {
+            setErrorMsg(`An unknown error occurred: ${e}`);
+        }
+    };
+
     const addNewFood = (setPanelState: Dispatch<StateUpdater<boolean>>, food: TblUserFood) => {
         ApiNewUserFood(food)
             .then((newFood) => {
@@ -30,8 +43,9 @@ export function FoodPage(state: BaseState) {
                 state.setFoods(foods);
                 setPanelState(false);
             })
-            .catch((err: Error) => setErrorMsg(err.message));
+            .catch(handleErr);
     };
+
     const deleteFood = (food: TblUserFood) => {
         if (confirm('Delete this food?')) {
             ApiDeleteUserFood(food)
@@ -39,7 +53,7 @@ export function FoodPage(state: BaseState) {
                     const foods = state.foods.filter((x) => x.id !== food.id);
                     state.setFoods(foods);
                 })
-                .catch((err: Error) => setErrorMsg(err.message));
+                .catch(handleErr);
         }
     };
 
@@ -63,7 +77,7 @@ export function FoodPage(state: BaseState) {
                 foods.sort((a, b) => a.name.localeCompare(b.name));
                 state.setFoods(foods);
             })
-            .catch((err: Error) => setErrorMsg(err.message));
+            .catch(handleErr);
     };
 
     const searchChange = (e: JSX.TargetedEvent<HTMLInputElement, Event>) => {

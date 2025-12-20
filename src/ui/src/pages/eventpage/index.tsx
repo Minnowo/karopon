@@ -1,4 +1,4 @@
-import {useState} from 'preact/hooks';
+import {useEffect, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {
     CreateUserEventLog,
@@ -8,7 +8,7 @@ import {
     UpdateUserEventLog,
     UserEventFoodLog,
 } from '../../api/types';
-import {ApiDeleteUserEventLog, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
+import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton, DropdownButtonAction} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
@@ -144,6 +144,19 @@ export function EventsPage(state: BaseState) {
     const [editEvent, setEditEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const handleErr = (e: unknown) => {
+        if (e instanceof ApiError) {
+            setErrorMsg(e.message);
+            if (e.isUnauthorizedError()) {
+                state.doRefresh();
+            }
+        } else if (e instanceof Error) {
+            setErrorMsg(e.message);
+        } else {
+            setErrorMsg(`An unknown error occurred: ${e}`);
+        }
+    };
+
     const onCreateEvent = (eventlog: CreateUserEventLog) => {
         ApiNewEventLog(eventlog)
             .then((newEventlog: UserEventFoodLog) => {
@@ -152,7 +165,7 @@ export function EventsPage(state: BaseState) {
                 setShowNewEventPanel(false);
                 setErrorMsg(null);
             })
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch(handleErr);
     };
 
     const onUpdateEvent = (eventlogId: number, eventlog: CreateUserEventLog) => {
@@ -193,7 +206,7 @@ export function EventsPage(state: BaseState) {
                 setEditEvent(UserEventFoodLogFactory.empty());
                 setErrorMsg(null);
             })
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch(handleErr);
     };
 
     const onDeleteEvent = (eventlog: UserEventFoodLog) => {
@@ -205,7 +218,7 @@ export function EventsPage(state: BaseState) {
 
                 setErrorMsg(null);
             })
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch(handleErr);
     };
 
     return (

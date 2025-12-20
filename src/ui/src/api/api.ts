@@ -12,9 +12,25 @@ import {
 // export const base = 'http://localhost:9070';
 export const base = '';
 
+export class ApiError extends Error {
+    public readonly status: number;
+
+    constructor(status: number, reason: string) {
+        super(`Request failed with status ${status}: ${reason}`);
+        this.name = 'HttpRequestError';
+        this.status = status;
+
+        // Fix prototype chain when targeting ES5
+        Object.setPrototypeOf(this, new.target.prototype);
+    }
+    public isUnauthorizedError(): boolean {
+        return this.status === 401;
+    }
+}
+
 const throwFailureReason = async (r: Response): Promise<never> => {
     const reason = await r.text();
-    throw new Error(`Request failed with status ${r.status}: ${reason}`);
+    throw new ApiError(r.status, reason);
 };
 
 const fetchNone = async (req: Promise<Response>): Promise<void> => {
