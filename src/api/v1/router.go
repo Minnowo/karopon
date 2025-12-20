@@ -72,6 +72,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/events/{id}", a.getUserEvent)
 	get.HandleFunc("/eventlogs", a.getUserEventLogs)
 	get.HandleFunc("/eventfoodlogs", a.getUserEventFoodLogs)
+	get.HandleFunc("/bodylog", a.getUserBodyLogs)
 	get.HandleFunc("/time", a.getServerTime)
 
 	post := api.Methods("POST", "OPTIONS").Subrouter()
@@ -83,5 +84,6 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/eventlog/new", a.createUserEvent)
 	post.HandleFunc("/eventlog/delete", a.deleteUserEventLog)
 	post.HandleFunc("/eventfoodlog/update", a.updateUserEventFoodLog)
+	post.HandleFunc("/bodylog/new", a.createUserBodyLog)
 
 }

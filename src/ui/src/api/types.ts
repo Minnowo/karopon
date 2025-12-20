@@ -124,3 +124,18 @@ export type CreateUserEventLog = {
     actual_insulin_taken: number;
     created_time: number;
 };
+
+export type TblUserBodyLog = {
+    id: number;
+    user_id: number;
+    created: number;
+    user_time: number;
+    weight_kg: number;
+    height_cm: number;
+    body_fat_percent: number;
+    bmi: number;
+    bp_systolic: number;
+    bp_diastolic: number;
+    heart_rate_bpm: number;
+    steps_count: number;
+};

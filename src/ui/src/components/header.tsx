@@ -64,6 +64,10 @@ export function Header(state: HeaderState) {
                         </>
                     )}
                     &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#body' ? css : ''} `} href="#body">
+                        body
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
                     <a className={`${currentHash === '#stats' ? css : ''} `} href="#stats">
                         stats
                     </a>

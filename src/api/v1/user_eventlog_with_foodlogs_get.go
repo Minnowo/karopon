@@ -26,7 +26,7 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 	var eventlogs []database.UserEventFoodLog
 
 	if limit := r.URL.Query().Get("n"); limit == "" {
-		err = a.Db.LoadUserEventFoodFoodLogs(r.Context(), user.ID, &eventlogs)
+		err = a.Db.LoadUserEventFoodLogs(r.Context(), user.ID, &eventlogs)
 	} else if n, err = strconv.Atoi(limit); err == nil {
 
 		if n == 0 {

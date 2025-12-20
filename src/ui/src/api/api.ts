@@ -8,6 +8,7 @@ import {
     UserEventFoodLog,
     TblUpdateUser,
     UpdateUserEventLog,
+    TblUserBodyLog,
 } from './types';
 
 export class ApiError extends Error {
@@ -104,6 +105,10 @@ export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
     return fetchJson<UserEventFoodLog[]>(apiFetch(`${ApiBase}/api/eventfoodlogs?n=${n}`));
 };
 
+export const ApiGetUserBodyLog = (): Promise<TblUserBodyLog[]> => {
+    return fetchJson<TblUserBodyLog[]>(apiFetch(`${ApiBase}/api/bodylog`));
+};
+
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
     return fetchJson<TblUser>(
         apiFetch(`${ApiBase}/api/user/update`, {
@@ -136,6 +141,18 @@ export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
             },
             method: 'POST',
             body: JSON.stringify(food),
+        })
+    );
+};
+
+export const ApiNewUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> => {
+    return fetchJson<TblUserBodyLog>(
+        apiFetch(`${ApiBase}/api/bodylog/new`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(log),
         })
     );
 };

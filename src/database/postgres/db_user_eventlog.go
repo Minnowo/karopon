@@ -161,7 +161,7 @@ func (db *PGDatabase) LoadUserEventFoodLogsN(ctx context.Context, userId int, n 
 	})
 }
 
-func (db *PGDatabase) LoadUserEventFoodFoodLogs(ctx context.Context, userId int, eventWithFood *[]database.UserEventFoodLog) error {
+func (db *PGDatabase) LoadUserEventFoodLogs(ctx context.Context, userId int, eventWithFood *[]database.UserEventFoodLog) error {
 	return db.LoadUserEventFoodLogsN(ctx, userId, -1, eventWithFood)
 }
 

@@ -1,65 +1,83 @@
 import {BaseState} from '../../state/basestate';
-import {useEffect, useState} from 'preact/hooks';
-import {UserEventFoodLog} from '../../api/types';
-
-import {RenderGraph} from './single_line_graph';
-import {RenderMultiLineGraph} from './multi_line_graph';
-import {PieChart} from './pie_chart';
-import {ChartPoint, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
-
-import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
-import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
+import {useState} from 'preact/hooks';
+import {ErrorDiv} from '../../components/error_div';
+import {TblUserBodyLog} from '../../api/types';
+import {AddBodyPanel} from './add_bodylog_panel';
+import {ApiError, ApiNewUserBodyLog} from '../../api/api';
+import {BodyLogPanel} from './bodylog_panel';
 
 export function BodyPage(state: BaseState) {
+    const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const [tmpLog, setTmpLog] = useState<TblUserBodyLog>({
+        id: 0,
+        user_id: 0,
+        created: 0,
+        user_time: 0,
+        weight_kg: 0,
+        height_cm: 0,
+        body_fat_percent: 0,
+        bmi: 0,
+        bp_systolic: 0,
+        bp_diastolic: 0,
+        heart_rate_bpm: 0,
+        steps_count: 0,
+    });
+
+    const handleErr = (e: unknown) => {
+        if (e instanceof ApiError) {
+            setErrorMsg(e.message);
+            if (e.isUnauthorizedError()) {
+                state.doRefresh();
+            }
+        } else if (e instanceof Error) {
+            setErrorMsg(e.message);
+        } else {
+            setErrorMsg(`An unknown error occurred: ${e}`);
+        }
+    };
+
+    const addBodyLog = (bodylog: TblUserBodyLog) => {
+        ApiNewUserBodyLog(bodylog)
+            .then((log: TblUserBodyLog) => {
+                state.setBodyLogs((e) => [log, ...(e === null ? [] : e)]);
+
+                setTmpLog({
+                    id: 0,
+                    user_id: 0,
+                    created: 0,
+                    user_time: 0,
+                    weight_kg: 0,
+                    height_cm: 0,
+                    body_fat_percent: 0,
+                    bmi: 0,
+                    bp_systolic: 0,
+                    bp_diastolic: 0,
+                    heart_rate_bpm: 0,
+                    steps_count: 0,
+                });
+                setShowNewEventPanel(false);
+                setErrorMsg(null);
+            })
+            .catch(handleErr);
+    };
+
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-                <button
-                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red'}`}
-                    onClick={() => {
-                        setShowNewEventPanel((x) => !x);
-                        setNewEvent(UserEventFoodLogFactory.empty());
-                    }}
-                >
+                <button className={`w-24 ${showNewEventPanel && 'bg-c-l-red'}`} onClick={() => setShowNewEventPanel((x) => !x)}>
                     {!showNewEventPanel ? 'New Event' : 'Cancel'}
                 </button>
-
-                <NumberInput
-                    label={'Show Last'}
-                    min={1}
-                    step={5}
-                    value={numberToShow}
-                    onValueChange={setNumberToShow}
-                    numberList={[1, 2, 5, 10, 20, 50]}
-                />
-
-                <DropdownButton
-                    buttonClassName="w-full h-full"
-                    className="w-24"
-                    label="Export"
-                    actions={[
-                        {
-                            label: 'As Text Render',
-                            onClick: () => {
-                                const blob = new Blob([GenerateEventTableText(state.user, state.eventlogs)], {
-                                    type: 'text/plain; charset=utf-8',
-                                });
-                                DownloadData(blob, 'eventlogs.txt');
-                            },
-                        },
-                        {
-                            label: 'As JSON',
-                            onClick: () => {
-                                const jsonStr = JSON.stringify(state.eventlogs, null, 2);
-                                const blob = new Blob([jsonStr], {type: 'application/json'});
-                                DownloadData(blob, 'eventlogs.json');
-                            },
-                        },
-                    ]}
-                />
             </div>
 
-            {errorMsg !== null && <div className="text-c-l-red">{errorMsg}</div>}
+            <ErrorDiv errorMsg={errorMsg} />
+
+            {showNewEventPanel && <AddBodyPanel bodylog={tmpLog} addBodyLog={addBodyLog} />}
+
+            {state.bodylogs.map((log: TblUserBodyLog) => (
+                <BodyLogPanel key={log.id} bodyLog={log} />
+            ))}
         </>
     );
 }

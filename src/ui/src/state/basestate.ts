@@ -1,5 +1,5 @@
 import {Dispatch, StateUpdater} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog} from '../api/types';
+import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog} from '../api/types';
 
 export type BaseState = {
     user: TblUser;
@@ -13,6 +13,9 @@ export type BaseState = {
 
     eventlogs: UserEventFoodLog[];
     setEventLogs: Dispatch<StateUpdater<UserEventFoodLog[] | null>>;
+
+    bodylogs: TblUserBodyLog[];
+    setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[] | null>>;
 
     setErrorMsg: Dispatch<StateUpdater<string | null>>;
     doRefresh: () => void;
