@@ -140,7 +140,7 @@ export const RenderMultiLineGraph = (
                                                         fontSize="10"
                                                         textAnchor="end"
                                                     >
-                                                        {Number(p.value).toFixed(2)}
+                                                        {Number(p.value).toFixed(1)}
                                                     </text>
                                                 )}
                                             </g>
