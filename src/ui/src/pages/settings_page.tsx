@@ -144,9 +144,9 @@ export function SettingsPage(state: BaseState) {
             <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
-                label="Session Expire Time (in Seconds)"
-                value={userRef.current.session_expire_time_seconds}
-                onValueChange={(value: number) => update('session_expire_time_seconds', value)}
+                label="Session Expire Time (in Hours)"
+                value={userRef.current.session_expire_time_seconds / (60 * 60)}
+                onValueChange={(value: number) => update('session_expire_time_seconds', value * 60 * 60)}
                 disabled={!isEditing}
             />
 

@@ -2,9 +2,6 @@ import {BaseState} from '../state/basestate';
 import {UserEventFoodLog} from '../api/types';
 import {useState} from 'preact/hooks';
 import {NumberInput} from '../components/number_input';
-import {DownloadData} from '../utils/download';
-import {DropdownButton} from '../components/drop_down_button';
-import {encodeCSVField} from '../utils/csv';
 import {formatSmartTimestamp} from '../utils/date_utils';
 
 export function BloodSugarPage(state: BaseState) {
@@ -13,14 +10,7 @@ export function BloodSugarPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-                <NumberInput
-                    label={'Show Last'}
-                    min={1}
-                    step={5}
-                    value={numberToShow}
-                    onValueChange={setNumberToShow}
-                    numberList={[1, 2, 5, 10, 20, 50]}
-                />
+                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             {state.eventlogs.length === 0 && (

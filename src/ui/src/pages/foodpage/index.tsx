@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useEffect, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
@@ -104,14 +104,7 @@ export function FoodPage(state: BaseState) {
                 >
                     {!showBuildFoodPanel ? 'Build Food' : 'Cancel'}
                 </button>
-                <NumberInput
-                    label={'Show'}
-                    min={1}
-                    step={5}
-                    value={numberToShow}
-                    onValueChange={setNumberToShow}
-                    numberList={[1, 2, 5, 10, 20, 50]}
-                />
+                <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
                 <DropdownButton
                     buttonClassName="w-full h-full"
                     className="w-24"

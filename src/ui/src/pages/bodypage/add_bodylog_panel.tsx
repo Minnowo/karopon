@@ -1,15 +1,18 @@
-import {BaseState} from '../../state/basestate';
-import {useState, useMemo, Dispatch, StateUpdater} from 'preact/hooks';
+import {useState, useMemo} from 'preact/hooks';
 import {ErrorDiv} from '../../components/error_div';
-import {NumberInput} from '../../components/number_input';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserBodyLog} from '../../api/types';
+import {NumberInput} from '../../components/number_input';
 
 type AddBodyPanelProps = {
     bodylog: TblUserBodyLog;
     addBodyLog: (bodylog: TblUserBodyLog) => void;
     className?: string;
 };
+
+const KgToLbs = (kg: number) => kg * 2.2046226218;
+const LbsToKg = (lbs: number) => lbs / 2.2046226218;
+
 export function AddBodyPanel(state: AddBodyPanelProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -36,16 +39,6 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
     const onSaveClick = () => {
         setErrorMsg(null);
 
-        if (tmpLog.weight_kg <= 0) {
-            setErrorMsg('Weight must be greater than 0');
-            return;
-        }
-
-        if (tmpLog.height_cm <= 0) {
-            setErrorMsg('Height must be greater than 0');
-            return;
-        }
-
         const newLog: TblUserBodyLog = {
             ...tmpLog,
             bmi: tmpLog.height_cm > 0 ? +(tmpLog.weight_kg / Math.pow(tmpLog.height_cm / 100, 2)).toFixed(2) : 0,
@@ -61,23 +54,42 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                 <ErrorDiv errorMsg={errorMsg} />
                 <div className="flex flex-col justify-between">
                     <div className="flex flex-wrap">
-                        <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full"
-                            label="Weight (kg)"
-                            min={0}
-                            value={tmpLog.weight_kg}
-                            onValueChange={(v) => {
-                                tmpLog.weight_kg = v;
-                                render();
-                            }}
-                        />
+                        <span className="flex flex-row">
+                            <NumberInput
+                                className="w-full my-1"
+                                innerClassName="w-full"
+                                label="Weight (kg)"
+                                step={1}
+                                min={0}
+                                precision={3}
+                                value={tmpLog.weight_kg}
+                                onValueChange={(v) => {
+                                    tmpLog.weight_kg = v;
+                                    render();
+                                }}
+                            />
+                            <NumberInput
+                                className="w-full my-1"
+                                innerClassName="w-full"
+                                label="Weight (lbs)"
+                                step={1}
+                                min={0}
+                                precision={3}
+                                value={KgToLbs(tmpLog.weight_kg)}
+                                onValueChange={(v) => {
+                                    tmpLog.weight_kg = LbsToKg(v);
+                                    render();
+                                }}
+                            />
+                        </span>
 
                         <NumberInput
                             className="w-full my-1"
                             innerClassName="w-full"
                             label="Height (cm)"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.height_cm}
                             onValueChange={(v) => {
                                 tmpLog.height_cm = v;
@@ -89,7 +101,9 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             className="w-full my-1"
                             innerClassName="w-full"
                             label="Body Fat %"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.body_fat_percent}
                             onValueChange={(v) => {
                                 tmpLog.body_fat_percent = v;
@@ -101,7 +115,9 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             className="w-full my-1"
                             innerClassName="w-full"
                             label="Heart Rate (bpm)"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.heart_rate_bpm}
                             onValueChange={(v) => {
                                 tmpLog.heart_rate_bpm = v;
@@ -113,7 +129,9 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             className="w-full my-1"
                             innerClassName="w-full"
                             label="BP Systolic"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.bp_systolic}
                             onValueChange={(v) => {
                                 tmpLog.bp_systolic = v;
@@ -125,7 +143,9 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             className="w-full my-1"
                             innerClassName="w-full"
                             label="BP Diastolic"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.bp_diastolic}
                             onValueChange={(v) => {
                                 tmpLog.bp_diastolic = v;
@@ -137,7 +157,9 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             className="w-full mt-1"
                             innerClassName="w-full"
                             label="Steps"
+                            step={1}
                             min={0}
+                            precision={3}
                             value={tmpLog.steps_count}
                             onValueChange={(v) => {
                                 tmpLog.steps_count = v;

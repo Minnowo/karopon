@@ -1,8 +1,8 @@
 import {useEffect, useRef} from 'preact/hooks';
 import {TblUserFood, TblUserFoodLog} from '../api/types';
 import {FuzzySearch} from './select_list';
-import {NumberInput} from './number_input';
 import {JSX} from 'preact/jsx-runtime';
+import {NumberInput} from './number_input';
 
 type AddFoodlogPanelRowState = {
     food: TblUserFoodLog;
@@ -88,7 +88,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                 <td className="pr-1">
                     <NumberInput
                         innerClassName="w-8"
-                        round={1}
+                        precision={1}
                         min={0}
                         value={food.portion}
                         onValueChange={(v) => {
@@ -108,7 +108,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                         buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
-                        round={1}
+                        precision={1}
                         min={0}
                         value={food.protein}
                         onValueChange={(v) => {
@@ -122,7 +122,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                         buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
-                        round={1}
+                        precision={1}
                         min={0}
                         value={food.carb}
                         onValueChange={(v) => {
@@ -136,7 +136,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                         buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
-                        round={1}
+                        precision={1}
                         min={0}
                         value={food.fibre}
                         onValueChange={(v) => {
@@ -150,7 +150,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                         buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
                         innerTabIndex={-1}
-                        round={1}
+                        precision={1}
                         min={0}
                         value={food.fat}
                         onValueChange={(v) => {

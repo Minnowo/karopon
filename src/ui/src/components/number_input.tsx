@@ -1,7 +1,7 @@
-import {useState, useRef, useEffect} from 'preact/hooks';
-import {JSX} from 'preact';
+import {useCallback, useEffect, useRef, useState} from 'preact/hooks';
+import {HoldButton} from './hold_button';
 
-type Props = {
+type FloatInputProps = {
     className?: string;
     innerClassName?: string;
     buttonClassName?: string;
@@ -10,180 +10,127 @@ type Props = {
     value: number;
     onValueChange: (value: number) => void;
     numberList?: number[];
-    distinctNumberList?: boolean;
     step?: number;
+    precision?: number;
     min?: number;
     max?: number;
-    round?: number;
     disabled?: boolean;
 };
 
-export function NumberInput({max = 1_000_000_000, ...p}: Props) {
-    const intDelay = 500;
-    const repSpeed = 150;
-    const timeoutRef = useRef<number>(0);
-    const intervalRef = useRef<number>(0);
-    const valueRef = useRef<number>(p.value);
-    const [open, setOpen] = useState<boolean>(false);
+const NUMBER_REGEX = /^-?\d*(?:\.\d*)?$/;
 
-    const numberList: number[] | undefined = p.distinctNumberList
-        ? [...new Set(p.numberList)].sort((a, b) => a - b)
-        : p.numberList;
+export function NumberInput({
+    value,
+    onValueChange,
+    label = undefined,
+    step = 1,
+    precision = 2,
+    min = -Infinity,
+    max = 1_000_000,
+    disabled = false,
+    className = '',
+    innerClassName = 'w-12',
+    buttonClassName = '',
+    innerTabIndex = undefined,
+}: FloatInputProps) {
+    const round = useCallback(
+        (v: number) => {
+            const factor = 10 ** precision;
+            return Math.round(v * factor) / factor;
+        },
+        [precision]
+    );
 
-    const className = p.className !== undefined ? p.className : '';
-    const innerClassName = p.innerClassName !== undefined ? p.innerClassName : 'w-12';
+    const [text, setText] = useState(round(value).toString());
 
-    const value = (() => {
-        const strValue = p.value.toString();
-
-        if (p.round !== undefined) {
-            if (strValue.indexOf('.') !== -1) {
-                return p.value.toFixed(p.round);
-            }
-        }
-        return `${p.value}`;
-    })();
+    const isEditing = useRef<boolean>(false);
 
     useEffect(() => {
-        valueRef.current = p.value;
-    }, [p.value]);
+        if (isEditing.current) {
+            setText(value.toString());
+        } else {
+            setText(round(value).toString());
+        }
+    }, [value, round]);
 
-    const stopHoldRepeat = () => {
-        clearTimeout(timeoutRef.current);
-        clearInterval(intervalRef.current);
+    const commitValue = (v: number) => {
+        const clamped = Math.min(max, Math.max(min, v));
+        const rounded = round(clamped);
+
+        setText(rounded.toString());
+        onValueChange(rounded);
     };
 
-    const doInc = () => {
-        if (p.disabled) {
-            return;
+    const tryEmit = (raw: string) => {
+        const parsed = Number(raw);
+        if (!Number.isNaN(parsed)) {
+            onValueChange(parsed);
         }
-        const step = p.step === undefined ? 1 : p.step;
-        if (max !== undefined && valueRef.current + step > max) {
-            p.onValueChange(max);
-            return;
-        }
-        p.onValueChange(valueRef.current + step);
     };
 
-    const doDec = () => {
-        if (p.disabled) {
-            return;
+    const handleBlur = () => {
+        const parsed = Number(text);
+        if (!Number.isNaN(parsed)) {
+            commitValue(parsed);
+        } else {
+            setText(value.toString());
         }
-        const step = p.step === undefined ? 1 : p.step;
-        if (p.min !== undefined && valueRef.current - step < p.min) {
-            p.onValueChange(p.min);
-            return;
-        }
-        p.onValueChange(valueRef.current - step);
+    };
+
+    const stepBy = (dir: 1 | -1) => {
+        const base = Number(text);
+        const current = Number.isNaN(base) ? value : base;
+
+        commitValue(current + step * dir);
     };
 
     return (
         <div
-            aria-disabled={p.disabled}
+            aria-disabled={disabled}
             className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like px-0 py-0 ${className}`}
         >
-            {p.label && (
-                <button
-                    tabindex={-1}
-                    className="border-none select-none rounded-r-none pr-1"
-                    onClick={() => !p.disabled && setOpen(!open)}
-                    onBlur={() => setOpen(false)}
-                >
-                    {p.label}
-                </button>
-            )}
+            {label && <div className="flex items-center select-none pr-1"> {label} </div>}
             <input
-                tabindex={p.innerTabIndex}
+                tabindex={innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none`}
                 type="text"
-                inputmode="decimal"
-                pattern="-?[0-9]*\.?[0-9]*$"
-                value={value}
-                onFocus={() => !p.disabled && setOpen(true)}
-                onBlur={() => setOpen(false)}
-                disabled={p.disabled}
-                onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
-                    if (e === null || e.currentTarget.value.length <= 0) {
-                        return;
-                    }
-                    if (e.currentTarget.value.endsWith('.')) {
-                        if (e.currentTarget.value.indexOf('.') === e.currentTarget.value.length - 1) {
-                            return;
-                        }
-                    }
-                    const number = Number(e.currentTarget.value);
+                inputMode="decimal"
+                disabled={disabled}
+                value={text}
+                onFocusIn={() => (isEditing.current = true)}
+                onFocusOut={() => (isEditing.current = false)}
+                onInput={(e) => {
+                    const v = e.currentTarget.value;
 
-                    if (isNaN(number)) {
-                        e.currentTarget.value = `${p.value}`;
+                    if (!NUMBER_REGEX.test(v)) {
+                        e.currentTarget.value = text;
                         return;
                     }
-                    if (number === p.value) {
-                        return;
-                    }
-                    if (max !== undefined && number > max) {
-                        p.onValueChange(max);
-                    } else if (p.min !== undefined && number < p.min) {
-                        p.onValueChange(p.min);
-                    } else {
-                        p.onValueChange(number);
-                    }
+
+                    setText(v);
+                    tryEmit(v);
                 }}
+                onBlur={handleBlur}
             />
-            <div className={`flex flex-col justify-between ${p.buttonClassName}`}>
-                <button
-                    disabled={p.disabled}
-                    tabindex={-1}
+
+            <div className={`flex flex-col justify-between ${buttonClassName}`}>
+                <HoldButton
+                    tabIndex={-1}
+                    disabled={disabled}
+                    onStep={() => stepBy(1)}
                     className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
-                    onPointerUp={stopHoldRepeat}
-                    onPointerLeave={stopHoldRepeat}
-                    onPointerCancel={stopHoldRepeat}
-                    onMouseUp={() => stopHoldRepeat()}
-                    onPointerDown={() => {
-                        doInc();
-                        timeoutRef.current = setTimeout(() => {
-                            intervalRef.current = setInterval(() => {
-                                doInc();
-                            }, repSpeed);
-                        }, intDelay);
-                    }}
                 >
                     ▲
-                </button>
-                <button
-                    disabled={p.disabled}
-                    tabindex={-1}
+                </HoldButton>
+                <HoldButton
+                    tabIndex={-1}
+                    disabled={disabled}
+                    onStep={() => stepBy(-1)}
                     className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
-                    onPointerUp={stopHoldRepeat}
-                    onPointerLeave={stopHoldRepeat}
-                    onPointerCancel={stopHoldRepeat}
-                    onMouseUp={() => stopHoldRepeat()}
-                    onPointerDown={() => {
-                        doDec();
-                        timeoutRef.current = setTimeout(() => {
-                            intervalRef.current = setInterval(() => {
-                                doDec();
-                            }, repSpeed);
-                        }, intDelay);
-                    }}
                 >
                     ▼
-                </button>
+                </HoldButton>
             </div>
-            {open && numberList !== undefined && (
-                <div className="absolute left-24 top-full z-50">
-                    {numberList.map((limit: number) => {
-                        return (
-                            <div
-                                className="border px-0.5 w-15 bg-c-black hover:bg-c-l-black"
-                                key={limit}
-                                onMouseDown={() => p.onValueChange(limit)}
-                            >
-                                {limit}
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
         </div>
     );
 }

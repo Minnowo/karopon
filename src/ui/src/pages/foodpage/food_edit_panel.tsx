@@ -1,10 +1,10 @@
 import {useState, useRef} from 'preact/hooks';
 import {TblUser, TblUserFood} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
-import {NumberInput} from '../../components/number_input';
 import {DoRender} from '../../hooks/doRender';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {ErrorDiv} from '../../components/error_div';
+import {NumberInput} from '../../components/number_input';
 
 type FoodEditPanelProps = {
     user: TblUser;
@@ -151,8 +151,6 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                             <NumberInput
                                 innerClassName="w-24"
                                 label={food.unit}
-                                numberList={[1, 5, 10, 20, 30, 50, 100, portion + 100, portion * 2, portion * 4, portion * 10]}
-                                distinctNumberList={true}
                                 min={0}
                                 max={1_000_000_000}
                                 value={portion}
@@ -179,7 +177,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         innerClassName="w-16"
                         label={'Protein'}
                         value={tmpFood.current.protein}
-                        round={3}
+                        precision={3}
                         onValueChange={(protein: number) => {
                             tmpFood.current.protein = protein;
                             render();
@@ -190,7 +188,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         innerClassName="w-16"
                         label={'Carb'}
                         value={tmpFood.current.carb}
-                        round={3}
+                        precision={3}
                         onValueChange={(carb: number) => {
                             tmpFood.current.carb = carb;
                             render();
@@ -201,7 +199,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         innerClassName="w-16"
                         label={'Fibre'}
                         value={tmpFood.current.fibre}
-                        round={3}
+                        precision={3}
                         onValueChange={(fibre: number) => {
                             tmpFood.current.fibre = fibre;
                             render();
@@ -212,7 +210,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         innerClassName="w-16"
                         label={'Fat'}
                         value={tmpFood.current.fat}
-                        round={3}
+                        precision={3}
                         onValueChange={(fat: number) => {
                             tmpFood.current.fat = fat;
                             render();

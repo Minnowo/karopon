@@ -1,13 +1,6 @@
-import {useEffect, useState} from 'preact/hooks';
+import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {
-    CreateUserEventLog,
-    TblUser,
-    TblUserEventLog,
-    TblUserFoodLog,
-    UpdateUserEventLog,
-    UserEventFoodLog,
-} from '../../api/types';
+import {CreateUserEventLog, TblUser, TblUserFoodLog, UpdateUserEventLog, UserEventFoodLog} from '../../api/types';
 import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
 import {formatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton, DropdownButtonAction} from '../../components/drop_down_button';
@@ -48,9 +41,18 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                     </span>
                     {user.show_diabetes && (
                         <>
-                            <span className="mx-1" title="Blood Glucose Level (Blood Sugar)">{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
-                            <span className="mx-1" title="Insulin Recommended">{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
-                            <span className="mx-1" title="Insulin Taken">{`InsTaken ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
+                            <span
+                                className="mx-1"
+                                title="Blood Glucose Level (Blood Sugar)"
+                            >{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
+                            <span
+                                className="mx-1"
+                                title="Insulin Recommended"
+                            >{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
+                            <span
+                                className="mx-1"
+                                title="Insulin Taken"
+                            >{`InsTaken ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
                         </>
                     )}
                 </div>
@@ -236,14 +238,7 @@ export function EventsPage(state: BaseState) {
                     {!showNewEventPanel ? 'New Event' : 'Cancel'}
                 </button>
 
-                <NumberInput
-                    label={'Show Last'}
-                    min={1}
-                    step={5}
-                    value={numberToShow}
-                    onValueChange={setNumberToShow}
-                    numberList={[1, 2, 5, 10, 20, 50]}
-                />
+                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
 
                 <DropdownButton
                     buttonClassName="w-full h-full"

@@ -89,7 +89,8 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                             <div key={i} className="flex items-center gap-1">
                                 <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                                 <span className="text-white text-sm">
-                                    {slice.label} {(slice.value / total * 100).toFixed(1)}{'% '} ({slice.value.toFixed(2)}g)
+                                    {slice.label} {((slice.value / total) * 100).toFixed(1)}
+                                    {'% '} ({slice.value.toFixed(2)}g)
                                 </span>
                             </div>
                         ))}

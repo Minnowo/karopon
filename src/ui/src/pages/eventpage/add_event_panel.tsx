@@ -12,7 +12,6 @@ import {
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
-import {NumberInput} from '../../components/number_input';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
@@ -21,6 +20,7 @@ import {FormatDateForInput, formatSmartTimestamp} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
+import {NumberInput} from '../../components/number_input';
 
 type AddEventsPanelState = {
     dialogTitle: string;
@@ -107,6 +107,13 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         p.user.target_blood_sugar,
         insulinToCarbRatio,
         p.user.insulin_sensitivity_factor
+    );
+    const calories = CalculateCalories(
+        totals.protein,
+        netCarb,
+        totals.fibre,
+        totals.fat,
+        Str2CalorieFormula(p.user.caloric_calc_method)
     );
 
     const onCreateClick = () => {
@@ -290,14 +297,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </>
                 )}
                 <span className="px-2" title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>
-                    Calories{' '}
-                    {CalculateCalories(
-                        totals.protein,
-                        totals.carb - totals.fibre,
-                        totals.fibre,
-                        totals.fat,
-                        Str2CalorieFormula(p.user.caloric_calc_method)
-                    ).toFixed(1)}
+                    Calories {calories.toFixed(1)}
                 </span>
             </div>
 
