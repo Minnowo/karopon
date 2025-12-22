@@ -37,14 +37,8 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                 </div>
 
                 <div className="flex flex-row flex-wrap w-full justify-evenly">
-                    {user.show_diabetes && (
-                        <>
-                            <span className="">{`BloodSugar ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
-                            <span className="mx-1">{`Insulin ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
-                        </>
-                    )}
-                    <span>
-                        {`Calories ${CalculateCalories(
+                    <span className="mx-1" title="Calories">
+                        {`Cal ${CalculateCalories(
                             foodGroup.total_protein,
                             foodGroup.total_carb - foodGroup.total_fibre,
                             foodGroup.total_fibre,
@@ -52,6 +46,13 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                             Str2CalorieFormula(user.caloric_calc_method)
                         ).toFixed(1)}`}
                     </span>
+                    {user.show_diabetes && (
+                        <>
+                            <span className="mx-1" title="Blood Glucose Level (Blood Sugar)">{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
+                            <span className="mx-1" title="Insulin Recommended">{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
+                            <span className="mx-1" title="Insulin Taken">{`InsTaken ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
+                        </>
+                    )}
                 </div>
 
                 {foodGroup.foodlogs.length > 0 && (
