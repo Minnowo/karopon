@@ -1,4 +1,5 @@
 import {GetCookieValue} from '../utils/cookies';
+import {LocalGetServer, LocalStoreServer} from '../utils/localstate';
 import {
     TblUser,
     TblUserFood,
@@ -50,10 +51,14 @@ const fetchJson = async <T>(req: Promise<Response>): Promise<T> => {
     return (await response.json()) as T;
 };
 
-let ApiBase = '';
+let ApiBase = LocalGetServer() ?? '';
 export const GetApiBase = () => ApiBase;
 export const SetApiBase = (base: string) => {
+    if (base.endsWith('/')) {
+        base = base.substring(0, base.length - 1);
+    }
     ApiBase = base;
+    LocalStoreServer(base);
 };
 
 let authToken = '';

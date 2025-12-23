@@ -76,29 +76,24 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
 
                         <tr>
                             <td colSpan={2} className="text-left">
+                                <details className="w-full">
+                                    <summary className="cursor-pointer text-sm font-semibold">Advanced Options</summary>
 
-                        <details className="w-full">
-                            <summary className="cursor-pointer text-sm font-semibold">
-                            Advanced Options
-                            </summary>
-
-                            <div className="flex flex-col mt-2">
-                                <div className="flex flex-row  items-center">
-                                <span className="mr-2"> Server </span>
-                                    <input
-                                    className="w-full"
-                                        ref={serverInputRef}
-                                        type="text"
-                                        placeholder="Server URL (empty=default)"
-                                        value={GetApiBase()}
-                                    />
-                                </div>
-                            </div>
-                        </details>
-
+                                    <div className="flex flex-col mt-2">
+                                        <div className="flex flex-row  items-center">
+                                            <span className="mr-2"> Server </span>
+                                            <input
+                                                className="w-full"
+                                                ref={serverInputRef}
+                                                type="text"
+                                                placeholder="Server URL (empty=default)"
+                                                value={GetApiBase()}
+                                            />
+                                        </div>
+                                    </div>
+                                </details>
                             </td>
                         </tr>
-
                     </tbody>
                 </table>
                 <ErrorDiv errorMsg={error} />

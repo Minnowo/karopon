@@ -116,7 +116,6 @@ export function App() {
 
     return (
         <main className="pt-12 pb-16 px-4 sm:px-8 md:px-16">
-
             <>
                 {/* need this inside a component to prevent a remount of the router when this changes */}
                 {hasAuthCookie ? (
