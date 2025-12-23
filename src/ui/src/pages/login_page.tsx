@@ -52,19 +52,8 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
         <>
             <h1 className="mb-4">Karopon</h1>
             <form className="flex flex-col align-middle items-center" encType="multipart/form-data" onSubmit={handleSubmit}>
-                <table className="table-auto table-padded">
+                <table className="table-auto table-padded mb-2">
                     <tbody className="text-right">
-                        <tr title="The server to login to">
-                            <td className="px-2">Server</td>
-                            <td title="To login to a different server, enter it's URL here">
-                                <input
-                                    ref={serverInputRef}
-                                    type="text"
-                                    placeholder="Server URL (empty=default)"
-                                    value={GetApiBase()}
-                                />
-                            </td>
-                        </tr>
                         <tr title="Your username">
                             <td className="px-2">Username</td>
                             <td>
@@ -84,6 +73,32 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                                 <input className="w-full" type="submit" value="Login" />
                             </td>
                         </tr>
+
+                        <tr>
+                            <td colSpan={2} className="text-left">
+
+                        <details className="w-full">
+                            <summary className="cursor-pointer text-sm font-semibold">
+                            Advanced Options
+                            </summary>
+
+                            <div className="flex flex-col mt-2">
+                                <div className="flex flex-row  items-center">
+                                <span className="mr-2"> Server </span>
+                                    <input
+                                    className="w-full"
+                                        ref={serverInputRef}
+                                        type="text"
+                                        placeholder="Server URL (empty=default)"
+                                        value={GetApiBase()}
+                                    />
+                                </div>
+                            </div>
+                        </details>
+
+                            </td>
+                        </tr>
+
                     </tbody>
                 </table>
                 <ErrorDiv errorMsg={error} />

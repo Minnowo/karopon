@@ -116,19 +116,20 @@ export function App() {
 
     return (
         <main className="pt-12 pb-16 px-4 sm:px-8 md:px-16">
-            <Header user={user} />
 
             <>
                 {/* need this inside a component to prevent a remount of the router when this changes */}
                 {hasAuthCookie ? (
                     <ErrorDiv errorMsg={errorMsg} />
                 ) : (
-                    <div className="flex flex-col justify-center items-center py-4">
+                    <div className="flex flex-col justify-center items-center py-4 mb-4">
                         <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
                         <span className="font-bold">Your session has expired, please login again.</span>
                     </div>
                 )}
             </>
+
+            <Header user={user} />
 
             <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
                 {(() => {
