@@ -26,7 +26,7 @@ export function NumberInput({
     step = 1,
     precision = 2,
     min = -Infinity,
-    max = 1_000_000,
+    max = 1_000_000_000,
     disabled = false,
     className = '',
     innerClassName = 'w-12',

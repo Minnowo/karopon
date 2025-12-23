@@ -152,7 +152,6 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                                 innerClassName="w-24"
                                 label={food.unit}
                                 min={0}
-                                max={1_000_000_000}
                                 value={portion}
                                 onValueChange={setPortion}
                             />

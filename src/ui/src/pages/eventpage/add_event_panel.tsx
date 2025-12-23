@@ -171,7 +171,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const buildTableHead = () => {
         return (
-            <tr className="font-semibold text-xs">
+            <tr className="font-semibold text-xs text-center">
                 <th className="text-left py-1">
                     <button
                         className="w-full sm:w-32"
@@ -183,14 +183,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         Add Row
                     </button>
                 </th>
-                <th className="text-center py-1">Unit</th>
-                <th className="text-center py-1">Amount</th>
-                <th className="text-center py-1">Protein</th>
-                <th className="text-center py-1">Carbs</th>
-                <th className="text-center py-1">Fibre</th>
-                <th className="text-center py-1">Fat</th>
-                <th className="text-center py-1">NetCarb</th>
-                <th className="text-center py-1" />
+                <th className="py-1">Unit</th>
+                <th className="py-1">Amt</th>
+                <th className="py-1">Prot</th>
+                <th className="py-1">Carb</th>
+                <th className="py-1">Fib</th>
+                <th className="py-1">Fat</th>
+                <th className="py-1">Net</th>
+                <th className="py-1" />
             </tr>
         );
     };

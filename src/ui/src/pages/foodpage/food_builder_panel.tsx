@@ -66,8 +66,6 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
         };
     })();
 
-    const netCarb = totals.carb - totals.fibre;
-
     const onCreateClick = () => {
         setErrorMsg(null);
 
@@ -99,18 +97,42 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
 
     return (
         <div className={`rounded-sm p-2 border container-theme bg-c-black ${p.className}`}>
-            <div className="flex w-full justify-between">
+            <div className="w-full">
                 <span className="text-lg font-bold">Food Builder</span>
+                <details className="w-full">
+                    <summary className="cursor-pointer text-sm font-semibold">
+                        create a new food from other foods (click for more info)
+                    </summary>
+
+                    <div className="text-sm p-4">
+                        <p>Combine existing foods to create a new food. Best for home cooking, and recipies.</p>
+                        <br />
+                        <p className="font-semibold">Example - home cooking</p>
+
+                        <ol className="list-decimal list-inside space-y-1">
+                            <li>Add each ingredient as a new food</li>
+                            <li>Portion each ingredient into the table below</li>
+                            <li>Cook your food</li>
+                            <li>
+                                Weigh the result (important! the final weight of everything, since the ingredients are portioned
+                                for the total result)
+                            </li>
+                            <li>Give your food a name and enter the weight and unit of measure</li>
+                            <li>Build the food</li>
+                        </ol>
+                    </div>
+                </details>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="overflow-x-scroll">
+            <div className="overflow-x-scroll mt-4">
                 <table className="w-full text-sm border-collapse">
                     <thead>
-                        <tr className="font-semibold text-xs border-b">
+                        <tr className="font-semibold text-xs text-center">
                             <th className="text-left py-1">
                                 <button
+                                    className="w-full sm:w-32"
                                     onClick={() => {
                                         foods.push(mutateWithKey(TblUserFoodLogFactory.empty()));
                                         render();
@@ -119,14 +141,13 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                                     Add Row
                                 </button>
                             </th>
-                            <th className="text-center py-1">Unit</th>
-                            <th className="text-center py-1">Amount</th>
-                            <th className="text-center py-1">Protein</th>
-                            <th className="text-center py-1">Carbs</th>
-                            <th className="text-center py-1">Fibre</th>
-                            <th className="text-center py-1">Fat</th>
-                            <th className="text-center py-1">NetCarb</th>
-                            <th className="text-center py-1" />
+                            <th className="py-1">Unit</th>
+                            <th className="py-1">Amt</th>
+                            <th className="py-1">Prot</th>
+                            <th className="py-1">Carb</th>
+                            <th className="py-1">Fib</th>
+                            <th className="py-1">Fat</th>
+                            <th className="py-1" />
                         </tr>
                     </thead>
 
@@ -142,49 +163,63 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                                         foods.splice(index, 1);
                                         render();
                                     }}
+                                    showNetCarb={false}
                                 />
                             );
                         })}
                         <tr>
-                            <td className="whitespace-nowrap w-full pr-1">
-                                <input
-                                    className="w-full min-w-8"
-                                    type="text"
-                                    value={food.current.name}
-                                    onInput={(e) => (food.current.name = e.currentTarget.value)}
-                                    placeholder="Your built food name"
-                                />
-                            </td>
-                            <td className="text-center pr-1">
-                                <input
-                                    className="whitespace-nowrap flex-auto max-w-32"
-                                    type="text"
-                                    value={food.current.unit}
-                                    onInput={(e) => (food.current.unit = e.currentTarget.value)}
-                                    placeholder="Portion Unit"
-                                />
-                            </td>
-                            <td className="text-center pr-1">
-                                <NumberInput
-                                    className={'w-full'}
-                                    innerClassName={'w-full'}
-                                    min={0}
-                                    max={1_000_000_000}
-                                    value={food.current.portion}
-                                    onValueChange={(portion: number) => {
-                                        food.current.portion = portion;
-                                        render();
-                                    }}
-                                />
-                            </td>
-                            <td className="text-center pr-1">{totals.protein.toFixed(1)}</td>
-                            <td className="text-center pr-1">{totals.carb.toFixed(1)}</td>
-                            <td className="text-center pr-1">{totals.fibre.toFixed(1)}</td>
-                            <td className="text-center pr-1"> {totals.fat.toFixed(1)}</td>
-                            <td className="text-center font-bold"> {netCarb.toFixed(1)}</td>
+                            {' '}
+                            <td>&nbsp;</td>{' '}
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <table className="w-full text-center">
+                <thead>
+                    <th>Prot</th>
+                    <th className="px-1">Carb</th>
+                    <th className="px-1">Fib</th>
+                    <th>Fat</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{totals.protein.toFixed(1)}</td>
+                        <td className="px-1">{totals.carb.toFixed(1)}</td>
+                        <td className="px-1">{totals.fibre.toFixed(1)}</td>
+                        <td> {totals.fat.toFixed(1)}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div className="w-full mt-4">
+                <div className="flex flex-row flex-wrap">
+                    <input
+                        className="mb-2 flex-auto mr-1"
+                        type="text"
+                        value={food.current.name}
+                        onInput={(e) => (food.current.name = e.currentTarget.value)}
+                        placeholder="Food Name"
+                    />
+                    <input
+                        className="mb-2 flex-auto max-w-32"
+                        type="text"
+                        value={food.current.unit}
+                        onInput={(e) => (food.current.unit = e.currentTarget.value)}
+                        placeholder="Portion Unit"
+                    />
+                </div>
+                <NumberInput
+                    className={'w-full mb-1'}
+                    innerClassName={'w-full'}
+                    min={0}
+                    label={'Portion'}
+                    value={food.current.portion}
+                    onValueChange={(portion: number) => {
+                        food.current.portion = portion;
+                        render();
+                    }}
+                />
             </div>
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">

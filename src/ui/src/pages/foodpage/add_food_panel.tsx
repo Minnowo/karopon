@@ -73,7 +73,6 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         className={'w-full mb-1'}
                         innerClassName={'w-full'}
                         min={0}
-                        max={1_000_000_000}
                         label={'Portion'}
                         value={tmpFood.portion}
                         onValueChange={(portion: number) => {
@@ -129,7 +128,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         render();
                     }}
                 />
-                <button className="ml-auto my-1 sm:ml-1 text-c-l-green max-w-32" onClick={onSaveClick}>
+                <button className="ml-auto my-1 sm:ml-1 text-c-l-green w-full max-w-32" onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>

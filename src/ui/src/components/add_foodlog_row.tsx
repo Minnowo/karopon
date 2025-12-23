@@ -9,9 +9,10 @@ type AddFoodlogPanelRowState = {
     foods: TblUserFood[];
     render: () => void;
     deleteSelf: () => void;
+    showNetCarb?: boolean;
 };
 
-export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlogPanelRowState) {
+export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb = true}: AddFoodlogPanelRowState) {
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
     // We use this to scale by the portion, but still let the user type manually.
     const foodTemplate = useRef<TblUserFoodLog>({name: food.name} as TblUserFoodLog);
@@ -159,7 +160,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf}: AddFoodlog
                         }}
                     />
                 </td>
-                <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>
+                {showNetCarb && <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>}
                 <td>
                     <button tabindex={-1} className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
