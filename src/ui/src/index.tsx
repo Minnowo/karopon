@@ -1,8 +1,6 @@
 import './styles.css';
 
 import {render} from 'preact';
-import {Router, Route, Switch} from 'wouter-preact';
-import {useHashLocation} from 'wouter-preact/use-hash-location';
 
 import {Header} from './components/header.jsx';
 import {LoginDialog, LoginPage} from './pages/login_page.jsx';
@@ -16,7 +14,6 @@ import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventFoodLog, ApiWhoAmI, Ha
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
-import {NotFound} from './pages/_404.js';
 import {
     LocalGetBodyLogs,
     LocalGetEventLogs,
@@ -36,6 +33,7 @@ export function App() {
     // This cookie is set when there is a valid auth token cookie.
     const hasAuthCookie = HasAuth();
 
+    const [hashRoute, setHashRoute] = useState<string>(window.location.hash);
     const [user, setUser] = useState<TblUser | null>(LocalGetUser());
     const [foods, setFoods] = useState<TblUserFood[] | null>(LocalGetFoods());
     const [events, setEvents] = useState<TblUserEvent[] | null>(LocalGetEvents());
@@ -44,6 +42,15 @@ export function App() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
     const doRefresh = () => setRefresh((x) => x + 1);
+
+    useEffect(() => {
+        const updateFunc = () => setHashRoute(window.location.hash);
+
+        updateFunc();
+        window.addEventListener('hashchange', updateFunc);
+
+        return () => window.removeEventListener('hashchange', updateFunc);
+    }, []);
 
     useEffect(() => {
         if (user !== null) {
@@ -109,130 +116,131 @@ export function App() {
 
     return (
         <main className="pt-12 pb-16 px-4 sm:px-8 md:px-16">
-            <Router hook={useHashLocation}>
-                <Header user={user} />
+            <Header user={user} />
 
-                <>
-                    {/* need this inside a component to prevent a remount of the router when this changes */}
-                    {hasAuthCookie ? (
-                        <ErrorDiv errorMsg={errorMsg} />
-                    ) : (
-                        <div className="flex flex-col justify-center items-center py-4">
-                            <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
-                            <span className="font-bold">Your session has expired, please login again.</span>
-                        </div>
-                    )}
-                </>
+            <>
+                {/* need this inside a component to prevent a remount of the router when this changes */}
+                {hasAuthCookie ? (
+                    <ErrorDiv errorMsg={errorMsg} />
+                ) : (
+                    <div className="flex flex-col justify-center items-center py-4">
+                        <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
+                        <span className="font-bold">Your session has expired, please login again.</span>
+                    </div>
+                )}
+            </>
 
-                <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
-                    <Switch>
-                        <Route path="/events">
-                            <EventsPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-                        <Route path="/foods">
-                            <FoodPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-                        <Route path="/bloodsugar">
-                            <BloodSugarPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-                        <Route path="/body">
-                            <BodyPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-                        <Route path="/stats">
-                            <StatsPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-                        <Route path="/logout">
-                            <LogoutPage />
-                        </Route>
-
-                        <Route path="/settings">
-                            <SettingsPage
-                                user={user}
-                                setUser={setUser}
-                                foods={foods}
-                                setFoods={setFoods}
-                                events={events}
-                                setEvents={setEvents}
-                                eventlogs={eventlogs}
-                                setEventLogs={setEventLogsWithFoodlogs}
-                                bodylogs={bodylogs}
-                                setBodyLogs={setBodyLogs}
-                                setErrorMsg={setErrorMsg}
-                                doRefresh={doRefresh}
-                            />
-                        </Route>
-
-                        <Route>
-                            <NotFound />
-                        </Route>
-                    </Switch>
-                </div>
-            </Router>
+            <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
+                {(() => {
+                    switch (hashRoute) {
+                        case '#logout':
+                            return <LogoutPage />;
+                        default:
+                        case '#events':
+                            return (
+                                <EventsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#foods':
+                            return (
+                                <FoodPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#body':
+                            return (
+                                <BodyPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#bloodsugar':
+                            return (
+                                <BloodSugarPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#stats':
+                            return (
+                                <StatsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#settings':
+                            return (
+                                <SettingsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                    }
+                })()}
+            </div>
         </main>
     );
 }

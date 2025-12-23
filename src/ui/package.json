@@ -11,9 +11,7 @@
     "dependencies": {
         "@typescript-eslint/eslint-plugin": "^8.33.0",
         "@typescript-eslint/parser": "^8.33.0",
-        "preact": "^10.25.3",
-        "wouter": "^3.7.1",
-        "wouter-preact": "^3.7.1"
+        "preact": "^10.25.3"
     },
     "devDependencies": {
         "@eslint/js": "^9.28.0",
