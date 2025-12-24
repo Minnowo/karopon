@@ -162,6 +162,18 @@ type DB interface {
 
 	// Add the given bodylog to the db.
 	AddUserBodyLogs(ctx context.Context, log *TblUserBodyLog) (int, error)
+
+	///
+	/// Data Source Functions
+	///
+	AddDatasource(ctx context.Context, ds *TblDataSource) (int, error)
+	LoadDatasources(ctx context.Context, ds *[]TblDataSource) error
+	LoadDatasourceByName(ctx context.Context, name string, ds *TblDataSource) error
+
+	///
+	/// Data Source Food Functions
+	///
+	AddDatasourceFood(ctx context.Context, ds *TblDataSourceFood) (int, error)
 }
 
 type SQLxDB struct {

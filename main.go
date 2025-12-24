@@ -59,9 +59,21 @@ func main() {
 								Required: false,
 							},
 							&cli.StringFlag{
-								Name:     "username",
+								Name:     "name",
+								Aliases:  []string{"n"},
+								Usage:    "The data source name (eg. Foundation Foods, SR Legacy)",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "url",
 								Aliases:  []string{"u"},
-								Usage:    "The username",
+								Usage:    "The URL to the data download / data source",
+								Required: false,
+							},
+							&cli.StringFlag{
+								Name:     "note",
+								Aliases:  []string{"N"},
+								Usage:    "Any notes about this data source",
 								Required: false,
 							},
 							&cli.StringFlag{
@@ -69,6 +81,12 @@ func main() {
 								Aliases:  []string{"f"},
 								Usage:    "The file path to the downloaded JSON file. (not the .zip but the extracted .json)",
 								Required: true,
+							},
+							&cli.BoolFlag{
+								Name:     "ignore-errors",
+								Aliases:  []string{"e"},
+								Usage:    "Continue even with errors importing",
+								Required: false,
 							},
 						},
 					},

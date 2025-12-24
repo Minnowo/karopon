@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"karopon/src/database"
@@ -10,6 +11,13 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
+)
+
+const (
+	FAT int = iota
+	CARB
+	FIBRE
+	PROTEIN
 )
 
 type tNutrient struct {
@@ -44,8 +52,11 @@ type tFood struct {
 func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 
 	dbconn := c.Value("database-conn").(string)
-	// username := c.Value("username").(string)
+	name := c.Value("name").(string)
+	url := c.Value("url").(string)
+	note := c.Value("note").(string)
 	fdcJson := c.Value("fdc-dataset").(string)
+	ignoreErrors := c.Value("ignore-errors").(bool)
 
 	conn, err := connection.Connect(context.Background(), database.POSTGRES, dbconn)
 
@@ -65,6 +76,27 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
+	var datasource database.TblDataSource
+
+	if err := conn.LoadDatasourceByName(ctx, name, &datasource); err != nil {
+
+		if err != sql.ErrNoRows {
+			return err
+		}
+
+		datasource.Name = name
+		datasource.Url = url
+		datasource.Notes = note
+
+		if id, err := conn.AddDatasource(ctx, &datasource); err != nil {
+			return err
+		} else {
+			datasource.ID = id
+		}
+	}
+
+	log.Info().Msg("Importing food, please wait...")
+
 	defer file.Close()
 
 	dec := json.NewDecoder(file)
@@ -77,8 +109,8 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 
 	if tok, err := dec.Token(); err != nil {
 		return err
-	} else if d, ok := tok.(string); !ok || (d != "FoundationFoods" && d != "BrandedFoods") {
-		return fmt.Errorf("expected FoundationFoods")
+	} else if d, ok := tok.(string); !ok || (d != "FoundationFoods" && d != "BrandedFoods" && d != "SRLegacyFoods" && d != "SurveyFoods") {
+		return fmt.Errorf("Could not find the expected JSON key for the FDC food exports. Either the database export is a newer format we don't support yet, or is invalid.")
 	}
 
 	if tok, err := dec.Token(); err != nil {
@@ -87,20 +119,19 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("expected [ token")
 	}
 
-	nutrientsWeCareAbout := map[string]bool{
+	nutrientsColumnMapping := map[string]int{
 
-		// prefer by summation, unless it's not available, then use by difference
-		"Carbohydrate, by summation":  true,
-		"Carbohydrate, by difference": true,
+		"Carbohydrate, by summation":  CARB,
+		"Carbohydrate, by difference": CARB,
 
-		"Protein":           true,
-		"Total lipid (fat)": true,
+		"Protein":           PROTEIN,
+		"Total lipid (fat)": FAT,
 
-		// prefer this over the AOAC, but fallback to AOAC
-		"Fiber, total dietary":               true,
-		"Total dietary fiber (AOAC 2011.25)": true,
+		"Fiber, total dietary":               FIBRE,
+		"Total dietary fiber (AOAC 2011.25)": FIBRE,
 
-		"Iron, Fe": true,
+		// TODO: other mappings later
+		// "Iron, Fe": IRON,
 	}
 
 	for dec.More() {
@@ -111,29 +142,63 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 			return err
 		}
 
-		n := 0
-		for _, nutrient := range food.Nutrients {
-			if _, ok := nutrientsWeCareAbout[nutrient.Nutrient.Name]; ok {
-				n++
-			}
-		}
-		newNutrient := make([]tNutrient, n)
-		n = 0
-		for _, nutrient := range food.Nutrients {
-			if _, ok := nutrientsWeCareAbout[nutrient.Nutrient.Name]; ok {
-				newNutrient[n] = nutrient
-				n++
-			}
-		}
-		food.Nutrients = newNutrient
+		var insertFood database.TblDataSourceFood
 
-		log.Info().
-			// Interface("nutrient", food).
-			Interface("nutrient", food.Nutrients).
-			// Str("name", food.Name).
-			// Int("fdc", food.FDCID).
-			// Int("ndb", food.NDBID).
-			Msg("")
+		insertFood.DataSourceID = datasource.ID
+		insertFood.Name = food.Name
+
+		// always per 100 grams
+		insertFood.Unit = "g"
+		insertFood.Portion = 100
+		insertFood.DataSourceRowID = food.FDCID
+
+		for _, n := range food.Nutrients {
+			if mapping, ok := nutrientsColumnMapping[n.Nutrient.Name]; ok {
+
+				switch mapping {
+				default:
+					continue
+				case FAT:
+					insertFood.Fat = float64(n.Value)
+				case CARB:
+					if n.Nutrient.Name == "Carbohydrate, by difference" && insertFood.Carb != 0 {
+						continue // skip it, by summation is prefered
+					}
+					insertFood.Carb = float64(n.Value)
+				case FIBRE:
+					if n.Nutrient.Name == "Total dietary fiber (AOAC 2011.25)" && insertFood.Fibre != 0 {
+						continue // skip it, I prefer the other fibre option
+					}
+					insertFood.Fibre = float64(n.Value)
+				case PROTEIN:
+					insertFood.Protein = float64(n.Value)
+				}
+			}
+		}
+
+		log.Debug().
+			Str("name", food.Name).
+			Int("fdcid", food.FDCID).
+			Float64("fat", insertFood.Fat).
+			Float64("carb", insertFood.Carb).
+			Float64("fibre", insertFood.Fibre).
+			Float64("protein", insertFood.Protein).
+			Msg("importing food")
+
+		if _, err := conn.AddDatasourceFood(ctx, &insertFood); err != nil {
+			if ignoreErrors {
+				log.Warn().
+					Str("name", food.Name).
+					Int("fdcid", food.FDCID).
+					Float64("fat", insertFood.Fat).
+					Float64("carb", insertFood.Carb).
+					Float64("fibre", insertFood.Fibre).
+					Float64("protein", insertFood.Protein).
+					Msg("Failed to import food")
+				continue
+			}
+			return err
+		}
 	}
 
 	return nil
