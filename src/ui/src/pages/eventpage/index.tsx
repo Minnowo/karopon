@@ -229,7 +229,7 @@ export function EventsPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red'}`}
+                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red font-bold'}`}
                     onClick={() => {
                         setShowNewEventPanel((x) => !x);
                         setNewEvent(UserEventFoodLogFactory.empty());
@@ -303,7 +303,7 @@ export function EventsPage(state: BaseState) {
                             actionButtons={[
                                 <button
                                     key={`c-${editEvent.eventlog.id}`}
-                                    className="text-sm text-c-l-red font-bold w-24 mx-1"
+                                    className="text-sm bg-c-l-red font-bold w-24 mx-1"
                                     onClick={() => setEditEvent(UserEventFoodLogFactory.empty())}
                                 >
                                     Cancel

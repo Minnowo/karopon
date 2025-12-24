@@ -324,7 +324,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </>
                 )}
                 <input
-                    className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
+                    className="w-full my-1 sm:ml-1 sm:max-w-32 bg-c-green font-bold"
                     type="submit"
                     value={p.saveButtonTitle}
                     onClick={onCreateClick}

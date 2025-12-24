@@ -224,7 +224,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
 
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 <input
-                    className="w-full my-1 sm:ml-1 sm:max-w-32 text-c-l-green"
+                    className="w-full my-1 sm:ml-1 sm:max-w-32 bg-c-green font-bold"
                     type="submit"
                     value="Build Food"
                     onClick={onCreateClick}

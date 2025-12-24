@@ -66,7 +66,7 @@ export function SettingsPage(state: BaseState) {
         <main className="flex flex-col space-y-4 sm:px-16 lg:px-32">
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-48 ${isEditing && 'bg-c-l-red'}`}
+                    className={`w-48 ${isEditing && 'bg-c-l-red font-bold'}`}
                     onClick={() => {
                         setIsEditing((x) => !x);
                     }}
@@ -186,7 +186,7 @@ export function SettingsPage(state: BaseState) {
 
             {isEditing && (
                 <input
-                    className="w-full my-1 sm:ml-auto sm:max-w-32 text-c-l-green"
+                    className="w-full my-1 sm:ml-auto sm:max-w-32 bg-c-green font-bold"
                     type="submit"
                     value="Save Settings"
                     onClick={save}

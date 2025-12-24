@@ -101,10 +101,10 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         </div>
 
                         <div class="text-right pl-1">
-                            <button class="w-full mb-2" onClick={onCancelClick}>
+                            <button class="w-full mb-2 bg-c-l-red" onClick={onCancelClick}>
                                 Cancel
                             </button>
-                            <button class="w-full" onClick={onSaveClick}>
+                            <button class="w-full bg-c-green" onClick={onSaveClick}>
                                 Save
                             </button>
                         </div>

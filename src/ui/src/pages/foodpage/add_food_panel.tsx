@@ -128,7 +128,7 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                         render();
                     }}
                 />
-                <button className="ml-auto my-1 sm:ml-1 text-c-l-green w-full max-w-32" onClick={onSaveClick}>
+                <button className="ml-auto my-1 sm:ml-1 bg-c-green font-bold w-full max-w-32" onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>
