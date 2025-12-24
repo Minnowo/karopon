@@ -197,7 +197,7 @@ export function StatsPage(state: BaseState) {
                 setCarbRange
             )}
 
-            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', 'yellow', setCalorieRange)}
+            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', '#facc15', setCalorieRange)}
 
             {state.user.show_diabetes &&
                 RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}

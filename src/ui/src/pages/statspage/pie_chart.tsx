@@ -84,11 +84,11 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                         })}
                     </svg>
                     {hoverText && <div className="text-white font-bold text-lg">{hoverText}</div>}
-                    <div className="flex gap-4 mt-4">
+                    <div className="flex gap-4 mt-4 flex-wrap">
                         {slices.map((slice, i) => (
                             <div key={i} className="flex items-center gap-1">
                                 <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
-                                <span className="text-white text-sm">
+                                <span className="text-sm">
                                     {slice.label} {((slice.value / total) * 100).toFixed(1)}
                                     {'% '} {slice.value.toFixed(1)}g
                                 </span>

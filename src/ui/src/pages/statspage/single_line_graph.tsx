@@ -52,7 +52,7 @@ export const RenderGraph = <T extends ChartPoint>(
                 (() => {
                     const maxVal = Math.max(...data.map((d) => Number(d[valueKey])), 10);
                     const points = data.map((d, i) => {
-                        const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad);
+                        const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
                         const y = height - pad - (Number(d[valueKey]) / maxVal) * (height - pad * 2);
                         return {x, y, value: Number(d[valueKey]), date: d.date};
                     });
@@ -74,13 +74,13 @@ export const RenderGraph = <T extends ChartPoint>(
                             {points.map((p) => (
                                 <g key={p.date}>
                                     <circle cx={p.x} cy={p.y} r="5" fill={color} />
-                                    <text x={p.x} y={p.y - 10} fill="white" fontSize="10" textAnchor="middle">
+                                    <text x={p.x} y={p.y - 10} fill={color} fontSize="10" textAnchor="middle">
                                         {Number(p.value).toFixed(1)}
                                     </text>
                                 </g>
                             ))}
                             {points.map((p) => (
-                                <text key={`${p.date}-x`} x={p.x} y={height - 5} fill="white" fontSize="10" textAnchor="end">
+                                <text key={`${p.date}-x`} x={p.x} y={height - 5} fontSize="10" textAnchor="end">
                                     {FormatXLabel(p.date, range)}
                                 </text>
                             ))}

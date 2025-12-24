@@ -65,7 +65,7 @@ export const RenderMultiLineGraph = (
             const line = new Array(data.length);
             for (let i = 0; i < data.length; i++) {
                 const d = data[i];
-                const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad);
+                const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
                 const y = height - pad - (d[key] / maxVal) * (height - pad * 2);
                 line[i] = {x, y, value: d[key], date: d.date};
             }
@@ -151,9 +151,9 @@ export const RenderMultiLineGraph = (
                         })}
 
                         {data.map((d, i) => {
-                            const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad);
+                            const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
                             return (
-                                <text key={`${d.date}-x`} x={x} y={height - 5} fill="white" fontSize="10" textAnchor="end">
+                                <text key={`${d.date}-x`} x={x} y={height - 5} fontSize="10" textAnchor="end">
                                     {FormatXLabel(d.date, range)}
                                 </text>
                             );
