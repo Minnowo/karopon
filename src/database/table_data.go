@@ -217,3 +217,25 @@ type TblUserMedicationLog struct {
 	Taken      bool       `db:"taken" json:"taken"`
 	Notes      string     `db:"notes" json:"notes"`
 }
+
+type TblDataSource struct {
+	ID      int        `db:"id" json:"id"`
+	Created UnixMillis `db:"created" json:"created"`
+	Name    string     `db:"name" json:"name"`
+	Url     string     `db:"url" json:"url"`
+	Notes   string     `db:"notes" json:"notes"`
+}
+type TblDataSourceFood struct {
+	ID           int        `db:"id" json:"id"`
+	DataSourceID int        `db:"data_source_id" json:"data_source_id"`
+	Created      UnixMillis `db:"created" json:"created"`
+
+	Name            string  `db:"name" json:"name"`
+	Unit            string  `db:"unit" json:"unit"`
+	Portion         float64 `db:"portion" json:"portion"`
+	Protein         float64 `db:"protein" json:"protein"`
+	Carb            float64 `db:"carb" json:"carb"`
+	Fibre           float64 `db:"fibre" json:"fibre"`
+	Fat             float64 `db:"fat" json:"fat"`
+	DataSourceRowID int     `db:"data_source_row_int_id" json:"data_source_row_id"`
+}
