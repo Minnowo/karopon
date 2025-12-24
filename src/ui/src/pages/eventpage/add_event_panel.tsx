@@ -124,13 +124,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             return;
         }
 
-        if (p.user.show_diabetes) {
-            if (bloodSugar <= 0) {
-                setErrorMsg('Blood sugar should be a positive number');
-                return;
-            }
-        }
-
         p.createEvent({
             blood_glucose: bloodSugar,
             blood_glucose_target: p.user.target_blood_sugar,
