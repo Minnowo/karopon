@@ -23,16 +23,16 @@ export const GenerateEventTableText = (user: TblUser, events: UserEventFoodLog[]
             const {eventlog, foodlogs, total_protein, total_carb, total_fibre, total_fat} = eventItem;
 
             const foodRows = new Array<string[]>(foodlogs.length + 2);
-            foodRows[0] = ['Name', 'Portion', 'Unit', 'Protein', 'Carb', 'Fibre', 'Fat', 'NetCarb'];
+            foodRows[0] = ['Name', 'Portion', 'Unit', 'Fat', 'Carb', 'Fibre', 'Protein', 'NetCarb'];
             foodRows[1] = ['----', '-------', '----', '-------', '----', '-----', '---', '-------'];
             foodRows[2] = [
                 'Totals',
                 '-',
                 '-',
-                total_protein.toFixed(1),
+                total_fat.toFixed(1),
                 total_carb.toFixed(1),
                 total_fibre.toFixed(1),
-                total_fat.toFixed(1),
+                total_protein.toFixed(1),
                 (total_carb - total_fibre).toFixed(1),
             ];
             foodRows[3] = ['----', '-------', '----', '-------', '----', '-----', '---', '-------'];
@@ -42,10 +42,10 @@ export const GenerateEventTableText = (user: TblUser, events: UserEventFoodLog[]
                     food.name,
                     food.unit,
                     food.portion.toFixed(1),
-                    food.protein.toFixed(1),
+                    food.fat.toFixed(1),
                     food.carb.toFixed(1),
                     food.fibre.toFixed(1),
-                    food.fat.toFixed(1),
+                    food.protein.toFixed(1),
                     (food.carb - food.fibre).toFixed(1),
                 ];
             }
