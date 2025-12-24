@@ -149,7 +149,7 @@ export function StatsPage(state: BaseState) {
     const [insulinData, setInsulinData] = useState<ChartPoint[]>([]);
     const [macros, setMacros] = useState<MacroTotals>({carbs: 0, protein: 0, fat: 0, fibre: 0} as MacroTotals);
 
-    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['carbs', 'protein', 'fat', 'fibre']);
+    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['fat', 'carbs', 'fibre', 'protein']);
 
     useEffect(() => {
         setMacroData(buildMacroChartData(state.eventlogs, carbRange));

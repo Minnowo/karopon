@@ -8,7 +8,7 @@ export type ChartPoint = {
     value: number;
 };
 
-export const MacroTypeKeys = ['carbs', 'protein', 'fat', 'fibre'] as const;
+export const MacroTypeKeys = ['fat', 'carbs', 'fibre', 'protein'] as const;
 export type MacroType = (typeof MacroTypeKeys)[number];
 
 export type MacroPoint = {

@@ -185,10 +185,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </th>
                 <th className="py-1">Unit</th>
                 <th className="py-1">Amt</th>
-                <th className="py-1">Prot</th>
+                <th className="py-1">Fat</th>
                 <th className="py-1">Carb</th>
                 <th className="py-1">Fib</th>
-                <th className="py-1">Fat</th>
+                <th className="py-1">Prot</th>
                 <th className="py-1">Net</th>
                 <th className="py-1" />
             </tr>
@@ -203,10 +203,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         <td className="text-left w-full">Total</td>
                         <td className="pr-1">-</td>
                         <td className="pr-1">-</td>
-                        <td className="pr-1">{totals.protein.toFixed(1)}</td>
+                        <td className="pr-1"> {totals.fat.toFixed(1)}</td>
                         <td className="pr-1">{totals.carb.toFixed(1)}</td>
                         <td className="pr-1">{totals.fibre.toFixed(1)}</td>
-                        <td className="pr-1"> {totals.fat.toFixed(1)}</td>
+                        <td className="pr-1">{totals.protein.toFixed(1)}</td>
                         <td className="font-bold"> {netCarb.toFixed(1)}</td>
                     </tr>
                 )}

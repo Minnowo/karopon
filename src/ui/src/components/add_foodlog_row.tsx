@@ -111,9 +111,9 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                         innerTabIndex={-1}
                         precision={1}
                         min={0}
-                        value={food.protein}
+                        value={food.fat}
                         onValueChange={(v) => {
-                            food.protein = v;
+                            food.fat = v;
                             render();
                         }}
                     />
@@ -153,9 +153,9 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                         innerTabIndex={-1}
                         precision={1}
                         min={0}
-                        value={food.fat}
+                        value={food.protein}
                         onValueChange={(v) => {
-                            food.fat = v;
+                            food.protein = v;
                             render();
                         }}
                     />

@@ -66,8 +66,8 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                     <th className="font-normal text-right py-1 pr-2" title="Amount">
                                         Amt
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Protein">
-                                        Prot
+                                    <th className="font-normal text-right py-1 pr-2" title="Fat">
+                                        Fat
                                     </th>
                                     <th className="font-normal text-right py-1 pr-2" title="Carbs">
                                         Carb
@@ -75,8 +75,8 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                     <th className="font-normal text-right py-1 pr-2" title="Fibre">
                                         Fib
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Fat">
-                                        Fat
+                                    <th className="font-normal text-right py-1 pr-2" title="Protein">
+                                        Prot
                                     </th>
                                     <th className="font-normal text-right py-1" title="Net Carbs">
                                         Net
@@ -89,10 +89,10 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                     <tr>
                                         <td className="whitespace-nowrap">Total</td>
                                         <td className="text-center">-</td>
-                                        <td className="text-right pr-2">{foodGroup.total_protein.toFixed(1)}</td>
+                                        <td className="text-right pr-2">{foodGroup.total_fat.toFixed(1)}</td>
                                         <td className="text-right pr-2">{foodGroup.total_carb.toFixed(1)}</td>
                                         <td className="text-right pr-2">{foodGroup.total_fibre.toFixed(1)}</td>
-                                        <td className="text-right pr-2">{foodGroup.total_fat.toFixed(1)}</td>
+                                        <td className="text-right pr-2">{foodGroup.total_protein.toFixed(1)}</td>
                                         <th className="text-right">
                                             {(foodGroup.total_carb - foodGroup.total_fibre).toFixed(1)}{' '}
                                         </th>
@@ -124,10 +124,10 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                     {' '}
                                                     {food.portion} {food.unit}{' '}
                                                 </td>
-                                                <td className="text-right pr-2">{food.protein.toFixed(1)}</td>
+                                                <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
                                                 <td className="text-right pr-2">{food.carb.toFixed(1)}</td>
                                                 <td className="text-right pr-2">{food.fibre.toFixed(1)}</td>
-                                                <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
+                                                <td className="text-right pr-2">{food.protein.toFixed(1)}</td>
                                                 <td className="text-right">{(food.carb - food.fibre).toFixed(1)}</td>
                                             </tr>
                                         </Fragment>

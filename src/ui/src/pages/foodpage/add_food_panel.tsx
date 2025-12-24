@@ -109,22 +109,22 @@ export function AddFoodPanel({food, addFood, className}: AddFoodPanelProps) {
                 <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
-                    label={'Protein'}
+                    label={'Fibre'}
                     min={0}
-                    value={tmpFood.protein}
-                    onValueChange={(protein: number) => {
-                        tmpFood.protein = protein;
+                    value={tmpFood.fibre}
+                    onValueChange={(fibre: number) => {
+                        tmpFood.fibre = fibre;
                         render();
                     }}
                 />
                 <NumberInput
                     className="my-1 sm:mx-1 flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
-                    label={'Fibre'}
+                    label={'Protein'}
                     min={0}
-                    value={tmpFood.fibre}
-                    onValueChange={(fibre: number) => {
-                        tmpFood.fibre = fibre;
+                    value={tmpFood.protein}
+                    onValueChange={(protein: number) => {
+                        tmpFood.protein = protein;
                         render();
                     }}
                 />

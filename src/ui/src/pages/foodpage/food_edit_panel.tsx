@@ -174,11 +174,11 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         innerClassName="w-16"
-                        label={'Protein'}
-                        value={tmpFood.current.protein}
+                        label={'Fat'}
+                        value={tmpFood.current.fat}
                         precision={3}
-                        onValueChange={(protein: number) => {
-                            tmpFood.current.protein = protein;
+                        onValueChange={(fat: number) => {
+                            tmpFood.current.fat = fat;
                             render();
                         }}
                     />
@@ -207,11 +207,11 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                     <NumberInput
                         className={'mx-1 mt-2 whitespace-nowrap'}
                         innerClassName="w-16"
-                        label={'Fat'}
-                        value={tmpFood.current.fat}
+                        label={'Protein'}
+                        value={tmpFood.current.protein}
                         precision={3}
-                        onValueChange={(fat: number) => {
-                            tmpFood.current.fat = fat;
+                        onValueChange={(protein: number) => {
+                            tmpFood.current.protein = protein;
                             render();
                         }}
                     />
@@ -221,8 +221,8 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                     <div class="w-full">
                         <div class="flex flex-col gap-2 sm:hidden">
                             <div class="flex justify-between">
-                                <span>Protein</span>
-                                <span>{(food.protein * portion).toFixed(3)}</span>
+                                <span>Fat</span>
+                                <span>{(food.fat * portion).toFixed(3)}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Carbs</span>
@@ -233,24 +233,24 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                                 <span>{(food.fibre * portion).toFixed(3)}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span>Fat</span>
-                                <span>{(food.fat * portion).toFixed(3)}</span>
+                                <span>Protein</span>
+                                <span>{(food.protein * portion).toFixed(3)}</span>
                             </div>
                         </div>
 
                         <div class="hidden sm:flex flex-col gap-1 w-full">
                             <div class="flex text-xs font-semibold w-full">
-                                <div class="flex-1">Protein</div>
+                                <div class="flex-1">Fat</div>
                                 <div class="flex-1">Carbs</div>
                                 <div class="flex-1">Fibre</div>
-                                <div class="flex-1">Fat</div>
+                                <div class="flex-1">Protein</div>
                             </div>
 
                             <div class="flex text-sm font-medium w-full">
-                                <div class="flex-1">{(food.protein * portion).toFixed(3)}</div>
+                                <div class="flex-1">{(food.fat * portion).toFixed(3)}</div>
                                 <div class="flex-1">{(food.carb * portion).toFixed(3)}</div>
                                 <div class="flex-1">{(food.fibre * portion).toFixed(3)}</div>
-                                <div class="flex-1">{(food.fat * portion).toFixed(3)}</div>
+                                <div class="flex-1">{(food.protein * portion).toFixed(3)}</div>
                             </div>
                         </div>
                     </div>

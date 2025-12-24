@@ -27,10 +27,10 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
 
     const total = data.carbs + data.protein + data.fat + data.fibre;
     const slices = [
-        {label: 'Carbs', value: data.carbs, color: '#facc15'},
-        {label: 'Protein', value: data.protein, color: '#4ade80'},
         {label: 'Fat', value: data.fat, color: '#fb7185'},
+        {label: 'Carbs', value: data.carbs, color: '#facc15'},
         {label: 'Fibre', value: data.fibre, color: '#60a5fa'},
+        {label: 'Protein', value: data.protein, color: '#4ade80'},
     ];
 
     let cumulative = 0;
@@ -90,7 +90,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                                 <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                                 <span className="text-white text-sm">
                                     {slice.label} {((slice.value / total) * 100).toFixed(1)}
-                                    {'% '} ({slice.value.toFixed(2)}g)
+                                    {'% '} {slice.value.toFixed(1)}g
                                 </span>
                             </div>
                         ))}
