@@ -100,7 +100,7 @@ export const RenderMultiLineGraph = (
                         height={height}
                         viewBox={`0 0 ${width + pad} ${height}`}
                         preserveAspectRatio="xMinYMin meet"
-                        className="border border-c-yellow rounded"
+                        className="border border-c-yellow rounded text-c-black dark:text-c-white"
                     >
                         {visibleMacros.map((key, keyIndex) => {
                             const line = lines[key];
@@ -153,7 +153,7 @@ export const RenderMultiLineGraph = (
                         {data.map((d, i) => {
                             const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
                             return (
-                                <text key={`${d.date}-x`} x={x} y={height - 5} fontSize="10" textAnchor="end">
+                                <text key={`${d.date}-x`} x={x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
                                     {FormatXLabel(d.date, range)}
                                 </text>
                             );

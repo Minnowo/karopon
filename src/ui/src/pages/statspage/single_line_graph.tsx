@@ -63,7 +63,7 @@ export const RenderGraph = <T extends ChartPoint>(
                             height={height}
                             viewBox={`0 0 ${width + pad} ${height}`}
                             preserveAspectRatio="xMinYMin meet"
-                            className="border border-c-yellow rounded"
+                            className="border border-c-yellow rounded text-c-black dark:text-c-white"
                         >
                             <polyline
                                 fill="none"
@@ -80,7 +80,7 @@ export const RenderGraph = <T extends ChartPoint>(
                                 </g>
                             ))}
                             {points.map((p) => (
-                                <text key={`${p.date}-x`} x={p.x} y={height - 5} fontSize="10" textAnchor="end">
+                                <text key={`${p.date}-x`} x={p.x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
                                     {FormatXLabel(p.date, range)}
                                 </text>
                             ))}
