@@ -10,6 +10,8 @@ import {
     TblUpdateUser,
     UpdateUserEventLog,
     TblUserBodyLog,
+    TblDataSource,
+    TblDataSourceFood,
 } from './types';
 
 export class ApiError extends Error {
@@ -112,6 +114,15 @@ export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
 
 export const ApiGetUserBodyLog = (): Promise<TblUserBodyLog[]> => {
     return fetchJson<TblUserBodyLog[]>(apiFetch(`${ApiBase}/api/bodylog`));
+};
+
+export const ApiGetDataSources = (): Promise<TblDataSource[]> => {
+    return fetchJson<TblDataSource[]>(apiFetch(`${ApiBase}/api/datasources`));
+};
+
+export const ApiGetDataSourceFoods = (dataSourceID: number, search: string): Promise<TblDataSourceFood[]> => {
+    const encodedSearch = encodeURIComponent(search);
+    return fetchJson<TblDataSourceFood[]>(apiFetch(`${ApiBase}/api/datasources/${dataSourceID}/${encodedSearch}`));
 };
 
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {

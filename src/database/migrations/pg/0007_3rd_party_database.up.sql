@@ -28,8 +28,29 @@ CREATE TABLE IF NOT EXISTS PON.DATA_SOURCE_FOOD (
 );
 
 CREATE INDEX IF NOT EXISTS idx_datasourcefood_foodname
-ON PON.DATA_SOURCE_FOOD (DATA_SOURCE_ID, NAME);
+ON PON.DATA_SOURCE_FOOD (DATA_SOURCE_ID, LOWER(NAME));
 
 CREATE INDEX IF NOT EXISTS idx_datasourcefood_datasourcerowintid
 ON PON.DATA_SOURCE_FOOD (DATA_SOURCE_ROW_INT_ID);
+
+
+/*
+Try adding trigram matching index: https://www.postgresql.org/docs/current/pgtrgm.html
+*/
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_datasourcefood_foodname_trgm_gin
+ON PON.DATA_SOURCE_FOOD USING gin (LOWER(NAME) gin_trgm_ops);
+
+/*
+Testing with GIST, might be better than GIN for our use case here.
+*/
+-- CREATE INDEX idx_datasourcefood_foodname_trgm_gist
+-- ON PON.DATA_SOURCE_FOOD USING GIST (LOWER(NAME) gist_trgm_ops(siglen=128));
+
+
+
+
+
+
 

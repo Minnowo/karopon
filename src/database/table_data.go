@@ -237,5 +237,5 @@ type TblDataSourceFood struct {
 	Carb            float64 `db:"carb" json:"carb"`
 	Fibre           float64 `db:"fibre" json:"fibre"`
 	Fat             float64 `db:"fat" json:"fat"`
-	DataSourceRowID int     `db:"data_source_row_int_id" json:"data_source_row_id"`
+	DataSourceRowID int     `db:"data_source_row_int_id" json:"data_source_row_int_id"`
 }

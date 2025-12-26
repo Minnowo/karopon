@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useCallback, useState} from 'preact/hooks';
 
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
@@ -13,6 +13,7 @@ import {encodeCSVField} from '../../utils/csv';
 import {TblUserFoodFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
 import {FoodBuilderPanel} from './food_builder_panel';
+import {GetErrorHandler} from '../../utils/error';
 
 export function FoodPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -22,18 +23,8 @@ export function FoodPage(state: BaseState) {
     const [numberToShow, setNumberToShow] = useState<number>(15);
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
-    const handleErr = (e: unknown) => {
-        if (e instanceof ApiError) {
-            setErrorMsg(e.message);
-            if (e.isUnauthorizedError()) {
-                state.doRefresh();
-            }
-        } else if (e instanceof Error) {
-            setErrorMsg(e.message);
-        } else {
-            setErrorMsg(`An unknown error occurred: ${e}`);
-        }
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
 
     const addNewFood = (setPanelState: Dispatch<StateUpdater<boolean>>, food: TblUserFood) => {
         ApiNewUserFood(food)
@@ -142,7 +133,12 @@ export function FoodPage(state: BaseState) {
             <ErrorDiv errorMsg={errorMsg} />
 
             {showAddFoodPanel && (
-                <AddFoodPanel className="mb-4" food={baseFood} addFood={(f) => addNewFood(setShowAddFoodPanel, f)} />
+                <AddFoodPanel
+                    className="mb-4"
+                    food={baseFood}
+                    dataSources={state.dataSources}
+                    addFood={(f) => addNewFood(setShowAddFoodPanel, f)}
+                />
             )}
 
             {showBuildFoodPanel && (

@@ -8,19 +8,29 @@ import {FoodPage} from './pages/foodpage';
 import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import {StatsPage} from './pages/statspage';
 
-import {useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog} from './api/types';
-import {ApiGetUserFoods, ApiGetUserEvents, ApiGetUserEventFoodLog, ApiWhoAmI, HasAuth, ApiGetUserBodyLog} from './api/api';
+import {useCallback, useEffect, useState} from 'preact/hooks';
+import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource} from './api/types';
+import {
+    ApiGetUserFoods,
+    ApiGetUserEvents,
+    ApiGetUserEventFoodLog,
+    ApiWhoAmI,
+    HasAuth,
+    ApiGetUserBodyLog,
+    ApiGetDataSources,
+} from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
 import {
     LocalGetBodyLogs,
+    LocalGetDataSources,
     LocalGetEventLogs,
     LocalGetEvents,
     LocalGetFoods,
     LocalGetUser,
     LocalStoreBodyLogs,
+    LocalStoreDataSources,
     LocalStoreEventLogs,
     LocalStoreEvents,
     LocalStoreFoods,
@@ -39,9 +49,10 @@ export function App() {
     const [events, setEvents] = useState<TblUserEvent[] | null>(LocalGetEvents());
     const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventLogs());
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
+    const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
-    const doRefresh = () => setRefresh((x) => x + 1);
+    const doRefresh = useCallback(() => setRefresh((x) => x + 1), []);
 
     useEffect(() => {
         const updateFunc = () => setHashRoute(window.location.hash);
@@ -83,12 +94,19 @@ export function App() {
     }, [bodylogs]);
 
     useEffect(() => {
+        if (dataSources !== null) {
+            LocalStoreDataSources(dataSources);
+        }
+    }, [dataSources]);
+
+    useEffect(() => {
         ApiWhoAmI()
             .then(async (me) => {
                 const myFood = await ApiGetUserFoods();
                 const myEvents = await ApiGetUserEvents();
                 const myEventLogs = await ApiGetUserEventFoodLog(me.event_history_fetch_limit);
                 const myBodyLogs = await ApiGetUserBodyLog();
+                const svrDataSources = await ApiGetDataSources();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -97,6 +115,7 @@ export function App() {
                 setEvents(myEvents);
                 setEventLogsWithFoodlogs(myEventLogs);
                 setBodyLogs(myBodyLogs);
+                setDataSources(svrDataSources);
                 setErrorMsg(null);
             })
             .catch((e: Error) => setErrorMsg(e.message));
@@ -148,6 +167,7 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -166,6 +186,7 @@ export function App() {
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
                                     setBodyLogs={setBodyLogs}
+                                    dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -182,6 +203,7 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -199,6 +221,7 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -216,6 +239,7 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -233,6 +257,7 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}

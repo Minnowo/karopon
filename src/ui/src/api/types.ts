@@ -139,3 +139,25 @@ export type TblUserBodyLog = {
     heart_rate_bpm: number;
     steps_count: number;
 };
+
+export type TblDataSource = {
+    id: number;
+    created: number;
+    name: string;
+    url: string;
+    notes: string;
+};
+export type TblDataSourceFood = {
+    id: number;
+    data_source_id: number;
+    created: number;
+
+    name: string;
+    unit: string;
+    portion: number;
+    protein: number;
+    carb: number;
+    fibre: number;
+    fat: number;
+    data_source_row_int_id: number;
+};

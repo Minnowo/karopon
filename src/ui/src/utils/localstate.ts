@@ -1,10 +1,11 @@
-import type {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog} from '../api/types';
+import type {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource} from '../api/types';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 const LOCAL_STORAGE_KEY_EVENTS = 'events';
 const LOCAL_STORAGE_KEY_FOODS = 'foods';
 const LOCAL_STORAGE_KEY_EVENTLOGS = 'eventlogs';
 const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
+const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 
 const store = (key: string, obj: string) => {
@@ -28,24 +29,13 @@ const load = <T>(key: string, loadRaw = false): T | null => {
     }
     return null;
 };
-export const LocalStoreServer = (server: string) => {
-    store(LOCAL_STORAGE_KEY_REMOTE, server);
-};
-export const LocalStoreUser = (user: TblUser) => {
-    store(LOCAL_STORAGE_KEY_USER, JSON.stringify(user));
-};
-export const LocalStoreEvents = (events: TblUserEvent[]) => {
-    store(LOCAL_STORAGE_KEY_EVENTS, JSON.stringify(events));
-};
-export const LocalStoreFoods = (foods: TblUserFood[]) => {
-    store(LOCAL_STORAGE_KEY_FOODS, JSON.stringify(foods));
-};
-export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => {
-    store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
-};
-export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => {
-    store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
-};
+export const LocalStoreServer = (server: string) => store(LOCAL_STORAGE_KEY_REMOTE, server);
+export const LocalStoreUser = (user: TblUser) => store(LOCAL_STORAGE_KEY_USER, JSON.stringify(user));
+export const LocalStoreEvents = (events: TblUserEvent[]) => store(LOCAL_STORAGE_KEY_EVENTS, JSON.stringify(events));
+export const LocalStoreFoods = (foods: TblUserFood[]) => store(LOCAL_STORAGE_KEY_FOODS, JSON.stringify(foods));
+export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
+export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
+export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
 export const LocalGetServer = () => load<string>(LOCAL_STORAGE_KEY_REMOTE, true);
 export const LocalGetUser = () => load<TblUser>(LOCAL_STORAGE_KEY_USER);
@@ -53,9 +43,11 @@ export const LocalGetEvents = () => load<TblUserEvent[]>(LOCAL_STORAGE_KEY_EVENT
 export const LocalGetFoods = () => load<TblUserFood[]>(LOCAL_STORAGE_KEY_FOODS);
 export const LocalGetEventLogs = () => load<UserEventFoodLog[]>(LOCAL_STORAGE_KEY_EVENTLOGS);
 export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
+export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
 
 export const LocalClearAll = () => {
     try {
+        // clear user specific stuff
         localStorage.removeItem(LOCAL_STORAGE_KEY_USER);
         localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_FOODS);

@@ -78,7 +78,7 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 
 	var datasource database.TblDataSource
 
-	if err := conn.LoadDatasourceByName(ctx, name, &datasource); err != nil {
+	if err := conn.LoadDataSourceByName(ctx, name, &datasource); err != nil {
 
 		if err != sql.ErrNoRows {
 			return err
@@ -88,7 +88,7 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 		datasource.Url = url
 		datasource.Notes = note
 
-		if id, err := conn.AddDatasource(ctx, &datasource); err != nil {
+		if id, err := conn.AddDataSource(ctx, &datasource); err != nil {
 			return err
 		} else {
 			datasource.ID = id
@@ -185,7 +185,7 @@ func CmdCreateFDC(ctx context.Context, c *cli.Command) error {
 			Float64("protein", insertFood.Protein).
 			Msg("importing food")
 
-		if _, err := conn.AddDatasourceFood(ctx, &insertFood); err != nil {
+		if _, err := conn.AddDataSourceFood(ctx, &insertFood); err != nil {
 			if ignoreErrors {
 				log.Warn().
 					Str("name", food.Name).

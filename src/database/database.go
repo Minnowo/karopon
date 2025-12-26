@@ -166,14 +166,20 @@ type DB interface {
 	///
 	/// Data Source Functions
 	///
-	AddDatasource(ctx context.Context, ds *TblDataSource) (int, error)
-	LoadDatasources(ctx context.Context, ds *[]TblDataSource) error
-	LoadDatasourceByName(ctx context.Context, name string, ds *TblDataSource) error
+	AddDataSource(ctx context.Context, ds *TblDataSource) (int, error)
+	LoadDataSources(ctx context.Context, ds *[]TblDataSource) error
+	LoadDataSourceByName(ctx context.Context, name string, ds *TblDataSource) error
 
 	///
 	/// Data Source Food Functions
 	///
-	AddDatasourceFood(ctx context.Context, ds *TblDataSourceFood) (int, error)
+	AddDataSourceFood(ctx context.Context, ds *TblDataSourceFood) (int, error)
+
+	// Loads all food in the datasource where the name is similar to the given name.
+	// Similarity is database-dependent:
+	//  - On Postgres this is using the trgm extension https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-INDEX
+	LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]TblDataSourceFood) error
+	LoadDataSourceFoodBySimilarNameN(ctx context.Context, dataSourceID int, nameQuery string, n int, out *[]TblDataSourceFood) error
 }
 
 type SQLxDB struct {
