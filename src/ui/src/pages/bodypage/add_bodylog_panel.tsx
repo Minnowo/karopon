@@ -12,6 +12,14 @@ type AddBodyPanelProps = {
 
 const KgToLbs = (kg: number) => kg * 2.2046226218;
 const LbsToKg = (lbs: number) => lbs / 2.2046226218;
+const cmToFeetInches = (cm: number) => {
+    const totalInches = cm / 2.54;
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches % 12;
+    return {feet, inches};
+};
+
+const feetInchesToCm = (feet: number, inches: number) => (feet * 12 + inches) * 2.54;
 
 export function AddBodyPanel(state: AddBodyPanelProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -53,49 +61,87 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                 <span className="text-lg font-bold">New Body Log</span>
                 <ErrorDiv errorMsg={errorMsg} />
                 <div className="flex flex-col justify-between">
-                    <div className="flex flex-wrap">
-                        <span className="flex flex-row">
-                            <NumberInput
-                                className="w-full my-1"
-                                innerClassName="w-full"
-                                label="Weight (kg)"
-                                step={1}
-                                min={0}
-                                precision={3}
-                                value={tmpLog.weight_kg}
-                                onValueChange={(v) => {
-                                    tmpLog.weight_kg = v;
-                                    render();
-                                }}
-                            />
-                            <NumberInput
-                                className="w-full my-1"
-                                innerClassName="w-full"
-                                label="Weight (lbs)"
-                                step={1}
-                                min={0}
-                                precision={3}
-                                value={KgToLbs(tmpLog.weight_kg)}
-                                onValueChange={(v) => {
-                                    tmpLog.weight_kg = LbsToKg(v);
-                                    render();
-                                }}
-                            />
-                        </span>
+                    <div className="w-full flex flex-wrap">
+                        <div className="w-full flex flex-col">
+                            <span className="font-semibold">Weight</span>
+                            <div className="w-full flex flex-row gap-2">
+                                <NumberInput
+                                    className="w-full my-1"
+                                    innerClassName="w-full"
+                                    label="kg"
+                                    step={1}
+                                    min={0}
+                                    precision={3}
+                                    value={tmpLog.weight_kg}
+                                    onValueChange={(v) => {
+                                        tmpLog.weight_kg = v;
+                                        render();
+                                    }}
+                                />
+                                <NumberInput
+                                    className="w-full my-1"
+                                    innerClassName="w-full"
+                                    label="lbs"
+                                    step={1}
+                                    min={0}
+                                    precision={3}
+                                    value={KgToLbs(tmpLog.weight_kg)}
+                                    onValueChange={(v) => {
+                                        tmpLog.weight_kg = LbsToKg(v);
+                                        render();
+                                    }}
+                                />
+                            </div>
+                        </div>
 
-                        <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full"
-                            label="Height (cm)"
-                            step={1}
-                            min={0}
-                            precision={3}
-                            value={tmpLog.height_cm}
-                            onValueChange={(v) => {
-                                tmpLog.height_cm = v;
-                                render();
-                            }}
-                        />
+                        <div className="flex flex-col">
+                            <span className="font-semibold">Height</span>
+                            <div className="w-full flex flex-row gap-2">
+                                <NumberInput
+                                    className="w-full my-1"
+                                    innerClassName="w-full"
+                                    label="cm"
+                                    value={tmpLog.height_cm}
+                                    min={0}
+                                    step={1}
+                                    precision={2}
+                                    onValueChange={(v) => {
+                                        tmpLog.height_cm = v;
+                                        render();
+                                    }}
+                                />
+
+                                <NumberInput
+                                    className="w-full my-1"
+                                    innerClassName="w-full"
+                                    label="ft"
+                                    value={cmToFeetInches(tmpLog.height_cm).feet}
+                                    min={0}
+                                    step={1}
+                                    precision={0}
+                                    onValueChange={(v) => {
+                                        const inches = cmToFeetInches(tmpLog.height_cm).inches;
+                                        tmpLog.height_cm = feetInchesToCm(v, inches);
+                                        render();
+                                    }}
+                                />
+
+                                <NumberInput
+                                    className="w-full my-1"
+                                    innerClassName="w-full"
+                                    label="in"
+                                    value={cmToFeetInches(tmpLog.height_cm).inches}
+                                    min={0}
+                                    max={11}
+                                    step={1}
+                                    onValueChange={(v) => {
+                                        const feet = cmToFeetInches(tmpLog.height_cm).feet;
+                                        tmpLog.height_cm = feetInchesToCm(feet, v);
+                                        render();
+                                    }}
+                                />
+                            </div>
+                        </div>
 
                         <NumberInput
                             className="w-full my-1"

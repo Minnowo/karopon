@@ -24,7 +24,7 @@ export function NumberInput({
     onValueChange,
     label = undefined,
     step = 1,
-    precision = 2,
+    precision = 3,
     min = -Infinity,
     max = 1_000_000_000,
     disabled = false,
@@ -89,7 +89,7 @@ export function NumberInput({
             aria-disabled={disabled}
             className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like px-0 py-0 ${className}`}
         >
-            {label && <div className="flex items-center select-none pr-1"> {label} </div>}
+            {label && <div className="flex items-center select-none px-1"> {label} </div>}
             <input
                 tabindex={innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none`}
