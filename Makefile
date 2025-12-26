@@ -32,6 +32,7 @@ generate:
 format:
 	gofmt -w -s .
 	goimports -w .
+	make -C ./src/ui format
 
 test: format generate
 	go test ./...

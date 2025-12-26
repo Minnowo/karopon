@@ -156,6 +156,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                             return (
                                 <AddFoodlogPanelRow
                                     key={f.key}
+                                    user={p.user}
                                     foods={p.foods}
                                     food={f}
                                     render={render}
@@ -164,6 +165,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                                         render();
                                     }}
                                     showNetCarb={false}
+                                    showCalories={false}
                                 />
                             );
                         })}

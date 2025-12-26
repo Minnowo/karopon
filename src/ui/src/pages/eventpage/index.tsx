@@ -29,33 +29,22 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                     <DropdownButton actions={actions} />
                 </div>
 
-                <div className="flex flex-row flex-wrap w-full justify-evenly">
-                    <span className="mx-1" title="Calories">
-                        {`Cal ${CalculateCalories(
-                            foodGroup.total_protein,
-                            foodGroup.total_carb - foodGroup.total_fibre,
-                            foodGroup.total_fibre,
-                            foodGroup.total_fat,
-                            Str2CalorieFormula(user.caloric_calc_method)
-                        ).toFixed(1)}`}
-                    </span>
-                    {user.show_diabetes && (
-                        <>
-                            <span
-                                className="mx-1"
-                                title="Blood Glucose Level (Blood Sugar)"
-                            >{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
-                            <span
-                                className="mx-1"
-                                title="Insulin Recommended"
-                            >{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
-                            <span
-                                className="mx-1"
-                                title="Insulin Taken"
-                            >{`InsTaken ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
-                        </>
-                    )}
-                </div>
+                {user.show_diabetes && (
+                    <div className="flex flex-row flex-wrap w-full justify-evenly">
+                        <span
+                            className="mx-1"
+                            title="Blood Glucose Level (Blood Sugar)"
+                        >{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
+                        <span
+                            className="mx-1"
+                            title="Insulin Recommended"
+                        >{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
+                        <span
+                            className="mx-1"
+                            title="Insulin Taken"
+                        >{`InsTaken ${foodGroup.eventlog.actual_insulin_taken.toFixed(1)}`}</span>
+                    </div>
+                )}
 
                 {foodGroup.foodlogs.length > 0 && (
                     <div className="w-full mt-2 overflow-x-scroll">
@@ -78,8 +67,11 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                     <th className="font-normal text-right py-1 pr-2" title="Protein">
                                         Prot
                                     </th>
-                                    <th className="font-normal text-right py-1" title="Net Carbs">
+                                    <th className="font-normal text-right py-1 pr-2" title="Net Carbs">
                                         Net
+                                    </th>
+                                    <th className="font-normal text-right py-1" title="Calories">
+                                        Cal
                                     </th>
                                 </tr>
                             </thead>
@@ -93,9 +85,18 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                         <td className="text-right pr-2">{foodGroup.total_carb.toFixed(1)}</td>
                                         <td className="text-right pr-2">{foodGroup.total_fibre.toFixed(1)}</td>
                                         <td className="text-right pr-2">{foodGroup.total_protein.toFixed(1)}</td>
-                                        <th className="text-right">
-                                            {(foodGroup.total_carb - foodGroup.total_fibre).toFixed(1)}{' '}
+                                        <th className="text-right pr-2">
+                                            {(foodGroup.total_carb - foodGroup.total_fibre).toFixed(1)}
                                         </th>
+                                        <td className="text-right">
+                                            {CalculateCalories(
+                                                foodGroup.total_protein,
+                                                foodGroup.total_carb - foodGroup.total_fibre,
+                                                foodGroup.total_fibre,
+                                                foodGroup.total_fat,
+                                                Str2CalorieFormula(user.caloric_calc_method)
+                                            ).toFixed(0)}
+                                        </td>
                                     </tr>
                                 )}
                                 {foodGroup.foodlogs.map((food: TblUserFoodLog, i: number) => {
@@ -105,7 +106,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                         <Fragment key={food.id}>
                                             {shown && (
                                                 <tr className="cursor-pointer" onClick={toggle}>
-                                                    <td className="border-c-l-green border-t border-l " colSpan={7}>
+                                                    <td className="border-c-l-green border-t border-l " colSpan={8}>
                                                         <div className="mx-1">{food.name}</div>
                                                     </td>
                                                 </tr>
@@ -128,7 +129,16 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                 <td className="text-right pr-2">{food.carb.toFixed(1)}</td>
                                                 <td className="text-right pr-2">{food.fibre.toFixed(1)}</td>
                                                 <td className="text-right pr-2">{food.protein.toFixed(1)}</td>
-                                                <td className="text-right">{(food.carb - food.fibre).toFixed(1)}</td>
+                                                <td className="text-right pr-2">{(food.carb - food.fibre).toFixed(1)}</td>
+                                                <td className="text-right">
+                                                    {CalculateCalories(
+                                                        food.protein,
+                                                        food.carb - food.fibre,
+                                                        food.fibre,
+                                                        food.fat,
+                                                        Str2CalorieFormula(user.caloric_calc_method)
+                                                    ).toFixed(0)}
+                                                </td>
                                             </tr>
                                         </Fragment>
                                     );

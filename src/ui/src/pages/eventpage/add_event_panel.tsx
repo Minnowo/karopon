@@ -114,7 +114,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         totals.fibre,
         totals.fat,
         Str2CalorieFormula(p.user.caloric_calc_method)
-    );
+    ).toFixed(0);
 
     const onCreateClick = () => {
         setErrorMsg(null);
@@ -176,13 +176,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         Add Row
                     </button>
                 </th>
-                <th className="py-1">Unit</th>
                 <th className="py-1">Amt</th>
+                <th className="py-1">Unit</th>
                 <th className="py-1">Fat</th>
                 <th className="py-1">Carb</th>
                 <th className="py-1">Fib</th>
-                <th className="py-1">Prot</th>
-                <th className="py-1">Net</th>
+                <th className="py-1 pr-2">Prot</th>
+                <th className="py-1 pr-2">Net</th>
+                <th className="py-1 pr-2">Cal</th>
                 <th className="py-1" />
             </tr>
         );
@@ -193,14 +194,15 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <>
                 {foods.current.length > 1 && (
                     <tr className="text-center">
-                        <td className="text-left w-full">Total</td>
+                        <td className="text-right w-full">Total</td>
                         <td className="pr-1">-</td>
                         <td className="pr-1">-</td>
                         <td className="pr-1"> {totals.fat.toFixed(1)}</td>
                         <td className="pr-1">{totals.carb.toFixed(1)}</td>
                         <td className="pr-1">{totals.fibre.toFixed(1)}</td>
-                        <td className="pr-1">{totals.protein.toFixed(1)}</td>
-                        <td className="font-bold"> {netCarb.toFixed(1)}</td>
+                        <td className="pr-2">{totals.protein.toFixed(1)}</td>
+                        <td className="pr-2 text-right font-bold"> {netCarb.toFixed(1)}</td>
+                        <td className="pr-2 text-right">{calories}</td>
                     </tr>
                 )}
             </>
@@ -258,6 +260,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                             return (
                                 <AddFoodlogPanelRow
                                     key={food.key}
+                                    user={p.user}
                                     foods={p.foods}
                                     food={food}
                                     render={render}
@@ -272,8 +275,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         {buildTableHead()}
                         {buildSumRow()}
                         <tr>
-                            {' '}
-                            <td>&nbsp;</td>{' '}
+                            <td>&nbsp;</td>
                         </tr>
                     </tbody>
                 </table>
@@ -290,7 +292,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </>
                 )}
                 <span className="px-2" title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>
-                    Calories {calories.toFixed(1)}
+                    Calories {calories}
                 </span>
             </div>
 

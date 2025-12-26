@@ -1,18 +1,29 @@
 import {useEffect, useRef} from 'preact/hooks';
-import {TblUserFood, TblUserFoodLog} from '../api/types';
+import {TblUser, TblUserFood, TblUserFoodLog} from '../api/types';
 import {FuzzySearch} from './select_list';
 import {JSX} from 'preact/jsx-runtime';
 import {NumberInput} from './number_input';
+import {CalculateCalories, Str2CalorieFormula} from '../utils/calories';
 
 type AddFoodlogPanelRowState = {
+    user: TblUser;
     food: TblUserFoodLog;
     foods: TblUserFood[];
     render: () => void;
     deleteSelf: () => void;
     showNetCarb?: boolean;
+    showCalories?: boolean;
 };
 
-export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb = true}: AddFoodlogPanelRowState) {
+export function AddFoodlogPanelRow({
+    user,
+    foods,
+    food,
+    render,
+    deleteSelf,
+    showNetCarb = true,
+    showCalories = true,
+}: AddFoodlogPanelRowState) {
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
     // We use this to scale by the portion, but still let the user type manually.
     const foodTemplate = useRef<TblUserFoodLog>({name: food.name} as TblUserFoodLog);
@@ -73,19 +84,6 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                         }}
                     />
                 </td>
-                <td className="whitespace-nowrap w-full pr-1">
-                    <input
-                        className="w-full min-w-8"
-                        tabindex={-1}
-                        type="text"
-                        value={food.unit}
-                        placeholder={'g'}
-                        onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
-                            food.unit = e.currentTarget.value;
-                            render();
-                        }}
-                    />
-                </td>
                 <td className="pr-1">
                     <NumberInput
                         innerClassName="w-8"
@@ -100,6 +98,19 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                                 food.fat = foodTemplate.current.fat * v;
                                 food.fibre = foodTemplate.current.fibre * v;
                             }
+                            render();
+                        }}
+                    />
+                </td>
+                <td className="w-full pr-1">
+                    <input
+                        className="w-full min-w-8"
+                        tabindex={-1}
+                        type="text"
+                        value={food.unit}
+                        placeholder={'g'}
+                        onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
+                            food.unit = e.currentTarget.value;
                             render();
                         }}
                     />
@@ -146,7 +157,7 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                         }}
                     />
                 </td>
-                <td className="pr-1">
+                <td className="pr-2">
                     <NumberInput
                         buttonClassName="hidden sm:flex"
                         innerClassName="w-8"
@@ -160,7 +171,19 @@ export function AddFoodlogPanelRow({foods, food, render, deleteSelf, showNetCarb
                         }}
                     />
                 </td>
-                {showNetCarb && <td className="pr-1 text-center">{(food.carb - food.fibre).toFixed(1)}</td>}
+                {showNetCarb && <td className="pr-2 text-right">{(food.carb - food.fibre).toFixed(1)}</td>}
+                {showCalories && (
+                    <td className="pr-2 text-right">
+                        {CalculateCalories(
+                            food.protein,
+                            food.carb - food.fibre,
+                            food.fibre,
+                            food.fat,
+
+                            Str2CalorieFormula(user.caloric_calc_method)
+                        ).toFixed(0)}
+                    </td>
+                )}
                 <td>
                     <button tabindex={-1} className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
