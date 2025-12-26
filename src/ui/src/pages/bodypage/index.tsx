@@ -78,9 +78,15 @@ export function BodyPage(state: BaseState) {
 
             {showNewEventPanel && <AddBodyPanel bodylog={tmpLog} addBodyLog={addBodyLog} />}
 
-            {state.bodylogs.map((log: TblUserBodyLog) => (
-                <BodyLogPanel key={log.id} bodyLog={log} />
-            ))}
+            {state.bodylogs.length === 0 ? (
+                <div className="text-center font-bold py-32">
+                    No entries found!
+                    <br />
+                    Try adding a new event!
+                </div>
+            ) : (
+                state.bodylogs.map((log: TblUserBodyLog) => <BodyLogPanel key={log.id} bodyLog={log} />)
+            )}
         </>
     );
 }

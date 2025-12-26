@@ -14,8 +14,8 @@ export function BloodSugarPage(state: BaseState) {
             </div>
 
             {state.eventlogs.length === 0 && (
-                <div className="text-center font-bold p-32">
-                    No entries found! Karopon did a tiny dance anyway.
+                <div className="text-center font-bold py-32">
+                    No entries found!
                     <br />
                     Try adding a new event!
                 </div>

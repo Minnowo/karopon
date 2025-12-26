@@ -155,27 +155,35 @@ export function FoodPage(state: BaseState) {
 
             <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="w-full space-y-4">
-                    {state.foods
-                        .filter((x: TblUserFood) => {
-                            return x.name.toLowerCase().includes(search);
-                        })
-                        .slice(0, numberToShow)
-                        .map((food: TblUserFood) => {
-                            return (
-                                <FoodEditPanel
-                                    key={food.id}
-                                    user={state.user}
-                                    food={food}
-                                    deleteFood={deleteFood}
-                                    updateFood={updateFood}
-                                    copyFood={(foodToCopy: TblUserFood) => {
-                                        setShowAddFoodPanel(true);
-                                        setBaseFood(foodToCopy);
-                                        window.scrollTo({top: 0, behavior: 'smooth'});
-                                    }}
-                                />
-                            );
-                        })}
+                    {state.foods.length === 0 ? (
+                        <div className="text-center font-bold py-32">
+                            The list is empty.
+                            <br />
+                            Try giving it some food!
+                        </div>
+                    ) : (
+                        state.foods
+                            .filter((x: TblUserFood) => {
+                                return x.name.toLowerCase().includes(search);
+                            })
+                            .slice(0, numberToShow)
+                            .map((food: TblUserFood) => {
+                                return (
+                                    <FoodEditPanel
+                                        key={food.id}
+                                        user={state.user}
+                                        food={food}
+                                        deleteFood={deleteFood}
+                                        updateFood={updateFood}
+                                        copyFood={(foodToCopy: TblUserFood) => {
+                                            setShowAddFoodPanel(true);
+                                            setBaseFood(foodToCopy);
+                                            window.scrollTo({top: 0, behavior: 'smooth'});
+                                        }}
+                                    />
+                                );
+                            })
+                    )}
                 </div>
             </div>
         </>

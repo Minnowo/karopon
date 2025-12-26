@@ -283,7 +283,7 @@ export function EventsPage(state: BaseState) {
 
             <div className={`w-full space-y-4 ${showNewEventPanel && 'mt-4'}`}>
                 {state.eventlogs.length === 0 && (
-                    <div className="text-center font-bold">
+                    <div className="text-center font-bold py-32">
                         Shhh… the list is taking a nap right now.
                         <br /> Try adding something to wake it up!
                     </div>
