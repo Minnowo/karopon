@@ -80,7 +80,14 @@ export const RenderGraph = <T extends ChartPoint>(
                                 </g>
                             ))}
                             {points.map((p) => (
-                                <text key={`${p.date}-x`} x={p.x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
+                                <text
+                                    key={`${p.date}-x`}
+                                    x={p.x}
+                                    y={height - 5}
+                                    fill="currentColor"
+                                    fontSize="10"
+                                    textAnchor="end"
+                                >
                                     {FormatXLabel(p.date, range)}
                                 </text>
                             ))}

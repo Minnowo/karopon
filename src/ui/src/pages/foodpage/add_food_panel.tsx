@@ -218,7 +218,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
         tmpFood.carb = chosenFood.carb;
         tmpFood.fibre = chosenFood.fibre;
         tmpFood.protein = chosenFood.protein;
-        foodRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        foodRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
         render();
     };
 

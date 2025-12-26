@@ -40,7 +40,7 @@ func (a *APIV1) getDataSourceFood(w http.ResponseWriter, r *http.Request) {
 	if queryStr, ok := vars["query"]; !ok {
 		api.BadReq(w, "No query string given, specify the query for the data source.")
 		return
-	}  else {
+	} else {
 		queryString = strings.TrimSpace(queryStr)
 	}
 
