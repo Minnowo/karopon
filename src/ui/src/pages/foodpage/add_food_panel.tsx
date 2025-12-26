@@ -265,6 +265,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
                     innerClassName="w-full min-w-12"
                     label={'Fat'}
                     min={0}
+                    precision={4}
                     value={tmpFood.fat}
                     onValueChange={(fat: number) => {
                         tmpFood.fat = fat;
@@ -276,6 +277,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
                     innerClassName="w-full min-w-12"
                     label={'Carb'}
                     min={0}
+                    precision={4}
                     value={tmpFood.carb}
                     onValueChange={(carb: number) => {
                         tmpFood.carb = carb;
@@ -287,6 +289,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
                     innerClassName="w-full min-w-12"
                     label={'Fibre'}
                     min={0}
+                    precision={4}
                     value={tmpFood.fibre}
                     onValueChange={(fibre: number) => {
                         tmpFood.fibre = fibre;
@@ -298,6 +301,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
                     innerClassName="w-full min-w-12"
                     label={'Protein'}
                     min={0}
+                    precision={4}
                     value={tmpFood.protein}
                     onValueChange={(protein: number) => {
                         tmpFood.protein = protein;
