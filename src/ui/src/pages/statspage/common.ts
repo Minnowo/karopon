@@ -1,6 +1,14 @@
 export const RangeTypeKeys = ['24 hours', '7 days', '28 days'] as const;
 export type RangeType = (typeof RangeTypeKeys)[number];
 
+export const GroupTypeKeys = ['sum', 'average'] as const;
+export type GroupType = (typeof GroupTypeKeys)[number];
+
+export type GraphDisplay = {
+    range: RangeType;
+    group: GroupType;
+};
+
 export const NoInformationMessage = 'There is no information to show for this time range';
 
 export type ChartPoint = {

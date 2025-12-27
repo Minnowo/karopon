@@ -5,7 +5,7 @@ import {UserEventFoodLog} from '../../api/types';
 import {RenderGraph} from './single_line_graph';
 import {RenderMultiLineGraph} from './multi_line_graph';
 import {PieChart} from './pie_chart';
-import {ChartPoint, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
+import {ChartPoint, GraphDisplay, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
 
 import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
@@ -42,13 +42,13 @@ const buildTodayMacros = (rows: UserEventFoodLog[], range: RangeType): MacroTota
     return totals;
 };
 
-const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroPoint[] => {
+const buildMacroChartData = (rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
     const nowMs = new Date().getTime();
-    const buckets: Record<string, MacroPoint> = {};
+    const buckets = new Map<number, {n: number; point: MacroPoint}>();
     for (let i = 0; i < rows.length; i++) {
         const event = rows[i];
 
-        switch (range) {
+        switch (display.range) {
             case '24 hours':
                 if (!Within24Hour(nowMs, event.eventlog.user_time)) {
                     continue;
@@ -68,7 +68,7 @@ const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroP
 
         const d = new Date(event.eventlog.user_time);
         let key = 0;
-        switch (range) {
+        switch (display.range) {
             case '24 hours':
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
                 break;
@@ -77,29 +77,42 @@ const buildMacroChartData = (rows: UserEventFoodLog[], range: RangeType): MacroP
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
         }
-        if (!buckets[key]) {
-            buckets[key] = {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0};
+        let obj = buckets.get(key);
+        if (obj === undefined) {
+            obj = {n: 0, point: {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0}};
+            buckets.set(key, obj);
         }
-        buckets[key].carbs += event.total_carb - event.total_fibre;
-        buckets[key].protein += event.total_protein;
-        buckets[key].fat += event.total_fat;
-        buckets[key].fibre += event.total_fibre;
+        obj.point.carbs += event.total_carb - event.total_fibre;
+        obj.point.protein += event.total_protein;
+        obj.point.fat += event.total_fat;
+        obj.point.fibre += event.total_fibre;
+        obj.n++;
     }
-    return Object.values(buckets).sort((a, b) => a.date - b.date);
+
+    return Array.from(buckets.values(), (x) => {
+        if (display.group === 'average') {
+            x.point.carbs /= x.n;
+            x.point.protein /= x.n;
+            x.point.fat /= x.n;
+            x.point.fibre /= x.n;
+        }
+
+        return x.point;
+    }).sort((a, b) => a.date - b.date);
 };
 
 const buildChartData = (
     events: UserEventFoodLog[],
     keyGetter: (e: UserEventFoodLog) => number,
-    range: RangeType
+    display: GraphDisplay
 ): ChartPoint[] => {
     const nowMs = new Date().getTime();
-    const grouped = new Map<number, number>();
+    const grouped = new Map<number, {n: number; v: number}>();
 
     for (let i = 0; i < events.length; i++) {
         const event = events[i];
         const d = new Date(event.eventlog.user_time);
-        switch (range) {
+        switch (display.range) {
             case '24 hours':
                 if (!Within24Hour(nowMs, event.eventlog.user_time)) {
                     continue;
@@ -118,7 +131,7 @@ const buildChartData = (
         }
 
         let key = 0;
-        switch (range) {
+        switch (display.range) {
             case '24 hours':
                 key = d.getTime();
                 break;
@@ -128,19 +141,32 @@ const buildChartData = (
                 break;
         }
 
-        grouped.set(key, (grouped.get(key) || 0) + keyGetter(event));
+        let obj = grouped.get(key);
+        if (obj === undefined) {
+            obj = {n: 0, v: 0};
+            grouped.set(key, obj);
+        }
+        obj.n++;
+        obj.v += keyGetter(event);
     }
 
-    return Array.from(grouped.entries())
-        .sort(([a], [b]) => a - b)
-        .map(([date, val]) => ({date, value: val}));
+    return Array.from(grouped.entries(), ([key, val]) => {
+        if (display.group === 'average') {
+            val.v /= val.n;
+        }
+
+        return {
+            date: key,
+            value: val.v,
+        };
+    }).sort((a, b) => a.date - b.date);
 };
 
 export function StatsPage(state: BaseState) {
-    const [carbRange, setCarbRange] = useState<RangeType>('24 hours');
-    const [bloodRange, setBloodRange] = useState<RangeType>('24 hours');
-    const [calorieRange, setCalorieRange] = useState<RangeType>('24 hours');
-    const [insulinRange, setInsulinRange] = useState<RangeType>('24 hours');
+    const [carbRange, setCarbRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
+    const [bloodRange, setBloodRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
+    const [calorieRange, setCalorieRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
+    const [insulinRange, setInsulinRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
     const [pieChartRange, setPieChartRange] = useState<RangeType>('24 hours');
 
     const [macroData, setMacroData] = useState<MacroPoint[]>([]);
@@ -197,7 +223,7 @@ export function StatsPage(state: BaseState) {
                 setCarbRange
             )}
 
-            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', '#facc15', setCalorieRange)}
+            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', '#facc15', setCalorieRange, 0)}
 
             {state.user.show_diabetes &&
                 RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}

@@ -1,14 +1,15 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
-import {ChartPoint, RangeType, RangeTypeKeys, FormatXLabel, NoInformationMessage} from './common';
+import {ChartPoint, RangeTypeKeys, FormatXLabel, NoInformationMessage, GraphDisplay, GroupTypeKeys} from './common';
 
 export const RenderGraph = <T extends ChartPoint>(
     data: T[],
-    range: RangeType,
+    display: GraphDisplay,
     valueKey: keyof T,
     title: string,
     color: string,
-    setRange: (r: RangeType) => void
+    setDisplay: (r: GraphDisplay) => void,
+    precision = 1
 ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -35,16 +36,29 @@ export const RenderGraph = <T extends ChartPoint>(
     return (
         <div ref={containerRef} className="mb-8 w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
-            <div className="flex gap-4 mb-4">
-                {RangeTypeKeys.map((r) => (
-                    <button
-                        key={r}
-                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
-                        onClick={() => setRange(r as RangeType)}
-                    >
-                        {r.toUpperCase()}
-                    </button>
-                ))}
+            <div className="flex flex-row flex-wrap justify-between">
+                <div className="flex gap-2 mb-4">
+                    {RangeTypeKeys.map((r) => (
+                        <button
+                            key={r}
+                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            onClick={() => setDisplay({...display, range: r})}
+                        >
+                            {r.toUpperCase()}
+                        </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 mb-4">
+                    {GroupTypeKeys.map((g) => (
+                        <button
+                            key={g}
+                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            onClick={() => setDisplay({...display, group: g})}
+                        >
+                            {g.toUpperCase()}
+                        </button>
+                    ))}
+                </div>
             </div>
             {data.length === 0 ? (
                 <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>
@@ -75,7 +89,7 @@ export const RenderGraph = <T extends ChartPoint>(
                                 <g key={p.date}>
                                     <circle cx={p.x} cy={p.y} r="5" fill={color} />
                                     <text x={p.x} y={p.y - 10} fill={color} fontSize="10" textAnchor="middle">
-                                        {Number(p.value).toFixed(1)}
+                                        {Number(p.value).toFixed(precision)}
                                     </text>
                                 </g>
                             ))}
@@ -88,7 +102,7 @@ export const RenderGraph = <T extends ChartPoint>(
                                     fontSize="10"
                                     textAnchor="end"
                                 >
-                                    {FormatXLabel(p.date, range)}
+                                    {FormatXLabel(p.date, display.range)}
                                 </text>
                             ))}
                         </svg>

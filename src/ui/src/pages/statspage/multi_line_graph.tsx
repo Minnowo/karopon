@@ -1,5 +1,14 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, MacroTypeKeys, MacroPoint, MacroType, RangeType, RangeTypeKeys, NoInformationMessage} from './common';
+import {
+    FormatXLabel,
+    MacroTypeKeys,
+    MacroPoint,
+    MacroType,
+    RangeTypeKeys,
+    NoInformationMessage,
+    GraphDisplay,
+    GroupTypeKeys,
+} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
@@ -18,11 +27,12 @@ const colors = {
 
 export const RenderMultiLineGraph = (
     data: MacroPoint[],
-    range: RangeType,
+    display: GraphDisplay,
     title: string,
     visibleMacros: MacroType[],
     setVisibleMacros: (m: MacroType[]) => void,
-    setRange: (r: RangeType) => void
+    setDisplay: (r: GraphDisplay) => void,
+    precision = 1
 ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -79,16 +89,29 @@ export const RenderMultiLineGraph = (
     return (
         <div ref={containerRef} className="mb-8 w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
-            <div className="flex gap-4 mb-4">
-                {RangeTypeKeys.map((r) => (
-                    <button
-                        key={r}
-                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
-                        onClick={() => setRange(r as RangeType)}
-                    >
-                        {r.toUpperCase()}
-                    </button>
-                ))}
+            <div className="flex flex-row flex-wrap justify-between">
+                <div className="flex gap-2 mb-4">
+                    {RangeTypeKeys.map((r) => (
+                        <button
+                            key={r}
+                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            onClick={() => setDisplay({...display, range: r})}
+                        >
+                            {r.toUpperCase()}
+                        </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 mb-4">
+                    {GroupTypeKeys.map((g) => (
+                        <button
+                            key={g}
+                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            onClick={() => setDisplay({...display, group: g})}
+                        >
+                            {g.toUpperCase()}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {data.length === 0 ? (
@@ -140,7 +163,7 @@ export const RenderMultiLineGraph = (
                                                         fontSize="10"
                                                         textAnchor="end"
                                                     >
-                                                        {Number(p.value).toFixed(1)}
+                                                        {Number(p.value).toFixed(precision)}
                                                     </text>
                                                 )}
                                             </g>
@@ -154,7 +177,7 @@ export const RenderMultiLineGraph = (
                             const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
                             return (
                                 <text key={`${d.date}-x`} x={x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
-                                    {FormatXLabel(d.date, range)}
+                                    {FormatXLabel(d.date, display.range)}
                                 </text>
                             );
                         })}
