@@ -280,7 +280,7 @@ export function EventsPage(state: BaseState) {
             {showNewEventPanel && (
                 <>
                     <AddEventsPanel
-                        dialogTitle={'Create New Event'}
+                        dialogTitle={'New Event'}
                         saveButtonTitle={'Create Event'}
                         user={state.user}
                         foods={state.foods}
@@ -303,7 +303,7 @@ export function EventsPage(state: BaseState) {
                         <AddEventsPanel
                             key={`e-${editEvent.eventlog.id}`}
                             copyDate={true}
-                            dialogTitle={`Update Event: ${editEvent.eventlog.id}`}
+                            dialogTitle={`Edit Event`}
                             saveButtonTitle={'Update Event'}
                             user={state.user}
                             foods={state.foods}
@@ -313,7 +313,7 @@ export function EventsPage(state: BaseState) {
                             actionButtons={[
                                 <button
                                     key={`c-${editEvent.eventlog.id}`}
-                                    className="text-sm bg-c-l-red font-bold w-24 mx-1"
+                                    className="text-sm bg-c-l-red font-bold w-24 sm:mx-1 mb-1 sm:mb-0"
                                     onClick={() => setEditEvent(UserEventFoodLogFactory.empty())}
                                 >
                                     Cancel

@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {
     CreateUserEventLog,
     InsertUserFoodLog,
@@ -47,7 +47,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const [event, setEvent] = useState<string>(p.fromEvent.eventlog.event);
     const [eventTime, setEventTime] = useState<Date>(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
-    const [didChangeTime, setDidChangeTime] = useState<boolean>(false);
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
     const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
@@ -56,15 +55,20 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const render = DoRender();
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         setEvent(p.fromEvent.eventlog.event);
         setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
         setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
-        foods.current = p.fromEvent.foodlogs.map((x: TblUserFoodLog) => {
-            return {...x, key: --keyRef.current};
-        });
+        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + 3);
+        let i = 0;
+        for (; i < p.fromEvent.foodlogs.length; i++) {
+            foods.current[i] = {...p.fromEvent.foodlogs[i], key: --keyRef.current};
+        }
+        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
+        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
+        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
     }, [p.fromEvent, p.copyDate]);
 
     const reset = () => {
@@ -131,7 +135,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             insulin_to_carb_ratio: insulinToCarbRatio,
             recommended_insulin_amount: insulin,
             actual_insulin_taken: insulinTaken,
-            created_time: didChangeTime || p.copyDate ? eventTime.getTime() : 0, // for server generates the time
+            created_time: eventTime.getTime(),
             event: {
                 id: 0,
                 user_id: p.user.id,
@@ -158,7 +162,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         if (e.target) {
             const value = e.currentTarget.value;
             setEventTime(new Date(value));
-            setDidChangeTime(true);
         }
     };
 
@@ -214,9 +217,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <div className="flex w-full justify-between">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
                 <span> {formatSmartTimestamp(eventTime.getTime())}</span>
-                <div>
+                <div className="flex flex-col sm:flex-row">
                     {p.actionButtons}
-                    <button className="text-sm text-c-l-red font-bold w-24 mx-1" onClick={reset}>
+                    <button className="text-sm text-c-l-red font-bold w-24 sm:mx-1" onClick={reset}>
                         Reset
                     </button>
                 </div>
