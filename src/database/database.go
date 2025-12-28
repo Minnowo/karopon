@@ -2,7 +2,9 @@ package database
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
+	"io"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -17,6 +19,18 @@ type DB interface {
 	Base() *SQLxDB
 
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
+
+	///
+	/// Export functions
+	///
+
+	ExportUserCSV(ctx context.Context, w io.Writer) error
+	ExportUserEventsCSV(ctx context.Context, w io.Writer) error
+	ExportUserEventLogsCSV(ctx context.Context, w io.Writer) error
+	ExportUserFoodsCSV(ctx context.Context, w io.Writer) error
+	ExportUserFoodLogsCSV(ctx context.Context, w io.Writer) error
+	ExportBodyLogCSV(ctx context.Context, w io.Writer) error
+	ExportDbVersionCSV(ctx context.Context, w io.Writer) error
 
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
@@ -281,4 +295,53 @@ func (db *SQLxDB) WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error 
 	}
 
 	return err
+}
+
+func (db *SQLxDB) ExportQueryRowsAsCsv(ctx context.Context, query string, w io.Writer) error {
+
+	rows, err := db.QueryxContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	return db.WriteRowsAsCsv(rows, w)
+}
+
+func (db *SQLxDB) WriteRowsAsCsv(rows *sqlx.Rows, w io.Writer) error {
+
+	csvWriter := csv.NewWriter(w)
+	defer csvWriter.Flush()
+
+	cols, err := rows.Columns()
+
+	if err != nil {
+		return err
+	}
+
+	if err := csvWriter.Write(cols); err != nil {
+		return err
+	}
+
+	csvRow := make([]string, len(cols))
+
+	for rows.Next() {
+
+		row := make(map[string]any)
+
+		if err := rows.MapScan(row); err != nil {
+			return err
+		}
+
+		for i, col := range cols {
+			csvRow[i] = ValueToString(row[col])
+		}
+
+		if err := csvWriter.Write(csvRow); err != nil {
+			return err
+		}
+	}
+
+	return rows.Err()
 }

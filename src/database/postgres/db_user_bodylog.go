@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"io"
 	"karopon/src/database"
 
 	"github.com/jmoiron/sqlx"
@@ -24,7 +25,7 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
 
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 		query := `
-			INSERT INTO pon.user_bodylog(
+			INSERT INTO PON.USER_BODYLOG(
 				USER_ID, USER_TIME, 
 				WEIGHT_KG, HEIGHT_CM, 
 				BODY_FAT_PERCENT, BMI, 
@@ -52,4 +53,11 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
 	})
 
 	return retUserId, err
+}
+
+func (db *PGDatabase) ExportBodyLogCSV(ctx context.Context, w io.Writer) error {
+
+	query := `SELECT * FROM PON.USER_BODYLOG`
+
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

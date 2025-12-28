@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"karopon/src/database"
 
 	"github.com/jmoiron/sqlx"
@@ -144,4 +145,9 @@ func (db *PGDatabase) LoadUserFoodLogByEventLogTx(tx *sqlx.Tx, userId int, event
 		`WHERE fl.USER_ID = $1 AND fl.EVENTLOG_ID = $2 ` +
 		`ORDER BY fl.USER_TIME DESC`
 	return tx.Select(out, query, userId, eventLogId)
+}
+
+func (db *PGDatabase) ExportUserFoodLogsCSV(ctx context.Context, w io.Writer) error {
+	query := `SELECT * FROM PON.USER_FOODLOG`
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

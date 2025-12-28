@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"io"
 	"karopon/src/database"
 	"time"
 
@@ -291,4 +292,9 @@ func (db *PGDatabase) DeleteUserEventLog(ctx context.Context, userId int, eventl
 
 		return err
 	})
+}
+
+func (db *PGDatabase) ExportUserEventLogsCSV(ctx context.Context, w io.Writer) error {
+	query := `SELECT * FROM PON.USER_EVENTLOG`
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

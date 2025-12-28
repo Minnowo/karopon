@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"io"
 	"karopon/src/database"
 
 	"github.com/jmoiron/sqlx"
@@ -45,4 +46,9 @@ func (db *PGDatabase) SetVersion(ctx context.Context, version database.Version) 
 	}
 
 	return nil
+}
+
+func (db *PGDatabase) ExportDbVersionCSV(ctx context.Context, w io.Writer) error {
+	query := `SELECT * FROM PON.CONFIG`
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

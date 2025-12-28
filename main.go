@@ -116,6 +116,27 @@ func main() {
 							},
 						},
 					},
+					{
+						Name:        "export",
+						Description: "Export the database as CSV",
+						Action:      cmd.CmdExportCsv,
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "database-conn",
+								Aliases:  []string{"c"},
+								Usage:    "The database connection string",
+								Sources:  cli.EnvVars("DATABASE_CONN"),
+								Required: false,
+							},
+							&cli.StringFlag{
+								Name:     "output-folder",
+								Aliases:  []string{"o"},
+								Usage:    "The output folder where all the csv files should be saved",
+								Sources:  cli.EnvVars("OUTPUT_FOLDER"),
+								Required: false,
+							},
+						},
+					},
 				},
 			},
 			{

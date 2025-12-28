@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"io"
 	"karopon/src/database"
 
 	"github.com/jmoiron/sqlx"
@@ -60,4 +61,11 @@ func (db *PGDatabase) LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, 
 	out.ID = id
 
 	return nil
+}
+
+func (db *PGDatabase) ExportUserEventsCSV(ctx context.Context, w io.Writer) error {
+
+	query := `SELECT * FROM PON.USER_EVENT`
+
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

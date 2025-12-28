@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"io"
 	"karopon/src/database"
 
 	"github.com/jmoiron/sqlx"
@@ -92,4 +93,11 @@ func (db *PGDatabase) LoadUsers(ctx context.Context, users *[]database.TblUser) 
 	query := `SELECT * FROM PON.USER`
 
 	return db.SelectContext(ctx, users, query)
+}
+
+func (db *PGDatabase) ExportUserCSV(ctx context.Context, w io.Writer) error {
+
+	query := `SELECT * FROM PON.USER`
+
+	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }
