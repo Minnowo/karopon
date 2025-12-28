@@ -35,7 +35,11 @@ type DB interface {
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
 
+	// Gets the version we can migrate too.
+	GetMigrationMaxVersion() Version
+
 	// Get the version of this database, used for migration tracking.
+	// If an error is returned, the version returned should not be used.
 	GetVersion(ctx context.Context) (Version, error)
 
 	// Sets the version of this database.

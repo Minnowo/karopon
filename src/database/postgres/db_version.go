@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
 	"karopon/src/database"
@@ -18,11 +19,14 @@ func (db *PGDatabase) GetVersion(ctx context.Context) (database.Version, error) 
 	err := db.GetContext(ctx, &config, query)
 
 	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return database.VERSION_UNKNOWN, nil
+		}
+
 		return database.VERSION_NONE, err
 	}
-	if !config.Version.Valid() {
-		return database.VERSION_NONE, database.ErrInvalidDatabaseVersion
-	}
+
 	return config.Version, nil
 }
 
@@ -49,6 +53,8 @@ func (db *PGDatabase) SetVersion(ctx context.Context, version database.Version) 
 }
 
 func (db *PGDatabase) ExportDbVersionCSV(ctx context.Context, w io.Writer) error {
+
 	query := `SELECT * FROM PON.CONFIG`
+
 	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }
