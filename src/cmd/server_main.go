@@ -10,23 +10,27 @@ import (
 	"karopon/src/database"
 	"karopon/src/database/connection"
 	"karopon/src/handlers/user"
-	"karopon/src/logging"
 	"karopon/src/ui"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/minnowo/log4zero"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 )
 
 func CmdServerMain(ctx context.Context, c *cli.Command) error {
 
-	logging.Init()
-
+	logConfigFile := c.Value("log-config-path").(string)
 	bindAddr := c.Value("bind").(string)
 	port := c.Value("port").(int32)
 	dbconn := c.Value("database-conn").(string)
+
+	err := log4zero.InitOnce(logConfigFile)
+
+	log.Logger = *log4zero.Get("main")
+	log.Info().Err(err).Str("path", logConfigFile).Msg("logging initialized")
 
 	if fakeAuth, ok := c.Value("fake-auth-as-user").(string); ok {
 		config.SetFakeAuthUser(fakeAuth)

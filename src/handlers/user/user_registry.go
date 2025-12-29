@@ -6,9 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/minnowo/log4zero"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var log = log4zero.Get("user-registry")
 
 type UserRegistry struct {
 
@@ -52,6 +54,8 @@ func (u *UserRegistry) NewToken(user *database.TblUser) (AccessToken, time.Time)
 		expires: expires,
 	}
 
+	log.Debug().Time("expireTime", expires).Int("userId", user.ID).Str("user", user.Name).Msg("Created new session token")
+
 	return token, expires
 }
 
@@ -86,7 +90,8 @@ func (u *UserRegistry) CheckToken(tokenStr string) (*database.TblUser, bool) {
 
 	expired := session.Expired()
 
-	log.Debug().Bool("expired", expired).Msg("session expire check")
+	log.Debug().Bool("isExpired", expired).Time("expireTime", session.expires).Msg("Session expire check")
+
 	if expired {
 		u.sessionsLock.RUnlock()
 		u.sessionsLock.Lock()
@@ -127,7 +132,7 @@ func (u *UserRegistry) Login(name, password string) (string, time.Time, bool) {
 	if err != nil {
 
 		if err != bcrypt.ErrMismatchedHashAndPassword {
-			log.Warn().Err(err).Msg("")
+			log.Warn().Err(err).Str("user", name).Msg("Unexpected error comparing hash and password")
 		}
 
 		return "", time.Time{}, false
@@ -192,22 +197,22 @@ func (u *UserRegistry) LoadFromDatabase(db database.DB) error {
 	for _, user := range users {
 
 		if user.Name == "" {
-			log.Warn().Msg("skipping user with empty name")
+			log.Warn().Msg("Skipping user with empty name")
 			continue
 		}
 
 		cost, err := bcrypt.Cost(user.Password)
 
 		if err != nil {
-			log.Warn().Str("user", user.Name).Msg("skipping user whos password is invalid")
+			log.Warn().Str("user", user.Name).Msg("Skipping user whos password is invalid")
 			continue
 		}
 
 		log.Debug().
 			Interface("user", user).
-			Msg("")
+			Msg("Registering user")
 
-		log.Info().Str("user", user.Name).Int("cost", cost).Msg("registering user")
+		log.Info().Int("userId", user.ID).Int("passwordCost", cost).Msg("Registering user")
 
 		u.AddUser(user)
 	}

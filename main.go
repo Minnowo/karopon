@@ -173,6 +173,13 @@ func main() {
 						Sources:  cli.EnvVars("FAKE_AUTH_AS_USER"),
 						Required: false,
 					},
+					&cli.StringFlag{
+						Name:     "log-config-path",
+						Usage:    "Set a custom path for the logger config, see https://github.com/Minnowo/log4zero",
+						Sources:  cli.EnvVars("LOG_CONFIG_PATH"),
+						Value:    "./log.config.json",
+						Required: false,
+					},
 				},
 			},
 		},

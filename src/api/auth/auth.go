@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/minnowo/log4zero"
 )
 
 var (
@@ -17,6 +17,8 @@ var (
 	sessionValidCookie = constants.SESSION_VALID_COOKIE
 	tokenHeader        = constants.SESSION_AUTH_HEADER
 )
+
+var logger = log4zero.Get("auth-middleware")
 
 // todo: make this a server setting?
 const secure bool = false
@@ -89,16 +91,10 @@ func ParseAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler 
 				user, ok := userReg.CheckToken(token)
 
 				if ok {
-					if user == nil {
-						log.Debug().Str("user", "nil").Msg("valid session")
-					} else {
-						log.Debug().Str("user", user.Name).Int("id", user.ID).Msg("valid session")
-					}
+					logger.Debug().Str("user", user.Name).Int("userId", user.ID).Str("url", r.URL.String()).Msg("Authentication successful")
 
 					r = PutUser(r, user)
 				} else {
-					log.Debug().Msg("expired session")
-
 					ExpireAuthToken(w)
 				}
 			}
@@ -128,11 +124,11 @@ func RequireAuth() func(next http.Handler) http.Handler {
 // FakeAuth can be used for debugging by always authenticating as the given user.
 func FakeAuth(user *database.TblUser, userReg *user.UserRegistry) func(next http.Handler) http.Handler {
 
+	logger.Debug().Str("user", user.Name).Msg("Registering fake auth")
+
 	return func(next http.Handler) http.Handler {
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			log.Debug().Msg("using fake auth")
 
 			r = PutUser(r, user)
 
@@ -162,8 +158,6 @@ func PutUser(r *http.Request, user *database.TblUser) *http.Request {
 func IsAuthed(r *http.Request) bool {
 
 	ok := GetUser(r) != nil
-
-	log.Debug().Bool("ok", ok).Msg("IsAuthed")
 
 	return ok
 }

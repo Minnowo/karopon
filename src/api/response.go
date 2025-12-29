@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/minnowo/log4zero"
 )
 
+var logger = log4zero.Get("api-responses")
+
 func Done(w http.ResponseWriter, code int, msg string) {
+	logger.Debug().Int("code", code).Str("message", msg).Msg("Http Response")
 	http.Error(w, msg, code)
 }
 

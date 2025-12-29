@@ -1,0 +1,24 @@
+{
+    "loggers": {
+        "main": {
+            "level": "debug",
+            "color": true
+        },
+        "user-registry": {
+            "level": "debug",
+            "color": true
+        },
+        "api-responses": {
+            "level": "debug",
+            "color": true
+        },
+        "database-migrations": {
+            "level": "debug",
+            "color": true
+        },
+        "auth-middleware": {
+            "level": "debug",
+            "color": true
+        }
+    }
+}

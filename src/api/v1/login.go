@@ -37,11 +37,11 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info().Msg("handling login call")
-
 	username := r.PostFormValue("pon_username")
 	password := r.PostFormValue("pon_password")
 	tokenType := r.PostFormValue("pon_token_type")
+
+	log.Info().Str("username", username).Str("tokenType", tokenType).Msg("Handling login call")
 
 	if username == "" || password == "" {
 		api.BadReq(w, "The username or password cannot be empty.")

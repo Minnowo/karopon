@@ -7,12 +7,11 @@ import (
 	"path"
 	"strconv"
 
-	"karopon/src/logging"
-
 	"github.com/jmoiron/sqlx"
+	"github.com/minnowo/log4zero"
 )
 
-var migrationLogger = logging.GetLogger("database-migrations")
+var migrationLogger = log4zero.Get("database-migrations")
 
 //go:embed migrations/*
 var migrationFiles embed.FS
