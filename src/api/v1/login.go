@@ -7,6 +7,7 @@ import (
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -37,7 +38,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.PostFormValue("pon_username")
+	username := strings.TrimSpace(r.PostFormValue("pon_username"))
 	password := r.PostFormValue("pon_password")
 	tokenType := r.PostFormValue("pon_token_type")
 
