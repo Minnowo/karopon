@@ -1,49 +1,8 @@
 package database
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
 	"time"
 )
-
-type UnixMillis time.Time
-
-func (t UnixMillis) Time() time.Time {
-	return time.Time(t).UTC()
-}
-
-func (t UnixMillis) MarshalJSON() ([]byte, error) {
-	ms := time.Time(t).UTC().UnixNano() / int64(time.Millisecond)
-	return fmt.Appendf(nil, "%d", ms), nil
-}
-
-func (t *UnixMillis) UnmarshalJSON(b []byte) error {
-	var ms int64
-	if err := json.Unmarshal(b, &ms); err != nil {
-		return err
-	}
-	if ms == 0 {
-		*t = UnixMillis(time.Time{}.UTC())
-	} else {
-		*t = UnixMillis(time.Unix(0, ms*int64(time.Millisecond)).UTC())
-	}
-	return nil
-}
-
-func (t UnixMillis) Value() (driver.Value, error) {
-	return time.Time(t), nil
-}
-
-func (t *UnixMillis) Scan(value any) error {
-	switch v := value.(type) {
-	case time.Time:
-		*t = UnixMillis(v)
-		return nil
-	default:
-		return fmt.Errorf("cannot scan %T into UnixMillis", value)
-	}
-}
 
 type TblConfig struct {
 	Version Version `db:"version" json:"version"`
@@ -59,7 +18,7 @@ type TblUser struct {
 	ID       int        `db:"id" json:"id"`
 	Name     string     `db:"name" json:"name"`
 	Password []byte     `db:"password" json:"-"`
-	Created  UnixMillis `db:"created" json:"created"`
+	Created  TimeMillis `db:"created" json:"created"`
 
 	// settings
 	DarkMode                 bool    `db:"dark_mode" json:"dark_mode"`
@@ -106,8 +65,8 @@ type TblUserEventLog struct {
 	ID                       int        `db:"id" json:"id"`
 	UserID                   int        `db:"user_id" json:"user_id"`
 	EventID                  int        `db:"event_id" json:"event_id"`
-	Created                  UnixMillis `db:"created" json:"created"`
-	UserTime                 UnixMillis `db:"user_time" json:"user_time"`
+	Created                  TimeMillis `db:"created" json:"created"`
+	UserTime                 TimeMillis `db:"user_time" json:"user_time"`
 	Event                    string     `db:"event" json:"event"`
 	NetCarbs                 float64    `db:"net_carbs" json:"net_carbs"`
 	BloodGlucose             float64    `db:"blood_glucose" json:"blood_glucose"`
@@ -144,8 +103,8 @@ type TblUserFoodLog struct {
 	ID       int        `db:"id" json:"id"`
 	UserID   int        `db:"user_id" json:"user_id"`
 	FoodID   *int       `db:"food_id" json:"food_id"`
-	Created  UnixMillis `db:"created" json:"created"`
-	UserTime UnixMillis `db:"user_time" json:"user_time"`
+	Created  TimeMillis `db:"created" json:"created"`
+	UserTime TimeMillis `db:"user_time" json:"user_time"`
 	Name     string     `db:"name" json:"name"`
 
 	EventLogID *int   `db:"eventlog_id" json:"eventlog_id"`
@@ -164,8 +123,8 @@ type TblUserFoodLog struct {
 type TblUserBodyLog struct {
 	ID       int        `db:"id" json:"id"`
 	UserID   int        `db:"user_id" json:"user_id"`
-	Created  UnixMillis `db:"created" json:"created"`
-	UserTime UnixMillis `db:"user_time" json:"user_time"`
+	Created  TimeMillis `db:"created" json:"created"`
+	UserTime TimeMillis `db:"user_time" json:"user_time"`
 
 	// Core metrics
 	WeightKg       float64 `db:"weight_kg" json:"weight_kg"`
@@ -185,21 +144,21 @@ type TblUserBodyLog struct {
 type TblUserMedication struct {
 	ID           int        `db:"id" json:"id"`
 	UserID       int        `db:"user_id" json:"user_id"`
-	Created      UnixMillis `db:"created" json:"created"`
+	Created      TimeMillis `db:"created" json:"created"`
 	Name         string     `db:"name" json:"name"`
 	Category     string     `db:"category" json:"category"`
 	DosageAmount float64    `db:"dosage_amount" json:"dosage_amount"`
 	DosageUnit   string     `db:"dosage_unit" json:"dosage_unit"`
 	Form         string     `db:"form" json:"form"` // tablet, capsule, liquid
-	StartDate    UnixMillis `db:"start_date" json:"start_date"`
-	EndDate      UnixMillis `db:"end_date" json:"end_date"`
+	StartDate    TimeMillis `db:"start_date" json:"start_date"`
+	EndDate      TimeMillis `db:"end_date" json:"end_date"`
 	Notes        string     `db:"notes" json:"notes"`
 }
 
 type TblUserMedicationSchedule struct {
 	ID                int        `db:"id" json:"id"`
 	MedicationID      int        `db:"medication_id" json:"medication_id"`
-	Created           UnixMillis `db:"created" json:"created"`
+	Created           TimeMillis `db:"created" json:"created"`
 	MinutesOfHourMask int64      `db:"minutes_of_hour_mask" json:"minutes_of_hour_mask"` // BIT(60)
 	HoursOfDayMask    int32      `db:"hours_of_day_mask" json:"hours_of_day_mask"`       // BIT(24)
 	DaysOfWeekMask    int8       `db:"days_of_week_mask" json:"days_of_week_mask"`       // BIT(7)
@@ -213,22 +172,23 @@ type TblUserMedicationSchedule struct {
 type TblUserMedicationLog struct {
 	ID         int        `db:"id" json:"id"`
 	ScheduleID int        `db:"schedule_id" json:"schedule_id"`
-	TakenTime  UnixMillis `db:"taken_time" json:"taken_time"`
+	TakenTime  TimeMillis `db:"taken_time" json:"taken_time"`
 	Taken      bool       `db:"taken" json:"taken"`
 	Notes      string     `db:"notes" json:"notes"`
 }
 
 type TblDataSource struct {
 	ID      int        `db:"id" json:"id"`
-	Created UnixMillis `db:"created" json:"created"`
+	Created TimeMillis `db:"created" json:"created"`
 	Name    string     `db:"name" json:"name"`
 	Url     string     `db:"url" json:"url"`
 	Notes   string     `db:"notes" json:"notes"`
 }
+
 type TblDataSourceFood struct {
 	ID           int        `db:"id" json:"id"`
 	DataSourceID int        `db:"data_source_id" json:"data_source_id"`
-	Created      UnixMillis `db:"created" json:"created"`
+	Created      TimeMillis `db:"created" json:"created"`
 
 	Name            string  `db:"name" json:"name"`
 	Unit            string  `db:"unit" json:"unit"`
@@ -238,4 +198,35 @@ type TblDataSourceFood struct {
 	Fibre           float64 `db:"fibre" json:"fibre"`
 	Fat             float64 `db:"fat" json:"fat"`
 	DataSourceRowID int     `db:"data_source_row_int_id" json:"data_source_row_int_id"`
+}
+
+// UserGoal represents a row in PON.USER_GOAL
+type TblUserGoal struct {
+	ID              int        `db:"id" json:"id"`
+	UserID          int        `db:"user_id" json:"user_id"`
+	Created         TimeMillis `db:"created" json:"created"`
+	Name            string     `db:"name" json:"name"`
+	TargetValue     float64    `db:"target_value" json:"target_value"`
+	TargetCol       string     `db:"target_col" json:"target_col"`
+	AggregationType string     `db:"aggregation_type" json:"aggregation_type"`
+	ValueComparison string     `db:"value_comparison" json:"value_comparison"`
+	TimeExpr        string     `db:"time_expr" json:"time_expr"`
+}
+
+func (u *TblUserGoal) TimeRange(now time.Time) (time.Time, time.Time, error) {
+	return ParseGoalTimeExpression(u.TimeExpr, now)
+}
+
+func (u *TblUserGoal) TargetColumn() GoalTargetColumn {
+	return GoalTargetColumn(u.TargetCol)
+}
+
+func (u *TblUserGoal) Aggregation() GoalAggregationFunc {
+
+	return GoalAggregationFunc(u.AggregationType)
+}
+
+func (u *TblUserGoal) Comparison() GoalValueComparison {
+
+	return GoalValueComparison(u.ValueComparison)
 }

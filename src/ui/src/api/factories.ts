@@ -1,4 +1,26 @@
-import {TblUserFoodLog, UserEventFoodLog, TblUserFood} from './types';
+import {
+    TblUserFoodLog,
+    UserEventFoodLog,
+    TblUserFood,
+    TblUserGoal,
+    GoalComparisonTypeValues,
+    GoalTimeExprValues,
+    GoalTargetColumnValues,
+    GoalAggregationTypeValues,
+} from './types';
+
+export const NewTblUserGoal = (overrides: Partial<TblUserGoal> = {}): TblUserGoal => ({
+    id: 0,
+    user_id: 0,
+    created: 0,
+    name: '',
+    target_value: 0,
+    target_col: GoalTargetColumnValues[0],
+    aggregation_type: GoalAggregationTypeValues[0],
+    value_comparison: GoalComparisonTypeValues[0],
+    time_expr: GoalTimeExprValues[1],
+    ...overrides,
+});
 
 export const TblUserFoodFactory = {
     empty(): TblUserFood {

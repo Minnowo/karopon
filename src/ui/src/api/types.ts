@@ -161,3 +161,43 @@ export type TblDataSourceFood = {
     fat: number;
     data_source_row_int_id: number;
 };
+
+export const GoalTargetColumnValues = ['CALORIES', 'NET_CARBS', 'FAT', 'CARBS', 'FIBRE', 'PROTEIN'] as const;
+export type GoalTargetColumn = (typeof GoalTargetColumnValues)[number];
+
+export const GoalAggregationTypeValues = ['SUM', 'AVG', 'MIN', 'MAX'] as const;
+export type GoalAggregationType = (typeof GoalAggregationTypeValues)[number];
+
+export const GoalComparisonTypeValues = [
+    'EQUAL_TO',
+    'LESS_THAN',
+    'MORE_THAN',
+    'LESS_THAN_OR_EQUAL_TO',
+    'MORE_THAN_OR_EQUAL_TO',
+] as const;
+export type GoalComparisonType = (typeof GoalComparisonTypeValues)[number];
+
+export const GoalTimeExprValues = ['HOURLY', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const;
+export type GoalTimeExpr = (typeof GoalTimeExprValues)[number];
+
+export type TblUserGoal = {
+    id: number;
+    user_id: number;
+    created: number;
+    name: string;
+    target_value: number;
+    target_col: GoalTargetColumn;
+    aggregation_type: GoalAggregationType;
+    value_comparison: GoalComparisonType;
+    time_expr: GoalTimeExpr;
+};
+
+export type CheckGoalProgress = TblUserGoal & {
+    timezone: string;
+};
+
+export type UserGoalProgress = {
+    current_value: number;
+    target_value: number;
+    time_remaining: number;
+};

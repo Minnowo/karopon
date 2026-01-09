@@ -10,7 +10,7 @@ import (
 )
 
 type ServerTime struct {
-	Time database.UnixMillis `json:"time"`
+	Time database.TimeMillis `json:"time"`
 }
 
 func (a *APIV1) getServerTime(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +25,6 @@ func (a *APIV1) getServerTime(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ServerTime{
-		Time: database.UnixMillis(time.Now()),
+		Time: database.TimeMillis(time.Now()),
 	})
 }

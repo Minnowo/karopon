@@ -31,7 +31,7 @@ export function formatSmartTimestamp(timestamp: number): string {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hourCycle: 'h24',
+        hourCycle: 'h23',
         ...(isSameYear ? {} : {year: 'numeric'}),
     });
 }

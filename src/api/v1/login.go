@@ -79,10 +79,10 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	if tokenType == "token" {
 		var tokenRes struct {
 			Token   string              `json:"token"`
-			Expires database.UnixMillis `json:"expires"`
+			Expires database.TimeMillis `json:"expires"`
 		}
 		tokenRes.Token = token
-		tokenRes.Expires = database.UnixMillis(expires)
+		tokenRes.Expires = database.TimeMillis(expires)
 		json.NewEncoder(w).Encode(tokenRes)
 	} else {
 		auth.SetAuthToken(w, token, expires)

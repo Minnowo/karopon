@@ -30,7 +30,13 @@ type CreateUserEventLog struct {
 	InsulinToCarbRatio       float64    `json:"insulin_to_carb_ratio"`
 	RecommendedInsulinAmount float64    `json:"recommended_insulin_amount"`
 	ActualInsulinTaken       float64    `json:"actual_insulin_taken"`
-	CreatedTime              UnixMillis `json:"created_time"`
+	CreatedTime              TimeMillis `json:"created_time"`
+}
+
+type UserGoalProgress struct {
+	CurrentValue  float64        `json:"current_value"`
+	TargetValue   float64        `json:"target_value"`
+	TimeRemaining DurationMillis `json:"time_remaining"`
 }
 
 func ValueToString(val any) string {
@@ -74,7 +80,7 @@ func ValueToString(val any) string {
 	case bool:
 		return strconv.FormatBool(v)
 
-	case UnixMillis:
+	case TimeMillis:
 		return strconv.FormatInt(v.Time().UnixMilli(), 10)
 
 	case time.Time:

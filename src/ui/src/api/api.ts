@@ -12,6 +12,9 @@ import {
     TblUserBodyLog,
     TblDataSource,
     TblDataSourceFood,
+    TblUserGoal,
+    UserGoalProgress,
+    CheckGoalProgress,
 } from './types';
 
 export class ApiError extends Error {
@@ -93,40 +96,56 @@ export const ApiLogout = async (): Promise<boolean> => {
 };
 
 export const ApiWhoAmI = (): Promise<TblUser> => {
-    return fetchJson<TblUser>(apiFetch(`${ApiBase}/api/whoami`));
+    return fetchJson(apiFetch(`${ApiBase}/api/whoami`));
 };
 
 export const ApiGetUserFoods = (): Promise<TblUserFood[]> => {
-    return fetchJson<TblUserFood[]>(apiFetch(`${ApiBase}/api/foods`));
+    return fetchJson(apiFetch(`${ApiBase}/api/foods`));
 };
 
 export const ApiGetUserEvents = (): Promise<TblUserEvent[]> => {
-    return fetchJson<TblUserEvent[]>(apiFetch(`${ApiBase}/api/events`));
+    return fetchJson(apiFetch(`${ApiBase}/api/events`));
 };
 
 export const ApiGetUserEventLog = (): Promise<TblUserEventLog[]> => {
-    return fetchJson<TblUserEventLog[]>(apiFetch(`${ApiBase}/api/eventlogs`));
+    return fetchJson(apiFetch(`${ApiBase}/api/eventlogs`));
 };
 
 export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
-    return fetchJson<UserEventFoodLog[]>(apiFetch(`${ApiBase}/api/eventfoodlogs?n=${n}`));
+    return fetchJson(apiFetch(`${ApiBase}/api/eventfoodlogs?n=${n}`));
 };
 
 export const ApiGetUserBodyLog = (): Promise<TblUserBodyLog[]> => {
-    return fetchJson<TblUserBodyLog[]>(apiFetch(`${ApiBase}/api/bodylog`));
+    return fetchJson(apiFetch(`${ApiBase}/api/bodylog`));
+};
+
+export const ApiGetUserGoals = (): Promise<TblUserGoal[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/goals`));
+};
+
+export const ApiGetUserGoalProgress = (goal: CheckGoalProgress): Promise<UserGoalProgress> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/goal/progress`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(goal),
+        })
+    );
 };
 
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {
-    return fetchJson<TblDataSource[]>(apiFetch(`${ApiBase}/api/datasources`));
+    return fetchJson(apiFetch(`${ApiBase}/api/datasources`));
 };
 
 export const ApiGetDataSourceFoods = (dataSourceID: number, search: string): Promise<TblDataSourceFood[]> => {
     const encodedSearch = encodeURIComponent(search);
-    return fetchJson<TblDataSourceFood[]>(apiFetch(`${ApiBase}/api/datasources/${dataSourceID}/${encodedSearch}`));
+    return fetchJson(apiFetch(`${ApiBase}/api/datasources/${dataSourceID}/${encodedSearch}`));
 };
 
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
-    return fetchJson<TblUser>(
+    return fetchJson(
         apiFetch(`${ApiBase}/api/user/update`, {
             headers: {
                 'content-type': 'application/json',
@@ -150,7 +169,7 @@ export const ApiUpdateUserFood = (food: TblUserFood): Promise<void> => {
 };
 
 export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
-    return fetchJson<TblUserFood>(
+    return fetchJson(
         apiFetch(`${ApiBase}/api/food/new`, {
             headers: {
                 'content-type': 'application/json',
@@ -162,13 +181,37 @@ export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
 };
 
 export const ApiNewUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> => {
-    return fetchJson<TblUserBodyLog>(
+    return fetchJson(
         apiFetch(`${ApiBase}/api/bodylog/new`, {
             headers: {
                 'content-type': 'application/json',
             },
             method: 'POST',
             body: JSON.stringify(log),
+        })
+    );
+};
+
+export const ApiNewUserGoal = (goal: TblUserGoal): Promise<TblUserGoal> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/goal/new`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(goal),
+        })
+    );
+};
+
+export const ApiDeleteUserGoal = (goal: TblUserGoal): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/goal/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(goal),
         })
     );
 };
@@ -198,7 +241,7 @@ export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
 };
 
 export const ApiUpdateUserEventLog = (eventlog: UpdateUserEventLog): Promise<UserEventFoodLog> => {
-    return fetchJson<UserEventFoodLog>(
+    return fetchJson(
         apiFetch(`${ApiBase}/api/eventfoodlog/update`, {
             headers: {
                 'content-type': 'application/json',
@@ -222,7 +265,7 @@ export const ApiDeleteUserEventLog = (eventlog: TblUserEventLog): Promise<void> 
 };
 
 export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodLog> => {
-    return fetchJson<UserEventFoodLog>(
+    return fetchJson(
         apiFetch(`${ApiBase}/api/eventlog/new`, {
             headers: {
                 'content-type': 'application/json',

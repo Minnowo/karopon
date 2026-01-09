@@ -66,7 +66,7 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	event.UserID = user.ID
 
 	if event.UserTime.Time().IsZero() {
-		event.UserTime = database.UnixMillis(time.Now().UTC())
+		event.UserTime = database.TimeMillis(time.Now().UTC())
 	}
 
 	id, err := a.Db.AddUserBodyLogs(r.Context(), &event)

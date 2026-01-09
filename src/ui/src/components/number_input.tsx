@@ -87,7 +87,7 @@ export function NumberInput({
     return (
         <div
             aria-disabled={disabled}
-            className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like px-0 py-0 ${className}`}
+            className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like p-0 ${className}`}
         >
             {label && <div className="flex items-center select-none px-1"> {label} </div>}
             <input

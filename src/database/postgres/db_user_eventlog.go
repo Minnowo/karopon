@@ -16,7 +16,7 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
 		if time.Time(event.UserTime).IsZero() {
-			event.UserTime = database.UnixMillis(time.Now())
+			event.UserTime = database.TimeMillis(time.Now())
 		}
 
 		event.NetCarbs = 0
@@ -212,7 +212,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 		}
 
 		if eventlog.Eventlog.UserTime.Time().IsZero() {
-			eventlog.Eventlog.UserTime = database.UnixMillis(time.Now().UTC())
+			eventlog.Eventlog.UserTime = database.TimeMillis(time.Now().UTC())
 		}
 
 		{ // if the user changed the name of the event

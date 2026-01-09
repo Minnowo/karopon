@@ -7,8 +7,8 @@ import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
-import {useCallback, useEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource} from './api/types';
+import {useCallback, useLayoutEffect, useState} from 'preact/hooks';
+import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource, TblUserGoal} from './api/types';
 import {
     ApiGetUserFoods,
     ApiGetUserEvents,
@@ -17,6 +17,7 @@ import {
     HasAuth,
     ApiGetUserBodyLog,
     ApiGetDataSources,
+    ApiGetUserGoals,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -27,16 +28,19 @@ import {
     LocalGetEventLogs,
     LocalGetEvents,
     LocalGetFoods,
+    LocalGetGoals,
     LocalGetUser,
     LocalStoreBodyLogs,
     LocalStoreDataSources,
     LocalStoreEventLogs,
     LocalStoreEvents,
     LocalStoreFoods,
+    LocalStoreGoals,
     LocalStoreUser,
 } from './utils/localstate';
 import {ErrorDiv} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
+import {GoalsPage} from './pages/goalspage';
 
 export function App() {
     // This cookie is set when there is a valid auth token cookie.
@@ -47,13 +51,14 @@ export function App() {
     const [foods, setFoods] = useState<TblUserFood[] | null>(LocalGetFoods());
     const [events, setEvents] = useState<TblUserEvent[] | null>(LocalGetEvents());
     const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventLogs());
+    const [goals, setGoals] = useState<TblUserGoal[] | null>(LocalGetGoals());
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
     const doRefresh = useCallback(() => setRefresh((x) => x + 1), []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const updateFunc = () => setHashRoute(window.location.hash);
 
         updateFunc();
@@ -62,43 +67,49 @@ export function App() {
         return () => window.removeEventListener('hashchange', updateFunc);
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (user !== null) {
             LocalStoreUser(user);
         }
     }, [user]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (foods !== null) {
             LocalStoreFoods(foods);
         }
     }, [foods]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (events !== null) {
             LocalStoreEvents(events);
         }
     }, [events]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (eventlogs !== null) {
             LocalStoreEventLogs(eventlogs);
         }
     }, [eventlogs]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+        if (goals !== null) {
+            LocalStoreGoals(goals);
+        }
+    }, [goals]);
+
+    useLayoutEffect(() => {
         if (bodylogs !== null) {
             LocalStoreBodyLogs(bodylogs);
         }
     }, [bodylogs]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (dataSources !== null) {
             LocalStoreDataSources(dataSources);
         }
     }, [dataSources]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         ApiWhoAmI()
             .then(async (me) => {
                 const myFood = await ApiGetUserFoods();
@@ -106,6 +117,7 @@ export function App() {
                 const myEventLogs = await ApiGetUserEventFoodLog(me.event_history_fetch_limit);
                 const myBodyLogs = await ApiGetUserBodyLog();
                 const svrDataSources = await ApiGetDataSources();
+                const myGoals = await ApiGetUserGoals();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -113,6 +125,7 @@ export function App() {
                 setFoods(myFood);
                 setEvents(myEvents);
                 setEventLogsWithFoodlogs(myEventLogs);
+                setGoals(myGoals);
                 setBodyLogs(myBodyLogs);
                 setDataSources(svrDataSources);
                 setErrorMsg(null);
@@ -120,7 +133,7 @@ export function App() {
             .catch((e: Error) => setErrorMsg(e.message));
     }, [refresh]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (user === null || user.dark_mode) {
             document.documentElement.dataset.theme = 'dark';
         } else {
@@ -128,7 +141,7 @@ export function App() {
         }
     }, [user]);
 
-    if (user === null || foods === null || events === null || eventlogs === null || bodylogs === null) {
+    if (user === null || foods === null || events === null || eventlogs === null || bodylogs === null || goals === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
 
@@ -166,8 +179,10 @@ export function App() {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
-                                    dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -183,6 +198,8 @@ export function App() {
                                     setEvents={setEvents}
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     setBodyLogs={setBodyLogs}
                                     dataSources={dataSources}
@@ -201,6 +218,28 @@ export function App() {
                                     setEvents={setEvents}
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#goals':
+                            return (
+                                <GoalsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
@@ -219,6 +258,8 @@ export function App() {
                                     setEvents={setEvents}
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
@@ -237,6 +278,8 @@ export function App() {
                                     setEvents={setEvents}
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}

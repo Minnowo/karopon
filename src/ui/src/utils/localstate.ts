@@ -1,9 +1,18 @@
-import type {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource} from '../api/types';
+import type {
+    TblUser,
+    TblUserFood,
+    TblUserEvent,
+    UserEventFoodLog,
+    TblUserBodyLog,
+    TblDataSource,
+    TblUserGoal,
+} from '../api/types';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 const LOCAL_STORAGE_KEY_EVENTS = 'events';
 const LOCAL_STORAGE_KEY_FOODS = 'foods';
 const LOCAL_STORAGE_KEY_EVENTLOGS = 'eventlogs';
+const LOCAL_STORAGE_KEY_GOALS = 'goals';
 const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
@@ -34,6 +43,7 @@ export const LocalStoreUser = (user: TblUser) => store(LOCAL_STORAGE_KEY_USER, J
 export const LocalStoreEvents = (events: TblUserEvent[]) => store(LOCAL_STORAGE_KEY_EVENTS, JSON.stringify(events));
 export const LocalStoreFoods = (foods: TblUserFood[]) => store(LOCAL_STORAGE_KEY_FOODS, JSON.stringify(foods));
 export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
+export const LocalStoreGoals = (goals: TblUserGoal[]) => store(LOCAL_STORAGE_KEY_GOALS, JSON.stringify(goals));
 export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
@@ -42,6 +52,7 @@ export const LocalGetUser = () => load<TblUser>(LOCAL_STORAGE_KEY_USER);
 export const LocalGetEvents = () => load<TblUserEvent[]>(LOCAL_STORAGE_KEY_EVENTS);
 export const LocalGetFoods = () => load<TblUserFood[]>(LOCAL_STORAGE_KEY_FOODS);
 export const LocalGetEventLogs = () => load<UserEventFoodLog[]>(LOCAL_STORAGE_KEY_EVENTLOGS);
+export const LocalGetGoals = () => load<TblUserGoal[]>(LOCAL_STORAGE_KEY_GOALS);
 export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
 
@@ -52,6 +63,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_FOODS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTLOGS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_GOALS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
     } catch {}
 };

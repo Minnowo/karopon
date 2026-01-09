@@ -76,6 +76,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/time", a.getServerTime)
 	get.HandleFunc("/datasources", a.getDataSources)
 	get.HandleFunc("/datasources/{id}/{query}", a.getDataSourceFood)
+	get.HandleFunc("/goals", a.getUserGoals)
 
 	post := api.Methods("POST", "OPTIONS").Subrouter()
 	post.Use(auth.RequireAuth())
@@ -88,5 +89,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/eventfoodlog/update", a.updateUserEventFoodLog)
 	post.HandleFunc("/bodylog/new", a.createUserBodyLog)
 	post.HandleFunc("/bodylog/delete", a.deleteUserBodyLog)
-
+	post.HandleFunc("/goal/new", a.newUserGoal)
+	post.HandleFunc("/goal/delete", a.deleteUserGoal)
+	post.HandleFunc("/goal/progress", a.getUserGoalProgress)
 }

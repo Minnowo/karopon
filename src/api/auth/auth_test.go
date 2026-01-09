@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"karopon/src/constants"
 	"karopon/src/database"
 	"karopon/src/handlers/user"
 	"net/http"
@@ -33,25 +32,7 @@ func expectContext(t *testing.T, expectUser *database.TblUser, yes bool) func(w 
 	}
 }
 
-func TestAuthMiddleware(t *testing.T) {
-
-	username := "test"
-	password := "test"
-
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	assert.Nil(t, err)
-
-	session := &database.TblUser{
-		Name:     username,
-		Password: passwordHash,
-		Created:  database.UnixMillis(time.Now()),
-	}
-
-	reg := user.NewRegistry()
-	reg.AddUser(*session)
-
-	authToken, _, ok := reg.Login(username, password)
-	assert.True(t, ok, "login should be valid")
+func newRouter(t *testing.T, session *database.TblUser, reg *user.UserRegistry) *mux.Router {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/no-auth").HandlerFunc(expectContext(t, session, false))
@@ -65,11 +46,35 @@ func TestAuthMiddleware(t *testing.T) {
 	yesAuth.Use(ParseAuth(reg), RequireAuth())
 	yesAuth.PathPrefix("/yes-require-auth").HandlerFunc(expectContext(t, session, true))
 
+	return r
+}
+
+func TestAuthMiddleware(t *testing.T) {
+
+	username := "test"
+	password := "test"
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	assert.Nil(t, err)
+
+	session := &database.TblUser{
+		Name:     username,
+		Password: passwordHash,
+		Created:  database.TimeMillis(time.Now()),
+	}
+
+	reg := user.NewRegistry()
+	reg.AddUser(*session)
+
+	authToken, _, ok := reg.Login(username, password)
+	assert.True(t, ok, "login should be valid")
+
 	t.Run("test no auth route", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/no-auth", nil)
 
+		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
@@ -81,6 +86,7 @@ func TestAuthMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/no-require-auth1", nil)
 
+		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
@@ -92,10 +98,15 @@ func TestAuthMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/no-require-auth2", nil)
 		req.AddCookie(&http.Cookie{
-			Name:  constants.SESSION_COOKIE,
+			Name:  sessionCookie,
+			Value: authToken,
+		})
+		req.AddCookie(&http.Cookie{
+			Name:  sessionValidCookie,
 			Value: authToken,
 		})
 
+		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
@@ -107,6 +118,7 @@ func TestAuthMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/yes-require-auth", nil)
 
+		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
 
 		assert := assert.New(t)
@@ -118,10 +130,15 @@ func TestAuthMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/yes-require-auth", nil)
 		req.AddCookie(&http.Cookie{
-			Name:  constants.SESSION_COOKIE,
+			Name:  sessionCookie,
+			Value: authToken,
+		})
+		req.AddCookie(&http.Cookie{
+			Name:  sessionValidCookie,
 			Value: authToken,
 		})
 
+		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
 
 		assert := assert.New(t)

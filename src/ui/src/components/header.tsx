@@ -56,6 +56,10 @@ export function Header(state: HeaderState) {
                         foods
                     </a>
                     &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#goals' ? css : ''} `} href="#goals">
+                        goals
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
                     <a className={`${currentHash === '#body' ? css : ''} `} href="#body">
                         body
                     </a>

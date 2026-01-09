@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -201,6 +202,15 @@ type DB interface {
 	//  - On Postgres this is using the trgm extension https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-INDEX
 	LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]TblDataSourceFood) error
 	LoadDataSourceFoodBySimilarNameN(ctx context.Context, dataSourceID int, nameQuery string, n int, out *[]TblDataSourceFood) error
+
+	///
+	/// User Goals
+	///
+
+	DeleteUserGoal(ctx context.Context, userId int, goalId int) error
+	LoadUserGoals(ctx context.Context, userId int, out *[]TblUserGoal) error
+	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
+	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
 }
 
 type SQLxDB struct {

@@ -78,7 +78,7 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 	userEventLog.EventID = event.Event.ID
 	userEventLog.Event = event.Event.Name
 	if event.CreatedTime.Time().IsZero() {
-		userEventLog.UserTime = database.UnixMillis(time.Now().UTC())
+		userEventLog.UserTime = database.TimeMillis(time.Now().UTC())
 	} else {
 		userEventLog.UserTime = event.CreatedTime
 	}
