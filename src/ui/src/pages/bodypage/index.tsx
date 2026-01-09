@@ -3,7 +3,7 @@ import {useState} from 'preact/hooks';
 import {ErrorDiv} from '../../components/error_div';
 import {TblUserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
-import {ApiError, ApiNewUserBodyLog} from '../../api/api';
+import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog} from '../../api/api';
 import {BodyLogPanel} from './bodylog_panel';
 
 export function BodyPage(state: BaseState) {
@@ -63,6 +63,20 @@ export function BodyPage(state: BaseState) {
             .catch(handleErr);
     };
 
+    const copyBodyLog = (bodylog: TblUserBodyLog) => {
+        setTmpLog(bodylog);
+        setShowNewEventPanel(true);
+    };
+
+    const deleteBodyLog = (bodylog: TblUserBodyLog) => {
+        ApiDeleteUserBodyLog(bodylog)
+            .then(() => {
+                state.setBodyLogs((e) => (e !== null ? e.filter((x) => x.id !== bodylog.id) : null));
+                setErrorMsg(null);
+            })
+            .catch(handleErr);
+    };
+
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
@@ -76,7 +90,7 @@ export function BodyPage(state: BaseState) {
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            {showNewEventPanel && <AddBodyPanel bodylog={tmpLog} addBodyLog={addBodyLog} />}
+            {showNewEventPanel && <AddBodyPanel className="mb-4" bodylog={tmpLog} addBodyLog={addBodyLog} />}
 
             {state.bodylogs.length === 0 ? (
                 <div className="text-center font-bold py-32">
@@ -85,7 +99,17 @@ export function BodyPage(state: BaseState) {
                     Try adding a new event!
                 </div>
             ) : (
-                state.bodylogs.map((log: TblUserBodyLog) => <BodyLogPanel key={log.id} bodyLog={log} />)
+                <div className="space-y-4">
+                    {state.bodylogs.map((log: TblUserBodyLog) => (
+                        <BodyLogPanel
+                            key={log.id}
+                            bodyLog={log}
+                            onCopy={copyBodyLog}
+                            onEdit={() => alert('This is not implemented yet!')}
+                            onDelete={deleteBodyLog}
+                        />
+                    ))}
+                </div>
             )}
         </>
     );

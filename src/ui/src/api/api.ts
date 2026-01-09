@@ -173,6 +173,18 @@ export const ApiNewUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> 
     );
 };
 
+export const ApiDeleteUserBodyLog = (log: TblUserBodyLog): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/bodylog/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(log),
+        })
+    );
+};
+
 export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
     return fetchNone(
         apiFetch(`${ApiBase}/api/food/delete`, {

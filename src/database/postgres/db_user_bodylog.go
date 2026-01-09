@@ -55,6 +55,15 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
 	return retUserId, err
 }
 
+func (db *PGDatabase) DeleteUserBodyLog(ctx context.Context, userId int, bodyLogId int) error {
+
+	query := `DELETE FROM PON.USER_BODYLOG WHERE USER_ID = $1 AND ID = $2`
+
+	_, err := db.ExecContext(ctx, query, userId, bodyLogId)
+
+	return err
+}
+
 func (db *PGDatabase) ExportBodyLogCSV(ctx context.Context, w io.Writer) error {
 
 	query := `SELECT * FROM PON.USER_BODYLOG`

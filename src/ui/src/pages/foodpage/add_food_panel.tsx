@@ -1,4 +1,4 @@
-import {useState, useMemo, useRef, useEffect, useCallback} from 'preact/hooks';
+import {useState, useMemo, useRef, useEffect} from 'preact/hooks';
 import {TblDataSource, TblDataSourceFood, TblUserFood} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 import {DoRender} from '../../hooks/doRender';

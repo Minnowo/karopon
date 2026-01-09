@@ -135,6 +135,10 @@
     @apply border bg-c-d-black border-c-yellow focus:border-c-l-green;
 }
 
+@utility text-faded {
+    @apply opacity-60;
+}
+
 @utility no-drag {
     pointer-events: none;
     -moz-user-select: none;

@@ -31,35 +31,35 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if event.WeightKg < 0 {
-		api.BadReq(w, "Weight should be > 0")
+		api.BadReq(w, "Weight should be >= 0")
 		return
 	}
 	if event.HeightCm < 0 {
-		api.BadReq(w, "Height CM should be > 0")
+		api.BadReq(w, "Height CM should be >= 0")
 		return
 	}
 	if event.BodyFatPercent < 0 {
-		api.BadReq(w, "Body Fat Percent should be > 0")
+		api.BadReq(w, "Body Fat Percent should be >= 0")
 		return
 	}
 	if event.BMI < 0 {
-		api.BadReq(w, "BMI should be > 0")
+		api.BadReq(w, "BMI should be >= 0")
 		return
 	}
 	if event.BPSystolic < 0 {
-		api.BadReq(w, "BP Systolic should be > 0")
+		api.BadReq(w, "BP Systolic should be >= 0")
 		return
 	}
 	if event.BPDiastolic < 0 {
-		api.BadReq(w, "BP Diastolic should be > 0")
+		api.BadReq(w, "BP Diastolic should be >= 0")
 		return
 	}
 	if event.HeartRateBPM < 0 {
-		api.BadReq(w, "BMP should be > 0")
+		api.BadReq(w, "BMP should be >= 0")
 		return
 	}
 	if event.StepsCount < 0 {
-		api.BadReq(w, "Steps should be > 0")
+		api.BadReq(w, "Steps should be >= 0")
 		return
 	}
 

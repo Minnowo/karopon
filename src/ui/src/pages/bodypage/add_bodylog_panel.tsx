@@ -3,23 +3,13 @@ import {ErrorDiv} from '../../components/error_div';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserBodyLog} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
+import {CmToFeetInches, FeetInchesToCm, KgToLbs, LbsToKg} from '../../utils/units';
 
 type AddBodyPanelProps = {
     bodylog: TblUserBodyLog;
     addBodyLog: (bodylog: TblUserBodyLog) => void;
     className?: string;
 };
-
-const KgToLbs = (kg: number) => kg * 2.2046226218;
-const LbsToKg = (lbs: number) => lbs / 2.2046226218;
-const cmToFeetInches = (cm: number) => {
-    const totalInches = cm / 2.54;
-    const feet = Math.floor(totalInches / 12);
-    const inches = totalInches % 12;
-    return {feet, inches};
-};
-
-const feetInchesToCm = (feet: number, inches: number) => (feet * 12 + inches) * 2.54;
 
 export function AddBodyPanel(state: AddBodyPanelProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -28,20 +18,11 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
     const tmpLog = useMemo<TblUserBodyLog>(
         () => ({
-            id: 0,
-            user_id: 0,
+            ...state.bodylog,
             created: Date.now(),
             user_time: Date.now(),
-            weight_kg: 0,
-            height_cm: 0,
-            body_fat_percent: 0,
-            bmi: 0,
-            bp_systolic: 0,
-            bp_diastolic: 0,
-            heart_rate_bpm: 0,
-            steps_count: 0,
         }),
-        []
+        [state.bodylog]
     );
 
     const onSaveClick = () => {
@@ -94,7 +75,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             </div>
                         </div>
 
-                        <div className="flex flex-col">
+                        <div className="w-full flex flex-col">
                             <span className="font-semibold">Height</span>
                             <div className="w-full flex flex-row gap-2">
                                 <NumberInput
@@ -115,13 +96,13 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     className="w-full my-1"
                                     innerClassName="w-full"
                                     label="ft"
-                                    value={cmToFeetInches(tmpLog.height_cm).feet}
+                                    value={CmToFeetInches(tmpLog.height_cm).feet}
                                     min={0}
                                     step={1}
                                     precision={0}
                                     onValueChange={(v) => {
-                                        const inches = cmToFeetInches(tmpLog.height_cm).inches;
-                                        tmpLog.height_cm = feetInchesToCm(v, inches);
+                                        const inches = CmToFeetInches(tmpLog.height_cm).inches;
+                                        tmpLog.height_cm = FeetInchesToCm(v, inches);
                                         render();
                                     }}
                                 />
@@ -130,13 +111,13 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     className="w-full my-1"
                                     innerClassName="w-full"
                                     label="in"
-                                    value={cmToFeetInches(tmpLog.height_cm).inches}
+                                    value={CmToFeetInches(tmpLog.height_cm).inches}
                                     min={0}
                                     max={11}
                                     step={1}
                                     onValueChange={(v) => {
-                                        const feet = cmToFeetInches(tmpLog.height_cm).feet;
-                                        tmpLog.height_cm = feetInchesToCm(feet, v);
+                                        const feet = CmToFeetInches(tmpLog.height_cm).feet;
+                                        tmpLog.height_cm = FeetInchesToCm(feet, v);
                                         render();
                                     }}
                                 />

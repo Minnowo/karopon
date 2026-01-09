@@ -2,7 +2,7 @@ import {Dispatch, StateUpdater, useCallback, useState} from 'preact/hooks';
 
 import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
-import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood, ApiError} from '../../api/api';
+import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood} from '../../api/api';
 import {FoodEditPanel} from './food_edit_panel';
 import {ErrorDiv} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
