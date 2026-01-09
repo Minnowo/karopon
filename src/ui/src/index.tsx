@@ -5,7 +5,6 @@ import {render} from 'preact';
 import {Header} from './components/header.jsx';
 import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
-import {BloodSugarPage} from './pages/bloodsugar_page.js';
 import {StatsPage} from './pages/statspage';
 
 import {useCallback, useEffect, useState} from 'preact/hooks';
@@ -194,24 +193,6 @@ export function App() {
                         case '#body':
                             return (
                                 <BodyPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    bodylogs={bodylogs}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#bloodsugar':
-                            return (
-                                <BloodSugarPage
                                     user={user}
                                     setUser={setUser}
                                     foods={foods}
