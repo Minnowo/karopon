@@ -241,7 +241,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                             setEvent(evnt.name);
                         }
                     }}
-                    autofocus={true}
+                    autofocus={p.fromEvent.eventlog.event.trim() === ''}
                 />
 
                 <input
