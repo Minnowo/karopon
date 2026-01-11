@@ -7,14 +7,16 @@ builds:
     goos: [linux]
     goarch: ['amd64']
     env: [CGO_ENABLED=0]
-    flags: ['-tags="netgo osusergo"']
+    flags:
+      - -tags=netgo osusergo timetzdata
     ldflags: ["-s","-w","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
   - id: linux-386
     main: ./
     goos: [linux]
     goarch: ['386']
     env: [CGO_ENABLED=0]
-    flags: ['-tags="netgo osusergo"']
+    flags:
+      - -tags=netgo osusergo timetzdata
     ldflags: ["-s","-w","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
   - id: linux-armhf
     main: ./
@@ -22,21 +24,24 @@ builds:
     goarch: [arm]
     goarm: [7]
     env: [CGO_ENABLED=0]
-    flags: ['-tags="netgo osusergo"']
+    flags:
+      - -tags=netgo osusergo timetzdata
     ldflags: ["-s","-w","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
   - id: linux-arm64
     main: ./
     goos: [linux]
     goarch: [arm64]
     env: [CGO_ENABLED=0]
-    flags: ['-tags="netgo osusergo"']
+    flags:
+      - -tags=netgo osusergo timetzdata
     ldflags: ["-s","-w","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
   - id: windows-amd64
     main: ./
     goos: [windows]
     goarch: [amd64]
     env: [CGO_ENABLED=0]
-    flags: ['-tags="netgo osusergo"']
+    flags:
+      - -tags=netgo osusergo timetzdata
     ldflags: ["-s","-w","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
 archives:
   - files:
