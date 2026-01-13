@@ -56,7 +56,7 @@ export function BodyLogPanel({bodyLog, onCopy, onEdit, onDelete}: BodyLogPanelPr
                             label="Weight"
                             value={
                                 <>
-                                    {bodyLog.weight_kg.toFixed(1)} cm
+                                    {bodyLog.weight_kg.toFixed(1)} kg
                                     <span className="mx-2 text-faded">/</span>
                                     {KgToLbs(bodyLog.weight_kg).toFixed(1)} lbs
                                 </>
