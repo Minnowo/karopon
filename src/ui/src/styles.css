@@ -159,3 +159,15 @@
 .table-padded td {
     @apply p-1;
 }
+
+.no-summary-arrow summary {
+    list-style: none;
+}
+
+.no-summary-arrow summary::marker {
+    display: none;
+}
+
+.no-summary-arrow summary::-webkit-details-marker {
+    display: none;
+}

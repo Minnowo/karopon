@@ -224,7 +224,82 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
 
     return (
         <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
-            <span className="text-lg font-bold">Create New Food</span>
+            <div className="w-full mb-4">
+                <details className="w-full no-summary-arrow">
+                    <summary className="cursor-pointer text-lg font-bold">
+                        Create New Food
+                        <span className="text-xs"> (click for help)</span>
+                    </summary>
+
+                    <div className="text-sm p-4">
+                        <p>Add a food using information from a nutrition label or a built-in data source.</p>
+
+                        <br />
+
+                        <p className="font-semibold">From a food label</p>
+
+                        <ol className="list-decimal list-inside space-y-1">
+                            <li>Find the nutrition label on the package.</li>
+
+                            <li>
+                                Choose a unit and portion size that match the label.
+                                <div className="ml-4 mt-1">
+                                    You can choose any unit, as long as the portion of that unit represents the same portion as
+                                    the label.
+                                </div>
+                                <div className="ml-4 mt-1">
+                                    Example: <span className="font-semibold">1 bar (45 g)</span>
+                                </div>
+                                <ol className="list-disc list-inside space-y-1 ml-4 mt-1">
+                                    <li>
+                                        Track in grams:
+                                        <span className="ml-1">
+                                            Unit <span className="font-semibold">g</span>, Portion{' '}
+                                            <span className="font-semibold">45</span>
+                                        </span>
+                                    </li>
+                                    <li>
+                                        Track by kilograms:
+                                        <span className="ml-1">
+                                            Unit <span className="font-semibold">kg</span>, Portion{' '}
+                                            <span className="font-semibold">0.045</span>
+                                        </span>
+                                    </li>
+                                    <li>
+                                        Track by item:
+                                        <span className="ml-1">
+                                            Unit <span className="font-semibold">bars</span>, Portion{' '}
+                                            <span className="font-semibold">1</span>
+                                        </span>
+                                    </li>
+                                </ol>
+                            </li>
+
+                            <li>Enter the nutrition values (Fat, Carbs, Fibre, Protein) as shown on the label.</li>
+
+                            <li>Create the food.</li>
+                        </ol>
+
+                        <br />
+                        <p className="font-semibold">From a built-in data source</p>
+
+                        <ol className="list-decimal list-inside space-y-1">
+                            <li>
+                                Expand the <span className="font-semibold">Search data sources for food</span> section below.
+                            </li>
+                            <li>Select the data source you want to search.</li>
+                            <li>Search for the food you want to add.</li>
+                            <li>Review the search results and select the food you want.</li>
+                            <li>
+                                Click <span className="font-semibold">Choose</span> to copy the food’s information.
+                            </li>
+                            <li>Make any final adjustments to the food details.</li>
+                            <li>Create the food.</li>
+                        </ol>
+                    </div>
+                </details>
+            </div>
+
             <ErrorDiv errorMsg={errorMsg} />
             <div className="flex justify-between font-semibold">
                 <div className="w-full">
