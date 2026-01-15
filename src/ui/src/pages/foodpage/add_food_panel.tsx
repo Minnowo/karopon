@@ -16,7 +16,9 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [curRow, setCurRow] = useState<number>(-1);
-    const [selectedDataSource, setSelectedDataSource] = useState<number | null>(null);
+    const [selectedDataSource, setSelectedDataSource] = useState<number | null>(
+        state.dataSources.length > 0 ? state.dataSources[0].id : null
+    );
     const [searchText, setSearchText] = useState('');
     const [results, setResults] = useState<TblDataSourceFood[]>([]);
     const [loading, setLoading] = useState(false);
