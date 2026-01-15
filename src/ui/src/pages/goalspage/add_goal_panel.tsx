@@ -14,6 +14,7 @@ import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
+import {SnakeCaseToTitle} from '../../utils/strings';
 
 type Props = {
     userGoal: TblUserGoal;
@@ -152,8 +153,8 @@ export function GoalCreationPanel({userGoal, onCreated, className = ''}: Props) 
                 </div>
 
                 <div>
-                    My {goal.time_expr} goal is for the {goal.aggregation_type} of my {goal.target_col} to be{' '}
-                    {goal.value_comparison} {goal.target_value}.
+                    My {SnakeCaseToTitle(goal.time_expr)} goal is for the {SnakeCaseToTitle(goal.aggregation_type)} of my{' '}
+                    {SnakeCaseToTitle(goal.target_col)} to be {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}.
                 </div>
 
                 <div className="flex sm:justify-end">

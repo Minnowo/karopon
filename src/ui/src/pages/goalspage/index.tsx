@@ -7,9 +7,63 @@ import {FormatDuration} from '../../utils/time';
 import {NewTblUserGoal} from '../../api/factories';
 import {ErrorDiv} from '../../components/error_div';
 import {DropdownButton} from '../../components/drop_down_button';
+import {SnakeCaseToTitle} from '../../utils/strings';
+
+type GoalPanelProps = {
+    goal: TblUserGoal;
+    deleteGoal: (food: TblUserGoal) => void;
+};
+const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
+    const [progress, setProgress] = useState<UserGoalProgress | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            setProgress(await ApiGetUserGoalProgress({...goal, timezone}));
+        })();
+    }, [goal]);
+
+    return (
+        <div className="container-theme p-2">
+            <div className="flex flex-row justify-between">
+                <h2 className="text-lg font-semibold">{goal.name}</h2>
+                <DropdownButton
+                    actions={[
+                        {
+                            label: 'Delete',
+                            dangerous: true,
+                            onClick: () => confirm('Delete this goal?') && deleteGoal(goal),
+                        },
+                    ]}
+                />
+            </div>
+            <p className="text-sm">
+                Want {SnakeCaseToTitle(goal.target_col)} to be {SnakeCaseToTitle(goal.value_comparison)}{' '}
+                {goal.target_value.toFixed(1)}
+            </p>
+            {progress ? (
+                <>
+                    <p>
+                        Current: {progress.current_value.toFixed(1)} / {progress.target_value.toFixed(1)}
+                    </p>
+                    <p className="text-xs">Time remaining: {FormatDuration(progress.time_remaining)}</p>
+                    <div className="w-full h-2 rounded mt-2">
+                        <div
+                            className="bg-c-blue h-2 rounded"
+                            style={{
+                                width: `${Math.min(100, (progress.current_value / progress.target_value) * 100)}%`,
+                            }}
+                        />
+                    </div>
+                </>
+            ) : (
+                <p className="text-sm">Loading progress...</p>
+            )}
+        </div>
+    );
+};
 
 export function GoalsPage(state: BaseState) {
-    const [progressMap, setProgressMap] = useState<Record<number, UserGoalProgress>>({});
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
 
@@ -28,23 +82,12 @@ export function GoalsPage(state: BaseState) {
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const progMap: Record<number, UserGoalProgress> = {};
-            for (const g of state.goals) {
-                const prog = await ApiGetUserGoalProgress({...g, timezone});
-                progMap[g.id] = prog;
-            }
-            setProgressMap(progMap);
-        })();
-    }, [state.goals]);
-
     const createGoal = (goal: TblUserGoal) => {
         ApiNewUserGoal(goal)
             .then((g) => {
                 newGoal.current = NewTblUserGoal({target_value: 1500});
                 state.setGoals((oldGoals) => (oldGoals === null ? null : [g, ...oldGoals]));
+                setShowNewGoalPanel(false);
             })
             .catch(handleErr);
     };
@@ -77,50 +120,7 @@ export function GoalsPage(state: BaseState) {
                 {state.goals.length === 0 ? (
                     <p>No goals found.</p>
                 ) : (
-                    state.goals.map((g: TblUserGoal) => {
-                        const progress = progressMap[g.id];
-
-                        return (
-                            <div key={g.id} className="container-theme p-2">
-                                <div className="flex flex-row justify-between">
-                                    <h2 className="text-lg font-semibold">{g.name}</h2>
-                                    <DropdownButton
-                                        actions={[
-                                            {
-                                                label: 'Delete',
-                                                dangerous: true,
-                                                onClick: () => confirm('Delete this goal?') && deleteGoal(g),
-                                            },
-                                        ]}
-                                    />
-                                </div>
-                                <p className="text-sm">
-                                    Want {g.target_col} to be {g.value_comparison} {g.target_value.toFixed(1)}
-                                </p>
-                                {progress ? (
-                                    <>
-                                        <p>
-                                            Current: {progress.current_value.toFixed(1)} / {progress.target_value.toFixed(1)}
-                                        </p>
-                                        <p className="text-xs">Time remaining: {FormatDuration(progress.time_remaining)}</p>
-                                        <div className="w-full h-2 rounded mt-2">
-                                            <div
-                                                className="bg-c-blue h-2 rounded"
-                                                style={{
-                                                    width: `${Math.min(
-                                                        100,
-                                                        (progress.current_value / progress.target_value) * 100
-                                                    )}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <p className="text-sm">Loading progress...</p>
-                                )}
-                            </div>
-                        );
-                    })
+                    state.goals.map((g: TblUserGoal) => <GoalPanel key={g.id} goal={g} deleteGoal={deleteGoal} />)
                 )}
             </div>
         </>
