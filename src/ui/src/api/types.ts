@@ -171,9 +171,9 @@ export type GoalAggregationType = (typeof GoalAggregationTypeValues)[number];
 export const GoalComparisonTypeValues = [
     'EQUAL_TO',
     'LESS_THAN',
-    'MORE_THAN',
+    'GREATER_THAN',
     'LESS_THAN_OR_EQUAL_TO',
-    'MORE_THAN_OR_EQUAL_TO',
+    'GREATER_THAN_OR_EQUAL_TO',
 ] as const;
 export type GoalComparisonType = (typeof GoalComparisonTypeValues)[number];
 

@@ -15,6 +15,7 @@ var postgresUpMigrations = []database.Migration{
 	database.NewFileMigration(4, 5, "pg/0006_add_more_tables"),
 	database.NewFileMigration(5, 6, "pg/0007_3rd_party_database"),
 	database.NewFileMigration(6, 7, "pg/0008_goals_table"),
+	database.NewFileMigration(7, 8, "pg/0009_goals_rename_comparison"),
 }
 
 func (db *PGDatabase) GetMigrationMaxVersion() database.Version {

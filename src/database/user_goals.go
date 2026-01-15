@@ -59,9 +59,9 @@ type GoalValueComparison string
 const (
 	ComparisonEQ       GoalValueComparison = "EQUAL_TO"
 	ComparisonLessThan GoalValueComparison = "LESS_THAN"
-	ComparisonMoreThan GoalValueComparison = "MORE_THAN"
+	ComparisonMoreThan GoalValueComparison = "GREATER_THAN"
 	ComparisonLessEq   GoalValueComparison = "LESS_THAN_OR_EQUAL_TO"
-	ComparisonMoreEq   GoalValueComparison = "MORE_THAN_OR_EQUAL_TO"
+	ComparisonMoreEq   GoalValueComparison = "GREATER_THAN_OR_EQUAL_TO"
 )
 
 func (v GoalValueComparison) IsValid() bool {
