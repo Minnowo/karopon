@@ -11,12 +11,20 @@ import (
 type GoalTargetColumn string
 
 const (
-	TargetColumnCalories GoalTargetColumn = "CALORIES"
-	TargetColumnNetCarbs GoalTargetColumn = "NET_CARBS"
-	TargetColumnFat      GoalTargetColumn = "FAT"
-	TargetColumnCarbs    GoalTargetColumn = "CARBS"
-	TargetColumnFibre    GoalTargetColumn = "FIBRE"
-	TargetColumnProtein  GoalTargetColumn = "PROTEIN"
+	TargetColumnCalories             GoalTargetColumn = "CALORIES"
+	TargetColumnNetCarbs             GoalTargetColumn = "NET_CARBS"
+	TargetColumnFat                  GoalTargetColumn = "FAT"
+	TargetColumnCarbs                GoalTargetColumn = "CARBS"
+	TargetColumnFibre                GoalTargetColumn = "FIBRE"
+	TargetColumnProtein              GoalTargetColumn = "PROTEIN"
+	TargetColumnBodyWeightKg         GoalTargetColumn = "BODY_WEIGHT_KG"
+	TargetColumnBodyWeightLbs        GoalTargetColumn = "BODY_WEIGHT_LBS"
+	TargetColumnBodyFatPercent       GoalTargetColumn = "BODY_FAT_PERCENT"
+	TargetColumnBodyHeartRate        GoalTargetColumn = "HEART_RATE"
+	TargetColumnBodySteps            GoalTargetColumn = "STEPS"
+	TargetColumnBodyBloodPressureSys GoalTargetColumn = "BLOOD_PRESSURE_SYS"
+	TargetColumnBodyBloodPressureDia GoalTargetColumn = "BLOOD_PRESSURE_DIA"
+	TargetColumnEventBloodSugar      GoalTargetColumn = "BLOOD_SUGAR"
 )
 
 func (a GoalTargetColumn) IsValid() bool {
@@ -27,7 +35,14 @@ func (a GoalTargetColumn) IsValid() bool {
 		TargetColumnFat,
 		TargetColumnCarbs,
 		TargetColumnFibre,
-		TargetColumnProtein:
+		TargetColumnProtein,
+		TargetColumnBodyWeightKg,
+		TargetColumnBodyWeightLbs,
+		TargetColumnBodyFatPercent,
+		TargetColumnBodyHeartRate,
+		TargetColumnBodySteps,
+		TargetColumnBodyBloodPressureSys, TargetColumnBodyBloodPressureDia,
+		TargetColumnEventBloodSugar:
 		return true
 	default:
 		return false

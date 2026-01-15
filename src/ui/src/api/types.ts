@@ -162,7 +162,22 @@ export type TblDataSourceFood = {
     data_source_row_int_id: number;
 };
 
-export const GoalTargetColumnValues = ['CALORIES', 'NET_CARBS', 'FAT', 'CARBS', 'FIBRE', 'PROTEIN'] as const;
+export const GoalTargetColumnValues = [
+    'CALORIES',
+    'NET_CARBS',
+    'FAT',
+    'CARBS',
+    'FIBRE',
+    'PROTEIN',
+    'BODY_WEIGHT_KG',
+    'BODY_WEIGHT_LBS',
+    'BODY_FAT_PERCENT',
+    'HEART_RATE',
+    'STEPS',
+    'BLOOD_PRESSURE_SYS',
+    'BLOOD_PRESSURE_DIA',
+    'BLOOD_SUGAR',
+] as const;
 export type GoalTargetColumn = (typeof GoalTargetColumnValues)[number];
 
 export const GoalAggregationTypeValues = ['SUM', 'AVG', 'MIN', 'MAX'] as const;

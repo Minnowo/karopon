@@ -69,26 +69,7 @@ func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Tim
 		return err
 	}
 
-	var colSql string
 	var aggSql string
-
-	switch userGoal.TargetColumn() {
-	default:
-		return fmt.Errorf("TargetColumn is invalild")
-	case database.TargetColumnCalories:
-		// TODO: don't hard code this and make it use the user's setting
-		colSql = "PROTEIN * 4 + (CARB - FIBRE) * 4 + FAT * 9"
-	case database.TargetColumnNetCarbs:
-		colSql = "CARB - FIBRE"
-	case database.TargetColumnFat:
-		colSql = "FAT"
-	case database.TargetColumnCarbs:
-		colSql = "CARB"
-	case database.TargetColumnFibre:
-		colSql = "FIBRE"
-	case database.TargetColumnProtein:
-		colSql = "PROTEIN"
-	}
 
 	switch userGoal.Aggregation() {
 	default:
@@ -104,13 +85,82 @@ func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Tim
 
 	}
 
+	var colSql string
+	var tableSql string
+	var whereSql string
+
+	switch userGoal.TargetColumn() {
+	default:
+		return fmt.Errorf("TargetColumn is invalild")
+
+	case database.TargetColumnCalories:
+		// TODO: don't hard code this and make it use the user's setting
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "PROTEIN * 4 + (CARB - FIBRE) * 4 + FAT * 9"
+		whereSql = ""
+	case database.TargetColumnNetCarbs:
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "CARB - FIBRE"
+		whereSql = ""
+	case database.TargetColumnFat:
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "FAT"
+		whereSql = ""
+	case database.TargetColumnCarbs:
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "CARB"
+		whereSql = ""
+	case database.TargetColumnFibre:
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "FIBRE"
+		whereSql = ""
+	case database.TargetColumnProtein:
+		tableSql = "PON.USER_FOODLOG"
+		colSql = "PROTEIN"
+		whereSql = ""
+
+	case database.TargetColumnBodyWeightKg:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "WEIGHT_KG"
+		whereSql = " AND WEIGHT_KG > 0"
+	case database.TargetColumnBodyWeightLbs:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "WEIGHT_KG * 2.2046226218"
+		whereSql = " AND WEIGHT_KG > 0"
+	case database.TargetColumnBodyFatPercent:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "BODY_FAT_PERCENT"
+		whereSql = " AND BODY_FAT_PERCENT > 0"
+	case database.TargetColumnBodyHeartRate:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "HEART_RATE_BPM"
+		whereSql = " AND HEART_RATE_BPM > 0"
+	case database.TargetColumnBodySteps:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "STEPS_COUNT"
+		whereSql = " AND STEPS_COUNT > 0"
+	case database.TargetColumnBodyBloodPressureSys:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "BP_SYSTOLIC"
+		whereSql = " AND BP_SYSTOLIC > 0"
+	case database.TargetColumnBodyBloodPressureDia:
+		tableSql = "PON.USER_BODYLOG"
+		colSql = "BP_DIASTOLIC"
+		whereSql = " AND BP_DIASTOLIC > 0"
+
+	case database.TargetColumnEventBloodSugar:
+		tableSql = "PON.USER_EVENTLOG"
+		colSql = "BLOOD_GLUCOSE"
+		whereSql = " AND BLOOD_GLUCOSE > 0"
+	}
+
 	query := `
 		SELECT ` + aggSql + `(` + colSql + `) AS CURRENT_VALUE 
- 		FROM PON.USER_FOODLOG
-		WHERE USER_ID = $1
+ 		FROM ` + tableSql + ` WHERE 
+		USER_ID = $1
 		AND USER_TIME >= $2
 		AND USER_TIME <= $3
-	`
+	` + whereSql
 
 	var curValue struct {
 		CurrentValue *float64 `db:"current_value"`
