@@ -98,27 +98,56 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
     return (
         <div className={`rounded-sm p-2 border container-theme bg-c-black ${p.className}`}>
             <div className="w-full">
-                <span className="text-lg font-bold">Food Builder</span>
-                <details className="w-full">
-                    <summary className="cursor-pointer text-sm font-semibold">
-                        create a new food from other foods (click for more info)
+                <details className="w-full no-summary-arrow">
+                    <summary className="cursor-pointer text-lg font-bold">
+                        Food Builder
+                        <span className="text-xs"> (click for help)</span>
                     </summary>
 
                     <div className="text-sm p-4">
-                        <p>Combine existing foods to create a new food. Best for home cooking, and recipies.</p>
+                        <p>Combine existing foods to create a new food. Best for home cooking and recipes.</p>
+
                         <br />
-                        <p className="font-semibold">Example - home cooking</p>
+
+                        <p className="font-semibold">Example: home cooking</p>
 
                         <ol className="list-decimal list-inside space-y-1">
-                            <li>Add each ingredient as a new food</li>
-                            <li>Portion each ingredient into the table below</li>
-                            <li>Cook your food</li>
+                            <li>Add each ingredient as its own food.</li>
+                            <li>Enter the amount of each ingredient in the table below.</li>
+                            <li>Cook the food.</li>
                             <li>
-                                Weigh the result (important! the final weight of everything, since the ingredients are portioned
-                                for the total result)
+                                Weigh the final result
+                                <span className="font-semibold"> (important!)</span> — this should be the total cooked weight of
+                                everything.
                             </li>
-                            <li>Give your food a name and enter the weight and unit of measure</li>
-                            <li>Build the food</li>
+                            <li>Give the food a name, then enter the final weight and unit of measure.</li>
+                            <li>Build the food.</li>
+                        </ol>
+
+                        <br />
+
+                        <p className="font-semibold">Example: baking 3-ingredient cookies</p>
+
+                        <ol className="list-decimal list-inside space-y-1">
+                            <li>
+                                Add these ingredients as separate foods:
+                                <ul className="list-disc list-inside ml-4">
+                                    <li>Peanut butter</li>
+                                    <li>Sugar</li>
+                                    <li>Eggs</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Enter the portions for each ingredient in the table (e.g., 1 cup peanut butter, ½ cup sugar, 1
+                                egg).
+                            </li>
+                            <li>Mix and bake your cookies.</li>
+                            <li>Weigh the total batch after baking.</li>
+                            <li>
+                                Name your food (e.g., "Peanut Butter Cookies") and enter the final weight and unit (e.g., 12
+                                cookies / 300g).
+                            </li>
+                            <li>Build the food to save it.</li>
                         </ol>
                     </div>
                 </details>
