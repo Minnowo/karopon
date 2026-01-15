@@ -138,6 +138,7 @@ export function FoodPage(state: BaseState) {
                     food={baseFood}
                     dataSources={state.dataSources}
                     addFood={(f) => addNewFood(setShowAddFoodPanel, f)}
+                    doRefresh={state.doRefresh}
                 />
             )}
 
