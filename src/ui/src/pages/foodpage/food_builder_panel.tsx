@@ -172,10 +172,10 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                             </th>
                             <th className="py-1">Unit</th>
                             <th className="py-1">Amt</th>
-                            <th className="py-1">Prot</th>
+                            <th className="py-1">Fat</th>
                             <th className="py-1">Carb</th>
                             <th className="py-1">Fib</th>
-                            <th className="py-1">Fat</th>
+                            <th className="py-1">Prot</th>
                             <th className="py-1" />
                         </tr>
                     </thead>
@@ -208,17 +208,17 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
 
             <table className="w-full text-center">
                 <thead>
-                    <th>Prot</th>
+                    <th>Fat</th>
                     <th className="px-1">Carb</th>
                     <th className="px-1">Fib</th>
-                    <th>Fat</th>
+                    <th>Prot</th>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{totals.protein.toFixed(1)}</td>
+                        <td> {totals.fat.toFixed(1)}</td>
                         <td className="px-1">{totals.carb.toFixed(1)}</td>
                         <td className="px-1">{totals.fibre.toFixed(1)}</td>
-                        <td> {totals.fat.toFixed(1)}</td>
+                        <td>{totals.protein.toFixed(1)}</td>
                     </tr>
                 </tbody>
             </table>
