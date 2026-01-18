@@ -11,7 +11,7 @@ type DurationMillis time.Duration
 
 // MarshalJSON encodes the duration as milliseconds.
 func (d DurationMillis) MarshalJSON() ([]byte, error) {
-	ms := int64(time.Duration(d) / time.Millisecond)
+	ms := time.Duration(d).Milliseconds()
 	return fmt.Appendf(nil, "%d", ms), nil
 }
 

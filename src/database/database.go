@@ -211,6 +211,22 @@ type DB interface {
 	LoadUserGoals(ctx context.Context, userId int, out *[]TblUserGoal) error
 	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
 	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
+
+	///
+	/// User Tags
+	///
+
+	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
+	LoadUserTags(ctx context.Context, userId int, out *[]TblUserTag) error
+	LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]TblUserTag) error
+
+	///
+	/// User Timespan
+	///
+
+	AddUserTimespan(ctx context.Context, ts *TblUserTimespan) (int, error)
+	UpdateUserTimespan(ctx context.Context, ts *TblUserTimespan) error
+	LoadUserTimespans(ctx context.Context, userId int, out *[]TblUserTimespan) error
 }
 
 type SQLxDB struct {
