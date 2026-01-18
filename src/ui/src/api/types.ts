@@ -216,3 +216,23 @@ export type UserGoalProgress = {
     target_value: number;
     time_remaining: number;
 };
+
+export type TblUserTag = {
+    id: number;
+    user_id: number;
+    created: number;
+
+    namespace: string;
+    name: string;
+};
+
+export type TblUserTimespan = {
+    id: number;
+    user_id: number;
+    created: number;
+
+    start_time: number;
+    stop_time: number;
+
+    note: string | null;
+};

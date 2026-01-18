@@ -1,3 +1,7 @@
+if (import.meta.env.MODE === 'development') {
+    import('preact/debug');
+}
+
 import './styles.css';
 
 import {render} from 'preact';
@@ -8,7 +12,17 @@ import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
 import {useCallback, useLayoutEffect, useState} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource, TblUserGoal} from './api/types';
+import {
+    TblUser,
+    TblUserFood,
+    TblUserEvent,
+    UserEventFoodLog,
+    TblUserBodyLog,
+    TblDataSource,
+    TblUserGoal,
+    TblUserTag,
+    TblUserTimespan,
+} from './api/types';
 import {
     ApiGetUserFoods,
     ApiGetUserEvents,
@@ -18,6 +32,8 @@ import {
     ApiGetUserBodyLog,
     ApiGetDataSources,
     ApiGetUserGoals,
+    ApiGetUserTags,
+    ApiGetUserTimespans,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -29,6 +45,8 @@ import {
     LocalGetEvents,
     LocalGetFoods,
     LocalGetGoals,
+    LocalGetTags,
+    LocalGetTimespans,
     LocalGetUser,
     LocalStoreBodyLogs,
     LocalStoreDataSources,
@@ -36,11 +54,15 @@ import {
     LocalStoreEvents,
     LocalStoreFoods,
     LocalStoreGoals,
+    LocalStoreTags,
+    LocalStoreTimespans,
     LocalStoreUser,
 } from './utils/localstate';
 import {ErrorDiv} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
+import {TagsPage} from './pages/tagspage';
+import {TimespansPage} from './pages/timespans';
 
 export function App() {
     // This cookie is set when there is a valid auth token cookie.
@@ -53,6 +75,8 @@ export function App() {
     const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventLogs());
     const [goals, setGoals] = useState<TblUserGoal[] | null>(LocalGetGoals());
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
+    const [tags, setTags] = useState<TblUserTag[] | null>(LocalGetTags());
+    const [timespans, setTimespans] = useState<TblUserTimespan[] | null>(LocalGetTimespans());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
@@ -104,6 +128,18 @@ export function App() {
     }, [bodylogs]);
 
     useLayoutEffect(() => {
+        if (tags !== null) {
+            LocalStoreTags(tags);
+        }
+    }, [tags]);
+
+    useLayoutEffect(() => {
+        if (timespans !== null) {
+            LocalStoreTimespans(timespans);
+        }
+    }, [timespans]);
+
+    useLayoutEffect(() => {
         if (dataSources !== null) {
             LocalStoreDataSources(dataSources);
         }
@@ -118,6 +154,8 @@ export function App() {
                 const myBodyLogs = await ApiGetUserBodyLog();
                 const svrDataSources = await ApiGetDataSources();
                 const myGoals = await ApiGetUserGoals();
+                const myTags = await ApiGetUserTags();
+                const myTimespans = await ApiGetUserTimespans();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -127,6 +165,8 @@ export function App() {
                 setEventLogsWithFoodlogs(myEventLogs);
                 setGoals(myGoals);
                 setBodyLogs(myBodyLogs);
+                setTags(myTags);
+                setTimespans(myTimespans);
                 setDataSources(svrDataSources);
                 setErrorMsg(null);
             })
@@ -141,7 +181,16 @@ export function App() {
         }
     }, [user]);
 
-    if (user === null || foods === null || events === null || eventlogs === null || bodylogs === null || goals === null) {
+    if (
+        user === null ||
+        foods === null ||
+        events === null ||
+        eventlogs === null ||
+        bodylogs === null ||
+        goals === null ||
+        tags === null ||
+        timespans === null
+    ) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
 
@@ -182,6 +231,10 @@ export function App() {
                                     setBodyLogs={setBodyLogs}
                                     goals={goals}
                                     setGoals={setGoals}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -202,6 +255,10 @@ export function App() {
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -223,6 +280,10 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -243,6 +304,10 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -263,6 +328,58 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#tags':
+                            return (
+                                <TagsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#time':
+                            return (
+                                <TimespansPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -283,6 +400,10 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    tags={tags}
+                                    setTags={setTags}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />

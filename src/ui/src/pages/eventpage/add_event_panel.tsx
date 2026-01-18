@@ -16,7 +16,7 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {JSX} from 'preact';
-import {FormatDateForInput, formatSmartTimestamp} from '../../utils/date_utils';
+import {FormatDateForInput, FormatSmartTimestamp} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
@@ -216,7 +216,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         <div className="w-full p-2 container-theme bg-c-black">
             <div className="flex w-full justify-between">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
-                <span> {formatSmartTimestamp(eventTime.getTime())}</span>
+                <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
                 <div className="flex flex-col sm:flex-row">
                     {p.actionButtons}
                     <button className="text-sm text-c-l-red font-bold w-24 sm:mx-1" onClick={reset}>
