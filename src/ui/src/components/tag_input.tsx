@@ -1,5 +1,4 @@
-
-import { useRef, useState } from "preact/hooks";
+import {useRef, useState} from 'preact/hooks';
 
 type TagInputProps = {
     value: string[];
@@ -8,28 +7,25 @@ type TagInputProps = {
     disabled?: boolean;
 };
 
-export function TagInput({
-    value,
-    onChange,
-    placeholder = "Add tag",
-    disabled = false,
-}: TagInputProps) {
-    const [input, setInput] = useState("");
+export function TagInput({value, onChange, placeholder = 'Add tag', disabled = false}: TagInputProps) {
+    const [input, setInput] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
 
     const normalized = (tag: string) => tag.trim();
 
     const addTag = (raw: string) => {
         const tag = normalized(raw);
-        if (!tag) {return;}
+        if (!tag) {
+            return;
+        }
 
-        const exists = value.some(
-            t => t.toLowerCase() === tag.toLowerCase()
-        );
-        if (exists) {return;}
+        const exists = value.some((t) => t.toLowerCase() === tag.toLowerCase());
+        if (exists) {
+            return;
+        }
 
         onChange([...value, tag]);
-        setInput("");
+        setInput('');
     };
 
     const removeTag = (index: number) => {
@@ -37,17 +33,20 @@ export function TagInput({
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-        if (disabled) {return;}
+        if (disabled) {
+            return;
+        }
 
-        if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
+        if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') {
             e.preventDefault();
             addTag(input);
         }
 
-        if (e.key === "Backspace" && input === "" && value.length > 0) {
+        if (e.key === 'Backspace' && input === '' && value.length > 0) {
+            e.preventDefault();
             const t = value[value.length - 1];
             removeTag(value.length - 1);
-                setInput(t);
+            setInput(t);
         }
     };
 
@@ -56,15 +55,9 @@ export function TagInput({
     };
 
     return (
-        <div
-            className="w-full flex flex-wrap items-center gap-1 px-2 py-1 text-sm"
-            onClick={() => inputRef.current?.focus()}
-        >
+        <div className="w-full flex flex-wrap items-center gap-1 px-2 py-1 text-sm" onClick={() => inputRef.current?.focus()}>
             {value.map((tag, i) => (
-                <span
-                    key={tag}
-                    className="flex items-center min-h-8 bg-c-magenta text-c-black rounded-2xl"
-                >
+                <span key={tag} className="flex items-center min-h-8 bg-c-magenta text-c-black rounded-2xl">
                     <span className="pl-3 mr-2 break-words">{tag}</span>
                     <button
                         className="px-2 mr-1  font-bold  bg-transparent border-none rounded-2xl text-inherit"
@@ -78,13 +71,11 @@ export function TagInput({
 
             <input
                 ref={inputRef}
-                className="flex-1 w-full min-w-[6ch] outline-none py-0.5"
+                className="flex-1 w-full min-w-[6ch] border-none outline-none py-0.5"
                 value={input}
                 disabled={disabled}
                 placeholder={placeholder}
-                onInput={(e) =>
-                    setInput((e.target as HTMLInputElement).value)
-                }
+                onInput={(e) => setInput((e.target as HTMLInputElement).value)}
                 onKeyDown={onKeyDown}
                 onBlur={onBlur}
             />

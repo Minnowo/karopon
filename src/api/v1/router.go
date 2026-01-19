@@ -79,6 +79,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/goals", a.getUserGoals)
 	get.HandleFunc("/tags", a.getUserTags)
 	get.HandleFunc("/timespans", a.getUserTimespans)
+	get.HandleFunc("/timespanstagged", a.getUserTimespansTagged)
 
 	post := api.Methods("POST", "OPTIONS").Subrouter()
 	post.Use(auth.RequireAuth())
@@ -96,5 +97,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/goal/progress", a.getUserGoalProgress)
 	post.HandleFunc("/tag/new", a.newUserTag)
 	post.HandleFunc("/timespan/new", a.newUserTimespan)
+	post.HandleFunc("/timespan/delete", a.deleteUserTimespan)
 	post.HandleFunc("/timespan/update", a.updateUserTimespan)
+	post.HandleFunc("/timespan/update/tags", a.updateUserTimespanTags)
 }

@@ -218,10 +218,6 @@ export type UserGoalProgress = {
 };
 
 export type TblUserTag = {
-    id: number;
-    user_id: number;
-    created: number;
-
     namespace: string;
     name: string;
 };
@@ -235,4 +231,9 @@ export type TblUserTimespan = {
     stop_time: number;
 
     note: string | null;
+};
+
+export type TaggedTimespan = {
+    timespan: TblUserTimespan;
+    tags: TblUserTag[];
 };

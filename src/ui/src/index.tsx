@@ -21,7 +21,7 @@ import {
     TblDataSource,
     TblUserGoal,
     TblUserTag,
-    TblUserTimespan,
+    TaggedTimespan,
 } from './api/types';
 import {
     ApiGetUserFoods,
@@ -76,7 +76,7 @@ export function App() {
     const [goals, setGoals] = useState<TblUserGoal[] | null>(LocalGetGoals());
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
     const [tags, setTags] = useState<TblUserTag[] | null>(LocalGetTags());
-    const [timespans, setTimespans] = useState<TblUserTimespan[] | null>(LocalGetTimespans());
+    const [timespans, setTimespans] = useState<TaggedTimespan[] | null>(LocalGetTimespans());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);

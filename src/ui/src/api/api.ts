@@ -17,6 +17,7 @@ import {
     CheckGoalProgress,
     TblUserTag,
     TblUserTimespan,
+    TaggedTimespan,
 } from './types';
 
 export class ApiError extends Error {
@@ -141,8 +142,8 @@ export const ApiGetUserTags = (): Promise<TblUserTag[]> => {
     return fetchJson(apiFetch(`${ApiBase}/api/tags`));
 };
 
-export const ApiGetUserTimespans = (): Promise<TblUserTimespan[]> => {
-    return fetchJson(apiFetch(`${ApiBase}/api/timespans`));
+export const ApiGetUserTimespans = (): Promise<TaggedTimespan[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/timespanstagged`));
 };
 
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {
@@ -174,6 +175,18 @@ export const ApiUpdateUserFood = (food: TblUserFood): Promise<void> => {
             },
             method: 'POST',
             body: JSON.stringify(food),
+        })
+    );
+};
+
+export const ApiUpdateUserTimespanTags = (ts: TaggedTimespan): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/timespan/update/tags`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(ts),
         })
     );
 };
@@ -281,6 +294,18 @@ export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
             },
             method: 'POST',
             body: JSON.stringify(food),
+        })
+    );
+};
+
+export const ApiDeleteUserTimespan = (ts: TblUserTimespan): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/timespan/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(ts),
         })
     );
 };

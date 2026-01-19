@@ -1,7 +1,13 @@
 import {useCallback, useMemo, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {ApiError, ApiNewUserTimespan, ApiUpdateUserTimespan} from '../../api/api';
-import {TblUserTimespan} from '../../api/types';
+import {
+    ApiDeleteUserTimespan,
+    ApiError,
+    ApiNewUserTimespan,
+    ApiUpdateUserTimespan,
+    ApiUpdateUserTimespanTags,
+} from '../../api/api';
+import {TaggedTimespan, TblUserTag, TblUserTimespan} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 import {TimerPanel} from './timer_panel';
 import {ActiveTimerPanel} from './active_timers_panel';
@@ -14,7 +20,7 @@ export function TimespansPage(state: BaseState) {
     const stopRef = useRef<HTMLInputElement>(null);
     const noteRef = useRef<HTMLTextAreaElement>(null);
 
-    const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.stop_time === 0), [state.timespans]);
+    const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
@@ -29,6 +35,23 @@ export function TimespansPage(state: BaseState) {
         }
     };
 
+    const updateTags = (timer: TaggedTimespan) => {
+        ApiUpdateUserTimespanTags(timer)
+            .then(() =>
+                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
+                    oldTs === null
+                        ? null
+                        : oldTs.map((t: TaggedTimespan) => {
+                              if (t.timespan.id === timer.timespan.id) {
+                                  return timer;
+                              }
+                              return t;
+                          })
+                )
+            )
+            .catch(handleErr);
+    };
+
     const startTimerNow = () => {
         const newTimespan = {
             start_time: new Date().getTime(),
@@ -38,7 +61,9 @@ export function TimespansPage(state: BaseState) {
 
         ApiNewUserTimespan(newTimespan)
             .then((ts: TblUserTimespan) => {
-                state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
+                const t = {timespan: ts, tags: []};
+                state.setTimespans((old) => (old ? [t, ...old] : [t]));
+
                 setShowNewTimespan(false);
                 if (startRef.current) {
                     startRef.current.value = '';
@@ -53,23 +78,47 @@ export function TimespansPage(state: BaseState) {
             .catch(handleErr);
     };
 
-    const stopTimer = useCallback(
-        (ts: TblUserTimespan) => {
-            const newTimespan = {
-                id: ts.id,
-                start_time: ts.start_time,
-                stop_time: new Date().getTime(),
-                note: ts.note,
-            } as TblUserTimespan;
+    const stopTimer = (ts: TaggedTimespan) => {
+        const newTimespan = {
+            id: ts.timespan.id,
+            start_time: ts.timespan.start_time,
+            stop_time: new Date().getTime(),
+            note: ts.timespan.note,
+        } as TblUserTimespan;
 
-            ApiUpdateUserTimespan(newTimespan).then(() => {
-                state.setTimespans((oldTs) =>
-                    oldTs === null ? null : oldTs.map((t) => (t.id === newTimespan.id ? newTimespan : t))
-                );
-            });
-        },
-        [state]
-    );
+        ApiUpdateUserTimespan(newTimespan)
+            .then(() =>
+                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
+                    oldTs === null
+                        ? null
+                        : oldTs.map((t: TaggedTimespan) => {
+                              if (t.timespan.id === newTimespan.id) {
+                                  t.timespan.stop_time = newTimespan.stop_time;
+                              }
+                              return t;
+                          })
+                )
+            )
+            .catch(handleErr);
+    };
+
+    const continueTimer = (timer: TaggedTimespan) => {
+        startTimerNow();
+    };
+
+    const editTimer = (timer: TaggedTimespan) => {};
+
+    const deleteTimer = (timer: TaggedTimespan) => {
+        const payload = {
+            id: timer.timespan.id,
+        } as TblUserTimespan;
+
+        ApiDeleteUserTimespan(payload)
+            .then(() => {
+                state.setTimespans((oldTs) => (oldTs === null ? null : oldTs.filter((t) => t.timespan.id !== timer.timespan.id)));
+            })
+            .catch(handleErr);
+    };
 
     return (
         <>
@@ -124,14 +173,31 @@ export function TimespansPage(state: BaseState) {
             )}
 
             <div className="grid gap-2">
-                <ActiveTimerPanel timers={runningTimers} stopTimer={stopTimer} />
+                <ActiveTimerPanel
+                    timers={runningTimers}
+                    updateTags={updateTags}
+                    continueTimer={continueTimer}
+                    editTimer={editTimer}
+                    deleteTimer={deleteTimer}
+                    stopTimer={stopTimer}
+                />
 
                 {state.timespans.length === 0 ? (
                     <p>No timespans found.</p>
                 ) : (
                     state.timespans
-                        .filter((ts) => ts.stop_time !== 0)
-                        .map((ts: TblUserTimespan) => <TimerPanel key={ts.id} timer={ts} stopTimer={stopTimer} />)
+                        .filter((ts) => ts.timespan.stop_time !== 0)
+                        .map((ts: TaggedTimespan) => (
+                            <TimerPanel
+                                key={ts.timespan.id}
+                                timer={ts}
+                                updateTags={updateTags}
+                                continueTimer={continueTimer}
+                                editTimer={editTimer}
+                                deleteTimer={deleteTimer}
+                                stopTimer={stopTimer}
+                            />
+                        ))
                 )}
             </div>
         </>

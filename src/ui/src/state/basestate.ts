@@ -8,7 +8,7 @@ import {
     TblDataSource,
     TblUserGoal,
     TblUserTag,
-    TblUserTimespan,
+    TaggedTimespan,
 } from '../api/types';
 
 export type BaseState = {
@@ -33,8 +33,8 @@ export type BaseState = {
     tags: TblUserTag[];
     setTags: Dispatch<StateUpdater<TblUserTag[] | null>>;
 
-    timespans: TblUserTimespan[];
-    setTimespans: Dispatch<StateUpdater<TblUserTimespan[] | null>>;
+    timespans: TaggedTimespan[];
+    setTimespans: Dispatch<StateUpdater<TaggedTimespan[] | null>>;
 
     dataSources: TblDataSource[] | null;
 

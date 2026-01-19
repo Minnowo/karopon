@@ -232,9 +232,9 @@ func (u *TblUserGoal) Comparison() GoalValueComparison {
 }
 
 type TblUserTag struct {
-	ID      int        `db:"id" json:"id"`
-	UserID  int        `db:"user_id" json:"user_id"`
-	Created TimeMillis `db:"created" json:"created"`
+	ID      int        `db:"id" json:"-"`
+	UserID  int        `db:"user_id" json:"-"`
+	Created TimeMillis `db:"created" json:"-"`
 
 	Namespace string `db:"namespace" json:"namespace"`
 	Name      string `db:"name" json:"name"`

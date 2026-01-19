@@ -1,14 +1,25 @@
 import {useEffect, useState} from 'preact/hooks';
-import {TblUserTimespan} from '../../api/types';
+import {TaggedTimespan} from '../../api/types';
 import {TimerPanel} from './timer_panel';
 import {TimeNowContext} from './context';
 
 type ActiveTimerPanelProps = {
-    timers: TblUserTimespan[];
-    stopTimer: (ts: TblUserTimespan) => void;
+    timers: TaggedTimespan[];
+    updateTags: (timer: TaggedTimespan) => void;
+    stopTimer: (timer: TaggedTimespan) => void;
+    continueTimer: (timer: TaggedTimespan) => void;
+    editTimer: (timer: TaggedTimespan) => void;
+    deleteTimer: (timer: TaggedTimespan) => void;
 };
 
-export const ActiveTimerPanel = ({timers, stopTimer}: ActiveTimerPanelProps) => {
+export const ActiveTimerPanel = ({
+    timers,
+    updateTags,
+    stopTimer,
+    continueTimer,
+    editTimer,
+    deleteTimer,
+}: ActiveTimerPanelProps) => {
     const [timeNow, setTimeNow] = useState<number>(Date.now());
 
     useEffect(() => {
@@ -30,8 +41,16 @@ export const ActiveTimerPanel = ({timers, stopTimer}: ActiveTimerPanelProps) => 
             <h1> Active Timers </h1>
             {timers.length > 0 && (
                 <TimeNowContext.Provider value={timeNow}>
-                    {timers.map((ts: TblUserTimespan) => (
-                        <TimerPanel key={ts.id} timer={ts} stopTimer={stopTimer} />
+                    {timers.map((ts: TaggedTimespan) => (
+                        <TimerPanel
+                            key={ts.timespan.id}
+                            timer={ts}
+                            updateTags={updateTags}
+                            continueTimer={continueTimer}
+                            deleteTimer={deleteTimer}
+                            editTimer={editTimer}
+                            stopTimer={stopTimer}
+                        />
                     ))}
                 </TimeNowContext.Provider>
             )}
