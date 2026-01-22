@@ -31,7 +31,7 @@ func (a *APIV1) updateUserTimespanTags(w http.ResponseWriter, r *http.Request) {
 
 	timespan.Timespan.UserID = user.ID
 
-	if err := a.Db.SetUserTimespanTags(r.Context(), &timespan.Timespan, timespan.Tags); err != nil {
+	if err := a.Db.SetUserTimespanTags(r.Context(), user.ID, timespan.Timespan.ID, timespan.Tags); err != nil {
 		api.ServerErr(w, "Unexpected error updating the timespan")
 		log.Error().
 			Err(err).

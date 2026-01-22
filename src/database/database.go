@@ -224,15 +224,20 @@ type DB interface {
 	/// User Timespan
 	///
 
-	AddUserTimespan(ctx context.Context, ts *TblUserTimespan) (int, error)
+	// AddUserTimespan Adds a new timespan to the database.
+	// If given, adds any tags and associates them with the timespan.
+	// Returns the timespan ID or an error.
+	AddUserTimespan(ctx context.Context, ts *TblUserTimespan, tags []TblUserTag) (int, error)
+
 	DeleteUserTimespan(ctx context.Context, userId int, tsId int) error
 	UpdateUserTimespan(ctx context.Context, ts *TblUserTimespan) error
 	LoadUserTimespans(ctx context.Context, userId int, out *[]TblUserTimespan) error
 	LoadUserTimespansWithTags(ctx context.Context, userId int, out *[]TaggedTimespan) error
 
 	// SetUserTimespanTags removes all tags from the timestamp and sets the given tags onto it.
-	// Any tags that do not exist are created.
-	SetUserTimespanTags(ctx context.Context, ts *TblUserTimespan, tags []TblUserTag) error
+	// Any tags that do not exist are created for the given userId.
+	// Returns an error for any failures.
+	SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []TblUserTag) error
 }
 
 type SQLxDB struct {

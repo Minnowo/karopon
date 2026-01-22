@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useRef, useState} from 'preact/hooks';
+import {useMemo, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {
     ApiDeleteUserTimespan,
@@ -52,17 +52,19 @@ export function TimespansPage(state: BaseState) {
             .catch(handleErr);
     };
 
-    const startTimerNow = () => {
+    const startTimerNow = (tags?: TblUserTag[]) => {
         const newTimespan = {
-            start_time: new Date().getTime(),
-            stop_time: 0,
-            note: noteRef.current?.value || null,
-        } as TblUserTimespan;
+            timespan: {
+                start_time: new Date().getTime(),
+                stop_time: 0,
+                note: noteRef.current?.value || null,
+            } as TblUserTimespan,
+            tags: tags ?? [],
+        } as TaggedTimespan;
 
         ApiNewUserTimespan(newTimespan)
-            .then((ts: TblUserTimespan) => {
-                const t = {timespan: ts, tags: []};
-                state.setTimespans((old) => (old ? [t, ...old] : [t]));
+            .then((ts: TaggedTimespan) => {
+                state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
 
                 setShowNewTimespan(false);
                 if (startRef.current) {
@@ -103,7 +105,7 @@ export function TimespansPage(state: BaseState) {
     };
 
     const continueTimer = (timer: TaggedTimespan) => {
-        startTimerNow();
+        startTimerNow(timer.tags);
     };
 
     const editTimer = (timer: TaggedTimespan) => {};

@@ -48,7 +48,7 @@ export const TimerPanel = ({timer, updateTags, continueTimer, stopTimer, deleteT
                     }}
                 />
 
-                <div className="flex items-center font-mono justify-evenly gap-2">
+                <div className="flex flex-row sm:flex-col items-center font-mono justify-evenly">
                     <div className="whitespace-nowrap">
                         <span>{FormatTimerTimestamp(timer.timespan.start_time)}</span>
                         <span className="text-faded mx-2">{'-'}</span>
@@ -60,6 +60,7 @@ export const TimerPanel = ({timer, updateTags, continueTimer, stopTimer, deleteT
                             <span>{FormatTimerTimestamp(timer.timespan.stop_time)}</span>
                         )}
                     </div>
+                    <div className="whitespace-nowrap">
                     {running ? (
                         <TimeNowContext.Consumer>
                             {(now) => (
@@ -71,6 +72,7 @@ export const TimerPanel = ({timer, updateTags, continueTimer, stopTimer, deleteT
                             {FormatDuration(timer.timespan.stop_time - timer.timespan.start_time)}
                         </span>
                     )}
+                    </div>
                 </div>
             </div>
             <DropdownButton

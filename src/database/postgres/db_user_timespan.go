@@ -9,16 +9,39 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan) (int, error) {
-	query := `
-		INSERT INTO PON.USER_TIMESPAN (
-			user_id, start_time, stop_time, note
-		) VALUES (
-			:user_id, :start_time, :stop_time, :note
-		) RETURNING id
-	`
+func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) (int, error) {
 
-	return db.InsertOneNamedGetID(ctx, query, ts)
+	var timespanId int
+
+	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
+		query := `
+			INSERT INTO PON.USER_TIMESPAN (
+				user_id, start_time, stop_time, note
+			) VALUES (
+				:user_id, :start_time, :stop_time, :note
+			) RETURNING id
+		`
+
+		id, err := db.InsertOneNamedGetIDTx(tx, query, ts)
+
+		if err != nil {
+			return err
+		}
+
+		if len(tags) > 0 {
+
+			if err := db.SetUserTimespanTagsTx(tx, ts.UserID, id, tags); err != nil {
+				return err
+			}
+		}
+
+		timespanId = id
+
+		return nil
+	})
+
+	return timespanId, err
 }
 
 func (db *PGDatabase) DeleteUserTimespan(ctx context.Context, userId int, tsId int) error {
@@ -129,24 +152,27 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int,
 	return err
 }
 
-func (db *PGDatabase) SetUserTimespanTags(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) error {
-
+func (db *PGDatabase) SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []database.TblUserTag) error {
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
-		var query string
+		// Make sure the UserID has the TimespanID, since the caller can't verify this.
+		query := `SELECT COUNT(ID) FROM PON.USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2 LIMIT 1`
 
-		var userId int = ts.UserID
-
-		// Make sure the TimestampID is actually valid for the UserID and exists
-		query = `SELECT COUNT(ID) FROM PON.USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2 LIMIT 1`
-
-		if ok, err := db.CountOneTx(tx, query, userId, ts.ID); err != nil {
+		if ok, err := db.CountOneTx(tx, query, userId, timespanId); err != nil {
 			return err
 		} else if !ok {
-			return fmt.Errorf("Timespan with ID %d does not exist", ts.ID)
+			return fmt.Errorf("Timespan with ID %d does not exist", timespanId)
 		}
 
-		query = `
+		return db.SetUserTimespanTagsTx(tx, userId, timespanId, tags)
+	})
+}
+
+func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int, tags []database.TblUserTag) error {
+
+	var query string
+
+	query = `
 			WITH
 			inTags(user_id, namespace, name) AS (
 				SELECT $1::integer, * FROM unnest($2::varchar(128)[], $3::varchar(128)[])
@@ -168,30 +194,30 @@ func (db *PGDatabase) SetUserTimespanTags(ctx context.Context, ts *database.TblU
 		 	)
 		`
 
-		var tagIds []int
-		{
-			namespaces := make([]string, len(tags))
-			names := make([]string, len(tags))
+	var tagIds []int
+	{
+		namespaces := make([]string, len(tags))
+		names := make([]string, len(tags))
 
-			for i, t := range tags {
-				namespaces[i] = t.Namespace
-				names[i] = t.Name
-			}
-
-			err := tx.Select(&tagIds, query, userId, namespaces, names)
-
-			if err != nil {
-				return err
-			}
+		for i, t := range tags {
+			namespaces[i] = t.Namespace
+			names[i] = t.Name
 		}
 
-		query = `DELETE FROM PON.USER_TIMESPAN_TAG WHERE TIMESPAN_ID = $1`
+		err := tx.Select(&tagIds, query, userId, namespaces, names)
 
-		if _, err := tx.Exec(query, ts.ID); err != nil {
+		if err != nil {
 			return err
 		}
+	}
 
-		query = `
+	query = `DELETE FROM PON.USER_TIMESPAN_TAG WHERE TIMESPAN_ID = $1`
+
+	if _, err := tx.Exec(query, timespanId); err != nil {
+		return err
+	}
+
+	query = `
 			INSERT INTO PON.USER_TIMESPAN_TAG (
 				timespan_id, tag_id
 			) VALUES (
@@ -199,10 +225,9 @@ func (db *PGDatabase) SetUserTimespanTags(ctx context.Context, ts *database.TblU
 			)
 		`
 
-		if _, err := tx.Exec(query, ts.ID, tagIds); err != nil {
-			return err
-		}
+	if _, err := tx.Exec(query, timespanId, tagIds); err != nil {
+		return err
+	}
 
-		return nil
-	})
+	return nil
 }

@@ -20,7 +20,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var tag database.TblUserTimespan
+	var tag database.TaggedTimespan
 
 	err := json.NewDecoder(r.Body).Decode(&tag)
 
@@ -30,33 +30,33 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if tag.Note != nil {
-		trimmed := strings.TrimSpace(*tag.Note)
-		tag.Note = &trimmed
+	if tag.Timespan.Note != nil {
+		trimmed := strings.TrimSpace(*tag.Timespan.Note)
+		tag.Timespan.Note = &trimmed
 	}
 
-	if tag.StartTime.Time().After(tag.StartTime.Time()) {
-		tmp := tag.StartTime
-		tag.StartTime = tag.StopTime
-		tag.StopTime = tmp
+	if tag.Timespan.StartTime.Time().After(tag.Timespan.StartTime.Time()) {
+		tmp := tag.Timespan.StartTime
+		tag.Timespan.StartTime = tag.Timespan.StopTime
+		tag.Timespan.StopTime = tmp
 	}
 
-	tag.UserID = user.ID
+	tag.Timespan.UserID = user.ID
 
-	id, err := a.Db.AddUserTimespan(r.Context(), &tag)
+	id, err := a.Db.AddUserTimespan(r.Context(), &tag.Timespan, tag.Tags)
 
 	if err != nil {
 		api.ServerErr(w, "Unexpected error adding the timespan to the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
-			Time("start", tag.StartTime.Time()).
-			Time("stop", tag.StopTime.Time()).
+			Time("start", tag.Timespan.StartTime.Time()).
+			Time("stop", tag.Timespan.StopTime.Time()).
 			Msg("Unexpected error adding a user's timespan to the database")
 		return
 	}
 
-	tag.ID = id
+	tag.Timespan.ID = id
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

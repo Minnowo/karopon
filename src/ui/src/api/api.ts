@@ -238,7 +238,7 @@ export const ApiNewUserTag = (tag: TblUserTag): Promise<TblUserTag> => {
     );
 };
 
-export const ApiNewUserTimespan = (tag: TblUserTimespan): Promise<TblUserTimespan> => {
+export const ApiNewUserTimespan = (tag: TaggedTimespan): Promise<TaggedTimespan> => {
     return fetchJson(
         apiFetch(`${ApiBase}/api/timespan/new`, {
             headers: {
