@@ -11,7 +11,7 @@ import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
-import {useCallback, useLayoutEffect, useState} from 'preact/hooks';
+import {useCallback, useLayoutEffect, useMemo, useState} from 'preact/hooks';
 import {
     TblUser,
     TblUserFood,
@@ -34,6 +34,7 @@ import {
     ApiGetUserGoals,
     ApiGetUserTags,
     ApiGetUserTimespans,
+    ApiGetUserNamespaces,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';

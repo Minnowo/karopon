@@ -168,7 +168,7 @@ export function TimespansPage(state: BaseState) {
                         <textarea ref={noteRef} className="w-full border rounded px-2 py-1" rows={2} />
                     </div>
 
-                    <button className="px-4 py-2 border rounded" onClick={startTimerNow}>
+                    <button className="px-4 py-2 border rounded" onClick={() => startTimerNow()}>
                         Create Timespan
                     </button>
                 </div>
@@ -176,6 +176,7 @@ export function TimespansPage(state: BaseState) {
 
             <div className="grid gap-2">
                 <ActiveTimerPanel
+                    namespaces={['jp', 'reading', 'workout']}
                     timers={runningTimers}
                     updateTags={updateTags}
                     continueTimer={continueTimer}
@@ -192,6 +193,7 @@ export function TimespansPage(state: BaseState) {
                         .map((ts: TaggedTimespan) => (
                             <TimerPanel
                                 key={ts.timespan.id}
+                                namespaces={['jp', 'reading', 'workout']}
                                 timer={ts}
                                 updateTags={updateTags}
                                 continueTimer={continueTimer}

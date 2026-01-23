@@ -142,8 +142,18 @@ export const ApiGetUserTags = (): Promise<TblUserTag[]> => {
     return fetchJson(apiFetch(`${ApiBase}/api/tags`));
 };
 
+export const ApiGetUserNamespaces = (): Promise<string[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/tags/namespaces`));
+};
+
+export const ApiGetUserNamespacesTags = (namespace: string, search: string): Promise<TblUserTag[]> => {
+    const encodedNamespace = encodeURIComponent(namespace);
+    const encodedSearch = encodeURIComponent(search);
+    return fetchJson(apiFetch(`${ApiBase}/api/tags/search?namespace=${encodedNamespace}&s=${encodedSearch}&limit=30`));
+};
+
 export const ApiGetUserTimespans = (): Promise<TaggedTimespan[]> => {
-    return fetchJson(apiFetch(`${ApiBase}/api/timespanstagged`));
+    return fetchJson(apiFetch(`${ApiBase}/api/timespans/tagged`));
 };
 
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {

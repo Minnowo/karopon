@@ -4,6 +4,7 @@ import {TimerPanel} from './timer_panel';
 import {TimeNowContext} from './context';
 
 type ActiveTimerPanelProps = {
+    namespaces: string[];
     timers: TaggedTimespan[];
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
@@ -13,6 +14,7 @@ type ActiveTimerPanelProps = {
 };
 
 export const ActiveTimerPanel = ({
+    namespaces,
     timers,
     updateTags,
     stopTimer,
@@ -44,6 +46,7 @@ export const ActiveTimerPanel = ({
                     {timers.map((ts: TaggedTimespan) => (
                         <TimerPanel
                             key={ts.timespan.id}
+                            namespaces={namespaces}
                             timer={ts}
                             updateTags={updateTags}
                             continueTimer={continueTimer}

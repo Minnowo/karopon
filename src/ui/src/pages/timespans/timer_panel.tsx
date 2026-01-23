@@ -8,6 +8,7 @@ import {TimeNowContext} from './context';
 import {useState} from 'preact/hooks';
 
 type TimerPanelProps = {
+    namespaces: string[];
     timer: TaggedTimespan;
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
@@ -16,33 +17,22 @@ type TimerPanelProps = {
     deleteTimer: (timer: TaggedTimespan) => void;
 };
 
-export const TimerPanel = ({timer, updateTags, continueTimer, stopTimer, deleteTimer}: TimerPanelProps) => {
+export const TimerPanel = ({namespaces, timer, updateTags, continueTimer, stopTimer, deleteTimer}: TimerPanelProps) => {
     const running = timer.timespan.stop_time === 0;
-    const [tags, setTags] = useState<string[]>([
-        ...timer.tags.map((x) => {
-            if (x.namespace === '') {
-                return x.name;
-            }
-            return `${x.namespace}:${x.name}`;
-        }),
-    ]);
+    const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
 
     return (
         <div className="flex flex-row items-start sm:items-center container-theme p-2">
             <div className="w-full flex flex-col sm:flex-row">
                 <TagInput
-                    value={tags}
-                    onChange={(t: string[]) => {
+                    namespaces={namespaces}
+                    thisTags={tags}
+                    onChange={(t: TblUserTag[]) => {
+                        console.info(t);
                         setTags(t);
 
                         const cpy = {...timer};
-                        cpy.tags = t.map((x) => {
-                            const s = x.trim().split(':', 2);
-                            return {
-                                namespace: s.length === 2 ? s[0] : '',
-                                name: s.length === 2 ? s[1] : s[0],
-                            } as TblUserTag;
-                        });
+                        cpy.tags = t;
 
                         updateTags(cpy);
                     }}
@@ -61,17 +51,17 @@ export const TimerPanel = ({timer, updateTags, continueTimer, stopTimer, deleteT
                         )}
                     </div>
                     <div className="whitespace-nowrap">
-                    {running ? (
-                        <TimeNowContext.Consumer>
-                            {(now) => (
-                                <span className="whitespace-nowrap">{FormatDuration(now - timer.timespan.start_time)}</span>
-                            )}
-                        </TimeNowContext.Consumer>
-                    ) : (
-                        <span className="whitespace-nowrap">
-                            {FormatDuration(timer.timespan.stop_time - timer.timespan.start_time)}
-                        </span>
-                    )}
+                        {running ? (
+                            <TimeNowContext.Consumer>
+                                {(now) => (
+                                    <span className="whitespace-nowrap">{FormatDuration(now - timer.timespan.start_time)}</span>
+                                )}
+                            </TimeNowContext.Consumer>
+                        ) : (
+                            <span className="whitespace-nowrap">
+                                {FormatDuration(timer.timespan.stop_time - timer.timespan.start_time)}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

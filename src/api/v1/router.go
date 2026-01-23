@@ -78,8 +78,10 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/datasources/{id}/{query}", a.getDataSourceFood)
 	get.HandleFunc("/goals", a.getUserGoals)
 	get.HandleFunc("/tags", a.getUserTags)
+	get.HandleFunc("/tags/namespaces", a.getUserTagNamespaces)
+	get.HandleFunc("/tags/search", a.getUserNamespaceTagSearch)
 	get.HandleFunc("/timespans", a.getUserTimespans)
-	get.HandleFunc("/timespanstagged", a.getUserTimespansTagged)
+	get.HandleFunc("/timespans/tagged", a.getUserTimespansTagged)
 
 	post := api.Methods("POST", "OPTIONS").Subrouter()
 	post.Use(auth.RequireAuth())

@@ -37,8 +37,12 @@ export function TagsPage(state: BaseState) {
             .then((tag: TblUserTag) => {
                 state.setTags((old) => (old ? [tag, ...old] : [tag]));
                 setShowNewTag(false);
-                if (namespaceRef.current) namespaceRef.current.value = '';
-                if (nameRef.current) nameRef.current.value = '';
+                if (namespaceRef.current) {
+                    namespaceRef.current.value = '';
+                }
+                if (nameRef.current) {
+                    nameRef.current.value = '';
+                }
             })
             .catch(handleErr);
     };

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -218,7 +219,12 @@ type DB interface {
 
 	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
 	LoadUserTags(ctx context.Context, userId int, out *[]TblUserTag) error
+	LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error
 	LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]TblUserTag) error
+
+	// LoadUserNamespaceTagsLike loads at most n tags from the given namespace that start with the given tagNameLike.
+	// Returns error for any failures.
+	LoadUserNamespaceTagsLikeN(ctx context.Context, userId int, namespace, tagNameLike string, n int, out *[]TblUserTag) error
 
 	///
 	/// User Timespan
@@ -246,6 +252,15 @@ type SQLxDB struct {
 
 func (db *SQLxDB) Base() *SQLxDB {
 	return db
+}
+
+// BackslashEscapePattern escapes the LIKE pattern matching using the \ character.
+// For use in queries as LIKE $1 ESCAPE '\'
+func (db *SQLxDB) BackslashEscapePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
 }
 
 // CountOneTx returns ok, err where ok indicates the query returned a single column with the value of 1.
