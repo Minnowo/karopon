@@ -176,7 +176,8 @@ export function TimespansPage(state: BaseState) {
 
             <div className="grid gap-2">
                 <ActiveTimerPanel
-                    namespaces={['jp', 'reading', 'workout']}
+                    namespaces={state.namespaces}
+                    setNamespaces={state.setNamespaces}
                     timers={runningTimers}
                     updateTags={updateTags}
                     continueTimer={continueTimer}
@@ -193,7 +194,8 @@ export function TimespansPage(state: BaseState) {
                         .map((ts: TaggedTimespan) => (
                             <TimerPanel
                                 key={ts.timespan.id}
-                                namespaces={['jp', 'reading', 'workout']}
+                                namespaces={state.namespaces}
+                                setNamespaces={state.setNamespaces}
                                 timer={ts}
                                 updateTags={updateTags}
                                 continueTimer={continueTimer}

@@ -1,28 +1,40 @@
-import {useRef, useState} from 'preact/hooks';
+import {useCallback, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {ApiError, ApiNewUserTag} from '../../api/api';
+import {ApiError, ApiGetUserTags, ApiNewUserTag} from '../../api/api';
 import {TblUserTag} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
+import {TagToString} from '../../utils/tags';
 
 export function TagsPage(state: BaseState) {
-    const [showNewTag, setShowNewTag] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
     const namespaceRef = useRef<HTMLInputElement>(null);
     const nameRef = useRef<HTMLInputElement>(null);
 
-    const handleErr = (e: unknown) => {
-        if (e instanceof ApiError) {
-            setErrorMsg(e.message);
-            if (e.isUnauthorizedError()) {
-                state.doRefresh();
+    const [showNewTag, setShowNewTag] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const [allTags, setAllTags] = useState<TblUserTag[]>([]);
+
+    const handleErr = useCallback(
+        (e: unknown) => {
+            if (e instanceof ApiError) {
+                setErrorMsg(e.message);
+                if (e.isUnauthorizedError()) {
+                    state.doRefresh();
+                }
+            } else if (e instanceof Error) {
+                setErrorMsg(e.message);
+            } else {
+                setErrorMsg(`An unknown error occurred: ${e}`);
             }
-        } else if (e instanceof Error) {
-            setErrorMsg(e.message);
-        } else {
-            setErrorMsg(`An unknown error occurred: ${e}`);
-        }
-    };
+        },
+        [state]
+    );
+
+    useLayoutEffect(() => {
+        ApiGetUserTags()
+            .then((tags: TblUserTag[]) => setAllTags(tags))
+            .catch(handleErr);
+    }, [handleErr]);
 
     const createTag = () => {
         const namespace = namespaceRef.current?.value.trim() ?? '';
@@ -35,7 +47,7 @@ export function TagsPage(state: BaseState) {
 
         ApiNewUserTag({namespace, name})
             .then((tag: TblUserTag) => {
-                state.setTags((old) => (old ? [tag, ...old] : [tag]));
+                setAllTags((old) => [tag, ...old]);
                 setShowNewTag(false);
                 if (namespaceRef.current) {
                     namespaceRef.current.value = '';
@@ -87,16 +99,17 @@ export function TagsPage(state: BaseState) {
             )}
 
             <div className="grid gap-2">
-                {state.tags.length === 0 ? (
+                {allTags.length === 0 ? (
                     <p>No tags found.</p>
                 ) : (
-                    state.tags.map((t: TblUserTag) => (
-                        <div key={t.id} className="p-2 border rounded">
-                            <span className="text-sm">
-                                {t.namespace}:{t.name}
-                            </span>
-                        </div>
-                    ))
+                    allTags.map((t: TblUserTag) => {
+                        const tagStr = TagToString(t);
+                        return (
+                            <div key={tagStr} className="p-2 border rounded">
+                                <span className="text-sm">{tagStr}</span>
+                            </div>
+                        );
+                    })
                 )}
             </div>
         </>

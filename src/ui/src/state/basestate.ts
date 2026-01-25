@@ -7,7 +7,6 @@ import {
     TblUserBodyLog,
     TblDataSource,
     TblUserGoal,
-    TblUserTag,
     TaggedTimespan,
 } from '../api/types';
 
@@ -30,8 +29,8 @@ export type BaseState = {
     bodylogs: TblUserBodyLog[];
     setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[] | null>>;
 
-    tags: TblUserTag[];
-    setTags: Dispatch<StateUpdater<TblUserTag[] | null>>;
+    namespaces: string[];
+    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
 
     timespans: TaggedTimespan[];
     setTimespans: Dispatch<StateUpdater<TaggedTimespan[] | null>>;

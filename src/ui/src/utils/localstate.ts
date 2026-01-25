@@ -6,7 +6,6 @@ import type {
     TblUserBodyLog,
     TblDataSource,
     TblUserGoal,
-    TblUserTag,
     TaggedTimespan,
 } from '../api/types';
 
@@ -16,7 +15,7 @@ const LOCAL_STORAGE_KEY_FOODS = 'foods';
 const LOCAL_STORAGE_KEY_EVENTLOGS = 'eventlogs';
 const LOCAL_STORAGE_KEY_GOALS = 'goals';
 const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
-const LOCAL_STORAGE_KEY_TAGS = 'tags';
+const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
 const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
@@ -49,7 +48,7 @@ export const LocalStoreFoods = (foods: TblUserFood[]) => store(LOCAL_STORAGE_KEY
 export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
 export const LocalStoreGoals = (goals: TblUserGoal[]) => store(LOCAL_STORAGE_KEY_GOALS, JSON.stringify(goals));
 export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
-export const LocalStoreTags = (tags: TblUserTag[]) => store(LOCAL_STORAGE_KEY_TAGS, JSON.stringify(tags));
+export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAGE_KEY_NAMESPACES, JSON.stringify(namespaces));
 export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
@@ -60,7 +59,7 @@ export const LocalGetFoods = () => load<TblUserFood[]>(LOCAL_STORAGE_KEY_FOODS);
 export const LocalGetEventLogs = () => load<UserEventFoodLog[]>(LOCAL_STORAGE_KEY_EVENTLOGS);
 export const LocalGetGoals = () => load<TblUserGoal[]>(LOCAL_STORAGE_KEY_GOALS);
 export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
-export const LocalGetTags = () => load<TblUserTag[]>(LOCAL_STORAGE_KEY_TAGS);
+export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
 export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
 
@@ -73,7 +72,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTLOGS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_GOALS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_TAGS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
     } catch {}
 };

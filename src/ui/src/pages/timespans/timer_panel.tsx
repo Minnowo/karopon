@@ -5,10 +5,11 @@ import {FormatTimerTimestamp} from '../../utils/date_utils';
 import {FormatDuration} from '../../utils/time';
 import {TimeNowContext} from './context';
 
-import {useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 
 type TimerPanelProps = {
     namespaces: string[];
+    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     timer: TaggedTimespan;
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
@@ -17,7 +18,15 @@ type TimerPanelProps = {
     deleteTimer: (timer: TaggedTimespan) => void;
 };
 
-export const TimerPanel = ({namespaces, timer, updateTags, continueTimer, stopTimer, deleteTimer}: TimerPanelProps) => {
+export const TimerPanel = ({
+    namespaces,
+    setNamespaces,
+    timer,
+    updateTags,
+    continueTimer,
+    stopTimer,
+    deleteTimer,
+}: TimerPanelProps) => {
     const running = timer.timespan.stop_time === 0;
     const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
 
@@ -26,6 +35,7 @@ export const TimerPanel = ({namespaces, timer, updateTags, continueTimer, stopTi
             <div className="w-full flex flex-col sm:flex-row">
                 <TagInput
                     namespaces={namespaces}
+                    setNamespaces={setNamespaces}
                     thisTags={tags}
                     onChange={(t: TblUserTag[]) => {
                         console.info(t);

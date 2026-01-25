@@ -11,7 +11,7 @@ import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
-import {useCallback, useLayoutEffect, useMemo, useState} from 'preact/hooks';
+import {useCallback, useLayoutEffect, useState} from 'preact/hooks';
 import {
     TblUser,
     TblUserFood,
@@ -20,7 +20,6 @@ import {
     TblUserBodyLog,
     TblDataSource,
     TblUserGoal,
-    TblUserTag,
     TaggedTimespan,
 } from './api/types';
 import {
@@ -32,7 +31,6 @@ import {
     ApiGetUserBodyLog,
     ApiGetDataSources,
     ApiGetUserGoals,
-    ApiGetUserTags,
     ApiGetUserTimespans,
     ApiGetUserNamespaces,
 } from './api/api';
@@ -46,7 +44,7 @@ import {
     LocalGetEvents,
     LocalGetFoods,
     LocalGetGoals,
-    LocalGetTags,
+    LocalGetNamespaces,
     LocalGetTimespans,
     LocalGetUser,
     LocalStoreBodyLogs,
@@ -55,7 +53,7 @@ import {
     LocalStoreEvents,
     LocalStoreFoods,
     LocalStoreGoals,
-    LocalStoreTags,
+    LocalStoreNamespaces,
     LocalStoreTimespans,
     LocalStoreUser,
 } from './utils/localstate';
@@ -76,7 +74,7 @@ export function App() {
     const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventLogs());
     const [goals, setGoals] = useState<TblUserGoal[] | null>(LocalGetGoals());
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
-    const [tags, setTags] = useState<TblUserTag[] | null>(LocalGetTags());
+    const [namespaces, setNamespaces] = useState<string[] | null>(LocalGetNamespaces());
     const [timespans, setTimespans] = useState<TaggedTimespan[] | null>(LocalGetTimespans());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -129,10 +127,10 @@ export function App() {
     }, [bodylogs]);
 
     useLayoutEffect(() => {
-        if (tags !== null) {
-            LocalStoreTags(tags);
+        if (namespaces !== null) {
+            LocalStoreNamespaces(namespaces);
         }
-    }, [tags]);
+    }, [namespaces]);
 
     useLayoutEffect(() => {
         if (timespans !== null) {
@@ -155,7 +153,7 @@ export function App() {
                 const myBodyLogs = await ApiGetUserBodyLog();
                 const svrDataSources = await ApiGetDataSources();
                 const myGoals = await ApiGetUserGoals();
-                const myTags = await ApiGetUserTags();
+                const myNamespaces = await ApiGetUserNamespaces();
                 const myTimespans = await ApiGetUserTimespans();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
@@ -166,7 +164,7 @@ export function App() {
                 setEventLogsWithFoodlogs(myEventLogs);
                 setGoals(myGoals);
                 setBodyLogs(myBodyLogs);
-                setTags(myTags);
+                setNamespaces(myNamespaces);
                 setTimespans(myTimespans);
                 setDataSources(svrDataSources);
                 setErrorMsg(null);
@@ -189,7 +187,7 @@ export function App() {
         eventlogs === null ||
         bodylogs === null ||
         goals === null ||
-        tags === null ||
+        namespaces === null ||
         timespans === null
     ) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
@@ -232,8 +230,8 @@ export function App() {
                                     setBodyLogs={setBodyLogs}
                                     goals={goals}
                                     setGoals={setGoals}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     dataSources={dataSources}
@@ -256,8 +254,8 @@ export function App() {
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     dataSources={dataSources}
@@ -281,8 +279,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
@@ -305,8 +303,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
@@ -329,8 +327,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
@@ -353,8 +351,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
@@ -377,8 +375,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}
@@ -401,8 +399,8 @@ export function App() {
                                     bodylogs={bodylogs}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
-                                    tags={tags}
-                                    setTags={setTags}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
                                     setErrorMsg={setErrorMsg}

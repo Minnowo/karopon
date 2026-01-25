@@ -31,9 +31,9 @@ func (db *PGDatabase) LoadUserTags(ctx context.Context, userId int, out *[]datab
 func (db *PGDatabase) LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error {
 
 	query := `
-		SELECT NAMESPACE || ':' || NAME FROM PON.USER_TAG
+		SELECT DISTINCT NAMESPACE FROM PON.USER_TAG
 		WHERE USER_ID = $1
-		ORDER BY NAMESPACE, NAME ASC
+		ORDER BY NAMESPACE ASC
 	`
 
 	return db.SelectContext(ctx, out, query, userId)
