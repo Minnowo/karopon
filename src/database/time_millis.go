@@ -14,7 +14,10 @@ func (t TimeMillis) Time() time.Time {
 }
 
 func (t TimeMillis) MarshalJSON() ([]byte, error) {
-	ms := time.Time(t).UTC().UnixNano() / int64(time.Millisecond)
+	if t.Time().IsZero() {
+		return []byte{'0'}, nil
+	}
+	ms := time.Time(t).UTC().UnixMilli()
 	return fmt.Appendf(nil, "%d", ms), nil
 }
 

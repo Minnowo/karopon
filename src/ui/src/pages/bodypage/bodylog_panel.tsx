@@ -1,5 +1,5 @@
 import {TblUserBodyLog} from '../../api/types';
-import {formatSmartTimestamp} from '../../utils/date_utils';
+import {FormatSmartTimestamp} from '../../utils/date_utils';
 import {CmToFeetInches, KgToLbs} from '../../utils/units';
 import {ComponentChildren} from 'preact';
 import {DropdownButton} from '../../components/drop_down_button';
@@ -32,7 +32,7 @@ export function BodyLogPanel({bodyLog, onCopy, onEdit, onDelete}: BodyLogPanelPr
         <div className="w-full p-3 border rounded container-theme">
             <div className="flex flex-row flex-wrap w-full justify-between align-middle">
                 <span />
-                <div className="text-center font-semibold">{formatSmartTimestamp(bodyLog.user_time)}</div>
+                <div className="text-center font-semibold">{FormatSmartTimestamp(bodyLog.user_time)}</div>
                 <DropdownButton
                     actions={[
                         {

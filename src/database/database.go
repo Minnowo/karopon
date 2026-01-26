@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -211,6 +212,38 @@ type DB interface {
 	LoadUserGoals(ctx context.Context, userId int, out *[]TblUserGoal) error
 	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
 	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
+
+	///
+	/// User Tags
+	///
+
+	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
+	LoadUserTags(ctx context.Context, userId int, out *[]TblUserTag) error
+	LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error
+	LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]TblUserTag) error
+
+	// LoadUserNamespaceTagsLike loads at most n tags from the given namespace that start with the given tagNameLike.
+	// Returns error for any failures.
+	LoadUserNamespaceTagsLikeN(ctx context.Context, userId int, namespace, tagNameLike string, n int, out *[]TblUserTag) error
+
+	///
+	/// User Timespan
+	///
+
+	// AddUserTimespan Adds a new timespan to the database.
+	// If given, adds any tags and associates them with the timespan.
+	// Returns the timespan ID or an error.
+	AddUserTimespan(ctx context.Context, ts *TblUserTimespan, tags []TblUserTag) (int, error)
+
+	DeleteUserTimespan(ctx context.Context, userId int, tsId int) error
+	UpdateUserTimespan(ctx context.Context, ts *TblUserTimespan) error
+	LoadUserTimespans(ctx context.Context, userId int, out *[]TblUserTimespan) error
+	LoadUserTimespansWithTags(ctx context.Context, userId int, out *[]TaggedTimespan) error
+
+	// SetUserTimespanTags removes all tags from the timestamp and sets the given tags onto it.
+	// Any tags that do not exist are created for the given userId.
+	// Returns an error for any failures.
+	SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []TblUserTag) error
 }
 
 type SQLxDB struct {
@@ -219,6 +252,27 @@ type SQLxDB struct {
 
 func (db *SQLxDB) Base() *SQLxDB {
 	return db
+}
+
+// BackslashEscapePattern escapes the LIKE pattern matching using the \ character.
+// For use in queries as LIKE $1 ESCAPE '\'
+func (db *SQLxDB) BackslashEscapePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
+}
+
+// CountOneTx returns ok, err where ok indicates the query returned a single column with the value of 1.
+func (db *SQLxDB) CountOneTx(tx *sqlx.Tx, query string, arg ...any) (bool, error) {
+
+	var rowCount int
+
+	if err := tx.Get(&rowCount, query, arg...); err != nil {
+		return false, err
+	}
+
+	return rowCount == 1, nil
 }
 
 func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...any) (int, error) {
@@ -260,6 +314,7 @@ func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg any) (int
 
 	return id, nil
 }
+
 func (db *SQLxDB) InsertOneNamedGetID(ctx context.Context, query string, arg any) (int, error) {
 
 	rows, err := db.NamedQueryContext(ctx, query, arg)

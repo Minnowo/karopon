@@ -2,7 +2,7 @@ import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {CreateUserEventLog, TblUser, TblUserFoodLog, UpdateUserEventLog, UserEventFoodLog} from '../../api/types';
 import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
-import {formatSmartTimestamp} from '../../utils/date_utils';
+import {FormatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton, DropdownButtonAction} from '../../components/drop_down_button';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
@@ -25,7 +25,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
             <div className="w-full p-2 border container-theme">
                 <div className="flex flex-row flex-wrap w-full justify-between align-middle">
                     <span className="text-s font-semibold">{`${foodGroup.eventlog.event} `}</span>
-                    <span className=" text-s font-semibold">{formatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
+                    <span className=" text-s font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
                     <DropdownButton actions={actions} />
                 </div>
 

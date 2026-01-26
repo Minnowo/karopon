@@ -15,6 +15,9 @@ import {
     TblUserGoal,
     UserGoalProgress,
     CheckGoalProgress,
+    TblUserTag,
+    TblUserTimespan,
+    TaggedTimespan,
 } from './types';
 
 export class ApiError extends Error {
@@ -135,6 +138,24 @@ export const ApiGetUserGoalProgress = (goal: CheckGoalProgress): Promise<UserGoa
     );
 };
 
+export const ApiGetUserTags = (): Promise<TblUserTag[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/tags`));
+};
+
+export const ApiGetUserNamespaces = (): Promise<string[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/tags/namespaces`));
+};
+
+export const ApiGetUserNamespacesTags = (namespace: string, search: string): Promise<TblUserTag[]> => {
+    const encodedNamespace = encodeURIComponent(namespace);
+    const encodedSearch = encodeURIComponent(search);
+    return fetchJson(apiFetch(`${ApiBase}/api/tags/search?namespace=${encodedNamespace}&s=${encodedSearch}&limit=30`));
+};
+
+export const ApiGetUserTimespans = (): Promise<TaggedTimespan[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/timespans/tagged`));
+};
+
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {
     return fetchJson(apiFetch(`${ApiBase}/api/datasources`));
 };
@@ -164,6 +185,18 @@ export const ApiUpdateUserFood = (food: TblUserFood): Promise<void> => {
             },
             method: 'POST',
             body: JSON.stringify(food),
+        })
+    );
+};
+
+export const ApiUpdateUserTimespanTags = (ts: TaggedTimespan): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/timespan/update/tags`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(ts),
         })
     );
 };
@@ -203,6 +236,41 @@ export const ApiNewUserGoal = (goal: TblUserGoal): Promise<TblUserGoal> => {
         })
     );
 };
+export const ApiNewUserTag = (tag: TblUserTag): Promise<TblUserTag> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/tag/new`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(tag),
+        })
+    );
+};
+
+export const ApiNewUserTimespan = (tag: TaggedTimespan): Promise<TaggedTimespan> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/timespan/new`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(tag),
+        })
+    );
+};
+
+export const ApiUpdateUserTimespan = (tag: TblUserTimespan): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/timespan/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(tag),
+        })
+    );
+};
 
 export const ApiDeleteUserGoal = (goal: TblUserGoal): Promise<void> => {
     return fetchNone(
@@ -236,6 +304,18 @@ export const ApiDeleteUserFood = (food: TblUserFood): Promise<void> => {
             },
             method: 'POST',
             body: JSON.stringify(food),
+        })
+    );
+};
+
+export const ApiDeleteUserTimespan = (ts: TblUserTimespan): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/timespan/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(ts),
         })
     );
 };

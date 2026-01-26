@@ -1,11 +1,11 @@
 import {useState, useEffect} from 'preact/hooks';
-import {HeaderState} from '../state/header_state';
+import {TblUser} from '../api/types';
 
 type UserHeaderProps = {
-    state: HeaderState;
+    user: TblUser;
 };
 
-export function UserHeader({state}: UserHeaderProps) {
+export function UserHeader({user}: UserHeaderProps) {
     const [showDropDown, setShowDropDown] = useState<boolean>(false);
 
     return (
@@ -19,7 +19,7 @@ export function UserHeader({state}: UserHeaderProps) {
                 }
             }}
         >
-            <a onClick={() => setShowDropDown(true)}>{state.user.name}</a>
+            <a onClick={() => setShowDropDown(true)}>{user.name}</a>
             {showDropDown && (
                 <div className="flex flex-col absolute left-0 z-10 container-theme p-2">
                     <a href="#settings" onClick={() => setShowDropDown(false)}>
@@ -34,6 +34,9 @@ export function UserHeader({state}: UserHeaderProps) {
     );
 }
 
+type HeaderState = {
+    user: TblUser;
+};
 export function Header(state: HeaderState) {
     const [currentHash, setCurrentHash] = useState(window.location.hash);
 
@@ -56,6 +59,10 @@ export function Header(state: HeaderState) {
                         foods
                     </a>
                     &nbsp;&nbsp;&nbsp;
+                    <a className={`${currentHash === '#time' ? css : ''} `} href="#time">
+                        time
+                    </a>
+                    &nbsp;&nbsp;&nbsp;
                     <a className={`${currentHash === '#goals' ? css : ''} `} href="#goals">
                         goals
                     </a>
@@ -69,7 +76,7 @@ export function Header(state: HeaderState) {
                     </a>
                 </span>
                 <div className="ml-auto mr-10 flex items-center">
-                    <UserHeader state={state} />
+                    <UserHeader user={state.user} />
                 </div>
             </div>
             <hr />
