@@ -7,6 +7,7 @@ import {
     GoalTimeExprValues,
     GoalTargetColumnValues,
     GoalAggregationTypeValues,
+    TaggedTimespan,
 } from './types';
 
 export const NewTblUserGoal = (overrides: Partial<TblUserGoal> = {}): TblUserGoal => ({
@@ -19,6 +20,19 @@ export const NewTblUserGoal = (overrides: Partial<TblUserGoal> = {}): TblUserGoa
     aggregation_type: GoalAggregationTypeValues[0],
     value_comparison: GoalComparisonTypeValues[0],
     time_expr: GoalTimeExprValues[1],
+    ...overrides,
+});
+
+export const NewTaggedTimespan = (overrides: Partial<TaggedTimespan> = {}): TaggedTimespan => ({
+    timespan: {
+        id: 0,
+        user_id: 0,
+        created: 0,
+        start_time: new Date().getTime(),
+        stop_time: 0,
+        note: null,
+    },
+    tags: [],
     ...overrides,
 });
 

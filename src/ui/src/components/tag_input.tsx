@@ -3,6 +3,7 @@ import {TblUserTag} from '../api/types';
 import {HasNamespace, TagIsValid, SplitTag, TagToString} from '../utils/tags';
 import {useDebouncedCallback} from '../hooks/useDebounce';
 import {ApiGetUserNamespacesTags} from '../api/api';
+import {TagChip} from './tag_chip';
 
 type TagInputProps = {
     namespaces: string[];
@@ -224,24 +225,13 @@ export function TagInput({
     return (
         <div ref={containerRef} onFocusOut={onFocusOut} className="w-full flex flex-wrap items-center gap-1 px-2 py-1 text-sm">
             {thisTags.map((tag, i) => (
-                <span key={tag} className="flex items-center min-h-8 bg-c-magenta text-c-black rounded-2xl">
-                    <span className="pl-3 mr-2 break-words">
-                        {tag.namespace}:{tag.name}
-                    </span>
-                    <button
-                        className="px-2 mr-1 font-bold  bg-transparent border-none rounded-2xl text-inherit"
-                        type="button"
-                        onClick={() => removeTag(i)}
-                    >
-                        ×
-                    </button>
-                </span>
+                <TagChip key={TagToString(tag)} tag={tag} onRemove={() => removeTag(i)} />
             ))}
 
             <div className="relative w-full">
                 <input
                     ref={inputRef}
-                    className="flex-1 w-full min-w-[6ch] border-none outline-none py-0.5"
+                    className="flex-1 w-full min-w-[6ch] outline-none border-none"
                     value={input}
                     disabled={disabled}
                     placeholder={placeholder}
