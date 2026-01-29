@@ -1,5 +1,5 @@
 import {Dispatch, StateUpdater, useEffect, useState} from 'preact/hooks';
-import {TaggedTimespan} from '../../api/types';
+import {TaggedTimespan, TblUserTimespan} from '../../api/types';
 import {TimerPanel} from './timer_panel';
 import {TimeNowContext} from './context';
 
@@ -7,6 +7,7 @@ type ActiveTimerPanelProps = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     timers: TaggedTimespan[];
+    updateTimespan: (timer: TblUserTimespan) => void;
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
     continueTimer: (timer: TaggedTimespan) => void;
@@ -18,6 +19,7 @@ export const ActiveTimerPanel = ({
     namespaces,
     setNamespaces,
     timers,
+    updateTimespan,
     updateTags,
     stopTimer,
     continueTimer,
@@ -51,6 +53,7 @@ export const ActiveTimerPanel = ({
                             namespaces={namespaces}
                             setNamespaces={setNamespaces}
                             timer={ts}
+                            updateTimespan={updateTimespan}
                             updateTags={updateTags}
                             continueTimer={continueTimer}
                             deleteTimer={deleteTimer}

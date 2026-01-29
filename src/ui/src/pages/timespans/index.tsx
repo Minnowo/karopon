@@ -62,6 +62,24 @@ export function TimespansPage(state: BaseState) {
             })
             .catch(handleErr);
     };
+
+    const updateTimespan = (newTimespan: TblUserTimespan) => {
+        ApiUpdateUserTimespan(newTimespan)
+            .then(() =>
+                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
+                    oldTs === null
+                        ? null
+                        : oldTs.map((t: TaggedTimespan) => {
+                              if (t.timespan.id === newTimespan.id) {
+                                  t.timespan = newTimespan;
+                              }
+                              return t;
+                          })
+                )
+            )
+            .catch(handleErr);
+    };
+
     const startTimerNow = (tags?: TblUserTag[]) => {
         const newTimespan = {
             timespan: {
@@ -82,21 +100,7 @@ export function TimespansPage(state: BaseState) {
             stop_time: new Date().getTime(),
             note: ts.timespan.note,
         } as TblUserTimespan;
-
-        ApiUpdateUserTimespan(newTimespan)
-            .then(() =>
-                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
-                    oldTs === null
-                        ? null
-                        : oldTs.map((t: TaggedTimespan) => {
-                              if (t.timespan.id === newTimespan.id) {
-                                  t.timespan.stop_time = newTimespan.stop_time;
-                              }
-                              return t;
-                          })
-                )
-            )
-            .catch(handleErr);
+        updateTimespan(newTimespan);
     };
 
     const continueTimer = (timer: TaggedTimespan) => {
@@ -162,6 +166,7 @@ export function TimespansPage(state: BaseState) {
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     timers={runningTimers}
+                    updateTimespan={updateTimespan}
                     updateTags={updateTags}
                     continueTimer={continueTimer}
                     editTimer={editTimer}
@@ -180,6 +185,7 @@ export function TimespansPage(state: BaseState) {
                                 namespaces={state.namespaces}
                                 setNamespaces={state.setNamespaces}
                                 timer={ts}
+                                updateTimespan={updateTimespan}
                                 updateTags={updateTags}
                                 continueTimer={continueTimer}
                                 editTimer={editTimer}
