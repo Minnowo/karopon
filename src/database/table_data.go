@@ -230,3 +230,28 @@ func (u *TblUserGoal) Comparison() GoalValueComparison {
 
 	return GoalValueComparison(u.ValueComparison)
 }
+
+type TblUserTag struct {
+	ID      int        `db:"id" json:"-"`
+	UserID  int        `db:"user_id" json:"-"`
+	Created TimeMillis `db:"created" json:"-"`
+
+	Namespace string `db:"namespace" json:"namespace"`
+	Name      string `db:"name" json:"name"`
+}
+
+type TblUserTimespan struct {
+	ID      int        `db:"id" json:"id"`
+	UserID  int        `db:"user_id" json:"user_id"`
+	Created TimeMillis `db:"created" json:"created"`
+
+	StartTime TimeMillis `db:"start_time" json:"start_time"`
+	StopTime  TimeMillis `db:"stop_time" json:"stop_time"`
+
+	Note *string `db:"note" json:"note"`
+}
+
+type TblUserTimespanTag struct {
+	TimespanID int `db:"timespan_id" json:"timespan_id"`
+	TagID      int `db:"tag_id" json:"tag_id"`
+}

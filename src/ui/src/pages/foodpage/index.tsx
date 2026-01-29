@@ -79,7 +79,7 @@ export function FoodPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showAddFoodPanel && 'bg-c-l-red font-bold'}`}
+                    className={`w-24 ${showAddFoodPanel ? 'bg-c-l-red font-bold' : ''}`}
                     onClick={() => {
                         setShowAddFoodPanel((x) => !x);
                         setBaseFood(TblUserFoodFactory.empty());
@@ -88,7 +88,7 @@ export function FoodPage(state: BaseState) {
                     {!showAddFoodPanel ? 'New Food' : 'Cancel'}
                 </button>
                 <button
-                    className={`w-24 ${showBuildFoodPanel && 'bg-c-l-red font-bold'}`}
+                    className={`w-24 ${showBuildFoodPanel ? 'bg-c-l-red font-bold' : ''}`}
                     onClick={() => {
                         setShowBuildFoodPanel((x) => !x);
                     }}

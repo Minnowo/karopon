@@ -1,6 +1,6 @@
 import {TblUser, UserEventFoodLog} from '../api/types';
 import {CalculateCalories, Str2CalorieFormula} from './calories';
-import {formatSmartTimestamp} from './date_utils';
+import {FormatSmartTimestamp} from './date_utils';
 
 /**
  * Trigger a download of any Blob data with the specified filename.
@@ -58,7 +58,7 @@ export const GenerateEventTableText = (user: TblUser, events: UserEventFoodLog[]
 
             return [
                 '-'.repeat(maxLen),
-                `Time                    ${formatSmartTimestamp(eventlog.user_time)}`,
+                `Time                    ${FormatSmartTimestamp(eventlog.user_time)}`,
                 `Event Title             ${eventlog.event}`,
                 user.show_diabetes
                     ? [

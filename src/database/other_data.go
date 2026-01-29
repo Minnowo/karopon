@@ -39,6 +39,11 @@ type UserGoalProgress struct {
 	TimeRemaining DurationMillis `json:"time_remaining"`
 }
 
+type TaggedTimespan struct {
+	Timespan TblUserTimespan `json:"timespan"`
+	Tags     []TblUserTag    `json:"tags"`
+}
+
 func ValueToString(val any) string {
 	switch v := val.(type) {
 	case nil:

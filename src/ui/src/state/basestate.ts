@@ -1,5 +1,14 @@
 import {Dispatch, StateUpdater} from 'preact/hooks';
-import {TblUser, TblUserFood, TblUserEvent, UserEventFoodLog, TblUserBodyLog, TblDataSource, TblUserGoal} from '../api/types';
+import {
+    TblUser,
+    TblUserFood,
+    TblUserEvent,
+    UserEventFoodLog,
+    TblUserBodyLog,
+    TblDataSource,
+    TblUserGoal,
+    TaggedTimespan,
+} from '../api/types';
 
 export type BaseState = {
     user: TblUser;
@@ -19,6 +28,12 @@ export type BaseState = {
 
     bodylogs: TblUserBodyLog[];
     setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[] | null>>;
+
+    namespaces: string[];
+    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+
+    timespans: TaggedTimespan[];
+    setTimespans: Dispatch<StateUpdater<TaggedTimespan[] | null>>;
 
     dataSources: TblDataSource[] | null;
 

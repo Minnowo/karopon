@@ -18,8 +18,7 @@ export const FormatDateForInput = (date: Date): string => {
     );
 };
 
-export function formatSmartTimestamp(timestamp: number): string {
-    const date = new Date(timestamp);
+export function FormatSmartTimestamp2(date: Date): string {
     const now = new Date();
 
     const isSameYear = date.getFullYear() === now.getFullYear();
@@ -33,5 +32,18 @@ export function formatSmartTimestamp(timestamp: number): string {
         minute: '2-digit',
         hourCycle: 'h23',
         ...(isSameYear ? {} : {year: 'numeric'}),
+    });
+}
+export function FormatSmartTimestamp(timestamp: number): string {
+    return FormatSmartTimestamp2(new Date(timestamp));
+}
+
+export function FormatTimerTimestamp(ms: number): string {
+    const date = new Date(ms);
+
+    return date.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
     });
 }
