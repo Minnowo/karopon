@@ -18,6 +18,10 @@ var (
 	tokenHeader        = constants.SESSION_AUTH_HEADER
 )
 
+type TokenProvider interface {
+	CheckToken(ctx context.Context, tokenStr string) (*database.TblUser, bool)
+}
+
 var logger = log4zero.Get("auth-middleware")
 
 // todo: make this a server setting?
@@ -64,7 +68,7 @@ func SetAuthToken(w http.ResponseWriter, token string, expires time.Time) {
 }
 
 // ParseAuth parses the session cookie into a user from the userReg and adds it to the request.
-func ParseAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler {
+func ParseAuth(tokenProvider TokenProvider) func(next http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 
@@ -88,7 +92,7 @@ func ParseAuth(userReg *user.UserRegistry) func(next http.Handler) http.Handler 
 
 			if token != "" {
 
-				user, ok := userReg.CheckToken(token)
+				user, ok := tokenProvider.CheckToken(r.Context(), token)
 
 				if ok {
 					logger.Debug().Str("user", user.Name).Int("userId", user.ID).Str("url", r.URL.String()).Msg("Authentication successful")

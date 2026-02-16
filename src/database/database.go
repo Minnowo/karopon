@@ -67,9 +67,23 @@ type DB interface {
 
 	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
+	LoadUserById(ctx context.Context, id int, user *TblUser) error
 
 	// Read all users into the given array, or returning an error.
 	LoadUsers(ctx context.Context, users *[]TblUser) error
+
+	// Load a session by the given token in the database.
+	// The token must be 32 bytes in size.
+	LoadUserSession(ctx context.Context, token []byte, session *TblUserSession) error
+
+	// Read all user session for the given user.
+	LoadUserSessions(ctx context.Context, userId int, session *[]TblUserSession) error
+
+	AddUserSession(ctx context.Context, session *TblUserSession) error
+
+	DeleteUserSessionByToken(ctx context.Context, token []byte) error
+	// Delete all user sessions where the expire time is less than the given time.
+	DeleteUserSessionsExpireAfter(ctx context.Context, time time.Time) error
 
 	///
 	/// Food Functions

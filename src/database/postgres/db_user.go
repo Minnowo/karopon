@@ -75,6 +75,19 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	return err
 }
 
+func (db *PGDatabase) LoadUserById(ctx context.Context, id int, user *database.TblUser) error {
+
+	query := `SELECT * FROM PON.USER WHERE ID = $1 LIMIT 1`
+
+	err := db.GetContext(ctx, user, query, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *PGDatabase) LoadUser(ctx context.Context, username string, user *database.TblUser) error {
 
 	query := `SELECT * FROM PON.USER WHERE NAME = $1 LIMIT 1`

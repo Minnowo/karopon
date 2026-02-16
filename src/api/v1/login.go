@@ -6,6 +6,7 @@ import (
 	"karopon/src/api/auth"
 	"karopon/src/constants"
 	"karopon/src/database"
+	"karopon/src/handlers/user"
 	"net/http"
 	"strings"
 
@@ -64,15 +65,15 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !a.UserReg.HasUser(username) {
-		api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
-		return
-	}
+	token, expires, err := a.UserReg.Login(r.Context(), username, password)
 
-	token, expires, ok := a.UserReg.Login(username, password)
+	if err != nil {
 
-	if !ok {
-		api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
+		if err == user.ErrUserDoesNotExist || err == user.ErrUserPasswordDoesNotMatch {
+			api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
+		} else {
+			api.Done(w, http.StatusInternalServerError, "An unknown error happened while logging in, please try again later.")
+		}
 		return
 	}
 

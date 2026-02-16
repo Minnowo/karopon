@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"context"
 	"karopon/src/database"
-	"karopon/src/handlers/user"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,6 +15,17 @@ import (
 
 func init() {
 	// config.InitLogging()
+}
+
+type fakeUserReg struct {
+	tokenToUsers map[string]*database.TblUser
+}
+
+func (r *fakeUserReg) CheckToken(ctx context.Context, tokenStr string) (*database.TblUser, bool) {
+
+	usr, ok := r.tokenToUsers[tokenStr]
+
+	return usr, ok
 }
 
 func expectContext(t *testing.T, expectUser *database.TblUser, yes bool) func(w http.ResponseWriter, r *http.Request) {
@@ -32,18 +43,18 @@ func expectContext(t *testing.T, expectUser *database.TblUser, yes bool) func(w 
 	}
 }
 
-func newRouter(t *testing.T, session *database.TblUser, reg *user.UserRegistry) *mux.Router {
+func newRouter(t *testing.T, session *database.TblUser, tokenProvider TokenProvider) *mux.Router {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/no-auth").HandlerFunc(expectContext(t, session, false))
 
 	noAuth := r.NewRoute().Subrouter()
-	noAuth.Use(ParseAuth(reg))
+	noAuth.Use(ParseAuth(tokenProvider))
 	noAuth.PathPrefix("/no-require-auth1").HandlerFunc(expectContext(t, session, false))
 	noAuth.PathPrefix("/no-require-auth2").HandlerFunc(expectContext(t, session, true))
 
 	yesAuth := r.NewRoute().Subrouter()
-	yesAuth.Use(ParseAuth(reg), RequireAuth())
+	yesAuth.Use(ParseAuth(tokenProvider), RequireAuth())
 	yesAuth.PathPrefix("/yes-require-auth").HandlerFunc(expectContext(t, session, true))
 
 	return r
@@ -53,6 +64,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	username := "test"
 	password := "test"
+	authToken := "this_is_auth_token"
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	assert.Nil(t, err)
@@ -63,11 +75,10 @@ func TestAuthMiddleware(t *testing.T) {
 		Created:  database.TimeMillis(time.Now()),
 	}
 
-	reg := user.NewRegistry()
-	reg.AddUser(*session)
-
-	authToken, _, ok := reg.Login(username, password)
-	assert.True(t, ok, "login should be valid")
+	reg := &fakeUserReg{
+		tokenToUsers: make(map[string]*database.TblUser),
+	}
+	reg.tokenToUsers[authToken] = session
 
 	t.Run("test no auth route", func(t *testing.T) {
 

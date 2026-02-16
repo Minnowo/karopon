@@ -62,10 +62,8 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	userReg := user.NewRegistry()
-	if err := userReg.LoadFromDatabase(db); err != nil {
-		return err
-	}
+	userReg := user.NewRegistry(db)
+	userReg.ClearExpiredSessions()
 
 	apiv1 := v1.APIV1{
 		Db:      db,

@@ -94,7 +94,7 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.UserReg.ReplaceUser(user.Name, &newUser.User)
+	a.UserReg.PutUserWithNewName(user.Name, &newUser.User)
 
 	// debugging only
 	if config.FakeAuth() {
