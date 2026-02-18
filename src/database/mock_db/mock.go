@@ -93,10 +93,6 @@ func (p *BaseMockDB) LoadUserById(ctx context.Context, id int, user *database.Tb
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) LoadUsers(ctx context.Context, users *[]database.TblUser) error {
-	panic("not implemented")
-}
-
 func (p *BaseMockDB) LoadUserSession(ctx context.Context, token []byte, session *database.TblUserSession) error {
 	panic("not implemented")
 }
@@ -121,7 +117,7 @@ func (p *BaseMockDB) AddUserFood(ctx context.Context, food *database.TblUserFood
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) AddUserFoods(ctx context.Context, food []*database.TblUserFood) error {
+func (p *BaseMockDB) AddUserFoods(ctx context.Context, food []database.TblUserFood) error {
 	panic("not implemented")
 }
 

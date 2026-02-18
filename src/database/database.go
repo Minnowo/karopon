@@ -61,16 +61,14 @@ type DB interface {
 	// Update the user's information with this data.
 	UpdateUser(ctx context.Context, user *TblUser) error
 
-	// Returns true if the username is taken by another user or false if it's not.
+	// Returns true if the username is taken by a user whose ID is not the given ID.
+	// Returns false if the username is not taken by a user whose ID is not the given ID.
 	// Returns an error otherwise.
 	UsernameTaken(ctx context.Context, userId int, username string) (bool, error)
 
 	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
 	LoadUserById(ctx context.Context, id int, user *TblUser) error
-
-	// Read all users into the given array, or returning an error.
-	LoadUsers(ctx context.Context, users *[]TblUser) error
 
 	// Load a session by the given token in the database.
 	// The token must be 32 bytes in size.
@@ -95,7 +93,7 @@ type DB interface {
 
 	// Add all of the given foods or none if an error.
 	// Does not edit the given structs.
-	AddUserFoods(ctx context.Context, food []*TblUserFood) error
+	AddUserFoods(ctx context.Context, food []TblUserFood) error
 
 	// Read all the user foods into the given array, or return an error.
 	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error

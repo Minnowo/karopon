@@ -21,7 +21,7 @@ func (db *PGDatabase) AddUserFood(ctx context.Context, food *database.TblUserFoo
 	return id, err
 }
 
-func (db *PGDatabase) AddUserFoods(ctx context.Context, foods []*database.TblUserFood) error {
+func (db *PGDatabase) AddUserFoods(ctx context.Context, foods []database.TblUserFood) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 

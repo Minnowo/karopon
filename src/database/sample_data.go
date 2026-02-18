@@ -56,7 +56,7 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 		food1.ID = id
 	}
 
-	foods := []*TblUserFood{
+	foods := []TblUserFood{
 		{UserID: user.ID, Name: "english muffin - wonder", Portion: 57, Unit: "g", Protein: 5, Carb: 25, Fibre: 1, Fat: 1.5},
 		{UserID: user.ID, Name: "spaghettini - great value", Portion: 85, Unit: "g", Protein: 12, Carb: 63, Fibre: 3, Fat: 1},
 		{UserID: user.ID, Name: "egg - medium", Portion: 1, Unit: "egg", Protein: 5.5, Carb: 0.5, Fibre: 0, Fat: 4.5},

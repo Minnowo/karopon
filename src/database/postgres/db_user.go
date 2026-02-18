@@ -30,11 +30,17 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
     	    INSERT INTO PON.USER (
 				NAME, PASSWORD,
 				DARK_MODE, SHOW_DIABETES, CALORIC_CALC_METHOD,
-				INSULIN_SENSITIVITY_FACTOR, EVENT_HISTORY_FETCH_LIMIT, TARGET_BLOOD_SUGAR
+				INSULIN_SENSITIVITY_FACTOR, EVENT_HISTORY_FETCH_LIMIT, TARGET_BLOOD_SUGAR,
+				SESSION_EXPIRE_TIME_SECONDS,
+				TIME_FORMAT,
+				DATE_FORMAT
 			) VALUES (
 				:name, :password,
 				:dark_mode, :show_diabetes, :caloric_calc_method,
-				:insulin_sensitivity_factor, :event_history_fetch_limit, :target_blood_sugar
+				:insulin_sensitivity_factor, :event_history_fetch_limit, :target_blood_sugar,
+				:session_expire_time_seconds,
+				:time_format,
+				:date_format
 			)
     	    RETURNING ID;
     	`
@@ -99,13 +105,6 @@ func (db *PGDatabase) LoadUser(ctx context.Context, username string, user *datab
 	}
 
 	return nil
-}
-
-func (db *PGDatabase) LoadUsers(ctx context.Context, users *[]database.TblUser) error {
-
-	query := `SELECT * FROM PON.USER`
-
-	return db.SelectContext(ctx, users, query)
 }
 
 func (db *PGDatabase) ExportUserCSV(ctx context.Context, w io.Writer) error {

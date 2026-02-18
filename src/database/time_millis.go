@@ -35,7 +35,7 @@ func (t *TimeMillis) UnmarshalJSON(b []byte) error {
 }
 
 func (t TimeMillis) Value() (driver.Value, error) {
-	return time.Time(t), nil
+	return time.Time(t).UTC(), nil
 }
 
 func (t *TimeMillis) Scan(value any) error {
