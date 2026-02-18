@@ -17,7 +17,7 @@ export function DropdownButton({
     actions,
     label = '[:]',
     className,
-    buttonClassName = 'w-8 h-8 p-0 m-0 border-none bg-c-d-black hover:bg-c-black',
+    buttonClassName = 'w-8 h-8 p-0 m-0 border-none bg-transparent hover:bg-c-surface0',
 }: DropdownProps) {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export function DropdownButton({
             </button>
 
             {open && (
-                <div className="absolute container-theme right-0 shadow-lg z-10 font-bold text-lg">
+                <div className="absolute border border-c-pink right-0 shadow-lg z-10 font-bold text-lg">
                     {actions.map((action, i) => (
                         <button
                             key={i}
@@ -57,7 +57,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className={`${action.dangerous ? 'text-c-l-red' : ''} w-full text-left whitespace-nowrap rounded-none border-none hover:bg-c-black px-2 py-1`}
+                            className={`${action.dangerous ? 'text-c-red' : ''} w-full text-left whitespace-nowrap rounded-none border-none bg-c-surface0 hover:bg-c-surface2 px-2 py-1`}
                         >
                             {action.label}
                         </button>

@@ -38,7 +38,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
     return (
         <>
-            <div className={`rounded-sm p-2 border container-theme bg-c-black ${state.className}`}>
+            <div className={`rounded-sm p-2 border container-theme ${state.className}`}>
                 <span className="text-lg font-bold">New Body Log</span>
                 <ErrorDiv errorMsg={errorMsg} />
                 <div className="flex flex-col justify-between">

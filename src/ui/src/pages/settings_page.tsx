@@ -66,7 +66,7 @@ export function SettingsPage(state: BaseState) {
         <main className="flex flex-col space-y-4 sm:px-16 lg:px-32">
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-48 ${isEditing && 'bg-c-l-red font-bold'}`}
+                    className={`w-48 ${isEditing && 'bg-c-red font-bold'}`}
                     onClick={() => {
                         setIsEditing((x) => !x);
                     }}
@@ -150,14 +150,21 @@ export function SettingsPage(state: BaseState) {
                 disabled={!isEditing}
             />
 
-            <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-lg font-medium">Dark Mode</span>
-                <FlipSwitch
+            <div>
+                <div className="font-bold">Color Theme</div>
+                <select
+                    className="w-full"
                     disabled={!isEditing}
-                    value={userRef.current.dark_mode}
-                    onValueChanged={(v) => update('dark_mode', v)}
-                />
-            </label>
+                    value={userRef.current.theme}
+                    onInput={(e) => update('theme', (e.target as HTMLSelectElement).value)}
+                >
+                    {['dark-1', 'dark-2', 'dark-3', 'light-1', 'light-2', 'light-3'].map((x) => (
+                        <option key={x} value={x}>
+                            {x}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-lg font-medium">Show Diabetes Features</span>

@@ -231,7 +231,7 @@ export function TagInput({
             <div className="relative w-full">
                 <input
                     ref={inputRef}
-                    className="flex-1 w-full min-w-[6ch] outline-none border-none"
+                    className="flex-1 w-full min-w-[6ch]"
                     value={input}
                     disabled={disabled}
                     placeholder={placeholder}
@@ -247,18 +247,19 @@ export function TagInput({
                 {open && (showCreateButton || (tagSearch && tagSearch.length > 0)) && (
                     <ul
                         ref={listRef}
-                        class={`absolute z-10 b-0 border mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll whitespace-nowrap`}
+                        class={`absolute z-10 b-0 border border-c-pink mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll whitespace-nowrap`}
                     >
                         {showCreateButton && (
                             <li
                                 tabindex={-1}
-                                class={`${selectedIndex === 0 ? 'bg-c-l-black' : 'bg-c-black'} p-2 hover:bg-c-l-black cursor-pointer`}
+                                class={`${selectedIndex === 0 ? 'bg-c-surface2' : 'bg-c-surface0'} p-2 hover:bg-c-surface2 cursor-pointer`}
                                 onClick={() => {
                                     createButtonClick();
                                     inputRef.current?.focus();
                                 }}
                             >
-                                <span className="text-c-l-green">{hasNamespace ? 'New tag' : 'New namespace'}:</span> {input}
+                                <span className="text-c-green font-bold">{hasNamespace ? 'New tag' : 'New namespace'}:</span>{' '}
+                                {input}
                             </li>
                         )}
 
@@ -267,12 +268,12 @@ export function TagInput({
                             tagSearch.map((item, i) => {
                                 const tagStr = `${item.namespace}:${item.name}`;
                                 const thisIndex = (showCreateButton ? -1 : 0) + selectedIndex;
-                                const color = thisIndex === i ? 'bg-c-l-black' : 'bg-c-black';
+                                const color = thisIndex === i ? 'bg-c-surface2' : 'bg-c-surface0';
                                 return (
                                     <li
                                         tabindex={-1}
                                         key={tagStr}
-                                        class={`${color} p-2 hover:bg-c-l-black cursor-pointer`}
+                                        class={`${color} p-2 hover:bg-c-surface2 cursor-pointer`}
                                         onClick={() => {
                                             TryAddTag(tagStr);
                                             inputRef.current?.focus();

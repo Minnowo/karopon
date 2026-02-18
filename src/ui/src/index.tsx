@@ -173,10 +173,10 @@ export function App() {
     }, [refresh]);
 
     useLayoutEffect(() => {
-        if (user === null || user.dark_mode) {
+        if (!user || !user.theme) {
             document.documentElement.dataset.theme = 'dark';
         } else {
-            document.documentElement.dataset.theme = 'light';
+            document.documentElement.dataset.theme = user.theme;
         }
     }, [user]);
 

@@ -41,7 +41,7 @@ export const RenderGraph = <T extends ChartPoint>(
                     {RangeTypeKeys.map((r) => (
                         <button
                             key={r}
-                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                             onClick={() => setDisplay({...display, range: r})}
                         >
                             {r.toUpperCase()}
@@ -52,7 +52,7 @@ export const RenderGraph = <T extends ChartPoint>(
                     {GroupTypeKeys.map((g) => (
                         <button
                             key={g}
-                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                             onClick={() => setDisplay({...display, group: g})}
                         >
                             {g.toUpperCase()}
@@ -77,7 +77,7 @@ export const RenderGraph = <T extends ChartPoint>(
                             height={height}
                             viewBox={`0 0 ${width + pad} ${height}`}
                             preserveAspectRatio="xMinYMin meet"
-                            className="border border-c-yellow rounded text-c-black dark:text-c-white"
+                            className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                         >
                             <polyline
                                 fill="none"

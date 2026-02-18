@@ -180,7 +180,10 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                 onFocusIn={openOnFocusIn}
             />
             {open && (
-                <ul ref={listRef} class={`absolute z-10 border mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}>
+                <ul
+                    ref={listRef}
+                    class={`absolute z-10 border border-c-pink mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
+                >
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => {
                             const key = dataDisplayStr(item);
@@ -188,7 +191,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                                 <li
                                     tabindex={-1}
                                     key={key}
-                                    class={`${selectedIndex === i ? 'bg-c-l-black' : 'bg-c-black'}  p-2 hover:bg-c-l-black cursor-pointer`}
+                                    class={`${selectedIndex === i ? 'bg-c-surface2' : 'bg-c-surface0'}  p-2 hover:bg-c-surface2 cursor-pointer`}
                                     onClick={() => doSelect(item)}
                                 >
                                     {key}
@@ -196,7 +199,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                             );
                         })
                     ) : (
-                        <li class="bg-c-black  p-2 hover:bg-c-l-black cursor-pointer"> {noResultsText} </li>
+                        <li class="bg-c-surface0 p-2 hover:bg-c-surface1 cursor-pointer"> {noResultsText} </li>
                     )}
                 </ul>
             )}

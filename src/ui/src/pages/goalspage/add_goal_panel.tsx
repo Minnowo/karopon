@@ -45,7 +45,7 @@ export function GoalCreationPanel({userGoal, onCreated, className = ''}: Props) 
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
+        <div className={`rounded-sm p-2 border container-theme ${className}`}>
             <h2 className="text-lg font-semibold">Create a New Goal</h2>
             <ErrorDiv errorMsg={error} />
 

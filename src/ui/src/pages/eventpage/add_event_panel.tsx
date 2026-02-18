@@ -213,13 +213,13 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     };
 
     return (
-        <div className="w-full p-2 container-theme bg-c-black">
+        <div className="w-full p-2 rounded-sm container-theme">
             <div className="flex w-full justify-between">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
                 <div className="flex flex-col sm:flex-row">
                     {p.actionButtons}
-                    <button className="text-sm text-c-l-red font-bold w-24 sm:mx-1" onClick={reset}>
+                    <button className="text-sm text-c-red font-bold w-24 sm:mx-1" onClick={reset}>
                         Reset
                     </button>
                 </div>

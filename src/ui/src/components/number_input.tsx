@@ -85,11 +85,8 @@ export function NumberInput({
     };
 
     return (
-        <div
-            aria-disabled={disabled}
-            className={`flex flex-row relative outline-none rounded-sm border border-c-yellow whitespace-nowrap input-like p-0 ${className}`}
-        >
-            {label && <div className="flex items-center select-none px-1"> {label} </div>}
+        <div aria-disabled={disabled} className={`flex flex-row relative input-like p-0 ${className}`}>
+            {label && <div className="flex items-center whitespace-nowrap select-none px-1"> {label} </div>}
             <input
                 tabindex={innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none`}
@@ -118,7 +115,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▲
                 </HoldButton>
@@ -126,7 +123,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs hover:bg-c-l-black"
+                    className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▼
                 </HoldButton>

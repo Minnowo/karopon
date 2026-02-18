@@ -23,6 +23,24 @@ const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
         })();
     }, [goal]);
 
+    const barColor = (() => {
+        switch (goal.target_col) {
+            case 'CALORIES':
+            case 'NET_CARBS':
+            case 'CARBS':
+            case 'STEPS':
+                return 'bg-c-yellow';
+            case 'FAT':
+                return 'bg-c-flamingo';
+            case 'FIBRE':
+                return 'bg-c-sapphire';
+            case 'PROTEIN':
+                return 'bg-c-green';
+            default:
+                return 'bg-c-peach';
+        }
+    })();
+
     return (
         <div className="container-theme p-2">
             <div className="flex flex-row justify-between">
@@ -49,7 +67,7 @@ const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
                     <p className="text-xs">Time remaining: {FormatDuration(progress.time_remaining)}</p>
                     <div className="w-full h-2 rounded mt-2">
                         <div
-                            className="bg-c-blue h-2 rounded"
+                            className={`${barColor} h-2 rounded`}
                             style={{
                                 width: `${Math.min(100, (progress.current_value / progress.target_value) * 100)}%`,
                             }}
@@ -102,7 +120,7 @@ export function GoalsPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showNewGoalPanel && 'bg-c-l-red font-bold'}`}
+                    className={`w-24 ${showNewGoalPanel && 'bg-c-red font-bold'}`}
                     onClick={() => {
                         setShowNewGoalPanel((x) => !x);
                         newGoal.current = NewTblUserGoal({target_value: 1500});

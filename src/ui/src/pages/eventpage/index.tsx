@@ -22,7 +22,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
 
     return (
         <>
-            <div className="w-full p-2 border container-theme">
+            <div className="w-full p-2 border rounded-sm container-theme">
                 <div className="flex flex-row flex-wrap w-full justify-between align-middle">
                     <span className="text-s font-semibold">{`${foodGroup.eventlog.event} `}</span>
                     <span className=" text-s font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
@@ -50,27 +50,27 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                     <div className="w-full mt-2 overflow-x-scroll">
                         <table className="w-full text-sm border-collapse">
                             <thead>
-                                <tr className="text-xs border-b">
-                                    <th className="font-normal text-left py-1"> </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Amount">
+                                <tr className="text-xs text-right font-semibold">
+                                    <th className="text-left py-1"> </th>
+                                    <th className="py-1 pr-2" title="Amount">
                                         Amt
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Fat">
+                                    <th className="py-1 pr-2" title="Fat">
                                         Fat
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Carbs">
+                                    <th className="py-1 pr-2" title="Carbs">
                                         Carb
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Fibre">
+                                    <th className="py-1 pr-2" title="Fibre">
                                         Fib
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Protein">
+                                    <th className="py-1 pr-2" title="Protein">
                                         Prot
                                     </th>
-                                    <th className="font-normal text-right py-1 pr-2" title="Net Carbs">
+                                    <th className="py-1 pr-2" title="Net Carbs">
                                         Net
                                     </th>
-                                    <th className="font-normal text-right py-1" title="Calories">
+                                    <th className="py-1" title="Calories">
                                         Cal
                                     </th>
                                 </tr>
@@ -106,14 +106,14 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                         <Fragment key={food.id}>
                                             {shown && (
                                                 <tr className="cursor-pointer" onClick={toggle}>
-                                                    <td className="border-c-l-green border-t border-l " colSpan={8}>
+                                                    <td className="border-c-pink border-t-2 border-l-2 " colSpan={8}>
                                                         <div className="mx-1">{food.name}</div>
                                                     </td>
                                                 </tr>
                                             )}
                                             <tr onClick={toggle} className="cursor-pointer">
                                                 <td
-                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b border-l border-c-l-green' : ''} `}
+                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-pink' : ''} `}
                                                 >
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>
@@ -239,7 +239,7 @@ export function EventsPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red font-bold'}`}
+                    className={`w-24 ${showNewEventPanel && 'bg-c-red font-bold'}`}
                     onClick={() => {
                         setShowNewEventPanel((x) => !x);
                         setNewEvent(UserEventFoodLogFactory.empty());
@@ -313,7 +313,7 @@ export function EventsPage(state: BaseState) {
                             actionButtons={[
                                 <button
                                     key={`c-${editEvent.eventlog.id}`}
-                                    className="text-sm bg-c-l-red font-bold w-24 sm:mx-1 mb-1 sm:mb-0"
+                                    className="text-sm bg-c-red font-bold w-24 sm:mx-1 mb-1 sm:mb-0"
                                     onClick={() => setEditEvent(UserEventFoodLogFactory.empty())}
                                 >
                                     Cancel

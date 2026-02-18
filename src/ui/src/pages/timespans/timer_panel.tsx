@@ -85,7 +85,7 @@ export const TimerPanel = ({
                 )}
                 {note !== timer.timespan.note && (
                     <div className="w-full flex flex-row gap-2 mt-2 ">
-                        <button className="bg-c-l-red font-bold w-full max-w-32" onClick={() => setNote(timer.timespan.note)}>
+                        <button className="bg-c-red font-bold w-full max-w-32" onClick={() => setNote(timer.timespan.note)}>
                             Cancel
                         </button>
                         <button

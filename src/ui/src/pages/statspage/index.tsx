@@ -223,13 +223,13 @@ export function StatsPage(state: BaseState) {
                 setCarbRange
             )}
 
-            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', '#facc15', setCalorieRange, 0)}
+            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', 'var(--color-c-yellow)', setCalorieRange, 0)}
 
             {state.user.show_diabetes &&
-                RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'lightblue', setBloodRange)}
+                RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'var(--color-c-sky)', setBloodRange)}
 
             {state.user.show_diabetes &&
-                RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'green', setInsulinRange)}
+                RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'var(--color-c-green)', setInsulinRange)}
         </>
     );
 }

@@ -21,7 +21,7 @@ type TblUser struct {
 	Created  TimeMillis `db:"created" json:"created"`
 
 	// settings
-	DarkMode                 bool    `db:"dark_mode" json:"dark_mode"`
+	Theme                    string  `db:"theme" json:"theme"`
 	ShowDiabetes             bool    `db:"show_diabetes" json:"show_diabetes"`
 	CaloricCalcMethod        string  `db:"caloric_calc_method" json:"caloric_calc_method"`
 	InsulinSensitivityFactor float64 `db:"insulin_sensitivity_factor" json:"insulin_sensitivity_factor"`
@@ -49,7 +49,7 @@ func (u *TblUser) Copy() *TblUser {
 		Name:                     u.Name,
 		Password:                 pw,
 		Created:                  u.Created,
-		DarkMode:                 u.DarkMode,
+		Theme:                    u.Theme,
 		ShowDiabetes:             u.ShowDiabetes,
 		CaloricCalcMethod:        u.CaloricCalcMethod,
 		InsulinSensitivityFactor: u.InsulinSensitivityFactor,

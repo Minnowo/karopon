@@ -63,7 +63,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		user := &database.TblUser{
 			Name:                     "alice",
 			Password:                 []byte{1, 2, 3},
-			DarkMode:                 true,
+			Theme:                    "auto",
 			ShowDiabetes:             true,
 			CaloricCalcMethod:        "auto",
 			InsulinSensitivityFactor: 5,
@@ -100,7 +100,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		// test update
 		loaded.Name = "alice2"
 		loaded.Password = []byte{4, 5, 6}
-		loaded.DarkMode = false
+		loaded.Theme = "dark-1"
 		loaded.ShowDiabetes = false
 		loaded.CaloricCalcMethod = "something_else"
 		loaded.InsulinSensitivityFactor = 9

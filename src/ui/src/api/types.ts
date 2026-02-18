@@ -5,7 +5,7 @@ export type TblUser = {
 
     // settings
     user_id: number;
-    dark_mode: boolean;
+    theme: string;
     show_diabetes: boolean;
     caloric_calc_method: string;
     insulin_sensitivity_factor: number;

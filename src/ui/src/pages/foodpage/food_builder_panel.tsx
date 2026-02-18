@@ -96,7 +96,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme bg-c-black ${p.className}`}>
+        <div className={`rounded-sm p-2 border container-theme ${p.className}`}>
             <div className="w-full">
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer text-lg font-bold">

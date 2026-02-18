@@ -29,14 +29,14 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 		query := `
     	    INSERT INTO PON.USER (
 				NAME, PASSWORD,
-				DARK_MODE, SHOW_DIABETES, CALORIC_CALC_METHOD,
+				THEME, SHOW_DIABETES, CALORIC_CALC_METHOD,
 				INSULIN_SENSITIVITY_FACTOR, EVENT_HISTORY_FETCH_LIMIT, TARGET_BLOOD_SUGAR,
 				SESSION_EXPIRE_TIME_SECONDS,
 				TIME_FORMAT,
 				DATE_FORMAT
 			) VALUES (
 				:name, :password,
-				:dark_mode, :show_diabetes, :caloric_calc_method,
+				:theme, :show_diabetes, :caloric_calc_method,
 				:insulin_sensitivity_factor, :event_history_fetch_limit, :target_blood_sugar,
 				:session_expire_time_seconds,
 				:time_format,
@@ -64,7 +64,7 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	NAME=:name,
 	PASSWORD=:password,
 	CREATED=:created,
-	DARK_MODE=:dark_mode,
+	THEME=:theme,
 	SHOW_DIABETES=:show_diabetes,
 	CALORIC_CALC_METHOD=:caloric_calc_method,
 	INSULIN_SENSITIVITY_FACTOR=:insulin_sensitivity_factor,

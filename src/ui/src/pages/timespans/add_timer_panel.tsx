@@ -44,7 +44,7 @@ export const AddTimerPanel = (p: Props) => {
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme bg-c-black`}>
+        <div className={`rounded-sm p-2 border container-theme`}>
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer text-lg font-bold">
                     Create New Timer
@@ -66,7 +66,7 @@ export const AddTimerPanel = (p: Props) => {
                         <br />
                         <br />
                         For example, adding the tags:
-                        <div className="w-full flex flex-row gap-3 my-2">
+                        <span className="w-full flex flex-row gap-3 my-2">
                             {[
                                 {namespace: 'project', name: 'karopon'},
                                 {namespace: 'work', name: 'development'},
@@ -74,7 +74,7 @@ export const AddTimerPanel = (p: Props) => {
                             ].map((t) => (
                                 <TagChip key={t} tag={t} />
                             ))}
-                        </div>
+                        </span>
                         Describes what project was being worked on, what type of work was done, and what specific issue was being
                         fixed.
                     </p>

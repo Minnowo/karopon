@@ -87,21 +87,24 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
             {results.length > 0 ? (
                 <table className="w-full text-sm border-collapse">
                     <thead>
-                        <tr className="text-xs border-b">
-                            <th className="font-normal text-left py-1"> </th>
-                            <th className="font-normal text-right py-1 pr-2" title="Amount">
+                        <tr className="text-xs font-semibold">
+                            <th className=" text-left py-1" title="Food Name">
+                                {' '}
+                                Name{' '}
+                            </th>
+                            <th className=" text-right py-1 pr-2" title="Amount">
                                 Amt
                             </th>
-                            <th className="font-normal text-right py-1 pr-2" title="Fat">
+                            <th className=" text-right py-1 pr-2" title="Fat">
                                 Fat
                             </th>
-                            <th className="font-normal text-right py-1 pr-2" title="Carbs">
+                            <th className=" text-right py-1 pr-2" title="Carbs">
                                 Carb
                             </th>
-                            <th className="font-normal text-right py-1 pr-2" title="Fibre">
+                            <th className=" text-right py-1 pr-2" title="Fibre">
                                 Fib
                             </th>
-                            <th className="font-normal text-right py-1 pr-2" title="Protein">
+                            <th className=" text-right py-1 pr-2" title="Protein">
                                 Prot
                             </th>
                         </tr>
@@ -111,21 +114,19 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                         {results.map((food: TblDataSourceFood, i: number) => {
                             const shown = i === curRow;
                             const toggle = () => setCurRow(shown ? -1 : i);
-                            const rowColor = i % 2 === 0 ? 'bg-c-black' : 'bg-c-d-black';
+                            const rowColor = i % 2 === 0 ? 'bg-c-surface0' : 'bg-c-surface1';
 
                             return (
                                 <Fragment key={food.id}>
                                     {shown && (
                                         <tr className={`cursor-pointer ${rowColor}`} onClick={toggle}>
-                                            <td className="border-c-l-green border-t border-l " colSpan={7}>
+                                            <td className="border-c-pink border-t-2 " colSpan={7}>
                                                 <div className="mx-1">{food.name}</div>
                                             </td>
                                         </tr>
                                     )}
                                     <tr onClick={toggle} className={`cursor-pointer ${rowColor}`}>
-                                        <td
-                                            className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-l border-c-l-green' : ''} `}
-                                        >
+                                        <td className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2`}>
                                             {!shown ? (
                                                 <div className="overflow-x-hidden">{food.name}</div>
                                             ) : (
@@ -142,13 +143,13 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                                     </tr>
                                     {shown && (
                                         <tr className={`${rowColor}`}>
-                                            <td className="border-c-l-green border-l " colSpan={7}>
+                                            <td colSpan={7}>
                                                 <div className="flex flex-row py-2 justify-between px-1">
                                                     <div className="flex flex-col">
                                                         <span>ID {food.data_source_row_int_id}</span>
                                                     </div>
                                                     <button
-                                                        className="text-c-l-green max-w-32 w-full"
+                                                        className="bg-c-green max-w-32 w-full"
                                                         onClick={() => state.onChooseFood(food)}
                                                     >
                                                         Choose
@@ -225,7 +226,7 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme bg-c-black ${className}`}>
+        <div className={`rounded-sm p-2 border container-theme ${className}`}>
             <div className="w-full mb-4">
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer text-lg font-bold">

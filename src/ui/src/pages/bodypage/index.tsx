@@ -81,7 +81,7 @@ export function BodyPage(state: BaseState) {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showNewEventPanel && 'bg-c-l-red font-bold'}`}
+                    className={`w-24 ${showNewEventPanel && 'bg-c-red font-bold'}`}
                     onClick={() => setShowNewEventPanel((x) => !x)}
                 >
                     {!showNewEventPanel ? 'New Event' : 'Cancel'}

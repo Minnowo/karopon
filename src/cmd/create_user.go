@@ -51,7 +51,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
 	user.Name = username
 	user.Password = pass
-	user.DarkMode = true
+	user.Theme = "auto"
 	user.ShowDiabetes = true
 	user.CaloricCalcMethod = "auto"
 	user.EventHistoryFetchLimit = 50

@@ -129,7 +129,7 @@ export function TimespansPage(state: BaseState) {
                 </button>
 
                 <button
-                    className={`w-24 ${showNewTimespan ? 'bg-c-l-red font-bold' : ''}`}
+                    className={`w-24 ${showNewTimespan ? 'bg-c-red font-bold' : ''}`}
                     onClick={() => {
                         setShowNewTimespan((x) => !x);
                         setTmpTimer(NewTaggedTimespan());
@@ -139,7 +139,7 @@ export function TimespansPage(state: BaseState) {
                 </button>
                 {
                     // <button
-                    //     className={`w-24 ${showManageTags ? 'bg-c-l-red font-bold' : ''}`}
+                    //     className={`w-24 ${showManageTags ? 'bg-c-red font-bold' : ''}`}
                     //     onClick={() => setShowManageTags((x) => !x)}
                     // >
                     //     {!showManageTags ? 'Edit Tags' : 'Cancel'}

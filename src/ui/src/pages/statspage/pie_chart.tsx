@@ -27,10 +27,10 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
 
     const total = data.carbs + data.protein + data.fat + data.fibre;
     const slices = [
-        {label: 'Fat', value: data.fat, color: '#fb7185'},
-        {label: 'Carbs', value: data.carbs, color: '#facc15'},
-        {label: 'Fibre', value: data.fibre, color: '#60a5fa'},
-        {label: 'Protein', value: data.protein, color: '#4ade80'},
+        {label: 'Fat', value: data.fat, color: 'var(--color-c-flamingo)'},
+        {label: 'Carbs', value: data.carbs, color: 'var(--color-c-yellow)'},
+        {label: 'Fibre', value: data.fibre, color: 'var(--color-c-sapphire)'},
+        {label: 'Protein', value: data.protein, color: 'var(--color-c-green)'},
     ];
 
     let cumulative = 0;
@@ -52,7 +52,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                 {RangeTypeKeys.map((r) => (
                     <button
                         key={r}
-                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                         onClick={() => setRange(r as RangeType)}
                     >
                         {r.toUpperCase()}
@@ -83,7 +83,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                             );
                         })}
                     </svg>
-                    {hoverText && <div className="text-white font-bold text-lg">{hoverText}</div>}
+                    {hoverText && <div className="text-c-text font-bold text-lg">{hoverText}</div>}
                     <div className="flex gap-4 mt-4 flex-wrap">
                         {slices.map((slice, i) => (
                             <div key={i} className="flex items-center gap-1">

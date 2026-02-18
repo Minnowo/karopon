@@ -19,10 +19,10 @@ type GraphLines = {
     fibre: GraphPoint[];
 };
 const colors = {
-    carbs: '#facc15',
-    protein: '#4ade80',
-    fat: '#fb7185',
-    fibre: '#60a5fa',
+    carbs: 'var(--color-c-yellow)',
+    protein: 'var(--color-c-green)',
+    fat: 'var(--color-c-flamingo)',
+    fibre: 'var(--color-c-sapphire)',
 } satisfies Record<MacroType, string>;
 
 export const RenderMultiLineGraph = (
@@ -94,7 +94,7 @@ export const RenderMultiLineGraph = (
                     {RangeTypeKeys.map((r) => (
                         <button
                             key={r}
-                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                             onClick={() => setDisplay({...display, range: r})}
                         >
                             {r.toUpperCase()}
@@ -105,7 +105,7 @@ export const RenderMultiLineGraph = (
                     {GroupTypeKeys.map((g) => (
                         <button
                             key={g}
-                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-black' : 'bg-c-d-black'}`}
+                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                             onClick={() => setDisplay({...display, group: g})}
                         >
                             {g.toUpperCase()}
@@ -123,7 +123,7 @@ export const RenderMultiLineGraph = (
                         height={height}
                         viewBox={`0 0 ${width + pad} ${height}`}
                         preserveAspectRatio="xMinYMin meet"
-                        className="border border-c-yellow rounded text-c-black dark:text-c-white"
+                        className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                     >
                         {visibleMacros.map((key, keyIndex) => {
                             const line = lines[key];

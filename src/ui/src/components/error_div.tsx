@@ -8,5 +8,5 @@ export function ErrorDiv({errorMsg, className}: ErrorDivProps) {
         return null;
     }
 
-    return <div className={`w-full text-left text-c-l-red font-bold ${className ?? ''}`}>{errorMsg}</div>;
+    return <div className={`w-full text-left text-c-red font-bold ${className ?? ''}`}>{errorMsg}</div>;
 }

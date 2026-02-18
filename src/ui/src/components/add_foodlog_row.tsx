@@ -185,7 +185,7 @@ export function AddFoodlogPanelRow({
                     </td>
                 )}
                 <td>
-                    <button tabindex={-1} className="bg-c-l-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
+                    <button tabindex={-1} className="bg-c-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
                         X
                     </button>
                 </td>
