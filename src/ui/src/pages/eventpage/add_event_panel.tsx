@@ -219,21 +219,21 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
                 <div className="flex flex-col sm:flex-row">
                     {p.actionButtons}
-                    <button className="text-sm text-c-red font-bold w-24 sm:mx-1" onClick={reset}>
+                    <button className="text-sm text-c-red font-bold w-24 sm:ml-1" onClick={reset}>
                         Reset
                     </button>
                 </div>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex w-full mb-4">
+            <div className="flex flex-col sm:flex-row w-full mb-4">
                 <FuzzySearch<TblUserEvent>
                     query={event}
                     onQueryChange={setEvent}
                     data={p.events}
                     dataDisplayStr={(d: TblUserEvent) => d.name}
                     dataSearchStr={(d: TblUserEvent) => d.name}
-                    className="w-full my-1 sm:mr-1"
+                    className="w-full my-1"
                     placeholder="Event Name"
                     noResultsText="New Event"
                     onSelect={(evnt: TblUserEvent | null) => {
@@ -246,12 +246,23 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
                 <input
                     tabindex={-1}
-                    class="w-full my-1 sm:mx-1"
+                    class="w-full my-1 sm:mx-2"
                     type="datetime-local"
                     name="Event Date"
                     onChange={onEventTimeChange}
                     value={FormatDateForInput(eventTime)}
                 />
+
+                {p.user.show_diabetes && (
+                    <NumberInput
+                        className="my-1 flex-1 flex-grow"
+                        innerClassName="w-full min-w-12"
+                        label="Blood Sugar"
+                        value={bloodSugar}
+                        onValueChange={setBloodSugar}
+                        min={0}
+                    />
+                )}
             </div>
 
             <div className="overflow-x-scroll">
@@ -305,14 +316,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
                 {p.user.show_diabetes && (
                     <>
-                        <NumberInput
-                            className="my-1 sm:mr-1 flex-1 flex-grow"
-                            innerClassName="w-full min-w-12"
-                            label="Blood Sugar"
-                            value={bloodSugar}
-                            onValueChange={setBloodSugar}
-                            min={0}
-                        />
                         <NumberInput
                             className="my-1 sm:mx-1 flex-1 flex-grow"
                             innerClassName="w-full min-w-12"
