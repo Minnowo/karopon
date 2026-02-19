@@ -106,14 +106,14 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                         <Fragment key={food.id}>
                                             {shown && (
                                                 <tr className="cursor-pointer" onClick={toggle}>
-                                                    <td className="border-c-pink border-t-2 border-l-2 " colSpan={8}>
+                                                    <td className="border-c-accent2 border-t-2 border-l-2 " colSpan={8}>
                                                         <div className="mx-1">{food.name}</div>
                                                     </td>
                                                 </tr>
                                             )}
                                             <tr onClick={toggle} className="cursor-pointer">
                                                 <td
-                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-pink' : ''} `}
+                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-accent2' : ''} `}
                                                 >
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>

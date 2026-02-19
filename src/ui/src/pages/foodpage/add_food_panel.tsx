@@ -120,7 +120,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                                 <Fragment key={food.id}>
                                     {shown && (
                                         <tr className={`cursor-pointer ${rowColor}`} onClick={toggle}>
-                                            <td className="border-c-pink border-t-2 " colSpan={7}>
+                                            <td className="border-c-accent2 border-t-2 " colSpan={7}>
                                                 <div className="mx-1">{food.name}</div>
                                             </td>
                                         </tr>

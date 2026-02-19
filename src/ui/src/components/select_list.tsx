@@ -182,7 +182,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
             {open && (
                 <ul
                     ref={listRef}
-                    class={`absolute z-10 border border-c-pink mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
+                    class={`absolute z-10 border border-c-accent2 mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
                 >
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => {

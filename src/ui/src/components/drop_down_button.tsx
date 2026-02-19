@@ -49,7 +49,7 @@ export function DropdownButton({
             </button>
 
             {open && (
-                <div className="absolute border border-c-pink right-0 shadow-lg z-10 font-bold text-lg">
+                <div className="absolute border border-c-accent2 right-0 shadow-lg z-10 font-bold text-lg">
                     {actions.map((action, i) => (
                         <button
                             key={i}

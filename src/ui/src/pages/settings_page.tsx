@@ -158,7 +158,7 @@ export function SettingsPage(state: BaseState) {
                     value={userRef.current.theme}
                     onInput={(e) => update('theme', (e.target as HTMLSelectElement).value)}
                 >
-                    {['dark-1', 'dark-2', 'dark-3', 'dark-4', 'light-1', 'light-2', 'light-3'].map((x) => (
+                    {['dark-classic', 'dark-1', 'dark-2', 'dark-3', 'dark-4'].map((x) => (
                         <option key={x} value={x}>
                             {x}
                         </option>

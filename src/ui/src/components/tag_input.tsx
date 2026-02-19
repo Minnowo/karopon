@@ -247,7 +247,7 @@ export function TagInput({
                 {open && (showCreateButton || (tagSearch && tagSearch.length > 0)) && (
                     <ul
                         ref={listRef}
-                        class={`absolute z-10 b-0 border border-c-pink mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll whitespace-nowrap`}
+                        class={`absolute z-10 b-0 border border-c-accent2 mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll whitespace-nowrap`}
                     >
                         {showCreateButton && (
                             <li
