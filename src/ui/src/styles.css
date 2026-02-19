@@ -99,6 +99,39 @@
     --color-c-crust: #1e1e1e;
 }
 
+[data-theme='dark-4'] {
+    --color-c-rosewater: rgb(212, 212, 212); /* Light off-white */
+    --color-c-flamingo: rgb(244, 71, 71); /* Soft vibrant red */
+    --color-c-pink: rgb(197, 134, 192); /* Light lavender-pink */
+    --color-c-mauve: rgb(128, 128, 128); /* Muted grayish purple */
+    --color-c-red: rgb(209, 105, 105); /* Soft red */
+    --color-c-maroon: rgb(181, 206, 168); /* Subtle greenish maroon */
+    --color-c-peach: #d19a7c; /* Warm beige-yellow */
+    --color-c-yellow: rgb(215, 186, 125); /* Soft light yellow */
+    --color-c-green: rgb(106, 153, 85); /* Fresh muted green */
+    --color-c-teal: rgb(78, 201, 176); /* Light teal */
+    --color-c-sky: rgb(86, 156, 214); /* Soft sky blue */
+    --color-c-sapphire: rgb(156, 220, 254); /* Light sapphire blue */
+    --color-c-blue: rgb(86, 156, 214); /* Soft blue */
+    --color-c-lavender: rgb(197, 134, 192); /* Lavender-pink */
+
+    --color-c-text: #e6e6e6;
+    --color-c-subtext1: #c8c8c8;
+    --color-c-subtext0: #9a9a9a;
+
+    --color-c-overlay2: #7a7a7a;
+    --color-c-overlay1: #626262;
+    --color-c-overlay0: #4d4d4d;
+
+    --color-c-surface2: #595959;
+    --color-c-surface1: #494949;
+    --color-c-surface0: #3b3b3b;
+
+    --color-c-base: rgb(32, 28, 28);
+    --color-c-mantle: rgb(38, 38, 38);
+    --color-c-crust: rgb(31, 31, 31);
+}
+
 [data-theme='light-1'] {
     --color-c-rosewater: #b36c6c;
     --color-c-flamingo: #d14a4a;
