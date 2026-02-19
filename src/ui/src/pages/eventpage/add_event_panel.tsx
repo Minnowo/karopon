@@ -292,6 +292,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         <span className="px-2" title="Insulin calculated for this event's food">
                             Insulin Calc {insulin.toFixed(1)}
                         </span>
+                        <span className="px-2" title="Net carbs for this event's food">
+                            Net Carbs {netCarb.toFixed(1)}
+                        </span>
                     </>
                 )}
                 <span className="px-2" title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>
