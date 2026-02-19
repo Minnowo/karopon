@@ -1,7 +1,6 @@
 import {useEffect, useRef} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserFoodLog} from '../api/types';
 import {FuzzySearch} from './select_list';
-import {JSX} from 'preact/jsx-runtime';
 import {NumberInput} from './number_input';
 import {CalculateCalories, Str2CalorieFormula} from '../utils/calories';
 
@@ -86,10 +85,12 @@ export function AddFoodlogPanelRow({
                 </td>
                 <td className="pr-1">
                     <NumberInput
-                        innerClassName="w-8"
+                        innerClassName="w-full min-w-[5ch]"
                         precision={1}
                         min={0}
+                        label={food.unit}
                         value={food.portion}
+                        labelOnLeftSide={false}
                         onValueChange={(v) => {
                             food.portion = v;
                             if (foodTemplate.current.id > 0) {
@@ -102,7 +103,6 @@ export function AddFoodlogPanelRow({
                         }}
                     />
                 </td>
-                <td className="w-full pr-2 text-right"> {food.unit} </td>
                 <td className="pr-2 text-right"> {food.fat.toFixed(1)} </td>
                 <td className="pr-2 text-right"> {food.carb.toFixed(1)} </td>
                 <td className="pr-2 text-right"> {food.fibre.toFixed(1)} </td>

@@ -170,12 +170,11 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                                     Add Row
                                 </button>
                             </th>
-                            <th className="py-1">Unit</th>
                             <th className="py-1">Amt</th>
-                            <th className="py-1">Fat</th>
-                            <th className="py-1">Carb</th>
-                            <th className="py-1">Fib</th>
-                            <th className="py-1">Prot</th>
+                            <th className="py-1 pr-2">Fat</th>
+                            <th className="py-1 pr-2">Carb</th>
+                            <th className="py-1 pr-2">Fib</th>
+                            <th className="py-1 pr-2">Prot</th>
                             <th className="py-1" />
                         </tr>
                     </thead>
@@ -199,8 +198,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                             );
                         })}
                         <tr>
-                            {' '}
-                            <td>&nbsp;</td>{' '}
+                            <td>&nbsp;</td>
                         </tr>
                     </tbody>
                 </table>

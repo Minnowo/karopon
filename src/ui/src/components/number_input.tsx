@@ -15,6 +15,7 @@ type FloatInputProps = {
     min?: number;
     max?: number;
     disabled?: boolean;
+    labelOnLeftSide?: boolean;
 };
 
 const NUMBER_REGEX = /^-?\d*(?:\.\d*)?$/;
@@ -27,12 +28,14 @@ export function NumberInput({
     precision = 3,
     min = -Infinity,
     max = 1_000_000_000,
+    labelOnLeftSide = true,
     disabled = false,
     className = '',
     innerClassName = 'w-12',
     buttonClassName = '',
     innerTabIndex = undefined,
 }: FloatInputProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
     const round = useCallback(
         (v: number) => {
             const factor = 10 ** precision;
@@ -84,10 +87,17 @@ export function NumberInput({
         commitValue(current + step * dir);
     };
 
+    const onLabelClick = () => inputRef.current?.focus();
+
     return (
         <div aria-disabled={disabled} className={`flex flex-row relative input-like p-0 ${className}`}>
-            {label && <div className="flex items-center whitespace-nowrap select-none px-1"> {label} </div>}
+            {labelOnLeftSide && label && (
+                <div className="flex items-center whitespace-nowrap select-none px-1" onClick={onLabelClick}>
+                    {label}
+                </div>
+            )}
             <input
+                ref={inputRef}
                 tabindex={innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none`}
                 type="text"
@@ -109,13 +119,18 @@ export function NumberInput({
                 }}
                 onBlur={handleBlur}
             />
+            {!labelOnLeftSide && label && (
+                <div className="flex items-center whitespace-nowrap select-none px-1" onClick={onLabelClick}>
+                    {label}
+                </div>
+            )}
 
             <div className={`flex flex-col justify-between ${buttonClassName}`}>
                 <HoldButton
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="select-none px-1 pt-1 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▲
                 </HoldButton>
@@ -123,7 +138,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="select-none px-1 pt-0 pb-1 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▼
                 </HoldButton>

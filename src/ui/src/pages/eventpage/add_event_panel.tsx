@@ -180,7 +180,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </button>
                 </th>
                 <th className="py-1">Amt</th>
-                <th className="py-1 pr-2">Unit</th>
                 <th className="py-1 pr-2">Fat</th>
                 <th className="py-1 pr-2">Carb</th>
                 <th className="py-1 pr-2">Fib</th>
@@ -198,7 +197,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 {foods.current.length > 1 && (
                     <tr className="text-center">
                         <td className="text-right w-full">Total</td>
-                        <td className="pr-1">-</td>
                         <td className="pr-1">-</td>
                         <td className="pr-2 text-right"> {totals.fat.toFixed(1)}</td>
                         <td className="pr-2 text-right">{totals.carb.toFixed(1)}</td>
