@@ -209,7 +209,7 @@ export function App() {
 
             <Header user={user} />
 
-            <div className="m-auto md:max-w-[600px] lg:max-w-[800px]">
+            <div className="m-auto md:max-w-[800px]">
                 {(() => {
                     switch (hashRoute) {
                         case '#logout':
