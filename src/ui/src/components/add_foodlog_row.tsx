@@ -102,75 +102,11 @@ export function AddFoodlogPanelRow({
                         }}
                     />
                 </td>
-                <td className="w-full pr-1">
-                    <input
-                        className="w-full min-w-8"
-                        tabindex={-1}
-                        type="text"
-                        value={food.unit}
-                        placeholder={'g'}
-                        onInput={(e: JSX.TargetedInputEvent<HTMLInputElement>) => {
-                            food.unit = e.currentTarget.value;
-                            render();
-                        }}
-                    />
-                </td>
-                <td className="pr-1">
-                    <NumberInput
-                        buttonClassName="hidden sm:flex"
-                        innerClassName="w-8"
-                        innerTabIndex={-1}
-                        precision={1}
-                        min={0}
-                        value={food.fat}
-                        onValueChange={(v) => {
-                            food.fat = v;
-                            render();
-                        }}
-                    />
-                </td>
-                <td className="pr-1">
-                    <NumberInput
-                        buttonClassName="hidden sm:flex"
-                        innerClassName="w-8"
-                        innerTabIndex={-1}
-                        precision={1}
-                        min={0}
-                        value={food.carb}
-                        onValueChange={(v) => {
-                            food.carb = v;
-                            render();
-                        }}
-                    />
-                </td>
-                <td className="pr-1">
-                    <NumberInput
-                        buttonClassName="hidden sm:flex"
-                        innerClassName="w-8"
-                        innerTabIndex={-1}
-                        precision={1}
-                        min={0}
-                        value={food.fibre}
-                        onValueChange={(v) => {
-                            food.fibre = v;
-                            render();
-                        }}
-                    />
-                </td>
-                <td className="pr-2">
-                    <NumberInput
-                        buttonClassName="hidden sm:flex"
-                        innerClassName="w-8"
-                        innerTabIndex={-1}
-                        precision={1}
-                        min={0}
-                        value={food.protein}
-                        onValueChange={(v) => {
-                            food.protein = v;
-                            render();
-                        }}
-                    />
-                </td>
+                <td className="w-full pr-2 text-right"> {food.unit} </td>
+                <td className="pr-2 text-right"> {food.fat.toFixed(1)} </td>
+                <td className="pr-2 text-right"> {food.carb.toFixed(1)} </td>
+                <td className="pr-2 text-right"> {food.fibre.toFixed(1)} </td>
+                <td className="pr-2 text-right">{food.protein.toFixed(1)} </td>
                 {showNetCarb && <td className="pr-2 text-right">{(food.carb - food.fibre).toFixed(1)}</td>}
                 {showCalories && (
                     <td className="pr-2 text-right">
