@@ -120,7 +120,7 @@ export function NumberInput({
                 onBlur={handleBlur}
             />
             {!labelOnLeftSide && label && (
-                <div className="flex items-center whitespace-nowrap select-none px-1" onClick={onLabelClick}>
+                <div className="flex items-center whitespace-nowrap select-none pl-1 pr-0.5" onClick={onLabelClick}>
                     {label}
                 </div>
             )}
@@ -130,7 +130,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▲
                 </HoldButton>
@@ -138,7 +138,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
                     ▼
                 </HoldButton>

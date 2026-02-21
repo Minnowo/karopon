@@ -53,6 +53,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     step={1}
                                     min={0}
                                     precision={3}
+                                    labelOnLeftSide={false}
                                     value={tmpLog.weight_kg}
                                     onValueChange={(v) => {
                                         tmpLog.weight_kg = v;
@@ -66,6 +67,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     step={1}
                                     min={0}
                                     precision={3}
+                                    labelOnLeftSide={false}
                                     value={KgToLbs(tmpLog.weight_kg)}
                                     onValueChange={(v) => {
                                         tmpLog.weight_kg = LbsToKg(v);
@@ -86,6 +88,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     min={0}
                                     step={1}
                                     precision={2}
+                                    labelOnLeftSide={false}
                                     onValueChange={(v) => {
                                         tmpLog.height_cm = v;
                                         render();
@@ -100,6 +103,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     min={0}
                                     step={1}
                                     precision={0}
+                                    labelOnLeftSide={false}
                                     onValueChange={(v) => {
                                         const inches = CmToFeetInches(tmpLog.height_cm).inches;
                                         tmpLog.height_cm = FeetInchesToCm(v, inches);
@@ -115,6 +119,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     min={0}
                                     max={11}
                                     step={1}
+                                    labelOnLeftSide={false}
                                     onValueChange={(v) => {
                                         const feet = CmToFeetInches(tmpLog.height_cm).feet;
                                         tmpLog.height_cm = FeetInchesToCm(feet, v);
@@ -126,7 +131,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                         <NumberInput
                             className="w-full my-1"
-                            innerClassName="w-full"
+                            innerClassName="w-full text-right"
                             label="Body Fat %"
                             step={1}
                             min={0}
@@ -140,7 +145,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                         <NumberInput
                             className="w-full my-1"
-                            innerClassName="w-full"
+                            innerClassName="w-full text-right"
                             label="Heart Rate (bpm)"
                             step={1}
                             min={0}
@@ -154,7 +159,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                         <NumberInput
                             className="w-full my-1"
-                            innerClassName="w-full"
+                            innerClassName="w-full text-right"
                             label="BP Systolic"
                             step={1}
                             min={0}
@@ -168,7 +173,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                         <NumberInput
                             className="w-full my-1"
-                            innerClassName="w-full"
+                            innerClassName="w-full text-right"
                             label="BP Diastolic"
                             step={1}
                             min={0}
@@ -182,7 +187,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                         <NumberInput
                             className="w-full mt-1"
-                            innerClassName="w-full"
+                            innerClassName="w-full text-right"
                             label="Steps"
                             step={1}
                             min={0}
