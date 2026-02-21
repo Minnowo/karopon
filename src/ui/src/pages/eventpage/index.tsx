@@ -4,7 +4,6 @@ import {CreateUserEventLog, TblUser, TblUserFoodLog, UpdateUserEventLog, UserEve
 import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
 import {FormatSmartTimestamp} from '../../utils/date_utils';
 import {DropdownButton, DropdownButtonAction} from '../../components/drop_down_button';
-import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {AddEventsPanel} from './add_event_panel';
 import {UserEventFoodLogFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
@@ -249,31 +248,6 @@ export function EventsPage(state: BaseState) {
                 </button>
 
                 <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
-
-                <DropdownButton
-                    buttonClassName="w-full h-full"
-                    className="w-24"
-                    label="Export"
-                    actions={[
-                        {
-                            label: 'As Text Render',
-                            onClick: () => {
-                                const blob = new Blob([GenerateEventTableText(state.user, state.eventlogs)], {
-                                    type: 'text/plain; charset=utf-8',
-                                });
-                                DownloadData(blob, 'eventlogs.txt');
-                            },
-                        },
-                        {
-                            label: 'As JSON',
-                            onClick: () => {
-                                const jsonStr = JSON.stringify(state.eventlogs, null, 2);
-                                const blob = new Blob([jsonStr], {type: 'application/json'});
-                                DownloadData(blob, 'eventlogs.json');
-                            },
-                        },
-                    ]}
-                />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />

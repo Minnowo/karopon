@@ -1,7 +1,7 @@
-import {Dispatch, StateUpdater, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useLayoutEffect, useState} from 'preact/hooks';
 import {FormatDateForInput} from '../../utils/date_utils';
 import {ChangeEvent} from 'preact/compat';
-import {TaggedTimespan, TblUserTag, TblUserTimespan} from '../../api/types';
+import {TaggedTimespan, TblUserTag} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
 

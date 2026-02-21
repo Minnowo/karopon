@@ -1,4 +1,4 @@
-import {useMemo, useRef, useState} from 'preact/hooks';
+import {useMemo, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {
     ApiDeleteUserTimespan,
@@ -16,7 +16,7 @@ import {NewTaggedTimespan} from '../../api/factories';
 
 export function TimespansPage(state: BaseState) {
     const [showNewTimespan, setShowNewTimespan] = useState(false);
-    const [showManageTags, setShowManageTags] = useState(false);
+    // const [showManageTags, setShowManageTags] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
@@ -107,7 +107,9 @@ export function TimespansPage(state: BaseState) {
         startTimerNow(timer.tags);
     };
 
-    const editTimer = (timer: TaggedTimespan) => {};
+    const editTimer = (timer: TaggedTimespan) => {
+        console.debug(timer);
+    };
 
     const deleteTimer = (timer: TaggedTimespan) => {
         const payload = {

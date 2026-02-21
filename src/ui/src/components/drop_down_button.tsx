@@ -35,21 +35,23 @@ export function DropdownButton({
     }, []);
 
     return (
-        <div className={`relative ${className !== undefined ? className : ''}`} ref={menuRef}>
-            <button onClick={() => setOpen(!open)} className={buttonClassName}>
-                {label === '[:]' ? (
-                    <svg className="w-full h-full p-0 m-0 border-none" viewBox="0 0 32 32" fill="currentColor">
-                        <circle cx="16" cy="8" r="2.5" />
-                        <circle cx="16" cy="16" r="2.5" />
-                        <circle cx="16" cy="24" r="2.5" />
-                    </svg>
-                ) : (
-                    label
-                )}
-            </button>
+        <div className={`relative h-fit w-fit ${className !== undefined ? className : ''}`} ref={menuRef}>
+            <div className="flex items-center">
+                <button onClick={() => setOpen(!open)} className={buttonClassName}>
+                    {label === '[:]' ? (
+                        <svg className="w-full h-full p-0 m-0 border-none" viewBox="0 0 32 32" fill="currentColor">
+                            <circle cx="16" cy="8" r="2.5" />
+                            <circle cx="16" cy="16" r="2.5" />
+                            <circle cx="16" cy="24" r="2.5" />
+                        </svg>
+                    ) : (
+                        label
+                    )}
+                </button>
+            </div>
 
             {open && (
-                <div className="absolute border border-c-accent2 right-0 shadow-lg z-10 font-bold text-lg">
+                <div className="absolute border border-c-accent2 right-0 shadow-lg z-10 mt-1 font-bold text-lg">
                     {actions.map((action, i) => (
                         <button
                             key={i}

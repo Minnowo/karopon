@@ -7,9 +7,6 @@ import {FoodEditPanel} from './food_edit_panel';
 import {ErrorDiv} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
 import {AddFoodPanel} from './add_food_panel';
-import {DropdownButton} from '../../components/drop_down_button';
-import {DownloadData} from '../../utils/download';
-import {encodeCSVField} from '../../utils/csv';
 import {TblUserFoodFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
 import {FoodBuilderPanel} from './food_builder_panel';
@@ -96,38 +93,6 @@ export function FoodPage(state: BaseState) {
                     {!showBuildFoodPanel ? 'Build Food' : 'Cancel'}
                 </button>
                 <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
-                <DropdownButton
-                    buttonClassName="w-full h-full"
-                    className="w-24"
-                    label="Export"
-                    actions={[
-                        {
-                            label: 'As CSV',
-                            onClick: () => {
-                                const headers = Object.keys(state.foods[0]) as Array<keyof TblUserFood>;
-                                const csvRows: string[] = [];
-
-                                csvRows.push(headers.join(','));
-
-                                for (const item of state.foods) {
-                                    csvRows.push(headers.map((key) => encodeCSVField(String(item[key]))).join(','));
-                                }
-
-                                const csvContent = csvRows.join('\n');
-                                const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-                                DownloadData(blob, 'foods.csv');
-                            },
-                        },
-                        {
-                            label: 'As JSON',
-                            onClick: () => {
-                                const jsonStr = JSON.stringify(state.foods, null, 2);
-                                const blob = new Blob([jsonStr], {type: 'application/json'});
-                                DownloadData(blob, 'foods.json');
-                            },
-                        },
-                    ]}
-                />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />

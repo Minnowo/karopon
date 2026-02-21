@@ -25,6 +25,12 @@ export function UserHeader({user}: UserHeaderProps) {
                     <a href="#settings" onClick={() => setShowDropDown(false)}>
                         Settings
                     </a>
+                    <a href="#tags" onClick={() => setShowDropDown(false)}>
+                        Tags
+                    </a>
+                    <a href="#data-export" className="whitespace-nowrap" onClick={() => setShowDropDown(false)}>
+                        Data Export
+                    </a>
                     <a href="#logout" onClick={() => setShowDropDown(false)}>
                         logout
                     </a>

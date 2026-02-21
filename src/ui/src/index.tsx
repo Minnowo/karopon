@@ -62,6 +62,7 @@ import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
 import {TagsPage} from './pages/tagspage';
 import {TimespansPage} from './pages/timespans';
+import {DataExportPage} from './pages/exportpage';
 
 export function App() {
     // This cookie is set when there is a valid auth token cookie.
@@ -379,6 +380,30 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#data-export':
+                            return (
+                                <DataExportPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    bodylogs={bodylogs}
+                                    setBodyLogs={setBodyLogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
