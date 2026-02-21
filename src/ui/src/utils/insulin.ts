@@ -5,9 +5,21 @@ export const CalcInsulin = (
     insulinToCarbRatio: number,
     insulinSensitivityFactor: number
 ): number => {
-    if (netCarbs === 0) {
-        return (bloodGlucose - targetGlucose) / insulinSensitivityFactor;
+    if (insulinSensitivityFactor === 0) {
+        return 0;
     }
 
-    return netCarbs / insulinToCarbRatio + (bloodGlucose - targetGlucose) / insulinSensitivityFactor;
+    const adjust = (bloodGlucose - targetGlucose) / insulinSensitivityFactor;
+
+    if (netCarbs === 0) {
+        return Math.max(0, adjust);
+    }
+
+    if (insulinToCarbRatio === 0) {
+        return 0;
+    }
+
+    const carbAmt = netCarbs / insulinToCarbRatio;
+
+    return Math.max(0, carbAmt + adjust);
 };
