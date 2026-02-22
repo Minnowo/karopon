@@ -27,5 +27,6 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 			DB: db,
 		},
 	}
+
 	return pgDB, err
 }

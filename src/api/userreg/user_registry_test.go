@@ -1,4 +1,4 @@
-package user
+package userreg
 
 import (
 	"context"
@@ -13,9 +13,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// //////////////////////////////////////////////////////////
-// Mock db
-// //////////////////////////////////////////////////////////
+// Mock db.
+var errNotFound = errors.New("not found")
+
 type sessionMockDB struct {
 	mock_db.BaseMockDB
 	mu       sync.Mutex
@@ -31,9 +31,11 @@ func newSessionMock(user *database.TblUser) *sessionMockDB {
 }
 
 func (m *sessionMockDB) AddUserSession(ctx context.Context, s *database.TblUserSession) error {
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.sessions[string(s.Token)] = s
+
 	return nil
 }
 
@@ -43,17 +45,20 @@ func (m *sessionMockDB) LoadUserSession(ctx context.Context, token []byte, out *
 
 	s, ok := m.sessions[string(token)]
 	if !ok {
-		return errors.New("not found")
+		return errNotFound
 	}
 
 	*out = *s
+
 	return nil
 }
 
 func (m *sessionMockDB) DeleteUserSessionByToken(ctx context.Context, token []byte) error {
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.sessions, string(token))
+
 	return nil
 }
 
@@ -66,28 +71,31 @@ func (m *sessionMockDB) DeleteUserSessionsExpireAfter(ctx context.Context, t tim
 			delete(m.sessions, k)
 		}
 	}
+
 	return nil
 }
 
 func (m *sessionMockDB) LoadUser(ctx context.Context, username string, out *database.TblUser) error {
+
 	if m.user == nil {
-		return errors.New("not found")
+		return errNotFound
 	}
 	*out = *m.user
+
 	return nil
 }
 
-func (m *sessionMockDB) LoadUserById(ctx context.Context, id int, out *database.TblUser) error {
+func (m *sessionMockDB) LoadUserByID(ctx context.Context, id int, out *database.TblUser) error {
+
 	if m.user == nil {
-		return errors.New("not found")
+		return errNotFound
 	}
 	*out = *m.user
+
 	return nil
 }
 
-////////////////////////////////////////////////////////////
-// Mock db end
-////////////////////////////////////////////////////////////
+// Mock db end.
 
 func TestLoginSuccessInMemoryCache(t *testing.T) {
 
@@ -102,7 +110,7 @@ func TestLoginSuccessInMemoryCache(t *testing.T) {
 	mock := newSessionMock(nil)
 	reg := NewRegistry(mock)
 	reg.usersByName[user.Name] = user
-	reg.usersById[user.ID] = user
+	reg.usersByID[user.ID] = user
 
 	token, expires, err := reg.Login(context.Background(), "alice", "secret")
 
@@ -136,7 +144,7 @@ func TestLoginSuccessNoMemoryCache(t *testing.T) {
 		t.Fatal("expected future expiration")
 	}
 
-	assert.NotEmpty(t, reg.usersById, "expected user to be in memory cache after login")
+	assert.NotEmpty(t, reg.usersByID, "expected user to be in memory cache after login")
 	assert.NotEmpty(t, reg.usersByName, "expected user to be in memory cache after login")
 }
 
@@ -187,7 +195,7 @@ func TestCheckTokenDatabaseGet(t *testing.T) {
 
 	assert.True(t, ok, "expected valid token")
 	assert.Equal(t, 1, u.ID, "expected matching user id")
-	assert.NotEmpty(t, reg.usersById, "expected user to be in memory cache after check token")
+	assert.NotEmpty(t, reg.usersByID, "expected user to be in memory cache after check token")
 	assert.NotEmpty(t, reg.usersByName, "expected user to be in memory cache after check token")
 }
 
@@ -198,7 +206,7 @@ func TestCheckTokenMemoryHit(t *testing.T) {
 
 	mock := newSessionMock(nil)
 	reg := NewRegistry(mock)
-	reg.usersById[1] = &database.TblUser{ID: 1}
+	reg.usersByID[1] = &database.TblUser{ID: 1}
 	reg.usersByName[""] = &database.TblUser{ID: 1}
 	reg.sessions[token.Hash()] = Session{
 		userID:  1,
@@ -259,7 +267,7 @@ func TestPutUserWithNewName(t *testing.T) {
 	}
 
 	reg.usersByName["oldname"] = user
-	reg.usersById[10] = user
+	reg.usersByID[10] = user
 
 	reg.PutUserWithNewName("oldname", user)
 

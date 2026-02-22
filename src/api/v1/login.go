@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"encoding/json"
+	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
+	"karopon/src/api/userreg"
 	"karopon/src/constants"
 	"karopon/src/database"
-	"karopon/src/handlers/user"
 	"net/http"
 	"strings"
 
@@ -34,8 +34,14 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, constants.MAX_LOGIN_FORM_SIZE)
 
 	if err := r.ParseMultipartForm(constants.MAX_LOGIN_FORM_SIZE); err != nil {
+
 		log.Debug().Err(err).Msg("failed to get multipartReader")
-		api.BadReqf(w, "Failed to parse the given form data, the size must be less than %d bytes.", constants.MAX_LOGIN_FORM_SIZE)
+		api.BadReqf(
+			w,
+			"Failed to parse the given form data, the size must be less than %d bytes.",
+			constants.MAX_LOGIN_FORM_SIZE,
+		)
+
 		return
 	}
 
@@ -61,7 +67,13 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(password) > constants.MAX_USER_PASSWORD_LENGTH {
-		api.BadReqf(w, "Password is too long, it should be shorter than %d characters.", constants.MAX_USER_PASSWORD_LENGTH)
+
+		api.BadReqf(
+			w,
+			"Password is too long, it should be shorter than %d characters.",
+			constants.MAX_USER_PASSWORD_LENGTH,
+		)
+
 		return
 	}
 
@@ -69,11 +81,17 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		if err == user.ErrUserDoesNotExist || err == user.ErrUserPasswordDoesNotMatch {
+		if errors.Is(err, userreg.ErrUserDoesNotExist) ||
+			errors.Is(err, userreg.ErrUserPasswordDoesNotMatch) {
 			api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
 		} else {
-			api.Done(w, http.StatusInternalServerError, "An unknown error happened while logging in, please try again later.")
+			api.Done(
+				w,
+				http.StatusInternalServerError,
+				"An unknown error happened while logging in, please try again later.",
+			)
 		}
+
 		return
 	}
 
@@ -84,7 +102,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		}
 		tokenRes.Token = token
 		tokenRes.Expires = database.TimeMillis(expires)
-		json.NewEncoder(w).Encode(tokenRes)
+		api.WriteJSONObj(w, tokenRes)
 	} else {
 		auth.SetAuthToken(w, token, expires)
 	}

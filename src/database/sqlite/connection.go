@@ -11,32 +11,33 @@ import (
 	"github.com/vinovest/sqlx/reflectx"
 )
 
-func openSqliteDatabase(ctx context.Context, driver, connString string) (DB *SqliteDatabase, err error) {
+func openSqliteDatabase(ctx context.Context, driver, connString string) (db *SqliteDatabase, err error) {
 
-	db, err := sqlx.ConnectContext(ctx, driver, connString)
+	conn, err := sqlx.ConnectContext(ctx, driver, connString)
 
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	db.Mapper = reflectx.NewMapperTagFunc("db", strings.ToUpper, strings.ToUpper)
-	db.SetMaxOpenConns(5)
-	db.SetConnMaxLifetime(time.Minute * 10)
+	conn.Mapper = reflectx.NewMapperTagFunc("db", strings.ToUpper, strings.ToUpper)
+	conn.SetMaxOpenConns(5)
+	conn.SetConnMaxLifetime(time.Minute * 10)
 
-	_, err = db.Exec("PRAGMA journal_mode = WAL;")
+	_, err = conn.Exec("PRAGMA journal_mode = WAL;")
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	_, err = conn.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	DB = &SqliteDatabase{
+	db = &SqliteDatabase{
 		SQLxDB: database.SQLxDB{
-			DB: db,
+			DB: conn,
 		},
 	}
-	return DB, err
+
+	return db, err
 }

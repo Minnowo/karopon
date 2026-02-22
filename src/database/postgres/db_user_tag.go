@@ -17,7 +17,7 @@ func (db *PGDatabase) AddUserTag(ctx context.Context, tag *database.TblUserTag) 
 	return db.NamedInsertReturningID(ctx, query, tag)
 }
 
-func (db *PGDatabase) LoadUserTags(ctx context.Context, userId int, out *[]database.TblUserTag) error {
+func (db *PGDatabase) LoadUserTags(ctx context.Context, userID int, out *[]database.TblUserTag) error {
 
 	query := `
 		SELECT * FROM PON.USER_TAG
@@ -25,10 +25,10 @@ func (db *PGDatabase) LoadUserTags(ctx context.Context, userId int, out *[]datab
 		ORDER BY NAMESPACE, NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error {
+func (db *PGDatabase) LoadUserTagNamespaces(ctx context.Context, userID int, out *[]string) error {
 
 	query := `
 		SELECT DISTINCT NAMESPACE FROM PON.USER_TAG
@@ -36,10 +36,15 @@ func (db *PGDatabase) LoadUserTagNamespaces(ctx context.Context, userId int, out
 		ORDER BY NAMESPACE ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]database.TblUserTag) error {
+func (db *PGDatabase) LoadUserNamespaceTags(
+	ctx context.Context,
+	userID int,
+	namespace string,
+	out *[]database.TblUserTag,
+) error {
 
 	query := `
 		SELECT * FROM PON.USER_TAG
@@ -47,10 +52,16 @@ func (db *PGDatabase) LoadUserNamespaceTags(ctx context.Context, userId int, nam
 		ORDER BY NAMESPACE, NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId, namespace)
+	return db.SelectContext(ctx, out, query, userID, namespace)
 }
 
-func (db *PGDatabase) LoadUserNamespaceTagsLikeN(ctx context.Context, userId int, namespace, tagNameLike string, n int, out *[]database.TblUserTag) error {
+func (db *PGDatabase) LoadUserNamespaceTagsLikeN(
+	ctx context.Context,
+	userID int,
+	namespace, tagNameLike string,
+	n int,
+	out *[]database.TblUserTag,
+) error {
 
 	query := `
 		SELECT * FROM PON.USER_TAG
@@ -61,5 +72,5 @@ func (db *PGDatabase) LoadUserNamespaceTagsLikeN(ctx context.Context, userId int
 
 	search := db.BackslashEscapePattern(tagNameLike) + "%"
 
-	return db.SelectContext(ctx, out, query, userId, namespace, search, n)
+	return db.SelectContext(ctx, out, query, userID, namespace, search, n)
 }

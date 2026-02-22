@@ -24,8 +24,10 @@ func (a *APIV1) deleteUserFood(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&food)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -37,11 +39,12 @@ func (a *APIV1) deleteUserFood(w http.ResponseWriter, r *http.Request) {
 	err = a.Db.DeleteUserFood(r.Context(), user.ID, food.ID)
 
 	if err != nil {
-		log.Warn().Err(err).Str("user", user.Name).Int("foodId", food.ID).Msg("failed to delete food")
+
+		log.Warn().Err(err).Str("user", user.Name).Int("foodID", food.ID).Msg("failed to delete food")
 		api.ServerErr(w, "failed to delete the food in the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }

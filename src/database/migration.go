@@ -82,7 +82,12 @@ func RunUpMigrations(ctx context.Context, db DB, version Version, migrations []M
 			Msg("Migrating database")
 
 		if err := migration.MigrationFunc(ctx, db, "up"); err != nil {
-			return version, fmt.Errorf("failed to run migration from %s to %s: %w", migration.FromVersion, migration.ToVersion, err)
+			return version, fmt.Errorf(
+				"failed to run migration from %s to %s: %w",
+				migration.FromVersion,
+				migration.ToVersion,
+				err,
+			)
 		}
 
 		version = migration.ToVersion

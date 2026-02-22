@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"fmt"
 	"karopon/src/database"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 func (db *SqliteDatabase) LoadUserSession(ctx context.Context, token []byte, session *database.TblUserSession) error {
 
 	if len(token) != 32 {
-		return fmt.Errorf("Token must be 32 length")
+		return database.ErrInvalidSessionTokenLength
 	}
 
 	query := `
@@ -23,14 +22,14 @@ func (db *SqliteDatabase) LoadUserSession(ctx context.Context, token []byte, ses
 	return db.GetContext(ctx, session, query, token)
 }
 
-func (db *SqliteDatabase) LoadUserSessions(ctx context.Context, userId int, session *[]database.TblUserSession) error {
+func (db *SqliteDatabase) LoadUserSessions(ctx context.Context, userID int, session *[]database.TblUserSession) error {
 
 	query := `
 		SELECT * FROM PON_USER_SESSION s
 		WHERE s.USER_ID = $1
 	`
 
-	return db.SelectContext(ctx, session, query, userId)
+	return db.SelectContext(ctx, session, query, userID)
 }
 
 func (db *SqliteDatabase) AddUserSession(ctx context.Context, session *database.TblUserSession) error {

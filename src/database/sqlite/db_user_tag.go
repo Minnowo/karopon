@@ -18,7 +18,7 @@ func (db *SqliteDatabase) AddUserTag(ctx context.Context, tag *database.TblUserT
 	return db.NamedInsertGetLastRowID(ctx, query, tag)
 }
 
-func (db *SqliteDatabase) LoadUserTags(ctx context.Context, userId int, out *[]database.TblUserTag) error {
+func (db *SqliteDatabase) LoadUserTags(ctx context.Context, userID int, out *[]database.TblUserTag) error {
 
 	query := `
 		SELECT * FROM PON_USER_TAG
@@ -26,10 +26,10 @@ func (db *SqliteDatabase) LoadUserTags(ctx context.Context, userId int, out *[]d
 		ORDER BY NAMESPACE, NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *SqliteDatabase) LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error {
+func (db *SqliteDatabase) LoadUserTagNamespaces(ctx context.Context, userID int, out *[]string) error {
 
 	query := `
 		SELECT DISTINCT NAMESPACE FROM PON_USER_TAG
@@ -37,10 +37,15 @@ func (db *SqliteDatabase) LoadUserTagNamespaces(ctx context.Context, userId int,
 		ORDER BY NAMESPACE ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *SqliteDatabase) LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]database.TblUserTag) error {
+func (db *SqliteDatabase) LoadUserNamespaceTags(
+	ctx context.Context,
+	userID int,
+	namespace string,
+	out *[]database.TblUserTag,
+) error {
 
 	query := `
 		SELECT * FROM PON_USER_TAG
@@ -48,10 +53,16 @@ func (db *SqliteDatabase) LoadUserNamespaceTags(ctx context.Context, userId int,
 		ORDER BY NAMESPACE, NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId, namespace)
+	return db.SelectContext(ctx, out, query, userID, namespace)
 }
 
-func (db *SqliteDatabase) LoadUserNamespaceTagsLikeN(ctx context.Context, userId int, namespace, tagNameLike string, n int, out *[]database.TblUserTag) error {
+func (db *SqliteDatabase) LoadUserNamespaceTagsLikeN(
+	ctx context.Context,
+	userID int,
+	namespace, tagNameLike string,
+	n int,
+	out *[]database.TblUserTag,
+) error {
 
 	query := `
 		SELECT * FROM PON_USER_TAG
@@ -62,5 +73,5 @@ func (db *SqliteDatabase) LoadUserNamespaceTagsLikeN(ctx context.Context, userId
 
 	search := db.BackslashEscapePattern(strings.ToLower(tagNameLike)) + "%"
 
-	return db.SelectContext(ctx, out, query, userId, namespace, search, n)
+	return db.SelectContext(ctx, out, query, userID, namespace, search, n)
 }

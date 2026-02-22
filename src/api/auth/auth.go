@@ -2,9 +2,9 @@ package auth
 
 import (
 	"context"
+	"karopon/src/api/userreg"
 	"karopon/src/constants"
 	"karopon/src/database"
-	"karopon/src/handlers/user"
 	"net/http"
 	"time"
 
@@ -95,7 +95,11 @@ func ParseAuth(tokenProvider TokenProvider) func(next http.Handler) http.Handler
 				user, ok := tokenProvider.CheckToken(r.Context(), token)
 
 				if ok {
-					logger.Debug().Str("user", user.Name).Int("userId", user.ID).Str("url", r.URL.String()).Msg("Authentication successful")
+					logger.Debug().
+						Str("user", user.Name).
+						Int("userID", user.ID).
+						Str("url", r.URL.String()).
+						Msg("Authentication successful")
 
 					r = PutUser(r, user)
 				} else {
@@ -126,7 +130,7 @@ func RequireAuth() func(next http.Handler) http.Handler {
 }
 
 // FakeAuth can be used for debugging by always authenticating as the given user.
-func FakeAuth(user *database.TblUser, userReg *user.UserRegistry) func(next http.Handler) http.Handler {
+func FakeAuth(user *database.TblUser, userReg *userreg.UserRegistry) func(next http.Handler) http.Handler {
 
 	logger.Debug().Str("user", user.Name).Msg("Registering fake auth")
 
@@ -141,16 +145,19 @@ func FakeAuth(user *database.TblUser, userReg *user.UserRegistry) func(next http
 	}
 }
 
-// GetUser returns the user authenticated for this request or null
+// GetUser returns the user authenticated for this request or null.
 func GetUser(r *http.Request) *database.TblUser {
+
 	u, ok := r.Context().Value(ctxUserKey).(*database.TblUser)
+
 	if ok {
 		return u
 	}
+
 	return nil
 }
 
-// Add the user to this request
+// PutUser adds the user to this request.
 func PutUser(r *http.Request, user *database.TblUser) *http.Request {
 
 	ctx := context.WithValue(r.Context(), ctxUserKey, user)
@@ -158,7 +165,7 @@ func PutUser(r *http.Request, user *database.TblUser) *http.Request {
 	return r.WithContext(ctx)
 }
 
-// IsAuthed returns if the request has a valid user
+// IsAuthed returns if the request has a valid user.
 func IsAuthed(r *http.Request) bool {
 
 	ok := GetUser(r) != nil

@@ -3,10 +3,10 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 	"karopon/src/database"
 
+	"github.com/pkg/errors"
 	"github.com/vinovest/sqlx"
 )
 
@@ -20,7 +20,7 @@ func (db *SqliteDatabase) GetVersion(ctx context.Context) (database.Version, err
 
 	if err != nil {
 
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return database.VERSION_UNKNOWN, nil
 		}
 
@@ -34,25 +34,17 @@ func (db *SqliteDatabase) SetVersionTx(tx *sqlx.Tx, version database.Version) er
 
 	_, err := tx.Exec("UPDATE PON_CONFIG SET VERSION = $1", int(version))
 
-	if err != nil {
-		return fmt.Errorf("could not update database version: %s", err)
-	}
-
-	return nil
+	return err
 }
 
 func (db *SqliteDatabase) SetVersion(ctx context.Context, version database.Version) error {
 
 	_, err := db.ExecContext(ctx, "UPDATE PON_CONFIG SET VERSION = $1", int(version))
 
-	if err != nil {
-		return fmt.Errorf("could not update database version: %s", err)
-	}
-
-	return nil
+	return err
 }
 
-func (db *SqliteDatabase) ExportDbVersionCSV(ctx context.Context, w io.Writer) error {
+func (db *SqliteDatabase) ExportVersionCSV(ctx context.Context, w io.Writer) error {
 
 	query := `SELECT * FROM PON_CONFIG`
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"karopon/src/database"
 
+	"github.com/pkg/errors"
 	"github.com/vinovest/sqlx"
 )
 
@@ -17,38 +18,48 @@ func (db *PGDatabase) AddUserEvent(ctx context.Context, event *database.TblUserE
 	return id, err
 }
 
-func (db *PGDatabase) LoadUserEvent(ctx context.Context, userId int, eventId int, out *database.TblUserEvent) error {
+func (db *PGDatabase) LoadUserEvent(ctx context.Context, userID int, eventID int, out *database.TblUserEvent) error {
 	query := `SELECT * FROM PON.USER_EVENT u WHERE u.ID = $1 AND u.USER_ID = $2`
 
-	return db.GetContext(ctx, out, query, eventId, userId)
+	return db.GetContext(ctx, out, query, eventID, userID)
 }
 
-func (db *PGDatabase) LoadUserEventByName(ctx context.Context, userId int, name string, out *database.TblUserEvent) error {
+func (db *PGDatabase) LoadUserEventByName(
+	ctx context.Context,
+	userID int,
+	name string,
+	out *database.TblUserEvent,
+) error {
 	query := `SELECT * FROM PON.USER_EVENT u WHERE u.NAME = $1 AND u.USER_ID = $2`
 
-	return db.GetContext(ctx, out, query, name, userId)
+	return db.GetContext(ctx, out, query, name, userID)
 }
 
-func (db *PGDatabase) LoadUserEvents(ctx context.Context, userId int, out *[]database.TblUserEvent) error {
+func (db *PGDatabase) LoadUserEvents(ctx context.Context, userID int, out *[]database.TblUserEvent) error {
 	query := `SELECT * FROM PON.USER_EVENT u WHERE u.USER_ID = $1`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, name string, out *database.TblUserEvent) error {
+func (db *PGDatabase) LoadAndOrCreateUserEventByNameTx(
+	tx *sqlx.Tx,
+	userID int,
+	name string,
+	out *database.TblUserEvent,
+) error {
 
 	query := `SELECT * FROM PON.USER_EVENT u WHERE u.NAME = $1 AND u.USER_ID = $2 LIMIT 1`
 
-	if err := tx.Get(out, query, name, userId); err == nil {
+	if err := tx.Get(out, query, name, userID); err == nil {
 		return nil // loaded into out
-	} else if err != sql.ErrNoRows {
+	} else if !errors.Is(err, sql.ErrNoRows) {
 		return err // unknown error
 	}
 
 	id, err := db.NamedInsertReturningIDTx(tx,
 		`INSERT INTO PON.USER_EVENT (USER_ID, NAME) VALUES (:user_id, :name) RETURNING ID;`,
 		database.TblUserEvent{
-			UserID: userId,
+			UserID: userID,
 			Name:   name,
 		})
 
@@ -56,7 +67,7 @@ func (db *PGDatabase) LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, 
 		return err
 	}
 
-	out.UserID = userId
+	out.UserID = userID
 	out.Name = name
 	out.ID = id
 

@@ -13,6 +13,12 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
+var (
+	ErrInvalidSessionTokenLength = errors.New("user session token must be 32 length")
+	ErrUserDoesNotHaveThisID     = errors.New("ID does not exist")
+	ErrFoodPortionIsZero         = errors.New("food portion cannot be zero")
+)
+
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
 
@@ -32,7 +38,7 @@ type DB interface {
 	ExportUserFoodsCSV(ctx context.Context, w io.Writer) error
 	ExportUserFoodLogsCSV(ctx context.Context, w io.Writer) error
 	ExportBodyLogCSV(ctx context.Context, w io.Writer) error
-	ExportDbVersionCSV(ctx context.Context, w io.Writer) error
+	ExportVersionCSV(ctx context.Context, w io.Writer) error
 
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
@@ -64,18 +70,18 @@ type DB interface {
 	// Returns true if the username is taken by a user whose ID is not the given ID.
 	// Returns false if the username is not taken by a user whose ID is not the given ID.
 	// Returns an error otherwise.
-	UsernameTaken(ctx context.Context, userId int, username string) (bool, error)
+	UsernameTaken(ctx context.Context, userID int, username string) (bool, error)
 
 	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
-	LoadUserById(ctx context.Context, id int, user *TblUser) error
+	LoadUserByID(ctx context.Context, id int, user *TblUser) error
 
 	// Load a session by the given token in the database.
 	// The token must be 32 bytes in size.
 	LoadUserSession(ctx context.Context, token []byte, session *TblUserSession) error
 
 	// Read all user session for the given user.
-	LoadUserSessions(ctx context.Context, userId int, session *[]TblUserSession) error
+	LoadUserSessions(ctx context.Context, userID int, session *[]TblUserSession) error
 
 	AddUserSession(ctx context.Context, session *TblUserSession) error
 
@@ -96,14 +102,14 @@ type DB interface {
 	AddUserFoods(ctx context.Context, food []TblUserFood) error
 
 	// Read all the user foods into the given array, or return an error.
-	LoadUserFoods(ctx context.Context, userId int, out *[]TblUserFood) error
+	LoadUserFoods(ctx context.Context, userID int, out *[]TblUserFood) error
 
 	// Update the given food.
 	// Does not edit the given structs.
 	UpdateUserFood(ctx context.Context, food *TblUserFood) error
 
 	// Delete a food by it's ID.
-	DeleteUserFood(ctx context.Context, userId int, foodId int) error
+	DeleteUserFood(ctx context.Context, userID int, foodID int) error
 
 	///
 	/// Event Functions
@@ -114,16 +120,16 @@ type DB interface {
 	AddUserEvent(ctx context.Context, event *TblUserEvent) (int, error)
 
 	// Read the event into the given struct, or returns an error.
-	LoadUserEvent(ctx context.Context, userId int, eventId int, event *TblUserEvent) error
+	LoadUserEvent(ctx context.Context, userID int, eventID int, event *TblUserEvent) error
 
 	// Read the event with the given name into the given struct, or returns an error.
-	LoadUserEventByName(ctx context.Context, userId int, name string, event *TblUserEvent) error
+	LoadUserEventByName(ctx context.Context, userID int, name string, event *TblUserEvent) error
 
 	// Read all the users events into the given array, or returns an error.
-	LoadUserEvents(ctx context.Context, userId int, events *[]TblUserEvent) error
+	LoadUserEvents(ctx context.Context, userID int, events *[]TblUserEvent) error
 
 	// Load or creates and then loads the event with the given name into the output, or returns an error.
-	LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, name string, out *TblUserEvent) error
+	LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userID int, name string, out *TblUserEvent) error
 
 	///
 	/// Eventlog Functions
@@ -144,12 +150,12 @@ type DB interface {
 	AddUserEventLogWith(ctx context.Context, event *TblUserEventLog, foodlogs []TblUserFoodLog) (int, error)
 
 	// Read all the users eventlogs into the given array, or returns an error.
-	LoadUserEventLogs(ctx context.Context, userId int, events *[]TblUserEventLog) error
-	LoadUserEventLogsTx(tx *sqlx.Tx, userId int, events *[]TblUserEventLog) error
+	LoadUserEventLogs(ctx context.Context, userID int, events *[]TblUserEventLog) error
+	LoadUserEventLogsTx(tx *sqlx.Tx, userID int, events *[]TblUserEventLog) error
 
 	// Delete the eventlog with the given ID.
 	// If deleteFoodLogs is true, also delete any associated foodlogs.
-	DeleteUserEventLog(ctx context.Context, userId int, eventlogId int, deleteFoodLogs bool) error
+	DeleteUserEventLog(ctx context.Context, userID int, eventlogID int, deleteFoodLogs bool) error
 
 	///
 	/// EventFoodLog Functions
@@ -157,15 +163,15 @@ type DB interface {
 
 	// Read a single event log and it's food into the given array.
 	// Returns an error or nil.
-	LoadUserEventFoodLog(ctx context.Context, userId int, eventlogId int, eflog *UserEventFoodLog) error
+	LoadUserEventFoodLog(ctx context.Context, userID int, eventlogID int, eflog *UserEventFoodLog) error
 
 	// Read all the event logs and their food into the given array.
 	// Returns an error or nil.
-	LoadUserEventFoodLogs(ctx context.Context, userId int, eflogs *[]UserEventFoodLog) error
+	LoadUserEventFoodLogs(ctx context.Context, userID int, eflogs *[]UserEventFoodLog) error
 
 	// Read at most n event logs and their food into the given array.
 	// Returns an error or nil.
-	LoadUserEventFoodLogsN(ctx context.Context, userId int, n int, eflogs *[]UserEventFoodLog) error
+	LoadUserEventFoodLogsN(ctx context.Context, userID int, n int, eflogs *[]UserEventFoodLog) error
 
 	// Update the given eventlog, removing the foodlogs and creating new ones from this struct.
 	// The given struct is updated with proper EventID, FoodID, and UserTime.
@@ -183,20 +189,20 @@ type DB interface {
 	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
 	AddUserFoodLogTx(tx *sqlx.Tx, food *TblUserFoodLog) (int, error)
 
-	LoadUserFoodLogs(ctx context.Context, userId int, out *[]TblUserFoodLog) error
+	LoadUserFoodLogs(ctx context.Context, userID int, out *[]TblUserFoodLog) error
 
 	///
 	/// Bodylog Functions
 	///
 
 	// Loads all the users bodylogs inot the given array.
-	LoadUserBodyLogs(ctx context.Context, userId int, out *[]TblUserBodyLog) error
+	LoadUserBodyLogs(ctx context.Context, userID int, out *[]TblUserBodyLog) error
 
 	// Add the given bodylog to the db.
 	AddUserBodyLogs(ctx context.Context, log *TblUserBodyLog) (int, error)
 
 	// Delete the given bodylog with the user ID and row ID.
-	DeleteUserBodyLog(ctx context.Context, userId int, bodyLogId int) error
+	DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error
 
 	///
 	/// Data Source Functions
@@ -213,15 +219,26 @@ type DB interface {
 	// Loads all food in the datasource where the name is similar to the given name.
 	// Similarity is database-dependent:
 	//  - On Postgres this is using the trgm extension https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-INDEX
-	LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]TblDataSourceFood) error
-	LoadDataSourceFoodBySimilarNameN(ctx context.Context, dataSourceID int, nameQuery string, n int, out *[]TblDataSourceFood) error
+	LoadDataSourceFoodBySimilarName(
+		ctx context.Context,
+		dataSourceID int,
+		nameQuery string,
+		out *[]TblDataSourceFood,
+	) error
+	LoadDataSourceFoodBySimilarNameN(
+		ctx context.Context,
+		dataSourceID int,
+		nameQuery string,
+		n int,
+		out *[]TblDataSourceFood,
+	) error
 
 	///
 	/// User Goals
 	///
 
-	DeleteUserGoal(ctx context.Context, userId int, goalId int) error
-	LoadUserGoals(ctx context.Context, userId int, out *[]TblUserGoal) error
+	DeleteUserGoal(ctx context.Context, userID int, goalID int) error
+	LoadUserGoals(ctx context.Context, userID int, out *[]TblUserGoal) error
 	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
 	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
 
@@ -230,13 +247,19 @@ type DB interface {
 	///
 
 	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
-	LoadUserTags(ctx context.Context, userId int, out *[]TblUserTag) error
-	LoadUserTagNamespaces(ctx context.Context, userId int, out *[]string) error
-	LoadUserNamespaceTags(ctx context.Context, userId int, namespace string, out *[]TblUserTag) error
+	LoadUserTags(ctx context.Context, userID int, out *[]TblUserTag) error
+	LoadUserTagNamespaces(ctx context.Context, userID int, out *[]string) error
+	LoadUserNamespaceTags(ctx context.Context, userID int, namespace string, out *[]TblUserTag) error
 
 	// LoadUserNamespaceTagsLike loads at most n tags from the given namespace that start with the given tagNameLike.
 	// Returns error for any failures.
-	LoadUserNamespaceTagsLikeN(ctx context.Context, userId int, namespace, tagNameLike string, n int, out *[]TblUserTag) error
+	LoadUserNamespaceTagsLikeN(
+		ctx context.Context,
+		userID int,
+		namespace, tagNameLike string,
+		n int,
+		out *[]TblUserTag,
+	) error
 
 	///
 	/// User Timespan
@@ -247,15 +270,15 @@ type DB interface {
 	// Returns the timespan ID or an error.
 	AddUserTimespan(ctx context.Context, ts *TblUserTimespan, tags []TblUserTag) (int, error)
 
-	DeleteUserTimespan(ctx context.Context, userId int, tsId int) error
+	DeleteUserTimespan(ctx context.Context, userID int, tsID int) error
 	UpdateUserTimespan(ctx context.Context, ts *TblUserTimespan) error
-	LoadUserTimespans(ctx context.Context, userId int, out *[]TblUserTimespan) error
-	LoadUserTimespansWithTags(ctx context.Context, userId int, out *[]TaggedTimespan) error
+	LoadUserTimespans(ctx context.Context, userID int, out *[]TblUserTimespan) error
+	LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]TaggedTimespan) error
 
 	// SetUserTimespanTags removes all tags from the timestamp and sets the given tags onto it.
-	// Any tags that do not exist are created for the given userId.
+	// Any tags that do not exist are created for the given userID.
 	// Returns an error for any failures.
-	SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []TblUserTag) error
+	SetUserTimespanTags(ctx context.Context, userID, timespanID int, tags []TblUserTag) error
 }
 
 type SQLxDB struct {
@@ -267,11 +290,13 @@ func (db *SQLxDB) Base() *SQLxDB {
 }
 
 // BackslashEscapePattern escapes the LIKE pattern matching using the \ character.
-// For use in queries as LIKE $1 ESCAPE '\'
+// For use in queries as LIKE $1 ESCAPE '\'.
 func (db *SQLxDB) BackslashEscapePattern(s string) string {
+
 	s = strings.ReplaceAll(s, `\`, `\\`)
 	s = strings.ReplaceAll(s, `%`, `\%`)
 	s = strings.ReplaceAll(s, `_`, `\_`)
+
 	return s
 }
 
@@ -299,6 +324,9 @@ func (db *SQLxDB) InsertReturningID(ctx context.Context, query string, arg ...an
 	var id int
 	// Retrieve the auto-generated ID
 	if rows.Next() {
+		if err := rows.Err(); err != nil {
+			return 0, err
+		}
 		if err := rows.Scan(&id); err != nil {
 			return 0, err
 		}
@@ -319,6 +347,9 @@ func (db *SQLxDB) NamedInsertReturningIDTx(tx *sqlx.Tx, query string, arg any) (
 	var id int
 	// Retrieve the auto-generated ID
 	if rows.Next() {
+		if err := rows.Err(); err != nil {
+			return 0, err
+		}
 		if err := rows.Scan(&id); err != nil {
 			return 0, err
 		}
@@ -339,6 +370,9 @@ func (db *SQLxDB) NamedInsertReturningID(ctx context.Context, query string, arg 
 	var id int
 	// Retrieve the auto-generated ID
 	if rows.Next() {
+		if err := rows.Err(); err != nil {
+			return 0, err
+		}
 		if err := rows.Scan(&id); err != nil {
 			return 0, err
 		}

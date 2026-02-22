@@ -8,7 +8,7 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
-func (db *PGDatabase) UsernameTaken(ctx context.Context, userId int, username string) (bool, error) {
+func (db *PGDatabase) UsernameTaken(ctx context.Context, userID int, username string) (bool, error) {
 
 	var result struct {
 		Count int `db:"count"`
@@ -16,14 +16,14 @@ func (db *PGDatabase) UsernameTaken(ctx context.Context, userId int, username st
 
 	query := `SELECT COUNT(*) AS count FROM PON.USER u WHERE u.ID != $1 AND u.NAME = $2`
 
-	err := db.GetContext(ctx, &result, query, userId, username)
+	err := db.GetContext(ctx, &result, query, userID, username)
 
 	return result.Count != 0, err
 }
 
 func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int, error) {
 
-	var retUserId int = -1
+	var retUserID int = -1
 
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -51,12 +51,12 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 			return err
 		}
 
-		retUserId = id
+		retUserID = id
 
 		return nil
 	})
 
-	return retUserId, err
+	return retUserID, err
 }
 
 func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) error {
@@ -81,7 +81,7 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	return err
 }
 
-func (db *PGDatabase) LoadUserById(ctx context.Context, id int, user *database.TblUser) error {
+func (db *PGDatabase) LoadUserByID(ctx context.Context, id int, user *database.TblUser) error {
 
 	query := `SELECT * FROM PON.USER WHERE ID = $1 LIMIT 1`
 

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -42,14 +41,18 @@ func (a *APIV1) getUserEvent(w http.ResponseWriter, r *http.Request) {
 	err = a.Db.LoadUserEvent(r.Context(), user.ID, eventID, &event)
 
 	if err != nil {
-		log.Warn().Err(err).Str("user", user.Name).Int("event_id", eventID).Msg("failed to read user event")
+
+		log.Warn().
+			Err(err).
+			Str("user", user.Name).
+			Int("event_id", eventID).
+			Msg("failed to read user event")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(event)
+	api.WriteJSONObj(w, event)
 }
 
 func (a *APIV1) getUserEvents(w http.ResponseWriter, r *http.Request) {
@@ -66,16 +69,12 @@ func (a *APIV1) getUserEvents(w http.ResponseWriter, r *http.Request) {
 	err := a.Db.LoadUserEvents(r.Context(), user.ID, &events)
 
 	if err != nil {
+
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user events log")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if len(events) == 0 {
-		w.Write([]byte("[]"))
-	} else {
-		json.NewEncoder(w).Encode(events)
-	}
+	api.WriteJSONArr(w, events)
 }

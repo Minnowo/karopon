@@ -2,14 +2,13 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"karopon/src/database"
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
-func (db *PGDatabase) LoadUserGoals(ctx context.Context, userId int, out *[]database.TblUserGoal) error {
+func (db *PGDatabase) LoadUserGoals(ctx context.Context, userID int, out *[]database.TblUserGoal) error {
 
 	query := `
 		SELECT * FROM PON.USER_GOAL g
@@ -17,14 +16,14 @@ func (db *PGDatabase) LoadUserGoals(ctx context.Context, userId int, out *[]data
 		ORDER BY g.NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) DeleteUserGoal(ctx context.Context, userId int, goalId int) error {
+func (db *PGDatabase) DeleteUserGoal(ctx context.Context, userID int, goalID int) error {
 
 	query := `DELETE FROM PON.USER_GOAL WHERE USER_ID = $1 AND ID = $2`
 
-	_, err := db.ExecContext(ctx, query, userId, goalId)
+	_, err := db.ExecContext(ctx, query, userID, goalID)
 
 	return err
 }
@@ -61,7 +60,12 @@ func (db *PGDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUse
 	return id, nil
 }
 
-func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *database.TblUserGoal, out *database.UserGoalProgress) error {
+func (db *PGDatabase) LoadUserGoalProgress(
+	ctx context.Context,
+	curTime time.Time,
+	userGoal *database.TblUserGoal,
+	out *database.UserGoalProgress,
+) error {
 
 	startTime, endTime, err := userGoal.TimeRange(curTime)
 
@@ -69,98 +73,98 @@ func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Tim
 		return err
 	}
 
-	var aggSql string
+	var aggSQL string
 
 	switch userGoal.Aggregation() {
 	default:
-		return fmt.Errorf("Aggregation is invalild")
+		return database.ErrInvalidGoalAggregation
 	case database.AggregationSum:
-		aggSql = "SUM"
+		aggSQL = "SUM"
 	case database.AggregationAvg:
-		aggSql = "AVG"
+		aggSQL = "AVG"
 	case database.AggregationMin:
-		aggSql = "MIN"
+		aggSQL = "MIN"
 	case database.AggregationMax:
-		aggSql = "MAX"
+		aggSQL = "MAX"
 
 	}
 
-	var colSql string
-	var tableSql string
-	var whereSql string
+	var colSQL string
+	var tableSQL string
+	var whereSQL string
 
 	switch userGoal.TargetColumn() {
 	default:
-		return fmt.Errorf("TargetColumn is invalild")
+		return database.ErrInvalidGoalTargetColumn
 
 	case database.TargetColumnCalories:
 		// TODO: don't hard code this and make it use the user's setting
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "PROTEIN * 4 + (CARB - FIBRE) * 4 + FAT * 9"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "PROTEIN * 4 + (CARB - FIBRE) * 4 + FAT * 9"
+		whereSQL = ""
 	case database.TargetColumnNetCarbs:
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "CARB - FIBRE"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "CARB - FIBRE"
+		whereSQL = ""
 	case database.TargetColumnFat:
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "FAT"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "FAT"
+		whereSQL = ""
 	case database.TargetColumnCarbs:
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "CARB"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "CARB"
+		whereSQL = ""
 	case database.TargetColumnFibre:
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "FIBRE"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "FIBRE"
+		whereSQL = ""
 	case database.TargetColumnProtein:
-		tableSql = "PON.USER_FOODLOG"
-		colSql = "PROTEIN"
-		whereSql = ""
+		tableSQL = "PON.USER_FOODLOG"
+		colSQL = "PROTEIN"
+		whereSQL = ""
 
 	case database.TargetColumnBodyWeightKg:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "WEIGHT_KG"
-		whereSql = " AND WEIGHT_KG > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "WEIGHT_KG"
+		whereSQL = " AND WEIGHT_KG > 0"
 	case database.TargetColumnBodyWeightLbs:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "WEIGHT_KG * 2.2046226218"
-		whereSql = " AND WEIGHT_KG > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "WEIGHT_KG * 2.2046226218"
+		whereSQL = " AND WEIGHT_KG > 0"
 	case database.TargetColumnBodyFatPercent:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "BODY_FAT_PERCENT"
-		whereSql = " AND BODY_FAT_PERCENT > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "BODY_FAT_PERCENT"
+		whereSQL = " AND BODY_FAT_PERCENT > 0"
 	case database.TargetColumnBodyHeartRate:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "HEART_RATE_BPM"
-		whereSql = " AND HEART_RATE_BPM > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "HEART_RATE_BPM"
+		whereSQL = " AND HEART_RATE_BPM > 0"
 	case database.TargetColumnBodySteps:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "STEPS_COUNT"
-		whereSql = " AND STEPS_COUNT > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "STEPS_COUNT"
+		whereSQL = " AND STEPS_COUNT > 0"
 	case database.TargetColumnBodyBloodPressureSys:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "BP_SYSTOLIC"
-		whereSql = " AND BP_SYSTOLIC > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "BP_SYSTOLIC"
+		whereSQL = " AND BP_SYSTOLIC > 0"
 	case database.TargetColumnBodyBloodPressureDia:
-		tableSql = "PON.USER_BODYLOG"
-		colSql = "BP_DIASTOLIC"
-		whereSql = " AND BP_DIASTOLIC > 0"
+		tableSQL = "PON.USER_BODYLOG"
+		colSQL = "BP_DIASTOLIC"
+		whereSQL = " AND BP_DIASTOLIC > 0"
 
 	case database.TargetColumnEventBloodSugar:
-		tableSql = "PON.USER_EVENTLOG"
-		colSql = "BLOOD_GLUCOSE"
-		whereSql = " AND BLOOD_GLUCOSE > 0"
+		tableSQL = "PON.USER_EVENTLOG"
+		colSQL = "BLOOD_GLUCOSE"
+		whereSQL = " AND BLOOD_GLUCOSE > 0"
 	}
 
 	query := `
-		SELECT ` + aggSql + `(` + colSql + `) AS CURRENT_VALUE 
- 		FROM ` + tableSql + ` WHERE 
+		SELECT ` + aggSQL + `(` + colSQL + `) AS CURRENT_VALUE 
+ 		FROM ` + tableSQL + ` WHERE 
 		USER_ID = $1
 		AND USER_TIME >= $2
 		AND USER_TIME <= $3
-	` + whereSql
+	` + whereSQL
 
 	var curValue struct {
 		CurrentValue *float64 `db:"current_value"`

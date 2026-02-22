@@ -25,8 +25,10 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&tag)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -36,9 +38,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tag.Timespan.StartTime.Time().After(tag.Timespan.StartTime.Time()) {
-		tmp := tag.Timespan.StartTime
-		tag.Timespan.StartTime = tag.Timespan.StopTime
-		tag.Timespan.StopTime = tmp
+		tag.Timespan.StartTime, tag.Timespan.StopTime = tag.Timespan.StopTime, tag.Timespan.StartTime
 	}
 
 	tag.Timespan.UserID = user.ID
@@ -46,6 +46,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 	id, err := a.Db.AddUserTimespan(r.Context(), &tag.Timespan, tag.Tags)
 
 	if err != nil {
+
 		api.ServerErr(w, "Unexpected error adding the timespan to the database")
 		log.Error().
 			Err(err).
@@ -53,12 +54,11 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 			Time("start", tag.Timespan.StartTime.Time()).
 			Time("stop", tag.Timespan.StopTime.Time()).
 			Msg("Unexpected error adding a user's timespan to the database")
+
 		return
 	}
 
 	tag.Timespan.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(tag)
+	api.WriteJSONObj(w, tag)
 }

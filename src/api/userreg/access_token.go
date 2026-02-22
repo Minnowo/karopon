@@ -1,14 +1,14 @@
-package user
+package userreg
 
 import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"errors"
 )
 
 var (
-	errInvalidToken error = fmt.Errorf("token is invalid")
+	errInvalidToken error = errors.New("token is invalid")
 )
 
 const TOKEN_BYTES int = 32
@@ -36,16 +36,22 @@ func (a *AccessToken) FromString(s string) error {
 }
 
 func (a *AccessToken) Hash() AccessTokenHash {
+
 	sha := sha256.New()
 	sha.Write(a[:])
+
 	return AccessTokenHash(sha.Sum(nil))
 }
 
 func (a *AccessToken) HashString() string {
+
 	hash := a.Hash()
+
 	return hex.EncodeToString(hash[:])
 }
 func (a *AccessToken) HashBytes() []byte {
+
 	hash := a.Hash()
+
 	return hash[:]
 }

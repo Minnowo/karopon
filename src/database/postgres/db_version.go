@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"io"
 	"karopon/src/database"
 
@@ -20,7 +20,7 @@ func (db *PGDatabase) GetVersion(ctx context.Context) (database.Version, error) 
 
 	if err != nil {
 
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return database.VERSION_UNKNOWN, nil
 		}
 
@@ -34,25 +34,17 @@ func (db *PGDatabase) SetVersionTx(tx *sqlx.Tx, version database.Version) error 
 
 	_, err := tx.Exec("UPDATE PON.CONFIG SET version = $1", int(version))
 
-	if err != nil {
-		return fmt.Errorf("could not update database version: %s", err)
-	}
-
-	return nil
+	return err
 }
 
 func (db *PGDatabase) SetVersion(ctx context.Context, version database.Version) error {
 
 	_, err := db.ExecContext(ctx, "UPDATE PON.CONFIG SET version = $1", int(version))
 
-	if err != nil {
-		return fmt.Errorf("could not update database version: %s", err)
-	}
-
-	return nil
+	return err
 }
 
-func (db *PGDatabase) ExportDbVersionCSV(ctx context.Context, w io.Writer) error {
+func (db *PGDatabase) ExportVersionCSV(ctx context.Context, w io.Writer) error {
 
 	query := `SELECT * FROM PON.CONFIG`
 

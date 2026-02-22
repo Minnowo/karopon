@@ -3,15 +3,18 @@ package postgres
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"karopon/src/database"
 
 	"github.com/vinovest/sqlx"
 )
 
-func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) (int, error) {
+func (db *PGDatabase) AddUserTimespan(
+	ctx context.Context,
+	ts *database.TblUserTimespan,
+	tags []database.TblUserTag,
+) (int, error) {
 
-	var timespanId int
+	var timespanID int
 
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -36,19 +39,19 @@ func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserT
 			}
 		}
 
-		timespanId = id
+		timespanID = id
 
 		return nil
 	})
 
-	return timespanId, err
+	return timespanID, err
 }
 
-func (db *PGDatabase) DeleteUserTimespan(ctx context.Context, userId int, tsId int) error {
+func (db *PGDatabase) DeleteUserTimespan(ctx context.Context, userID int, tsID int) error {
 
 	query := `DELETE FROM PON.USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2`
 
-	_, err := db.ExecContext(ctx, query, userId, tsId)
+	_, err := db.ExecContext(ctx, query, userID, tsID)
 
 	return err
 }
@@ -68,17 +71,17 @@ func (db *PGDatabase) UpdateUserTimespan(ctx context.Context, ts *database.TblUs
 	return err
 }
 
-func (db *PGDatabase) LoadUserTimespans(ctx context.Context, userId int, out *[]database.TblUserTimespan) error {
+func (db *PGDatabase) LoadUserTimespans(ctx context.Context, userID int, out *[]database.TblUserTimespan) error {
 	query := `
 		SELECT * FROM PON.USER_TIMESPAN
 		WHERE USER_ID = $1
 		ORDER BY START_TIME DESC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int, out *[]database.TaggedTimespan) error {
+func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]database.TaggedTimespan) error {
 
 	var results []struct {
 		database.TblUserTimespan
@@ -112,7 +115,7 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int,
 		ORDER BY ut.START_TIME DESC;
 	`
 
-	err := db.SelectContext(ctx, &results, query, userId)
+	err := db.SelectContext(ctx, &results, query, userID)
 
 	if err != nil {
 		return err
@@ -140,7 +143,7 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int,
 		data[i].Tags = make([]database.TblUserTag, len(tags))
 
 		for j, tag := range tags {
-			data[i].Tags[j].UserID = userId
+			data[i].Tags[j].UserID = userID
 			data[i].Tags[j].ID = int(tag[0].(float64))
 			data[i].Tags[j].Namespace = tag[1].(string)
 			data[i].Tags[j].Name = tag[2].(string)
@@ -152,23 +155,27 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int,
 	return err
 }
 
-func (db *PGDatabase) SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []database.TblUserTag) error {
+func (db *PGDatabase) SetUserTimespanTags(
+	ctx context.Context,
+	userID, timespanID int,
+	tags []database.TblUserTag,
+) error {
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
 		// Make sure the UserID has the TimespanID, since the caller can't verify this.
 		query := `SELECT COUNT(ID) FROM PON.USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2 LIMIT 1`
 
-		if ok, err := db.CountOneTx(tx, query, userId, timespanId); err != nil {
+		if ok, err := db.CountOneTx(tx, query, userID, timespanID); err != nil {
 			return err
 		} else if !ok {
-			return fmt.Errorf("Timespan with ID %d does not exist", timespanId)
+			return database.ErrUserDoesNotHaveThisID
 		}
 
-		return db.SetUserTimespanTagsTx(tx, userId, timespanId, tags)
+		return db.SetUserTimespanTagsTx(tx, userID, timespanID, tags)
 	})
 }
 
-func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int, tags []database.TblUserTag) error {
+func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userID, timespanID int, tags []database.TblUserTag) error {
 
 	var query string
 
@@ -194,7 +201,7 @@ func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int,
 		 	)
 		`
 
-	var tagIds []int
+	var tagIDs []int
 	{
 		namespaces := make([]string, len(tags))
 		names := make([]string, len(tags))
@@ -204,7 +211,7 @@ func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int,
 			names[i] = t.Name
 		}
 
-		err := tx.Select(&tagIds, query, userId, namespaces, names)
+		err := tx.Select(&tagIDs, query, userID, namespaces, names)
 
 		if err != nil {
 			return err
@@ -213,7 +220,7 @@ func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int,
 
 	query = `DELETE FROM PON.USER_TIMESPAN_TAG WHERE TIMESPAN_ID = $1`
 
-	if _, err := tx.Exec(query, timespanId); err != nil {
+	if _, err := tx.Exec(query, timespanID); err != nil {
 		return err
 	}
 
@@ -225,7 +232,7 @@ func (db *PGDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int,
 			)
 		`
 
-	if _, err := tx.Exec(query, timespanId, tagIds); err != nil {
+	if _, err := tx.Exec(query, timespanID, tagIDs); err != nil {
 		return err
 	}
 

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -22,19 +21,15 @@ func (a *APIV1) getUserGoals(w http.ResponseWriter, r *http.Request) {
 	var goals []database.TblUserGoal
 
 	if err := a.Db.LoadUserGoals(r.Context(), user.ID, &goals); err != nil {
+
 		api.ServerErr(w, "Unexpected error reading the goals from the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error reading a user's goals from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if len(goals) == 0 {
-		w.Write([]byte("[]"))
-	} else {
-		json.NewEncoder(w).Encode(goals)
-	}
+	api.WriteJSONObj(w, goals)
 }

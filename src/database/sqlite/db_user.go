@@ -6,7 +6,7 @@ import (
 	"karopon/src/database"
 )
 
-func (db *SqliteDatabase) UsernameTaken(ctx context.Context, userId int, username string) (bool, error) {
+func (db *SqliteDatabase) UsernameTaken(ctx context.Context, userID int, username string) (bool, error) {
 
 	var result struct {
 		Count int `db:"count"`
@@ -14,7 +14,7 @@ func (db *SqliteDatabase) UsernameTaken(ctx context.Context, userId int, usernam
 
 	query := `SELECT COUNT(*) AS COUNT FROM PON_USER u WHERE u.ID != $1 AND u.NAME = $2`
 
-	err := db.GetContext(ctx, &result, query, userId, username)
+	err := db.GetContext(ctx, &result, query, userID, username)
 
 	return result.Count != 0, err
 }
@@ -64,7 +64,7 @@ func (db *SqliteDatabase) UpdateUser(ctx context.Context, user *database.TblUser
 	return err
 }
 
-func (db *SqliteDatabase) LoadUserById(ctx context.Context, id int, user *database.TblUser) error {
+func (db *SqliteDatabase) LoadUserByID(ctx context.Context, id int, user *database.TblUser) error {
 
 	query := `SELECT * FROM PON_USER WHERE ID = $1 LIMIT 1`
 

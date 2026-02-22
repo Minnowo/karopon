@@ -61,26 +61,26 @@ func (db *SqliteDatabase) UpdateUserFood(ctx context.Context, food *database.Tbl
 	return err
 }
 
-func (db *SqliteDatabase) DeleteUserFood(ctx context.Context, userId int, foodId int) error {
+func (db *SqliteDatabase) DeleteUserFood(ctx context.Context, userID int, foodID int) error {
 
 	query := `
 	DELETE FROM PON_USER_FOOD
 	WHERE USER_ID = $1 AND ID = $2
 	`
 
-	_, err := db.DB.ExecContext(ctx, query, userId, foodId)
+	_, err := db.ExecContext(ctx, query, userID, foodID)
 
 	return err
 }
 
-func (db *SqliteDatabase) LoadUserFoods(ctx context.Context, userId int, out *[]database.TblUserFood) error {
+func (db *SqliteDatabase) LoadUserFoods(ctx context.Context, userID int, out *[]database.TblUserFood) error {
 	query := `
 		SELECT * FROM PON_USER_FOOD f
 		WHERE f.USER_ID = $1
 		ORDER BY f.NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
 func (db *SqliteDatabase) ExportUserFoodsCSV(ctx context.Context, w io.Writer) error {

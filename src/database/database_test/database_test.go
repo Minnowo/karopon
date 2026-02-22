@@ -93,7 +93,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
 		// test we can load the user back and it's data matches
 		var loaded database.TblUser
-		require.NoError(t, db.LoadUserById(ctx, id, &loaded))
+		require.NoError(t, db.LoadUserByID(ctx, id, &loaded))
 
 		user.ID = loaded.ID
 		user.Created = loaded.Created
@@ -124,7 +124,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.False(t, taken)
 
 		// load into 'user' and check that it matches the updated 'loaded'
-		require.NoError(t, db.LoadUserById(ctx, id, user))
+		require.NoError(t, db.LoadUserByID(ctx, id, user))
 		assert.Equal(t, &loaded, user)
 	})
 
@@ -299,7 +299,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
 		ds := &database.TblDataSource{
 			Name:  "USDA",
-			Url:   "https://",
+			URL:   "https://",
 			Notes: "hello world",
 		}
 		dsID, err := db.AddDataSource(ctx, ds)
@@ -354,7 +354,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 			db.ExportUserFoodsCSV,
 			db.ExportUserFoodLogsCSV,
 			db.ExportBodyLogCSV,
-			db.ExportDbVersionCSV,
+			db.ExportVersionCSV,
 		}
 
 		for _, fn := range exports {

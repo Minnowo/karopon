@@ -24,19 +24,25 @@ func (a *APIV1) updateUserTimespanTags(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&timespan)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
 	timespan.Timespan.UserID = user.ID
 
-	if err := a.Db.SetUserTimespanTags(r.Context(), user.ID, timespan.Timespan.ID, timespan.Tags); err != nil {
+	err = a.Db.SetUserTimespanTags(r.Context(), user.ID, timespan.Timespan.ID, timespan.Tags)
+
+	if err != nil {
+
 		api.ServerErr(w, "Unexpected error updating the timespan")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error updating a user's timespan")
+
 		return
 	}
 

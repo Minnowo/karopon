@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"karopon/src/database"
 	"karopon/src/database/connection"
 	"os"
 	"path"
@@ -19,13 +17,7 @@ func CmdExportCsv(ctx context.Context, c *cli.Command) error {
 	vendorStr := c.Value("database-vendor").(string)
 	outputFolder := c.Value("output-folder").(string)
 
-	vendor := database.DBTypeFromStr(vendorStr)
-
-	if vendor == database.UNKNOWN {
-		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
-	}
-
-	conn, err := connection.Connect(context.Background(), vendor, dbconn)
+	conn, err := connection.ConnectStr(context.Background(), vendorStr, dbconn)
 
 	if err != nil {
 		return err
@@ -55,7 +47,7 @@ func CmdExportCsv(ctx context.Context, c *cli.Command) error {
 		"user_food.csv":     conn.ExportUserFoodsCSV,
 		"user_foodlog.csv":  conn.ExportUserFoodLogsCSV,
 		"user_bodylog.csv":  conn.ExportBodyLogCSV,
-		"db_version.csv":    conn.ExportDbVersionCSV,
+		"db_version.csv":    conn.ExportVersionCSV,
 	}
 
 	for csvFile, exportFunc := range tables {
@@ -65,7 +57,8 @@ func CmdExportCsv(ctx context.Context, c *cli.Command) error {
 		log.Info().Str("file", csvPath).Msg("Exporting table to file")
 
 		err := func() error {
-			file, err := os.Create(csvPath)
+
+			file, err := os.Create(csvPath) //nolint:gosec
 
 			if err != nil {
 				return err

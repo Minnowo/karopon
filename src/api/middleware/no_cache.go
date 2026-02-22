@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Unix epoch time
+// Unix epoch time.
 var epoch = time.Unix(0, 0).UTC().Format(http.TimeFormat)
 
 // Taken from https://github.com/mytrile/nocache

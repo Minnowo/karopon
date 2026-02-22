@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"karopon/src/database"
 	"strconv"
 	"strings"
@@ -11,9 +10,13 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
-func (db *SqliteDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) (int, error) {
+func (db *SqliteDatabase) AddUserTimespan(
+	ctx context.Context,
+	ts *database.TblUserTimespan,
+	tags []database.TblUserTag,
+) (int, error) {
 
-	var timespanId int
+	var timespanID int
 
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -38,19 +41,19 @@ func (db *SqliteDatabase) AddUserTimespan(ctx context.Context, ts *database.TblU
 			}
 		}
 
-		timespanId = id
+		timespanID = id
 
 		return nil
 	})
 
-	return timespanId, err
+	return timespanID, err
 }
 
-func (db *SqliteDatabase) DeleteUserTimespan(ctx context.Context, userId int, tsId int) error {
+func (db *SqliteDatabase) DeleteUserTimespan(ctx context.Context, userID int, tsID int) error {
 
 	query := `DELETE FROM PON_USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2`
 
-	_, err := db.ExecContext(ctx, query, userId, tsId)
+	_, err := db.ExecContext(ctx, query, userID, tsID)
 
 	return err
 }
@@ -70,17 +73,21 @@ func (db *SqliteDatabase) UpdateUserTimespan(ctx context.Context, ts *database.T
 	return err
 }
 
-func (db *SqliteDatabase) LoadUserTimespans(ctx context.Context, userId int, out *[]database.TblUserTimespan) error {
+func (db *SqliteDatabase) LoadUserTimespans(ctx context.Context, userID int, out *[]database.TblUserTimespan) error {
 	query := `
 		SELECT * FROM PON_USER_TIMESPAN
 		WHERE USER_ID = $1
 		ORDER BY START_TIME DESC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *SqliteDatabase) LoadUserTimespansWithTags(ctx context.Context, userId int, out *[]database.TaggedTimespan) error {
+func (db *SqliteDatabase) LoadUserTimespansWithTags(
+	ctx context.Context,
+	userID int,
+	out *[]database.TaggedTimespan,
+) error {
 
 	var results []struct {
 		database.TblUserTimespan
@@ -104,19 +111,19 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(ctx context.Context, userId 
 		FROM PON_USER_TIMESPAN ut
 		LEFT JOIN PON_USER_TIMESPAN_TAG utt
 		ON (
-			ut.USER_ID = $1  -- Use placeholder $1 for userId
+			ut.USER_ID = $1  -- Use placeholder $1 for userID
 			AND utt.TIMESPAN_ID = ut.ID
 		)
 		LEFT JOIN PON_USER_TAG utag
 		ON (
-			utag.USER_ID = $1  -- Use placeholder $1 for userId
+			utag.USER_ID = $1  -- Use placeholder $1 for userID
 			AND utt.TAG_ID = utag.ID
 		)
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
 		ORDER BY ut.START_TIME DESC;
 	`
 
-	err := db.SelectContext(ctx, &results, query, userId)
+	err := db.SelectContext(ctx, &results, query, userID)
 
 	if err != nil {
 		return err
@@ -132,6 +139,7 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(ctx context.Context, userId 
 		if res.Tags == nil {
 			// No tags
 			data[i].Tags = []database.TblUserTag{}
+
 			continue
 		}
 
@@ -145,7 +153,7 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(ctx context.Context, userId 
 		// Convert to database.TblUserTag structure
 		data[i].Tags = make([]database.TblUserTag, len(tags))
 		for j, tag := range tags {
-			data[i].Tags[j].UserID = userId
+			data[i].Tags[j].UserID = userID
 			data[i].Tags[j].ID = int(tag["id"].(float64))
 			data[i].Tags[j].Namespace = tag["namespace"].(string)
 			data[i].Tags[j].Name = tag["name"].(string)
@@ -157,24 +165,29 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(ctx context.Context, userId 
 	return nil
 }
 
-func (db *SqliteDatabase) SetUserTimespanTags(ctx context.Context, userId, timespanId int, tags []database.TblUserTag) error {
+func (db *SqliteDatabase) SetUserTimespanTags(
+	ctx context.Context,
+	userID, timespanID int,
+	tags []database.TblUserTag,
+) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
 		// Make sure the UserID has the TimespanID, since the caller can't verify this.
 		query := `SELECT COUNT(ID) FROM PON_USER_TIMESPAN WHERE USER_ID = $1 AND ID = $2 LIMIT 1`
 
-		if ok, err := db.CountOneTx(tx, query, userId, timespanId); err != nil {
+		if ok, err := db.CountOneTx(tx, query, userID, timespanID); err != nil {
 			return err
 		} else if !ok {
-			return fmt.Errorf("Timespan with ID %d does not exist", timespanId)
+			return database.ErrUserDoesNotHaveThisID
 		}
 
-		return db.SetUserTimespanTagsTx(tx, userId, timespanId, tags)
+		return db.SetUserTimespanTagsTx(tx, userID, timespanID, tags)
 	})
 }
 
-// func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int, tags []database.TblUserTag) error {
+// func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userID, timespanID int, tags []database.TblUserTag)
+// error {
 
 // 	var query string
 
@@ -190,7 +203,7 @@ func (db *SqliteDatabase) SetUserTimespanTags(ctx context.Context, userId, times
 // 		// Step 2: Insert tag data into the temporary inTags table
 // 		query = `INSERT INTO inTags (user_id, namespace, name) VALUES ($1, $2, $3);`
 
-// 		if _, err := tx.Exec(query, userId, t.Namespace, t.Name); err != nil {
+// 		if _, err := tx.Exec(query, userID, t.Namespace, t.Name); err != nil {
 // 			return err
 // 		}
 // 	}
@@ -203,25 +216,26 @@ func (db *SqliteDatabase) SetUserTimespanTags(ctx context.Context, userId, times
 // 	}
 
 // 	// Step 4: Get the IDs of the new tags by joining the USER_TAG table with inTags
-// 	query = `SELECT t.id FROM PON_USER_TAG t INNER JOIN inTags i ON t.user_id = i.user_id AND t.namespace = i.namespace AND t.name = i.name;`
+// 	query = `SELECT t.id FROM PON_USER_TAG t INNER JOIN inTags i ON t.user_id = i.user_id AND t.namespace = i.namespace
+// AND t.name = i.name;`
 
-// 	var tagIds []int
-// 	if err := tx.Select(&tagIds, query); err != nil {
+// 	var tagIDs []int
+// 	if err := tx.Select(&tagIDs, query); err != nil {
 // 		return err
 // 	}
 
-// 	// Step 5: Delete existing timespan tags for the given timespanId
+// 	// Step 5: Delete existing timespan tags for the given timespanID
 // 	query = `DELETE FROM PON_USER_TIMESPAN_TAG WHERE TIMESPAN_ID = $1`
 
-// 	if _, err := tx.Exec(query, timespanId); err != nil {
+// 	if _, err := tx.Exec(query, timespanID); err != nil {
 // 		return err
 // 	}
 
 // 	// Step 6: Insert new timespan-tag mappings
-// 	for _, tagId := range tagIds {
+// 	for _, tagID := range tagIDs {
 
 // 		query = `INSERT INTO PON_USER_TIMESPAN_TAG (timespan_id, tag_id) VALUES ($1, $2);`
-// 		if _, err := tx.Exec(query, timespanId, tagId); err != nil {
+// 		if _, err := tx.Exec(query, timespanID, tagID); err != nil {
 // 			return err
 // 		}
 // 	}
@@ -229,7 +243,7 @@ func (db *SqliteDatabase) SetUserTimespanTags(ctx context.Context, userId, times
 // 	return nil
 // }
 
-func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId int, tags []database.TblUserTag) error {
+func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userID, timespanID int, tags []database.TblUserTag) error {
 
 	var query string
 
@@ -238,14 +252,14 @@ func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId 
 
 		query = `INSERT OR IGNORE INTO PON_USER_TAG (USER_ID, NAMESPACE, NAME) VALUES ($1, $2, $3);`
 
-		if _, err := tx.Exec(query, userId, t.Namespace, t.Name); err != nil {
+		if _, err := tx.Exec(query, userID, t.Namespace, t.Name); err != nil {
 			return err
 		}
 	}
 
 	// Step 2: Get the IDs of the new tags by selecting from USER_TAG table
 	// Get the tag IDs for the tags inserted or already existing
-	var tagIds []int
+	var tagIDs []int
 	{
 		var qbuilder strings.Builder
 		qbuilder.WriteString(`SELECT t.id FROM PON_USER_TAG t WHERE t.user_id = $1 AND (t.namespace || t.name) IN (`)
@@ -260,30 +274,30 @@ func (db *SqliteDatabase) SetUserTimespanTagsTx(tx *sqlx.Tx, userId, timespanId 
 
 		// Prepare the slice of params from the tags
 		params := make([]any, len(tags)+1)
-		params[0] = userId
+		params[0] = userID
 		for i, t := range tags {
 			params[i+1] = t.Namespace + t.Name
 		}
 
 		query = qbuilder.String()
-		if err := tx.Select(&tagIds, query, params...); err != nil {
+		if err := tx.Select(&tagIDs, query, params...); err != nil {
 			return err
 		}
 	}
 
-	// Step 3: Delete existing timespan-tag mappings for the given timespanId
+	// Step 3: Delete existing timespan-tag mappings for the given timespanID
 	query = `DELETE FROM PON_USER_TIMESPAN_TAG WHERE TIMESPAN_ID = $1`
 
-	if _, err := tx.Exec(query, timespanId); err != nil {
+	if _, err := tx.Exec(query, timespanID); err != nil {
 		return err
 	}
 
 	// Step 4: Insert new timespan-tag mappings
-	for _, tagId := range tagIds {
+	for _, tagID := range tagIDs {
 
 		query = `INSERT INTO PON_USER_TIMESPAN_TAG (timespan_id, tag_id) VALUES ($1, $2);`
 
-		if _, err := tx.Exec(query, timespanId, tagId); err != nil {
+		if _, err := tx.Exec(query, timespanID, tagID); err != nil {
 			return err
 		}
 	}

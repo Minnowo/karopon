@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -52,17 +51,17 @@ func (a *APIV1) getDataSourceFood(w http.ResponseWriter, r *http.Request) {
 	var dataSources []database.TblDataSourceFood
 
 	if err := a.Db.LoadDataSourceFoodBySimilarName(r.Context(), dataSourceID, queryString, &dataSources); err != nil {
-		log.Warn().Err(err).Str("user", user.Name).Int("dataSourceID", dataSourceID).Str("query", queryString).Msg("failed to read data source food")
+
+		log.Warn().
+			Err(err).
+			Str("user", user.Name).
+			Int("dataSourceID", dataSourceID).
+			Str("query", queryString).
+			Msg("failed to read data source food")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if len(dataSources) == 0 {
-		w.Write([]byte("[]"))
-	} else {
-		json.NewEncoder(w).Encode(dataSources)
-	}
+	api.WriteJSONArr(w, dataSources)
 }

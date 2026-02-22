@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/config"
@@ -33,8 +34,10 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&newUser)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -55,7 +58,13 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	if newUser.NewPassword != "" {
 
 		if len(newUser.NewPassword) > constants.MAX_USER_PASSWORD_LENGTH {
-			api.BadReqf(w, "The password is too long. It must be less than %d characters.", constants.MAX_USER_PASSWORD_LENGTH)
+
+			api.BadReqf(
+				w,
+				"The password is too long. It must be less than %d characters.",
+				constants.MAX_USER_PASSWORD_LENGTH,
+			)
+
 			return
 		}
 		if len(newUser.NewPassword) < constants.MIN_PASSWORD_LENGTH {
@@ -67,11 +76,12 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 
-			if err == bcrypt.ErrPasswordTooLong {
+			if errors.Is(err, bcrypt.ErrPasswordTooLong) {
 				api.BadReq(w, "The password is too long. It must be less than 72 characters.")
 			} else {
 				api.ServerErr(w, "Error while hashing the user password")
 			}
+
 			return
 		}
 		log.Debug().Str("name", user.Name).Msg("updating user password")
@@ -80,17 +90,28 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if taken, err := a.Db.UsernameTaken(r.Context(), user.ID, newUser.User.Name); err != nil {
-		log.Warn().Err(err).Int("userId", user.ID).Str("nameChecking", newUser.User.Name).Msg("Error checking if username exists")
+
+		log.Warn().
+			Err(err).
+			Int("userID", user.ID).
+			Str("nameChecking", newUser.User.Name).
+			Msg("Error checking if username exists")
 		api.ServerErr(w, "Database error checking if username was taken.")
+
 		return
+
 	} else if taken {
+
 		api.ServerErr(w, "The username is already taken by another user.")
+
 		return
 	}
 
 	if err := a.Db.UpdateUser(r.Context(), &newUser.User); err != nil {
-		log.Warn().Err(err).Int("userId", user.ID).Msg("Error while updating user")
+
+		log.Warn().Err(err).Int("userID", user.ID).Msg("Error while updating user")
 		api.ServerErr(w, "Error while updating user.")
+
 		return
 	}
 
@@ -101,7 +122,5 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 		*user = newUser.User
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(newUser.User)
+	api.WriteJSONObj(w, newUser.User)
 }

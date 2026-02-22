@@ -1,8 +1,8 @@
-package user
+package userreg
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"karopon/src/database"
 	"sync"
 	"time"
@@ -14,8 +14,8 @@ import (
 var log = log4zero.Get("user-registry")
 
 var (
-	ErrUserDoesNotExist         error = fmt.Errorf("user does not exist")
-	ErrUserPasswordDoesNotMatch error = fmt.Errorf("user password does not match")
+	ErrUserDoesNotExist         error = errors.New("user does not exist")
+	ErrUserPasswordDoesNotMatch error = errors.New("user password does not match")
 )
 
 type Session struct {
@@ -29,9 +29,9 @@ func (s *Session) Expired() bool {
 
 type UserRegistry struct {
 
-	// usersById and usersByName should always be modified together.
+	// usersByID and usersByName should always be modified together.
 	// They may or may not contain the same pointer value.
-	usersById   map[int]*database.TblUser
+	usersByID   map[int]*database.TblUser
 	usersByName map[string]*database.TblUser
 	usersLock   sync.RWMutex
 
@@ -46,13 +46,17 @@ type UserRegistry struct {
 func NewRegistry(db database.DB) *UserRegistry {
 	return &UserRegistry{
 		usersByName: make(map[string]*database.TblUser),
-		usersById:   make(map[int]*database.TblUser),
+		usersByID:   make(map[int]*database.TblUser),
 		sessions:    make(map[AccessTokenHash]Session),
 		db:          db,
 	}
 }
 
-func (u *UserRegistry) NewToken(ctx context.Context, userId int, sessionExpireTime int64) (AccessToken, time.Time, error) {
+func (u *UserRegistry) NewToken(
+	ctx context.Context,
+	userID int,
+	sessionExpireTime int64,
+) (AccessToken, time.Time, error) {
 
 	var token AccessToken
 
@@ -63,7 +67,7 @@ func (u *UserRegistry) NewToken(ctx context.Context, userId int, sessionExpireTi
 
 	session := database.TblUserSession{
 		Expires: database.TimeMillis(expires),
-		UserID:  userId,
+		UserID:  userID,
 		Token:   tokenHash[:],
 	}
 
@@ -78,12 +82,12 @@ func (u *UserRegistry) NewToken(ctx context.Context, userId int, sessionExpireTi
 
 	u.sessionsLock.Lock()
 	u.sessions[tokenHash] = Session{
-		userID:  userId,
+		userID:  userID,
 		expires: expires,
 	}
 	u.sessionsLock.Unlock()
 
-	log.Debug().Time("expireTime", expires).Int("userId", userId).Msg("Created new session token")
+	log.Debug().Time("expireTime", expires).Int("userID", userID).Msg("Created new session token")
 
 	return token, expires, nil
 }
@@ -107,13 +111,15 @@ func (u *UserRegistry) ExpireToken(tokenStr string) {
 		if ok {
 			delete(u.sessions, hash)
 		}
+
 		return ok
 	}()
 
 	if deleteFromDb {
 		// Want this to block the caller until it's gone from the db.
 		// If the user logs out, the token must be deleted from the db otherwise they could log back in using it later.
-		u.db.DeleteUserSessionByToken(context.Background(), hash[:])
+		err := u.db.DeleteUserSessionByToken(context.Background(), hash[:])
+		log.Debug().Err(err).Msg("DeleteUserSessionByToken failed")
 	}
 }
 
@@ -165,6 +171,7 @@ func (u *UserRegistry) CheckToken(ctx context.Context, tokenStr string) (*databa
 			delete(u.sessions, hash)
 			u.sessionsLock.Unlock()
 		}
+
 		return nil, false
 	}
 
@@ -176,7 +183,7 @@ func (u *UserRegistry) GetUserBySession(ctx context.Context, session Session) (*
 	var userPtr *database.TblUser
 
 	u.usersLock.RLock()
-	if user, ok := u.usersById[session.userID]; ok {
+	if user, ok := u.usersByID[session.userID]; ok {
 		userPtr = user.Copy()
 	}
 	u.usersLock.RUnlock()
@@ -187,7 +194,7 @@ func (u *UserRegistry) GetUserBySession(ctx context.Context, session Session) (*
 
 	var dbUser database.TblUser
 
-	if err := u.db.LoadUserById(ctx, session.userID, &dbUser); err != nil {
+	if err := u.db.LoadUserByID(ctx, session.userID, &dbUser); err != nil {
 		return nil, false
 	}
 
@@ -198,7 +205,7 @@ func (u *UserRegistry) GetUserBySession(ctx context.Context, session Session) (*
 
 func (u *UserRegistry) Login(ctx context.Context, name, password string) (string, time.Time, error) {
 
-	var userId int
+	var userID int
 	var userPassword []byte
 	var userSessionTime int64
 
@@ -209,7 +216,7 @@ func (u *UserRegistry) Login(ctx context.Context, name, password string) (string
 	if usr, ok := u.usersByName[name]; ok {
 		log.Debug().Int("id", usr.ID).Msg("found in memory user")
 		checkDB = false
-		userId = usr.ID
+		userID = usr.ID
 		userPassword = append([]byte(nil), usr.Password...)
 		userSessionTime = usr.SessionExpireTimeSeconds
 	} else {
@@ -228,7 +235,7 @@ func (u *UserRegistry) Login(ctx context.Context, name, password string) (string
 
 		u.PutUser(&dbUser)
 
-		userId = dbUser.ID
+		userID = dbUser.ID
 		userPassword = append([]byte(nil), dbUser.Password...)
 		userSessionTime = dbUser.SessionExpireTimeSeconds
 	}
@@ -237,14 +244,14 @@ func (u *UserRegistry) Login(ctx context.Context, name, password string) (string
 
 	if err != nil {
 
-		if err != bcrypt.ErrMismatchedHashAndPassword {
+		if !errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			log.Warn().Err(err).Str("user", name).Msg("Unexpected error comparing hash and password")
 		}
 
 		return "", time.Time{}, ErrUserPasswordDoesNotMatch
 	}
 
-	token, expires, err := u.NewToken(ctx, userId, userSessionTime)
+	token, expires, err := u.NewToken(ctx, userID, userSessionTime)
 
 	if err != nil {
 		return "", time.Time{}, err
@@ -262,13 +269,13 @@ func (u *UserRegistry) PutUserWithNewName(oldName string, user *database.TblUser
 		// Intentionally delete the ID here too.
 		// To prevent a possible case where the new user ID doesn't replace the old one.
 		delete(u.usersByName, oldName)
-		delete(u.usersById, old.ID)
+		delete(u.usersByID, old.ID)
 	}
 
 	cpy := user.Copy()
 
 	u.usersByName[user.Name] = cpy
-	u.usersById[user.ID] = cpy
+	u.usersByID[user.ID] = cpy
 }
 
 func (u *UserRegistry) PutUser(user *database.TblUser) {
@@ -279,7 +286,7 @@ func (u *UserRegistry) PutUser(user *database.TblUser) {
 	cpy := user.Copy()
 
 	u.usersByName[user.Name] = cpy
-	u.usersById[user.ID] = cpy
+	u.usersByID[user.ID] = cpy
 }
 
 func (u *UserRegistry) ClearExpiredSessions() {
@@ -297,14 +304,18 @@ func (u *UserRegistry) ClearExpiredSessions() {
 
 	u.sessionsLock.Unlock()
 
-	u.db.DeleteUserSessionsExpireAfter(context.Background(), time.Now())
+	err := u.db.DeleteUserSessionsExpireAfter(context.Background(), time.Now())
+	log.Debug().Err(err).Msg("DeleteUserSessionsExpireAfter failed")
 }
 
 func (u *UserRegistry) ClearExpiredSessionsOncePerHour() bool {
 
 	if time.Hour > time.Since(u.lastClearTime) {
+
 		u.ClearExpiredSessions()
+
 		return true
 	}
+
 	return false
 }

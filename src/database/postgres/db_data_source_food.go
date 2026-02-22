@@ -22,17 +22,33 @@ func (db *PGDatabase) AddDataSourceFood(ctx context.Context, ds *database.TblDat
 	return db.NamedInsertReturningID(ctx, query, ds)
 }
 
-func (db *PGDatabase) LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]database.TblDataSourceFood) error {
+func (db *PGDatabase) LoadDataSourceFoodBySimilarName(
+	ctx context.Context,
+	dataSourceID int,
+	nameQuery string,
+	out *[]database.TblDataSourceFood,
+) error {
 	return db.LoadDataSourceFoodBySimilarNameN(ctx, dataSourceID, nameQuery, 50, out)
 }
 
-func (db *PGDatabase) LoadDataSourceFoodBySimilarNameN(ctx context.Context, dataSourceID int, nameQuery string, n int, out *[]database.TblDataSourceFood) error {
+func (db *PGDatabase) LoadDataSourceFoodBySimilarNameN(
+	ctx context.Context,
+	dataSourceID int,
+	nameQuery string,
+	n int,
+	out *[]database.TblDataSourceFood,
+) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
 		// TODO: make this a setting or a parameter?
-		// Default is 0.3, which is decent, but you get 0 results searching for apples and simple stuff when the name is long.
-		tx.Exec("SET LOCAL pg_trgm.similarity_threshold = 0.1")
+		// Default is 0.3, which is decent, but you get 0 results searching for apples and simple stuff when the name is
+		// long.
+		_, err := tx.Exec("SET LOCAL pg_trgm.similarity_threshold = 0.1")
+
+		if err != nil {
+			return err
+		}
 
 		query := `
 			SELECT * FROM PON.DATA_SOURCE_FOOD

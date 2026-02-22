@@ -1,5 +1,4 @@
 //go:build cgo
-// +build cgo
 
 package sqlite
 
@@ -22,5 +21,6 @@ func (e SQLiteErrorCode) Is(err error) bool {
 			}
 		}
 	}
+
 	return false
 }

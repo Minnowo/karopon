@@ -8,7 +8,7 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
-func (db *PGDatabase) LoadUserBodyLogs(ctx context.Context, userId int, out *[]database.TblUserBodyLog) error {
+func (db *PGDatabase) LoadUserBodyLogs(ctx context.Context, userID int, out *[]database.TblUserBodyLog) error {
 
 	query := `
 		SELECT * FROM PON.USER_BODYLOG f
@@ -16,12 +16,12 @@ func (db *PGDatabase) LoadUserBodyLogs(ctx context.Context, userId int, out *[]d
 		ORDER BY f.USER_TIME DESC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
 func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUserBodyLog) (int, error) {
 
-	var retUserId int = -1
+	var retUserID int = -1
 
 	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -47,19 +47,19 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
 			return err
 		}
 
-		retUserId = id
+		retUserID = id
 
 		return nil
 	})
 
-	return retUserId, err
+	return retUserID, err
 }
 
-func (db *PGDatabase) DeleteUserBodyLog(ctx context.Context, userId int, bodyLogId int) error {
+func (db *PGDatabase) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
 
 	query := `DELETE FROM PON.USER_BODYLOG WHERE USER_ID = $1 AND ID = $2`
 
-	_, err := db.ExecContext(ctx, query, userId, bodyLogId)
+	_, err := db.ExecContext(ctx, query, userID, bodyLogID)
 
 	return err
 }

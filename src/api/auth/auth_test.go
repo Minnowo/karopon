@@ -13,10 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func init() {
-	// config.InitLogging()
-}
-
 type fakeUserReg struct {
 	tokenToUsers map[string]*database.TblUser
 }
@@ -64,7 +60,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	username := "test"
 	password := "test"
-	authToken := "this_is_auth_token"
+	authToken := "this_is_auth_token" //nolint:gosec
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	assert.Nil(t, err)
@@ -83,7 +79,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("test no auth route", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/no-auth", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/no-auth", nil)
 
 		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
@@ -95,7 +91,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("test no-require-auth1", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/no-require-auth1", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/no-require-auth1", nil)
 
 		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
@@ -107,7 +103,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("test no-require-auth2", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/no-require-auth2", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/no-require-auth2", nil)
 		req.AddCookie(&http.Cookie{
 			Name:  sessionCookie,
 			Value: authToken,
@@ -127,7 +123,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("test yes-require-auth failed login", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/yes-require-auth", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/yes-require-auth", nil)
 
 		r := newRouter(t, session, reg)
 		r.ServeHTTP(rr, req)
@@ -139,7 +135,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("test yes-require-auth good login", func(t *testing.T) {
 
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/yes-require-auth", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/yes-require-auth", nil)
 		req.AddCookie(&http.Cookie{
 			Name:  sessionCookie,
 			Value: authToken,

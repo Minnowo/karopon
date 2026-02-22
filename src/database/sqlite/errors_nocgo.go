@@ -21,5 +21,6 @@ func (e SQLiteErrorCode) Is(err error) bool {
 			}
 		}
 	}
+
 	return false
 }

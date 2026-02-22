@@ -25,8 +25,10 @@ func (a *APIV1) updateUserTimespan(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&tag)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -36,14 +38,13 @@ func (a *APIV1) updateUserTimespan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tag.StartTime.Time().After(tag.StartTime.Time()) {
-		tmp := tag.StartTime
-		tag.StartTime = tag.StopTime
-		tag.StopTime = tmp
+		tag.StartTime, tag.StopTime = tag.StopTime, tag.StartTime
 	}
 
 	tag.UserID = user.ID
 
 	if err := a.Db.UpdateUserTimespan(r.Context(), &tag); err != nil {
+
 		api.ServerErr(w, "Unexpected error updating the timespan")
 		log.Error().
 			Err(err).
@@ -51,6 +52,7 @@ func (a *APIV1) updateUserTimespan(w http.ResponseWriter, r *http.Request) {
 			Time("start", tag.StartTime.Time()).
 			Time("stop", tag.StopTime.Time()).
 			Msg("Unexpected error updating a user's timespan")
+
 		return
 	}
 

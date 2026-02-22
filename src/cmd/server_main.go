@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"karopon/src/api/middleware"
+	"karopon/src/api/userreg"
 	v1 "karopon/src/api/v1"
 	"karopon/src/config"
 	"karopon/src/constants"
-	"karopon/src/database"
 	"karopon/src/database/connection"
-	"karopon/src/handlers/user"
 	"karopon/src/ui"
 	"net/http"
 	"time"
@@ -51,11 +50,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		MaxHeaderBytes: 2 * constants.KB,
 	}
 
-	vendor := database.DBTypeFromStr(vendorStr)
-	if vendor == database.UNKNOWN {
-		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
-	}
-	db, err := connection.Connect(context.Background(), vendor, dbconn)
+	db, err := connection.ConnectStr(context.Background(), vendorStr, dbconn)
 
 	if err != nil {
 		return err
@@ -67,7 +62,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	userReg := user.NewRegistry(db)
+	userReg := userreg.NewRegistry(db)
 	userReg.ClearExpiredSessions()
 
 	apiv1 := v1.APIV1{

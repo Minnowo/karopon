@@ -6,7 +6,7 @@ import (
 	"karopon/src/database"
 )
 
-func (db *SqliteDatabase) LoadUserBodyLogs(ctx context.Context, userId int, out *[]database.TblUserBodyLog) error {
+func (db *SqliteDatabase) LoadUserBodyLogs(ctx context.Context, userID int, out *[]database.TblUserBodyLog) error {
 
 	query := `
 		SELECT * FROM PON_USER_BODYLOG f
@@ -14,7 +14,7 @@ func (db *SqliteDatabase) LoadUserBodyLogs(ctx context.Context, userId int, out 
 		ORDER BY f.USER_TIME DESC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
 func (db *SqliteDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUserBodyLog) (int, error) {
@@ -38,11 +38,11 @@ func (db *SqliteDatabase) AddUserBodyLogs(ctx context.Context, log *database.Tbl
 	return db.NamedInsertGetLastRowID(ctx, query, log)
 }
 
-func (db *SqliteDatabase) DeleteUserBodyLog(ctx context.Context, userId int, bodyLogId int) error {
+func (db *SqliteDatabase) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
 
 	query := `DELETE FROM PON_USER_BODYLOG WHERE USER_ID = $1 AND ID = $2`
 
-	_, err := db.ExecContext(ctx, query, userId, bodyLogId)
+	_, err := db.ExecContext(ctx, query, userID, bodyLogID)
 
 	return err
 }

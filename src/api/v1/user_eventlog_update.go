@@ -25,8 +25,10 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&ueflog)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -51,8 +53,10 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 	err = a.Db.UpdateUserEventFoodLog(r.Context(), &ueflog)
 
 	if err != nil {
+
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user event log")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 
@@ -67,7 +71,5 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 		out.TotalFat += foodlog.Fat
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(out)
+	api.WriteJSONObj(w, out)
 }

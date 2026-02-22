@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"runtime/debug"
 
@@ -11,7 +12,9 @@ import (
 // backtrace), and returns a HTTP 500 (Internal Server Error) status if
 // possible. Recoverer prints a request ID if one is provided.
 func Recoverer(next http.Handler) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		defer func() {
 
 			rvr := recover()
@@ -20,10 +23,13 @@ func Recoverer(next http.Handler) http.Handler {
 				return
 			}
 
-			if rvr == http.ErrAbortHandler {
-				// we don't recover http.ErrAbortHandler so the response
-				// to the client is aborted, this should not be logged
-				panic(rvr)
+			if err, ok := rvr.(error); ok {
+
+				if errors.Is(err, http.ErrAbortHandler) {
+					// we don't recover http.ErrAbortHandler so the response
+					// to the client is aborted, this should not be logged
+					panic(rvr)
+				}
 			}
 
 			log.

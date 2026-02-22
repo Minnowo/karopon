@@ -4,9 +4,9 @@ import (
 	"context"
 	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
+	"karopon/src/api/userreg"
 	"karopon/src/config"
 	"karopon/src/database"
-	"karopon/src/handlers/user"
 
 	"github.com/rs/zerolog/log"
 
@@ -15,7 +15,7 @@ import (
 
 type APIV1 struct {
 	Db      database.DB
-	UserReg *user.UserRegistry
+	UserReg *userreg.UserRegistry
 	router  *mux.Router
 }
 

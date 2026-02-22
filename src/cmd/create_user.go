@@ -3,14 +3,16 @@ package cmd
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"karopon/src/database"
 	"karopon/src/database/connection"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var errUserAlreadyExists = errors.New("user already exists")
 
 func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
@@ -19,18 +21,11 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	username := c.Value("username").(string)
 	password := c.Value("password").(string)
 
-	vendor := database.DBTypeFromStr(vendorStr)
-
-	if vendor == database.UNKNOWN {
-		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
-	}
-
-	conn, err := connection.Connect(context.Background(), vendor, dbconn)
+	conn, err := connection.ConnectStr(context.Background(), vendorStr, dbconn)
 
 	if err != nil {
 		return err
 	}
-	ctx = context.Background()
 
 	if err := conn.Migrate(ctx); err != nil {
 		return err
@@ -40,13 +35,13 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
 	if err := conn.LoadUser(ctx, username, &user); err != nil {
 
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			// continue
 		} else {
-			return errors.Wrap(err, "error checking if user exists")
+			return fmt.Errorf("%w: error checking if user exists", err)
 		}
 	} else {
-		return fmt.Errorf("user already exists")
+		return errUserAlreadyExists
 	}
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -67,5 +62,6 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	if _, err := conn.AddUser(ctx, &user); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -21,11 +21,22 @@ func (db *SqliteDatabase) AddDataSourceFood(ctx context.Context, ds *database.Tb
 	return db.NamedInsertReturningID(ctx, query, ds)
 }
 
-func (db *SqliteDatabase) LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]database.TblDataSourceFood) error {
+func (db *SqliteDatabase) LoadDataSourceFoodBySimilarName(
+	ctx context.Context,
+	dataSourceID int,
+	nameQuery string,
+	out *[]database.TblDataSourceFood,
+) error {
 	return db.LoadDataSourceFoodBySimilarNameN(ctx, dataSourceID, nameQuery, 50, out)
 }
 
-func (db *SqliteDatabase) LoadDataSourceFoodBySimilarNameN(ctx context.Context, dataSourceID int, nameQuery string, n int, out *[]database.TblDataSourceFood) error {
+func (db *SqliteDatabase) LoadDataSourceFoodBySimilarNameN(
+	ctx context.Context,
+	dataSourceID int,
+	nameQuery string,
+	n int,
+	out *[]database.TblDataSourceFood,
+) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 

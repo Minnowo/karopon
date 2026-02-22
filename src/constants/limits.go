@@ -1,7 +1,7 @@
 package constants
 
 const (
-	_  = iota //ignore first value by assigning to blank identifier
+	_  = iota // ignore first value by assigning to blank identifier
 	KB = 1 << (10 * iota)
 	MB
 	GB

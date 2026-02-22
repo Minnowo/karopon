@@ -24,8 +24,10 @@ func (a *APIV1) deleteUserGoal(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&goal)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -35,11 +37,13 @@ func (a *APIV1) deleteUserGoal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.Db.DeleteUserGoal(r.Context(), user.ID, goal.ID); err != nil {
+
 		api.ServerErr(w, "Unexpected error deleting the goal from the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error deleting a user's goal from the database")
+
 		return
 	}
 

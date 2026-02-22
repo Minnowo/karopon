@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -22,9 +21,7 @@ func (a *APIV1) getServerTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(ServerTime{
+	api.WriteJSONObj(w, ServerTime{
 		Time: database.TimeMillis(time.Now()),
 	})
 }

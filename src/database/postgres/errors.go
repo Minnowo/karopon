@@ -23,5 +23,6 @@ func (c PGErrorCode) Is(err error) bool {
 	if pgErr.Code == string(c) {
 		return true
 	}
+
 	return false
 }

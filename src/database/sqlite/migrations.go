@@ -31,11 +31,17 @@ func (db *SqliteDatabase) Migrate(ctx context.Context) error {
 	}
 
 	if version == database.VERSION_UNKNOWN {
-		return fmt.Errorf("The database version is unknown, an existing schema exists, but there is no version number: %w", database.ErrInvalidDatabaseVersion)
+		return fmt.Errorf(
+			"the database version is unknown, an existing schema exists, but there is no version number: %w",
+			database.ErrInvalidDatabaseVersion,
+		)
 	}
 
 	if version > db.GetMigrationMaxVersion() {
-		return fmt.Errorf("The database version is larger than the maximum migration version: %w", database.ErrInvalidDatabaseVersion)
+		return fmt.Errorf(
+			"the database version is larger than the maximum migration version: %w",
+			database.ErrInvalidDatabaseVersion,
+		)
 	}
 
 	db.version = version

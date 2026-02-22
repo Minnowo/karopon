@@ -25,8 +25,10 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&goal)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -55,17 +57,17 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 	id, err := a.Db.AddUserGoal(r.Context(), &goal)
 
 	if err != nil {
+
 		api.ServerErr(w, "Unexpected error adding the goal to the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error adding a user's goal to the database")
+
 		return
 	}
 
 	goal.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(goal)
+	api.WriteJSONObj(w, goal)
 }

@@ -13,6 +13,7 @@ import (
 
 type CheckGoalProgress struct {
 	database.TblUserGoal
+
 	Timezone database.Timezone
 }
 
@@ -30,8 +31,10 @@ func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&goal)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("Invalid json.")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -59,16 +62,18 @@ func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
 
 	var goalProgress database.UserGoalProgress
 
-	if err := a.Db.LoadUserGoalProgress(r.Context(), time.Now().In(goal.Timezone.Loc()), &goal.TblUserGoal, &goalProgress); err != nil {
+	err = a.Db.LoadUserGoalProgress(r.Context(), time.Now().In(goal.Timezone.Loc()), &goal.TblUserGoal, &goalProgress)
+
+	if err != nil {
+
 		api.ServerErr(w, "Unexpected error getting the goal progress from the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error getting a user's goal progress from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(goalProgress)
+	api.WriteJSONObj(w, goalProgress)
 }

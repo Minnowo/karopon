@@ -1,7 +1,9 @@
 package database
 
-import "fmt"
+import (
+	"errors"
+)
 
 var (
-	ErrInvalidDatabaseVersion = fmt.Errorf("database version is invalid")
+	ErrInvalidDatabaseVersion = errors.New("database version is invalid")
 )

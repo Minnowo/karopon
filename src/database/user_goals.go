@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -25,6 +26,10 @@ const (
 	TargetColumnBodyBloodPressureSys GoalTargetColumn = "BLOOD_PRESSURE_SYS"
 	TargetColumnBodyBloodPressureDia GoalTargetColumn = "BLOOD_PRESSURE_DIA"
 	TargetColumnEventBloodSugar      GoalTargetColumn = "BLOOD_SUGAR"
+)
+
+var (
+	ErrInvalidGoalTargetColumn = errors.New("invalid goal target column")
 )
 
 func (a GoalTargetColumn) IsValid() bool {
@@ -59,6 +64,10 @@ const (
 	AggregationMax GoalAggregationFunc = "MAX"
 )
 
+var (
+	ErrInvalidGoalAggregation = errors.New("invalid goal aggregation")
+)
+
 func (a GoalAggregationFunc) IsValid() bool {
 	switch a {
 	case AggregationSum, AggregationAvg, AggregationMin, AggregationMax:
@@ -89,13 +98,7 @@ func (v GoalValueComparison) IsValid() bool {
 	}
 }
 
-//
-// =======================
-// Time Parsing
-// =======================
-//
-
-// Supported base time units
+// Supported base time units.
 type timeBase string
 
 const (
@@ -106,8 +109,8 @@ const (
 	baseYear  timeBase = "YEARLY"  // time at first day of the year (jan-01)
 )
 
-// ParseTimeExpression converts the base time into a range.
-// Returns startTime, stopTime, or error
+// ParseGoalTimeExpression converts the base time into a range.
+// Returns startTime, stopTime, or error.
 func ParseGoalTimeExpression(expr string, now time.Time) (time.Time, time.Time, error) {
 
 	base := timeBase(strings.ToUpper(expr))
@@ -115,7 +118,7 @@ func ParseGoalTimeExpression(expr string, now time.Time) (time.Time, time.Time, 
 	switch base {
 
 	default:
-		return time.Time{}, time.Time{}, fmt.Errorf("Time unit %s is invalid", base)
+		return time.Time{}, time.Time{}, fmt.Errorf("invalid time unit: %s", base) //nolint:err113
 
 	case baseToday:
 

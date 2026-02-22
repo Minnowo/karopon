@@ -25,8 +25,10 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&food)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -54,8 +56,10 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 	err = a.Db.UpdateUserFood(r.Context(), &food)
 
 	if err != nil {
+
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user food log")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -22,17 +21,12 @@ func (a *APIV1) getDataSources(w http.ResponseWriter, r *http.Request) {
 	var dataSources []database.TblDataSource
 
 	if err := a.Db.LoadDataSources(r.Context(), &dataSources); err != nil {
+
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read data sources")
 		api.ServerErr(w, "failed while reading from the database")
+
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if len(dataSources) == 0 {
-		w.Write([]byte("[]"))
-	} else {
-		json.NewEncoder(w).Encode(dataSources)
-	}
+	api.WriteJSONArr(w, dataSources)
 }

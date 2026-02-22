@@ -25,8 +25,10 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&event)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -71,17 +73,17 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 
 	id, err := a.Db.AddUserBodyLogs(r.Context(), &event)
 	if err != nil {
+
 		api.ServerErr(w, "Unexpected error finalizing the event to the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Msg("Unexpected error writing the event log to the database when trying to create a user bodylog")
+
 		return
 	}
 
 	event.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(event)
+	api.WriteJSONArr(w, event)
 }

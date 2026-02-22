@@ -62,26 +62,26 @@ func (db *PGDatabase) UpdateUserFood(ctx context.Context, food *database.TblUser
 	return err
 }
 
-func (db *PGDatabase) DeleteUserFood(ctx context.Context, userId int, foodId int) error {
+func (db *PGDatabase) DeleteUserFood(ctx context.Context, userID int, foodID int) error {
 
 	query := `
 	DELETE FROM PON.USER_FOOD f
 	WHERE f.USER_ID = $1 AND f.ID = $2
 	`
 
-	_, err := db.DB.ExecContext(ctx, query, userId, foodId)
+	_, err := db.ExecContext(ctx, query, userID, foodID)
 
 	return err
 }
 
-func (db *PGDatabase) LoadUserFoods(ctx context.Context, userId int, out *[]database.TblUserFood) error {
+func (db *PGDatabase) LoadUserFoods(ctx context.Context, userID int, out *[]database.TblUserFood) error {
 	query := `
 		SELECT * FROM PON.USER_FOOD f
 		WHERE f.USER_ID = $1
 		ORDER BY f.NAME ASC
 	`
 
-	return db.SelectContext(ctx, out, query, userId)
+	return db.SelectContext(ctx, out, query, userID)
 }
 
 func (db *PGDatabase) ExportUserFoodsCSV(ctx context.Context, w io.Writer) error {

@@ -3,8 +3,13 @@ package database
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
+)
+
+var (
+	ErrInvalidTimezoneScanType = errors.New("cannot scan type into Timezone")
 )
 
 type Timezone struct {
@@ -13,9 +18,11 @@ type Timezone struct {
 }
 
 func NewTimezone(name string) (Timezone, error) {
+
 	loc, err := time.LoadLocation(name)
+
 	if err != nil {
-		return Timezone{}, fmt.Errorf("invalid timezone: %w", err)
+		return Timezone{}, err
 	}
 
 	return Timezone{
@@ -28,6 +35,7 @@ func (t Timezone) Loc() *time.Location {
 	if t.loc == nil {
 		return time.UTC
 	}
+
 	return t.loc
 }
 
@@ -71,6 +79,6 @@ func (t *Timezone) Scan(value any) error {
 		return nil
 
 	default:
-		return fmt.Errorf("cannot scan %T into Timezone", value)
+		return fmt.Errorf("%w: %s", ErrInvalidTimezoneScanType, value)
 	}
 }

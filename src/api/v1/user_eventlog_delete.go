@@ -24,8 +24,10 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&eventlog)
 
 	if err != nil {
+
 		log.Debug().Err(err).Msg("invalid json")
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
@@ -37,8 +39,14 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 	err = a.Db.DeleteUserEventLog(r.Context(), user.ID, eventlog.ID, false)
 
 	if err != nil {
-		log.Warn().Err(err).Str("user", user.Name).Int("eventlog", eventlog.ID).Msg("failed to delete user eventlog")
+
+		log.Warn().
+			Err(err).
+			Str("user", user.Name).
+			Int("eventlog", eventlog.ID).
+			Msg("failed to delete user eventlog")
 		api.ServerErr(w, "Failed while deleting from the database.")
+
 		return
 	}
 

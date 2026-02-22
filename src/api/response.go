@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,5 +44,37 @@ func Close(r io.ReadCloser, w http.ResponseWriter, code int, msg string) {
 
 func Closef(r io.ReadCloser, w http.ResponseWriter, code int, msg string, a ...any) {
 	Donef(w, code, msg, a...)
-	r.Close()
+	if err := r.Close(); err != nil {
+		logger.Debug().Err(err).Msg("failed to close response")
+	}
+}
+
+func WriteJSONObj(w http.ResponseWriter, obj any) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	err := json.NewEncoder(w).Encode(obj)
+
+	if err != nil {
+		logger.Debug().Err(err).Msg("error while writing json object response")
+	}
+}
+
+func WriteJSONArr(w http.ResponseWriter, arr any) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	var err error
+
+	if arr == nil {
+		_, err = w.Write([]byte("[]"))
+	} else {
+		err = json.NewEncoder(w).Encode(arr)
+	}
+
+	if err != nil {
+		logger.Debug().Err(err).Msg("error while writing json array response")
+	}
 }
