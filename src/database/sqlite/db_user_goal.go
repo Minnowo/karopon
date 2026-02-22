@@ -1,4 +1,4 @@
-package postgres
+package sqlite
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (db *PGDatabase) LoadUserGoals(ctx context.Context, userId int, out *[]database.TblUserGoal) error {
+func (db *SqliteDatabase) LoadUserGoals(ctx context.Context, userId int, out *[]database.TblUserGoal) error {
 
 	query := `
-		SELECT * FROM PON.USER_GOAL g
+		SELECT * FROM PON_USER_GOAL g
 		WHERE g.USER_ID = $1
 		ORDER BY g.NAME ASC
 	`
@@ -20,39 +20,38 @@ func (db *PGDatabase) LoadUserGoals(ctx context.Context, userId int, out *[]data
 	return db.SelectContext(ctx, out, query, userId)
 }
 
-func (db *PGDatabase) DeleteUserGoal(ctx context.Context, userId int, goalId int) error {
+func (db *SqliteDatabase) DeleteUserGoal(ctx context.Context, userId int, goalId int) error {
 
-	query := `DELETE FROM PON.USER_GOAL WHERE USER_ID = $1 AND ID = $2`
+	query := `DELETE FROM PON_USER_GOAL WHERE USER_ID = $1 AND ID = $2`
 
 	_, err := db.ExecContext(ctx, query, userId, goalId)
 
 	return err
 }
 
-func (db *PGDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUserGoal) (int, error) {
+func (db *SqliteDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUserGoal) (int, error) {
 
 	query := `
-		INSERT INTO PON.USER_GOAL (
-			user_id,
-			name,
-			target_value,
-			target_col,
-			aggregation_type,
-			value_comparison,
-			time_expr
+		INSERT INTO PON_USER_GOAL (
+			USER_ID,
+			NAME,
+			TARGET_VALUE,
+			TARGET_COL,
+			AGGREGATION_TYPE,
+			VALUE_COMPARISON,
+			TIME_EXPR
 		) VALUES (
-			:user_id,
-			:name,
-			:target_value,
-			:target_col,
-			:aggregation_type,
-			:value_comparison,
-			:time_expr
+			:USER_ID,
+			:NAME,
+			:TARGET_VALUE,
+			:TARGET_COL,
+			:AGGREGATION_TYPE,
+			:VALUE_COMPARISON,
+			:TIME_EXPR
 		)
-		RETURNING id
 	`
 
-	id, err := db.NamedInsertReturningID(ctx, query, userGoal)
+	id, err := db.NamedInsertGetLastRowID(ctx, query, userGoal)
 
 	if err != nil {
 		return -1, err
@@ -61,7 +60,7 @@ func (db *PGDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUse
 	return id, nil
 }
 
-func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *database.TblUserGoal, out *database.UserGoalProgress) error {
+func (db *SqliteDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *database.TblUserGoal, out *database.UserGoalProgress) error {
 
 	startTime, endTime, err := userGoal.TimeRange(curTime)
 
@@ -95,61 +94,61 @@ func (db *PGDatabase) LoadUserGoalProgress(ctx context.Context, curTime time.Tim
 
 	case database.TargetColumnCalories:
 		// TODO: don't hard code this and make it use the user's setting
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "PROTEIN * 4 + (CARB - FIBRE) * 4 + FAT * 9"
 		whereSql = ""
 	case database.TargetColumnNetCarbs:
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "CARB - FIBRE"
 		whereSql = ""
 	case database.TargetColumnFat:
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "FAT"
 		whereSql = ""
 	case database.TargetColumnCarbs:
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "CARB"
 		whereSql = ""
 	case database.TargetColumnFibre:
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "FIBRE"
 		whereSql = ""
 	case database.TargetColumnProtein:
-		tableSql = "PON.USER_FOODLOG"
+		tableSql = "PON_USER_FOODLOG"
 		colSql = "PROTEIN"
 		whereSql = ""
 
 	case database.TargetColumnBodyWeightKg:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "WEIGHT_KG"
 		whereSql = " AND WEIGHT_KG > 0"
 	case database.TargetColumnBodyWeightLbs:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "WEIGHT_KG * 2.2046226218"
 		whereSql = " AND WEIGHT_KG > 0"
 	case database.TargetColumnBodyFatPercent:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "BODY_FAT_PERCENT"
 		whereSql = " AND BODY_FAT_PERCENT > 0"
 	case database.TargetColumnBodyHeartRate:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "HEART_RATE_BPM"
 		whereSql = " AND HEART_RATE_BPM > 0"
 	case database.TargetColumnBodySteps:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "STEPS_COUNT"
 		whereSql = " AND STEPS_COUNT > 0"
 	case database.TargetColumnBodyBloodPressureSys:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "BP_SYSTOLIC"
 		whereSql = " AND BP_SYSTOLIC > 0"
 	case database.TargetColumnBodyBloodPressureDia:
-		tableSql = "PON.USER_BODYLOG"
+		tableSql = "PON_USER_BODYLOG"
 		colSql = "BP_DIASTOLIC"
 		whereSql = " AND BP_DIASTOLIC > 0"
 
 	case database.TargetColumnEventBloodSugar:
-		tableSql = "PON.USER_EVENTLOG"
+		tableSql = "PON_USER_EVENTLOG"
 		colSql = "BLOOD_GLUCOSE"
 		whereSql = " AND BLOOD_GLUCOSE > 0"
 	}

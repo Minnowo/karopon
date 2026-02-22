@@ -15,15 +15,21 @@ import (
 func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 
 	dbconn := c.Value("database-conn").(string)
+	vendorStr := c.Value("database-vendor").(string)
 	username := c.Value("username").(string)
 	password := c.Value("password").(string)
 
-	conn, err := connection.Connect(context.Background(), database.POSTGRES, dbconn)
+	vendor := database.DBTypeFromStr(vendorStr)
+
+	if vendor == database.UNKNOWN {
+		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
+	}
+
+	conn, err := connection.Connect(context.Background(), vendor, dbconn)
 
 	if err != nil {
 		return err
 	}
-
 	ctx = context.Background()
 
 	if err := conn.Migrate(ctx); err != nil {

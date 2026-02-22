@@ -287,7 +287,7 @@ func (db *SQLxDB) CountOneTx(tx *sqlx.Tx, query string, arg ...any) (bool, error
 	return rowCount == 1, nil
 }
 
-func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...any) (int, error) {
+func (db *SQLxDB) InsertReturningID(ctx context.Context, query string, arg ...any) (int, error) {
 
 	rows, err := db.QueryContext(ctx, query, arg...)
 
@@ -307,7 +307,7 @@ func (db *SQLxDB) InsertOneGetID(ctx context.Context, query string, arg ...any) 
 	return id, nil
 }
 
-func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg any) (int, error) {
+func (db *SQLxDB) NamedInsertReturningIDTx(tx *sqlx.Tx, query string, arg any) (int, error) {
 
 	rows, err := tx.NamedQuery(query, arg)
 
@@ -327,7 +327,7 @@ func (db *SQLxDB) InsertOneNamedGetIDTx(tx *sqlx.Tx, query string, arg any) (int
 	return id, nil
 }
 
-func (db *SQLxDB) InsertOneNamedGetID(ctx context.Context, query string, arg any) (int, error) {
+func (db *SQLxDB) NamedInsertReturningID(ctx context.Context, query string, arg any) (int, error) {
 
 	rows, err := db.NamedQueryContext(ctx, query, arg)
 
@@ -345,6 +345,32 @@ func (db *SQLxDB) InsertOneNamedGetID(ctx context.Context, query string, arg any
 	}
 
 	return id, nil
+}
+
+func (db *SQLxDB) NamedInsertGetLastRowIDTx(tx *sqlx.Tx, query string, arg any) (int, error) {
+
+	rows, err := tx.NamedExec(query, arg)
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := rows.LastInsertId()
+
+	return int(id), err
+}
+
+func (db *SQLxDB) NamedInsertGetLastRowID(ctx context.Context, query string, arg any) (int, error) {
+
+	rows, err := db.NamedExecContext(ctx, query, arg)
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := rows.LastInsertId()
+
+	return int(id), err
 }
 
 func (db *SQLxDB) WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {

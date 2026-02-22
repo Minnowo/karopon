@@ -4,6 +4,7 @@ import (
 	"context"
 	"karopon/src/database"
 	"karopon/src/database/postgres"
+	"karopon/src/database/sqlite"
 )
 
 func Connect(ctx context.Context, db database.Vendor, connection string) (database.DB, error) {
@@ -13,6 +14,12 @@ func Connect(ctx context.Context, db database.Vendor, connection string) (databa
 	case database.POSTGRES:
 
 		con, err := postgres.OpenPGDatabase(ctx, connection)
+
+		return con, err
+
+	case database.SQLITE:
+
+		con, err := sqlite.OpenSqliteDatabase(ctx, connection)
 
 		return con, err
 	}

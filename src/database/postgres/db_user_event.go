@@ -12,7 +12,7 @@ import (
 func (db *PGDatabase) AddUserEvent(ctx context.Context, event *database.TblUserEvent) (int, error) {
 	query := `INSERT INTO PON.USER_EVENT (USER_ID, NAME) VALUES (:user_id, :name) RETURNING ID;`
 
-	id, err := db.InsertOneNamedGetID(ctx, query, event)
+	id, err := db.NamedInsertReturningID(ctx, query, event)
 
 	return id, err
 }
@@ -45,7 +45,7 @@ func (db *PGDatabase) LoadAndOrCreateUserEventByNameTx(tx *sqlx.Tx, userId int, 
 		return err // unknown error
 	}
 
-	id, err := db.InsertOneNamedGetIDTx(tx,
+	id, err := db.NamedInsertReturningIDTx(tx,
 		`INSERT INTO PON.USER_EVENT (USER_ID, NAME) VALUES (:user_id, :name) RETURNING ID;`,
 		database.TblUserEvent{
 			UserID: userId,

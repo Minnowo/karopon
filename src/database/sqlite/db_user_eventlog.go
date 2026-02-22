@@ -1,4 +1,4 @@
-package postgres
+package sqlite
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.TblUserEventLog, foodlogs []database.TblUserFoodLog) (int, error) {
+func (db *SqliteDatabase) AddUserEventLogWith(ctx context.Context, event *database.TblUserEventLog, foodlogs []database.TblUserFoodLog) (int, error) {
 
 	var retEventLogID int = -1
 
@@ -57,10 +57,10 @@ func (db *PGDatabase) AddUserEventLogWith(ctx context.Context, event *database.T
 
 }
 
-func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEventLog) (int, error) {
+func (db *SqliteDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEventLog) (int, error) {
 
 	query := `
-		INSERT INTO PON.USER_EVENTLOG (
+		INSERT INTO PON_USER_EVENTLOG (
 			USER_ID,
 			EVENT_ID,
 			USER_TIME,
@@ -73,23 +73,22 @@ func (db *PGDatabase) AddUserEventLogTx(tx *sqlx.Tx, event *database.TblUserEven
 			RECOMMENDED_INSULIN_AMOUNT,
 			ACTUAL_INSULIN_TAKEN
 		)
-		VALUES(:user_id, :event_id, :user_time, :event, :net_carbs, 
-			:blood_glucose,
-			:insulin_sensitivity_factor,
-			:insulin_to_carb_ratio,
-			:blood_glucose_target,
-			:recommended_insulin_amount,
-			:actual_insulin_taken
+		VALUES(:USER_ID, :EVENT_ID, :USER_TIME, :EVENT, :NET_CARBS, 
+			:BLOOD_GLUCOSE,
+			:INSULIN_SENSITIVITY_FACTOR,
+			:INSULIN_TO_CARB_RATIO,
+			:BLOOD_GLUCOSE_TARGET,
+			:RECOMMENDED_INSULIN_AMOUNT,
+			:ACTUAL_INSULIN_TAKEN
 		)
-		RETURNING ID;
 	`
 
-	id, err := db.NamedInsertReturningIDTx(tx, query, event)
+	id, err := db.NamedInsertGetLastRowIDTx(tx, query, event)
 
 	return id, err
 }
 
-func (db *PGDatabase) LoadUserEventFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *database.UserEventFoodLog) error {
+func (db *SqliteDatabase) LoadUserEventFoodLog(ctx context.Context, userId int, eventlogId int, eventWithFood *database.UserEventFoodLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -123,7 +122,7 @@ func (db *PGDatabase) LoadUserEventFoodLog(ctx context.Context, userId int, even
 	})
 }
 
-func (db *PGDatabase) LoadUserEventFoodLogsN(ctx context.Context, userId int, n int, eventWithFood *[]database.UserEventFoodLog) error {
+func (db *SqliteDatabase) LoadUserEventFoodLogsN(ctx context.Context, userId int, n int, eventWithFood *[]database.UserEventFoodLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -162,19 +161,19 @@ func (db *PGDatabase) LoadUserEventFoodLogsN(ctx context.Context, userId int, n 
 	})
 }
 
-func (db *PGDatabase) LoadUserEventFoodLogs(ctx context.Context, userId int, eventWithFood *[]database.UserEventFoodLog) error {
+func (db *SqliteDatabase) LoadUserEventFoodLogs(ctx context.Context, userId int, eventWithFood *[]database.UserEventFoodLog) error {
 	return db.LoadUserEventFoodLogsN(ctx, userId, -1, eventWithFood)
 }
 
-func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]database.TblUserEventLog) error {
+func (db *SqliteDatabase) LoadUserEventLogs(ctx context.Context, userId int, out *[]database.TblUserEventLog) error {
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 		return db.LoadUserEventLogsTx(tx, userId, out)
 	})
 }
 
-func (db *PGDatabase) LoadUserEventLogsNTx(tx *sqlx.Tx, userId int, n int, out *[]database.TblUserEventLog) error {
+func (db *SqliteDatabase) LoadUserEventLogsNTx(tx *sqlx.Tx, userId int, n int, out *[]database.TblUserEventLog) error {
 	query := `
-		SELECT * FROM PON.USER_EVENTLOG el
+		SELECT * FROM PON_USER_EVENTLOG el
 		WHERE el.USER_ID = $1
 		ORDER BY el.USER_TIME DESC
 		LIMIT $2
@@ -182,30 +181,30 @@ func (db *PGDatabase) LoadUserEventLogsNTx(tx *sqlx.Tx, userId int, n int, out *
 	return tx.Select(out, query, userId, n)
 }
 
-func (db *PGDatabase) LoadUserEventLogsTx(tx *sqlx.Tx, userId int, out *[]database.TblUserEventLog) error {
+func (db *SqliteDatabase) LoadUserEventLogsTx(tx *sqlx.Tx, userId int, out *[]database.TblUserEventLog) error {
 	query := `
-		SELECT * FROM PON.USER_EVENTLOG el
+		SELECT * FROM PON_USER_EVENTLOG el
 		WHERE el.USER_ID = $1
 		ORDER BY el.USER_TIME DESC
 	`
 	return tx.Select(out, query, userId)
 }
 
-func (db *PGDatabase) LoadUserEventLogTx(tx *sqlx.Tx, userId int, eventlogId int, out *database.TblUserEventLog) error {
+func (db *SqliteDatabase) LoadUserEventLogTx(tx *sqlx.Tx, userId int, eventlogId int, out *database.TblUserEventLog) error {
 	query := `
-		SELECT * FROM PON.USER_EVENTLOG el
+		SELECT * FROM PON_USER_EVENTLOG el
 		WHERE el.USER_ID = $1 AND el.ID = $2
 	`
 	return tx.Get(out, query, userId, eventlogId)
 }
 
-func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *database.UpdateUserEventLog) error {
+func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *database.UpdateUserEventLog) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
 		var err error
 
-		_, err = tx.Exec(`DELETE FROM PON.USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, eventlog.Eventlog.UserID, eventlog.Eventlog.ID)
+		_, err = tx.Exec(`DELETE FROM PON_USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, eventlog.Eventlog.UserID, eventlog.Eventlog.ID)
 
 		if err != nil {
 			return err
@@ -246,7 +245,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 			food.ID = id
 		}
 
-		query := `UPDATE PON.USER_EVENTLOG SET ` +
+		query := `UPDATE PON_USER_EVENTLOG SET ` +
 			`EVENT_ID  					= :event_id,` +
 			`USER_TIME					= :user_time,` +
 			`EVENT						= :event,` +
@@ -266,7 +265,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 	})
 }
 
-func (db *PGDatabase) DeleteUserEventLog(ctx context.Context, userId int, eventlogId int, deleteFoodLogs bool) error {
+func (db *SqliteDatabase) DeleteUserEventLog(ctx context.Context, userId int, eventlogId int, deleteFoodLogs bool) error {
 
 	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
@@ -274,27 +273,27 @@ func (db *PGDatabase) DeleteUserEventLog(ctx context.Context, userId int, eventl
 
 		if deleteFoodLogs {
 
-			_, err = tx.Exec(`DELETE FROM PON.USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
+			_, err = tx.Exec(`DELETE FROM PON_USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
 
 			if err != nil {
 				return err
 			}
 		} else {
 
-			_, err = tx.Exec(`UPDATE PON.USER_FOODLOG SET EVENTLOG_ID = null WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
+			_, err = tx.Exec(`UPDATE PON_USER_FOODLOG SET EVENTLOG_ID = null WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userId, eventlogId)
 
 			if err != nil {
 				return err
 			}
 		}
 
-		_, err = tx.Exec(`DELETE FROM PON.USER_EVENTLOG WHERE USER_ID = $1 AND ID = $2`, userId, eventlogId)
+		_, err = tx.Exec(`DELETE FROM PON_USER_EVENTLOG WHERE USER_ID = $1 AND ID = $2`, userId, eventlogId)
 
 		return err
 	})
 }
 
-func (db *PGDatabase) ExportUserEventLogsCSV(ctx context.Context, w io.Writer) error {
-	query := `SELECT * FROM PON.USER_EVENTLOG`
+func (db *SqliteDatabase) ExportUserEventLogsCSV(ctx context.Context, w io.Writer) error {
+	query := `SELECT * FROM PON_USER_EVENTLOG`
 	return db.ExportQueryRowsAsCsv(ctx, query, w)
 }

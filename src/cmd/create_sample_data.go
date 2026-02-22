@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"karopon/src/database"
 	"karopon/src/database/connection"
 
@@ -11,7 +12,14 @@ import (
 func CmdCreateSampleData(ctx context.Context, c *cli.Command) error {
 
 	dbconn := c.Value("database-conn").(string)
+	vendorStr := c.Value("database-vendor").(string)
 	username := c.Value("username").(string)
+
+	vendor := database.DBTypeFromStr(vendorStr)
+
+	if vendor == database.UNKNOWN {
+		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
+	}
 
 	conn, err := connection.Connect(context.Background(), database.POSTGRES, dbconn)
 

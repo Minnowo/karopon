@@ -23,7 +23,7 @@ func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserT
 			) RETURNING id
 		`
 
-		id, err := db.InsertOneNamedGetIDTx(tx, query, ts)
+		id, err := db.NamedInsertReturningIDTx(tx, query, ts)
 
 		if err != nil {
 			return err

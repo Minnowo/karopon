@@ -45,7 +45,7 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
     	    RETURNING ID;
     	`
 
-		id, err := db.InsertOneNamedGetIDTx(tx, query, user)
+		id, err := db.NamedInsertReturningIDTx(tx, query, user)
 
 		if err != nil {
 			return err

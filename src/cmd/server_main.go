@@ -26,6 +26,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 	bindAddr := c.Value("bind").(string)
 	port := c.Value("port").(int32)
 	dbconn := c.Value("database-conn").(string)
+	vendorStr := c.Value("database-vendor").(string)
 
 	err := log4zero.InitOnce(logConfigFile)
 
@@ -50,7 +51,11 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		MaxHeaderBytes: 2 * constants.KB,
 	}
 
-	db, err := connection.Connect(context.Background(), database.POSTGRES, dbconn)
+	vendor := database.DBTypeFromStr(vendorStr)
+	if vendor == database.UNKNOWN {
+		return fmt.Errorf("Vendor %s is unsupported, use either 'sqlite' or 'postgres'", vendorStr)
+	}
+	db, err := connection.Connect(context.Background(), vendor, dbconn)
 
 	if err != nil {
 		return err

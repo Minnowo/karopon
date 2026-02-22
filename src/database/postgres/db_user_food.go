@@ -16,7 +16,7 @@ func (db *PGDatabase) AddUserFood(ctx context.Context, food *database.TblUserFoo
         RETURNING ID;
     `
 
-	id, err := db.InsertOneNamedGetID(ctx, query, food)
+	id, err := db.NamedInsertReturningID(ctx, query, food)
 
 	return id, err
 }

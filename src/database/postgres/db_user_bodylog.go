@@ -41,7 +41,7 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
     	    RETURNING ID;
     	`
 
-		id, err := db.InsertOneNamedGetIDTx(tx, query, log)
+		id, err := db.NamedInsertReturningIDTx(tx, query, log)
 
 		if err != nil {
 			return err

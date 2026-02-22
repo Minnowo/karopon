@@ -16,7 +16,7 @@ func (db *PGDatabase) AddDataSource(ctx context.Context, ds *database.TblDataSou
         RETURNING ID;
     `
 
-	return db.InsertOneNamedGetID(ctx, query, ds)
+	return db.NamedInsertReturningID(ctx, query, ds)
 }
 
 func (db *PGDatabase) LoadDataSourceByName(ctx context.Context, name string, ds *database.TblDataSource) error {

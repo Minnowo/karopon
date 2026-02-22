@@ -19,7 +19,7 @@ func (db *PGDatabase) AddDataSourceFood(ctx context.Context, ds *database.TblDat
         RETURNING ID;
     `
 
-	return db.InsertOneNamedGetID(ctx, query, ds)
+	return db.NamedInsertReturningID(ctx, query, ds)
 }
 
 func (db *PGDatabase) LoadDataSourceFoodBySimilarName(ctx context.Context, dataSourceID int, nameQuery string, out *[]database.TblDataSourceFood) error {

@@ -7,6 +7,8 @@ import (
 	"io"
 	"karopon/src/database"
 	"karopon/src/database/postgres"
+	"karopon/src/database/sqlite"
+	"path"
 	"strings"
 	"sync"
 	"testing"
@@ -396,6 +398,216 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.NoError(t, err)
 		assert.NotEqual(t, database.VERSION_UNKNOWN, version)
 	})
+
+	t.Run("AddUserTag", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		tag := &database.TblUserTag{
+			UserID:    userID,
+			Namespace: "food",
+			Name:      "Egg",
+		}
+
+		tagID, err := db.AddUserTag(ctx, tag)
+		require.NoError(t, err)
+
+		var loadedTags []database.TblUserTag
+		err = db.LoadUserTags(ctx, userID, &loadedTags)
+		require.NoError(t, err)
+		assert.Len(t, loadedTags, 1)
+
+		tag.ID = tagID
+		tag.Created = loadedTags[0].Created
+		assert.Equal(t, tag, &loadedTags[0])
+	})
+
+	t.Run("LoadUserTags", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// Add some tags to the user
+		tags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+			{UserID: userID, Namespace: "food", Name: "Milk"},
+		}
+
+		for _, tag := range tags {
+			_, err := db.AddUserTag(ctx, &tag)
+			require.NoError(t, err)
+		}
+
+		// Step 1: Load the tags for the user
+		var loadedTags []database.TblUserTag
+		err := db.LoadUserTags(ctx, userID, &loadedTags)
+		require.NoError(t, err)
+
+		// Step 2: Verify that the loaded tags match the inserted tags
+		assert.Len(t, loadedTags, len(tags))
+
+		// Set the returned ID for comparison
+		for i := range tags {
+			tags[i].ID = loadedTags[i].ID
+			tags[i].Created = loadedTags[i].Created
+		}
+		assert.ElementsMatch(t, tags, loadedTags)
+	})
+
+	t.Run("LoadUserTagNamespaces", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// Add some tags with different namespaces
+		tags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+			{UserID: userID, Namespace: "drink", Name: "Milk"},
+			{UserID: userID, Namespace: "food", Name: "Bread"},
+		}
+
+		for _, tag := range tags {
+			_, err := db.AddUserTag(ctx, &tag)
+			require.NoError(t, err)
+		}
+
+		// Step 1: Load distinct namespaces for the user
+		var namespaces []string
+		err := db.LoadUserTagNamespaces(ctx, userID, &namespaces)
+		require.NoError(t, err)
+
+		// Step 2: Verify the namespaces
+		assert.ElementsMatch(t, []string{"food", "drink"}, namespaces)
+	})
+
+	t.Run("LoadUserNamespaceTags", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// Add some tags in different namespaces
+		tags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+			{UserID: userID, Namespace: "food", Name: "Bread"},
+			{UserID: userID, Namespace: "drink", Name: "Milk"},
+		}
+
+		for _, tag := range tags {
+			_, err := db.AddUserTag(ctx, &tag)
+			require.NoError(t, err)
+		}
+
+		// Step 1: Load tags for a specific namespace
+		var loadedTags []database.TblUserTag
+		err := db.LoadUserNamespaceTags(ctx, userID, "food", &loadedTags)
+		require.NoError(t, err)
+
+		// Step 2: Verify that the correct tags are loaded for the "food" namespace
+		assert.Len(t, loadedTags, 2)
+		assert.ElementsMatch(t, []string{"Egg", "Bread"}, []string{loadedTags[0].Name, loadedTags[1].Name})
+	})
+
+	t.Run("LoadUserNamespaceTagsLikeN", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// Add some tags to the database
+		tags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+			{UserID: userID, Namespace: "food", Name: "Bread"},
+			{UserID: userID, Namespace: "food", Name: "Milk"},
+			{UserID: userID, Namespace: "food", Name: "Orange"},
+		}
+
+		for _, tag := range tags {
+			_, err := db.AddUserTag(ctx, &tag)
+			require.NoError(t, err)
+		}
+
+		// Step 1: Load tags with a name like "Br%" in the "food" namespace
+		var loadedTags []database.TblUserTag
+		err := db.LoadUserNamespaceTagsLikeN(ctx, userID, "food", "Br", 2, &loadedTags)
+		require.NoError(t, err)
+
+		// Step 2: Verify the results
+		assert.Len(t, loadedTags, 1)
+		assert.Equal(t, "Bread", loadedTags[0].Name)
+	})
+
+	t.Run("AddUserTimespan", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// Prepare timespan data
+		note := "Test timespan"
+		ts := &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}
+
+		tags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+		}
+
+		// Step 1: Add the timespan with tags
+		timespanID, err := db.AddUserTimespan(ctx, ts, tags)
+		require.NoError(t, err)
+
+		// Step 2: Verify that the timespan was inserted
+		var loadedTimespans []database.TblUserTimespan
+		err = db.LoadUserTimespans(ctx, userID, &loadedTimespans)
+		require.NoError(t, err)
+		assert.Len(t, loadedTimespans, 1)
+		assert.Equal(t, timespanID, loadedTimespans[0].ID)
+		assert.NotNil(t, loadedTimespans[0].Note)
+		assert.Equal(t, note, *loadedTimespans[0].Note)
+		assert.Equal(t, ts.StartTime.Time().UnixMilli(), loadedTimespans[0].StartTime.Time().UnixMilli())
+		assert.Equal(t, ts.StopTime.Time().UnixMilli(), loadedTimespans[0].StopTime.Time().UnixMilli())
+
+		// Verify that the tags were also inserted and associated
+		var loadedTags []database.TblUserTag
+		err = db.LoadUserTags(ctx, userID, &loadedTags)
+		require.NoError(t, err)
+		tags[0].ID = loadedTags[0].ID
+		tags[0].Created = loadedTags[0].Created
+		assert.Equal(t, tags[0], loadedTags[0])
+	})
+
 }
 
 func TestDB_Postgres(t *testing.T) {
@@ -432,6 +644,75 @@ func TestDB_Postgres(t *testing.T) {
 
 		_, err = conn.ExecContext(t.Context(), query)
 
+		require.NoError(t, err)
+
+		return conn
+	})
+}
+
+func TestDB_Sqlite(t *testing.T) {
+	runDbTests(t, func(t *testing.T) database.DB {
+
+		dir := t.TempDir()
+		str := path.Join(dir, "db.sqlite")
+		conn, err := sqlite.OpenSqliteDatabase(t.Context(), str)
+		require.NoError(t, err)
+		require.NotNil(t, conn)
+
+		err = conn.Migrate(t.Context())
+		require.NoError(t, err)
+
+		tbls := []string{
+			"PON_DATA_SOURCE",
+			"PON_DATA_SOURCE_FOOD",
+			"PON_USER",
+			"PON_USER_BODYLOG",
+			"PON_USER_EVENT",
+			"PON_USER_EVENTLOG",
+			"PON_USER_FOOD",
+			"PON_USER_FOODLOG",
+			"PON_USER_GOAL",
+			// "PON_USER_MEDICATION",
+			// "PON_USER_MEDICATION_SCHEDULE",
+			// "PON_USER_MEDICATIONLOG",
+			"PON_USER_SESSION",
+			"PON_USER_TAG",
+			"PON_USER_TIMESPAN",
+			"PON_USER_TIMESPAN_TAG",
+		}
+
+		err = conn.WithTx(t.Context(), func(tx *sqlx.Tx) error {
+
+			_, err = tx.Exec("PRAGMA foreign_keys = OFF")
+			if err != nil {
+				return err
+			}
+
+			// Delete all rows from each table
+			for _, tbl := range tbls {
+
+				_, err := conn.Exec("DELETE FROM " + tbl)
+
+				if err != nil {
+					return err
+				}
+			}
+
+			// Reset auto-increment counters by updating the sqlite_sequence table
+			// This will reset the auto-increment counter for all tables that have one
+			for _, tbl := range tbls {
+				_, err := conn.Exec("UPDATE sqlite_sequence SET seq = 0 WHERE name = '" + tbl + "'")
+
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+		require.NoError(t, err)
+
+		_, err = conn.Exec("PRAGMA foreign_keys = ON")
 		require.NoError(t, err)
 
 		return conn

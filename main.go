@@ -32,6 +32,13 @@ func main() {
 						Action:      cmd.CmdCreateSampleData,
 						Flags: []cli.Flag{
 							&cli.StringFlag{
+								Name:     "database-vendor",
+								Aliases:  []string{"V"},
+								Usage:    "The database vendor ('sqlite' or 'postgres')",
+								Sources:  cli.EnvVars("DATABASE_VENDOR"),
+								Required: false,
+							},
+							&cli.StringFlag{
 								Name:     "database-conn",
 								Aliases:  []string{"c"},
 								Usage:    "The database connection string",
@@ -51,6 +58,13 @@ func main() {
 						Description: "Import data from an FDC JSON export. See https://fdc.nal.usda.gov/download-datasets",
 						Action:      cmd.CmdCreateFDC,
 						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "database-vendor",
+								Aliases:  []string{"V"},
+								Usage:    "The database vendor ('sqlite' or 'postgres')",
+								Sources:  cli.EnvVars("DATABASE_VENDOR"),
+								Required: false,
+							},
 							&cli.StringFlag{
 								Name:     "database-conn",
 								Aliases:  []string{"c"},
@@ -96,6 +110,13 @@ func main() {
 						Action:      cmd.CmdCreateUser,
 						Flags: []cli.Flag{
 							&cli.StringFlag{
+								Name:     "database-vendor",
+								Aliases:  []string{"V"},
+								Usage:    "The database vendor ('sqlite' or 'postgres')",
+								Sources:  cli.EnvVars("DATABASE_VENDOR"),
+								Required: false,
+							},
+							&cli.StringFlag{
 								Name:     "database-conn",
 								Aliases:  []string{"c"},
 								Usage:    "The database connection string",
@@ -122,6 +143,13 @@ func main() {
 						Action:      cmd.CmdExportCsv,
 						Flags: []cli.Flag{
 							&cli.StringFlag{
+								Name:     "database-vendor",
+								Aliases:  []string{"V"},
+								Usage:    "The database vendor ('sqlite' or 'postgres')",
+								Sources:  cli.EnvVars("DATABASE_VENDOR"),
+								Required: false,
+							},
+							&cli.StringFlag{
 								Name:     "database-conn",
 								Aliases:  []string{"c"},
 								Usage:    "The database connection string",
@@ -144,6 +172,13 @@ func main() {
 				Description: "Run the server",
 				Action:      cmd.CmdServerMain,
 				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "database-vendor",
+						Aliases:  []string{"V"},
+						Usage:    "The database vendor ('sqlite' or 'postgres')",
+						Sources:  cli.EnvVars("DATABASE_VENDOR"),
+						Required: false,
+					},
 					&cli.StringFlag{
 						Name:     "database-conn",
 						Aliases:  []string{"c"},
