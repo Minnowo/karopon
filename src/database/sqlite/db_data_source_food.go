@@ -5,7 +5,7 @@ import (
 	"karopon/src/database"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *SqliteDatabase) AddDataSourceFood(ctx context.Context, ds *database.TblDataSourceFood) (int, error) {

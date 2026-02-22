@@ -6,7 +6,7 @@ import (
 	"io"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *SqliteDatabase) AddUserEvent(ctx context.Context, event *database.TblUserEvent) (int, error) {

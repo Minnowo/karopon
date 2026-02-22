@@ -5,7 +5,7 @@ import (
 	"io"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) LoadUserBodyLogs(ctx context.Context, userId int, out *[]database.TblUserBodyLog) error {

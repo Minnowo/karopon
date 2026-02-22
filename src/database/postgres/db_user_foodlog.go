@@ -7,8 +7,8 @@ import (
 	"io"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) AddUserFoodLog(ctx context.Context, food *database.TblUserFoodLog) (int, error) {

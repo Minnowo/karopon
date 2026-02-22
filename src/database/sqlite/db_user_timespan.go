@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *SqliteDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) (int, error) {

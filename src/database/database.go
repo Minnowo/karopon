@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+	"github.com/vinovest/sqlx"
 )
 
 // DB is interface for accessing and manipulating data in database.

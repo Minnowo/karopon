@@ -5,7 +5,7 @@ import (
 	"io"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) UsernameTaken(ctx context.Context, userId int, username string) (bool, error) {

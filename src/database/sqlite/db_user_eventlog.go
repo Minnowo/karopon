@@ -6,7 +6,7 @@ import (
 	"karopon/src/database"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *SqliteDatabase) AddUserEventLogWith(ctx context.Context, event *database.TblUserEventLog, foodlogs []database.TblUserFoodLog) (int, error) {

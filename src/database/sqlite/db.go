@@ -3,7 +3,7 @@ package sqlite
 import (
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 type SqliteDatabase struct {

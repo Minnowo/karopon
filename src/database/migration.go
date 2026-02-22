@@ -7,8 +7,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/minnowo/log4zero"
+	"github.com/vinovest/sqlx"
 )
 
 var migrationLogger = log4zero.Get("database-migrations")

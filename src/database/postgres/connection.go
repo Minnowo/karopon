@@ -5,8 +5,8 @@ import (
 	"karopon/src/database"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/vinovest/sqlx"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )

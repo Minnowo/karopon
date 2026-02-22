@@ -6,7 +6,7 @@ import (
 	"karopon/src/database"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 // BaseMockDB panics on every db call.

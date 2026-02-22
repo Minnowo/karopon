@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) AddUserTimespan(ctx context.Context, ts *database.TblUserTimespan, tags []database.TblUserTag) (int, error) {

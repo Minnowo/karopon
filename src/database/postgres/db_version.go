@@ -7,7 +7,7 @@ import (
 	"io"
 	"karopon/src/database"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) GetVersion(ctx context.Context) (database.Version, error) {

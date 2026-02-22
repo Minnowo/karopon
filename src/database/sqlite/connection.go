@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/pkg/errors"
+	"github.com/vinovest/sqlx"
+	"github.com/vinovest/sqlx/reflectx"
 )
 
 func openSqliteDatabase(ctx context.Context, driver, connString string) (DB *SqliteDatabase, err error) {

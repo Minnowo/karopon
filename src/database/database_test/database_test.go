@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vinovest/sqlx"
 )
 
 type NewTestDB func(t *testing.T) database.DB
