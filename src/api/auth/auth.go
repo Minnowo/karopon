@@ -6,6 +6,7 @@ import (
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/minnowo/log4zero"
@@ -15,7 +16,8 @@ var (
 	ctxUserKey         = struct{ name string }{name: "user"}
 	sessionCookie      = constants.SESSION_COOKIE
 	sessionValidCookie = constants.SESSION_VALID_COOKIE
-	tokenHeader        = constants.SESSION_AUTH_HEADER
+	tokenHeader        = "Authorization"
+	bearerTokenPrefix  = "Bearer "
 )
 
 type TokenProvider interface {
@@ -88,6 +90,8 @@ func ParseAuth(tokenProvider TokenProvider) func(next http.Handler) http.Handler
 				} else {
 					token = authToken.Value
 				}
+			} else if strings.HasPrefix(token, bearerTokenPrefix) {
+				token = token[len(bearerTokenPrefix):]
 			}
 
 			if token != "" {

@@ -1,5 +1,5 @@
 import {GetCookieValue} from '../utils/cookies';
-import {LocalGetServer, LocalStoreServer} from '../utils/localstate';
+import {LocalGetServer, LocalGetServerToken, LocalStoreServer, LocalStoreServerToken} from '../utils/localstate';
 import {
     TblUser,
     TblUserFood,
@@ -69,15 +69,17 @@ export const SetApiBase = (base: string) => {
     LocalStoreServer(base);
 };
 
-let authToken = '';
+let authToken = LocalGetServerToken() ?? '';
+export const GetAuthToken = () => authToken;
 export const SetAuthToken = (base: string) => {
     authToken = base;
+    LocalStoreServerToken(base);
 };
 
 const apiFetch = (path: string, args?: RequestInit) => {
     const headers = new Headers(args?.headers);
     if (authToken) {
-        headers.set('Auth-Token', authToken);
+        headers.set('Authorization', `Bearer ${authToken}`);
     }
     return fetch(path, {...args, headers});
 };

@@ -98,9 +98,11 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	if tokenType == "token" {
 		var tokenRes struct {
 			Token   string              `json:"token"`
+			Type    string              `json:"type"`
 			Expires database.TimeMillis `json:"expires"`
 		}
 		tokenRes.Token = token
+		tokenRes.Type = "Bearer"
 		tokenRes.Expires = database.TimeMillis(expires)
 		api.WriteJSONObj(w, tokenRes)
 	} else {

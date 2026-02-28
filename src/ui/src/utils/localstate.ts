@@ -19,6 +19,7 @@ const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
 const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
+const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
 
 const store = (key: string, obj: string) => {
     try {
@@ -41,6 +42,7 @@ const load = <T>(key: string, loadRaw = false): T | null => {
     }
     return null;
 };
+export const LocalStoreServerToken = (token: string) => store(LOCAL_STORAGE_KEY_REMOTE_TOKEN, token);
 export const LocalStoreServer = (server: string) => store(LOCAL_STORAGE_KEY_REMOTE, server);
 export const LocalStoreUser = (user: TblUser) => store(LOCAL_STORAGE_KEY_USER, JSON.stringify(user));
 export const LocalStoreEvents = (events: TblUserEvent[]) => store(LOCAL_STORAGE_KEY_EVENTS, JSON.stringify(events));
@@ -52,6 +54,7 @@ export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAG
 export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
+export const LocalGetServerToken = () => load<string>(LOCAL_STORAGE_KEY_REMOTE_TOKEN, true);
 export const LocalGetServer = () => load<string>(LOCAL_STORAGE_KEY_REMOTE, true);
 export const LocalGetUser = () => load<TblUser>(LOCAL_STORAGE_KEY_USER);
 export const LocalGetEvents = () => load<TblUserEvent[]>(LOCAL_STORAGE_KEY_EVENTS);
@@ -74,5 +77,6 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
     } catch {}
 };
