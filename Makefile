@@ -30,8 +30,7 @@ generate:
 	make -C ./src/ui generate
 
 format:
-	gofmt -w -s .
-	goimports -w .
+	golangci-lint fmt || (gofmt -w -s . && goimports -w .)
 	make -C ./src/ui format
 
 test: format generate
@@ -57,7 +56,7 @@ build-site-windows:
 		$(SITE_SRC)
 
 run: format generate
-	LOG_LEVEL=debug go run $(SITE_SRC) run --fake-auth-as-user minno
+	LOG_LEVEL=debug go run $(SITE_SRC) run # --fake-auth-as-user minno
 
 docker-pg:
 	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
