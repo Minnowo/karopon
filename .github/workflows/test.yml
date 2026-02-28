@@ -1,0 +1,51 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (CGO_ENABLED=${{ matrix.cgo }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        cgo:
+          - "0"  # pure-Go SQLite (modernc.org/sqlite)
+          - "1"  # CGO SQLite (mattn/go-sqlite3)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install gcc
+        if: matrix.cgo == '1'
+        run: sudo apt-get install -y gcc
+
+      # The UI dist directory is gitignored but is required at compile time
+      # by the //go:embed directive in src/ui/serve.go. Create minimal stub
+      # files so the embed compiles without running a full UI build.
+      - name: Create UI dist stubs
+        run: |
+          mkdir -p src/ui/dist/static
+          touch src/ui/dist/static/main.js
+          touch src/ui/dist/static/main.css
+
+      - name: Download dependencies
+        run: go mod download
+
+      # Postgres tests are skipped automatically because POSTGRES_DSN is not set.
+      - name: Run tests
+        run: go test ./...
+        env:
+          CGO_ENABLED: ${{ matrix.cgo }}

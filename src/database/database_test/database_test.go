@@ -8,6 +8,7 @@ import (
 	"karopon/src/database"
 	"karopon/src/database/postgres"
 	"karopon/src/database/sqlite"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -1291,10 +1292,16 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 }
 
 func TestDB_Postgres(t *testing.T) {
+	// Set POSTGRES_DSN to run these tests, e.g.:
+	// POSTGRES_DSN="user=postgres password=postgres_test port=9432 host=localhost sslmode=disable"
+	dsn := os.Getenv("POSTGRES_DSN")
+	if dsn == "" {
+		t.Skip("POSTGRES_DSN not set; skipping postgres tests")
+	}
+
 	runDbTests(t, func(t *testing.T) database.DB {
 
-		str := "user=postgres password=postgres_test port=9432 host=localhost sslmode=disable"
-		conn, err := postgres.OpenPGDatabase(t.Context(), str)
+		conn, err := postgres.OpenPGDatabase(t.Context(), dsn)
 		require.NoError(t, err)
 		require.NotNil(t, conn)
 
