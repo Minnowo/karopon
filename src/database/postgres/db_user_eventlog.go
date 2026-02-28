@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"karopon/src/database"
+	"math"
 	"time"
 
 	"github.com/vinovest/sqlx"
@@ -182,7 +183,7 @@ func (db *PGDatabase) LoadUserEventFoodLogs(
 	eventWithFood *[]database.UserEventFoodLog,
 ) error {
 
-	return db.LoadUserEventFoodLogsN(ctx, userID, -1, eventWithFood)
+	return db.LoadUserEventFoodLogsN(ctx, userID, math.MaxInt, eventWithFood)
 }
 
 func (db *PGDatabase) LoadUserEventLogs(ctx context.Context, userID int, out *[]database.TblUserEventLog) error {
@@ -294,7 +295,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 			`ACTUAL_INSULIN_TAKEN		= :actual_insulin_taken ` +
 			`WHERE USER_ID = :user_id AND ID = :id`
 
-		_, err = db.NamedExecContext(ctx, query, eventlog.Eventlog)
+		_, err = tx.NamedExecContext(ctx, query, eventlog.Eventlog)
 
 		return err
 

@@ -608,6 +608,686 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, tags[0], loadedTags[0])
 	})
 
+	t.Run("DBx_and_Base", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		db := newTestDB(t)
+
+		assert.NotNil(t, db.DBx())
+		assert.NotNil(t, db.Base())
+	})
+
+	t.Run("LoadUser", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		user := &database.TblUser{
+			Name:     "alice",
+			Password: []byte{1, 2, 3},
+		}
+		id, err := db.AddUser(ctx, user)
+		require.NoError(t, err)
+
+		var loaded database.TblUser
+		require.NoError(t, db.LoadUser(ctx, "alice", &loaded))
+		assert.Equal(t, id, loaded.ID)
+		assert.Equal(t, "alice", loaded.Name)
+	})
+
+	t.Run("LoadUserSessions", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		token1 := make([]byte, 32)
+		token1[0] = 1
+		token2 := make([]byte, 32)
+		token2[0] = 2
+
+		require.NoError(t, db.AddUserSession(ctx, &database.TblUserSession{
+			UserID:  userID,
+			Token:   token1,
+			Expires: database.TimeMillis(time.Now().Add(time.Hour)),
+		}))
+		require.NoError(t, db.AddUserSession(ctx, &database.TblUserSession{
+			UserID:  userID,
+			Token:   token2,
+			Expires: database.TimeMillis(time.Now().Add(2 * time.Hour)),
+		}))
+
+		var sessions []database.TblUserSession
+		require.NoError(t, db.LoadUserSessions(ctx, userID, &sessions))
+		assert.Len(t, sessions, 2)
+	})
+
+	t.Run("DeleteUserSessionsExpireAfter", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		expiredToken := make([]byte, 32)
+		expiredToken[0] = 1
+		validToken := make([]byte, 32)
+		validToken[0] = 2
+
+		require.NoError(t, db.AddUserSession(ctx, &database.TblUserSession{
+			UserID:  userID,
+			Token:   expiredToken,
+			Expires: database.TimeMillis(time.Now().Add(-time.Hour)),
+		}))
+		require.NoError(t, db.AddUserSession(ctx, &database.TblUserSession{
+			UserID:  userID,
+			Token:   validToken,
+			Expires: database.TimeMillis(time.Now().Add(time.Hour)),
+		}))
+
+		require.NoError(t, db.DeleteUserSessionsExpireAfter(ctx, time.Now()))
+
+		var sessions []database.TblUserSession
+		require.NoError(t, db.LoadUserSessions(ctx, userID, &sessions))
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, validToken, sessions[0].Token)
+	})
+
+	t.Run("UpdateUserFood", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		food := &database.TblUserFood{
+			UserID:  userID,
+			Name:    "Egg",
+			Unit:    "g",
+			Portion: 1,
+			Protein: 2,
+			Carb:    3,
+			Fibre:   4,
+			Fat:     5,
+		}
+		foodID, err := db.AddUserFood(ctx, food)
+		require.NoError(t, err)
+		food.ID = foodID
+
+		food.Name = "Large Egg"
+		food.Protein = 10
+		require.NoError(t, db.UpdateUserFood(ctx, food))
+
+		var foods []database.TblUserFood
+		require.NoError(t, db.LoadUserFoods(ctx, userID, &foods))
+		require.Len(t, foods, 1)
+		assert.Equal(t, "Large Egg", foods[0].Name)
+		assert.InDelta(t, 10.0, foods[0].Protein, 0.001)
+	})
+
+	t.Run("LoadUserEventByName", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Breakfast"})
+		require.NoError(t, err)
+
+		var loaded database.TblUserEvent
+		require.NoError(t, db.LoadUserEventByName(ctx, userID, "Breakfast", &loaded))
+		assert.Equal(t, eventID, loaded.ID)
+		assert.Equal(t, "Breakfast", loaded.Name)
+	})
+
+	t.Run("LoadUserEvents", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		for _, name := range []string{"Breakfast", "Lunch", "Dinner"} {
+			_, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: name})
+			require.NoError(t, err)
+		}
+
+		var events []database.TblUserEvent
+		require.NoError(t, db.LoadUserEvents(ctx, userID, &events))
+		assert.Len(t, events, 3)
+	})
+
+	t.Run("LoadAndOrCreateUserEventByNameTx", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// First call creates the event.
+		var created database.TblUserEvent
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+			return db.LoadAndOrCreateUserEventByNameTx(tx, userID, "Breakfast", &created)
+		}))
+		assert.NotZero(t, created.ID)
+		assert.Equal(t, "Breakfast", created.Name)
+
+		// Second call loads the existing event without creating a duplicate.
+		var loaded database.TblUserEvent
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+			return db.LoadAndOrCreateUserEventByNameTx(tx, userID, "Breakfast", &loaded)
+		}))
+		assert.Equal(t, created.ID, loaded.ID)
+
+		var events []database.TblUserEvent
+		require.NoError(t, db.LoadUserEvents(ctx, userID, &events))
+		assert.Len(t, events, 1)
+	})
+
+	t.Run("AddUserEventLogTx", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Dinner"})
+		require.NoError(t, err)
+
+		var logID int
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+			var err error
+			logID, err = db.AddUserEventLogTx(tx, &database.TblUserEventLog{
+				UserID:  userID,
+				EventID: eventID,
+			})
+			return err
+		}))
+		require.NotZero(t, logID)
+
+		var logs []database.TblUserEventLog
+		require.NoError(t, db.LoadUserEventLogs(ctx, userID, &logs))
+		assert.Len(t, logs, 1)
+		assert.Equal(t, logID, logs[0].ID)
+	})
+
+	t.Run("LoadUserEventLogsTx", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Lunch"})
+		require.NoError(t, err)
+
+		_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
+		require.NoError(t, err)
+
+		var logs []database.TblUserEventLog
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+			return db.LoadUserEventLogsTx(tx, userID, &logs)
+		}))
+		assert.Len(t, logs, 1)
+	})
+
+	t.Run("DeleteUserEventLog", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Dinner"})
+		require.NoError(t, err)
+
+		logID, err := db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
+		require.NoError(t, err)
+
+		require.NoError(t, db.DeleteUserEventLog(ctx, userID, logID, false))
+
+		var logs []database.TblUserEventLog
+		require.NoError(t, db.LoadUserEventLogs(ctx, userID, &logs))
+		assert.Empty(t, logs)
+	})
+
+	t.Run("LoadUserEventFoodLog", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Breakfast"})
+		require.NoError(t, err)
+
+		foodlog := database.TblUserFoodLog{
+			UserID:  userID,
+			Name:    "Egg",
+			Unit:    "g",
+			Portion: 100,
+			Protein: 13,
+			Carb:    1,
+			Fat:     11,
+		}
+		logID, err := db.AddUserEventLogWith(
+			ctx,
+			&database.TblUserEventLog{UserID: userID, EventID: eventID},
+			[]database.TblUserFoodLog{foodlog},
+		)
+		require.NoError(t, err)
+
+		var eflog database.UserEventFoodLog
+		require.NoError(t, db.LoadUserEventFoodLog(ctx, userID, logID, &eflog))
+		assert.Equal(t, logID, eflog.Eventlog.ID)
+		require.Len(t, eflog.Foodlogs, 1)
+		assert.Equal(t, "Egg", eflog.Foodlogs[0].Name)
+	})
+
+	t.Run("LoadUserEventFoodLogs", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Lunch"})
+		require.NoError(t, err)
+
+		for i := 0; i < 2; i++ {
+			_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
+			require.NoError(t, err)
+		}
+
+		var eflogs []database.UserEventFoodLog
+		require.NoError(t, db.LoadUserEventFoodLogs(ctx, userID, &eflogs))
+		assert.Len(t, eflogs, 2)
+	})
+
+	t.Run("LoadUserEventFoodLogsN", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Snack"})
+		require.NoError(t, err)
+
+		for i := 0; i < 3; i++ {
+			_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
+			require.NoError(t, err)
+		}
+
+		var eflogs []database.UserEventFoodLog
+		require.NoError(t, db.LoadUserEventFoodLogsN(ctx, userID, 2, &eflogs))
+		assert.Len(t, eflogs, 2)
+	})
+
+	t.Run("UpdateUserEventFoodLog", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Dinner"})
+		require.NoError(t, err)
+
+		initialFood := database.TblUserFoodLog{
+			UserID:  userID,
+			Name:    "Egg",
+			Unit:    "g",
+			Portion: 100,
+			Protein: 13,
+			Carb:    1,
+			Fat:     11,
+		}
+		eventlog := &database.TblUserEventLog{UserID: userID, EventID: eventID, Event: "Dinner"}
+		logID, err := db.AddUserEventLogWith(ctx, eventlog, []database.TblUserFoodLog{initialFood})
+		require.NoError(t, err)
+
+		updatedFood := database.TblUserFoodLog{
+			UserID:  userID,
+			Name:    "Milk",
+			Unit:    "ml",
+			Portion: 200,
+			Protein: 7,
+			Carb:    10,
+			Fat:     8,
+		}
+		eventlog.ID = logID
+		require.NoError(t, db.UpdateUserEventFoodLog(ctx, &database.UpdateUserEventLog{
+			Eventlog: *eventlog,
+			Foodlogs: []database.TblUserFoodLog{updatedFood},
+		}))
+
+		var eflog database.UserEventFoodLog
+		require.NoError(t, db.LoadUserEventFoodLog(ctx, userID, logID, &eflog))
+		require.Len(t, eflog.Foodlogs, 1)
+		assert.Equal(t, "Milk", eflog.Foodlogs[0].Name)
+	})
+
+	t.Run("foodlog_crud", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		foodlog := &database.TblUserFoodLog{
+			UserID:  userID,
+			Name:    "Egg",
+			Unit:    "g",
+			Portion: 100,
+			Protein: 13,
+			Carb:    1,
+			Fat:     11,
+			Event:   "Breakfast",
+		}
+		id, err := db.AddUserFoodLog(ctx, foodlog)
+		require.NoError(t, err)
+		require.NotZero(t, id)
+
+		var logs []database.TblUserFoodLog
+		require.NoError(t, db.LoadUserFoodLogs(ctx, userID, &logs))
+		require.Len(t, logs, 1)
+		assert.Equal(t, "Egg", logs[0].Name)
+	})
+
+	t.Run("AddUserFoodLogTx", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		foodlog := &database.TblUserFoodLog{
+			UserID:  userID,
+			Name:    "Toast",
+			Unit:    "g",
+			Portion: 50,
+			Protein: 4,
+			Carb:    15,
+			Fat:     2,
+			Event:   "Breakfast",
+		}
+		var id int
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+			var err error
+			id, err = db.AddUserFoodLogTx(tx, foodlog)
+			return err
+		}))
+		require.NotZero(t, id)
+
+		var logs []database.TblUserFoodLog
+		require.NoError(t, db.LoadUserFoodLogs(ctx, userID, &logs))
+		require.Len(t, logs, 1)
+		assert.Equal(t, "Toast", logs[0].Name)
+	})
+
+	t.Run("bodylog_crud", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		bodylog := &database.TblUserBodyLog{
+			UserID:         userID,
+			UserTime:       database.TimeMillis(time.Now()),
+			WeightKg:       75.5,
+			HeightCm:       180.0,
+			BodyFatPercent: 20.0,
+		}
+		id, err := db.AddUserBodyLogs(ctx, bodylog)
+		require.NoError(t, err)
+		require.NotZero(t, id)
+
+		var logs []database.TblUserBodyLog
+		require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
+		require.Len(t, logs, 1)
+		assert.InDelta(t, 75.5, logs[0].WeightKg, 0.001)
+
+		require.NoError(t, db.DeleteUserBodyLog(ctx, userID, id))
+
+		logs = logs[:0]
+		require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
+		assert.Empty(t, logs)
+	})
+
+	t.Run("LoadDataSourceFoodBySimilarNameN", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		ds := &database.TblDataSource{Name: "TestDB", URL: "https://example.com", Notes: ""}
+		dsID, err := db.AddDataSource(ctx, ds)
+		require.NoError(t, err)
+
+		for _, name := range []string{"Banana", "Banana Split", "Apple"} {
+			_, err := db.AddDataSourceFood(ctx, &database.TblDataSourceFood{DataSourceID: dsID, Name: name})
+			require.NoError(t, err)
+		}
+
+		var results []database.TblDataSourceFood
+		require.NoError(t, db.LoadDataSourceFoodBySimilarNameN(ctx, dsID, "Ban", 1, &results))
+		assert.Len(t, results, 1)
+	})
+
+	t.Run("goal_crud", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		goal := &database.TblUserGoal{
+			UserID:          userID,
+			Name:            "Daily Weight",
+			TargetValue:     70.0,
+			TargetCol:       string(database.TargetColumnBodyWeightKg),
+			AggregationType: string(database.AggregationAvg),
+			ValueComparison: string(database.ComparisonLessThan),
+			TimeExpr:        "DAILY",
+		}
+		goalID, err := db.AddUserGoal(ctx, goal)
+		require.NoError(t, err)
+		require.NotZero(t, goalID)
+
+		var goals []database.TblUserGoal
+		require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
+		require.Len(t, goals, 1)
+		assert.Equal(t, "Daily Weight", goals[0].Name)
+
+		var progress database.UserGoalProgress
+		require.NoError(t, db.LoadUserGoalProgress(ctx, time.Now(), &goals[0], &progress))
+		assert.InDelta(t, 70.0, progress.TargetValue, 0.001)
+
+		require.NoError(t, db.DeleteUserGoal(ctx, userID, goalID))
+
+		goals = goals[:0]
+		require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
+		assert.Empty(t, goals)
+	})
+
+	t.Run("DeleteUserTimespan", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		note := "test"
+		tsID, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}, nil)
+		require.NoError(t, err)
+
+		require.NoError(t, db.DeleteUserTimespan(ctx, userID, tsID))
+
+		var timespans []database.TblUserTimespan
+		require.NoError(t, db.LoadUserTimespans(ctx, userID, &timespans))
+		assert.Empty(t, timespans)
+	})
+
+	t.Run("UpdateUserTimespan", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		note := "original"
+		ts := &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}
+		tsID, err := db.AddUserTimespan(ctx, ts, nil)
+		require.NoError(t, err)
+
+		updatedNote := "updated"
+		ts.ID = tsID
+		ts.Note = &updatedNote
+		require.NoError(t, db.UpdateUserTimespan(ctx, ts))
+
+		var timespans []database.TblUserTimespan
+		require.NoError(t, db.LoadUserTimespans(ctx, userID, &timespans))
+		require.Len(t, timespans, 1)
+		assert.Equal(t, "updated", *timespans[0].Note)
+	})
+
+	t.Run("LoadUserTimespansWithTags", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		note := "with tags"
+		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+		})
+		require.NoError(t, err)
+
+		var tagged []database.TaggedTimespan
+		require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &tagged))
+		require.Len(t, tagged, 1)
+		require.Len(t, tagged[0].Tags, 1)
+		assert.Equal(t, "Egg", tagged[0].Tags[0].Name)
+	})
+
+	t.Run("SetUserTimespanTags", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		note := "timespan"
+		tsID, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}, nil)
+		require.NoError(t, err)
+
+		newTags := []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+			{UserID: userID, Namespace: "food", Name: "Milk"},
+		}
+		require.NoError(t, db.SetUserTimespanTags(ctx, userID, tsID, newTags))
+
+		var tagged []database.TaggedTimespan
+		require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &tagged))
+		require.Len(t, tagged, 1)
+		assert.Len(t, tagged[0].Tags, 2)
+	})
+
 }
 
 func TestDB_Postgres(t *testing.T) {

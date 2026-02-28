@@ -286,19 +286,19 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 		}
 
 		query := `UPDATE PON_USER_EVENTLOG SET ` +
-			`EVENT_ID  					= :event_id,` +
-			`USER_TIME					= :user_time,` +
-			`EVENT						= :event,` +
-			`NET_CARBS					= :net_carbs,` +
-			`BLOOD_GLUCOSE				= :blood_glucose,` +
-			`INSULIN_SENSITIVITY_FACTOR	= :insulin_sensitivity_factor,` +
-			`INSULIN_TO_CARB_RATIO		= :insulin_to_carb_ratio,` +
-			`BLOOD_GLUCOSE_TARGET		= :blood_glucose_target,` +
-			`RECOMMENDED_INSULIN_AMOUNT	= :recommended_insulin_amount,` +
-			`ACTUAL_INSULIN_TAKEN		= :actual_insulin_taken ` +
-			`WHERE USER_ID = :user_id AND ID = :id`
+			`EVENT_ID  					= :EVENT_ID,` +
+			`USER_TIME					= :USER_TIME,` +
+			`EVENT						= :EVENT,` +
+			`NET_CARBS					= :NET_CARBS,` +
+			`BLOOD_GLUCOSE				= :BLOOD_GLUCOSE,` +
+			`INSULIN_SENSITIVITY_FACTOR	= :INSULIN_SENSITIVITY_FACTOR,` +
+			`INSULIN_TO_CARB_RATIO		= :INSULIN_TO_CARB_RATIO,` +
+			`BLOOD_GLUCOSE_TARGET		= :BLOOD_GLUCOSE_TARGET,` +
+			`RECOMMENDED_INSULIN_AMOUNT	= :RECOMMENDED_INSULIN_AMOUNT,` +
+			`ACTUAL_INSULIN_TAKEN		= :ACTUAL_INSULIN_TAKEN ` +
+			`WHERE USER_ID = :USER_ID AND ID = :ID`
 
-		_, err = db.NamedExecContext(ctx, query, eventlog.Eventlog)
+		_, err = tx.NamedExec(query, eventlog.Eventlog)
 
 		return err
 

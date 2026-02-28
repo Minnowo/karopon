@@ -46,14 +46,14 @@ func (db *SqliteDatabase) UpdateUserFood(ctx context.Context, food *database.Tbl
 	query := `
 		UPDATE PON_USER_FOOD
 		SET
-			NAME    = :name,
-			UNIT    = :unit,
-			PORTION = :portion,
-			PROTEIN = :protein,
-			CARB    = :carb,
-			FIBRE   = :fibre,
-			FAT     = :fat
-		WHERE USER_ID = :user_id AND ID = :id 
+			NAME    = :NAME,
+			UNIT    = :UNIT,
+			PORTION = :PORTION,
+			PROTEIN = :PROTEIN,
+			CARB    = :CARB,
+			FIBRE   = :FIBRE,
+			FAT     = :FAT
+		WHERE USER_ID = :USER_ID AND ID = :ID 
     `
 
 	_, err := db.NamedExecContext(ctx, query, food)

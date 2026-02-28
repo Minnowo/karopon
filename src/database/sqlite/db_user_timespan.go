@@ -62,10 +62,10 @@ func (db *SqliteDatabase) UpdateUserTimespan(ctx context.Context, ts *database.T
 	query := `
 		UPDATE PON_USER_TIMESPAN
 		SET
-			START_TIME = :start_time,
-			STOP_TIME = :stop_time,
-			NOTE = :note
-		WHERE ID = :id AND USER_ID = :user_id
+			START_TIME = :START_TIME,
+			STOP_TIME = :STOP_TIME,
+			NOTE = :NOTE
+		WHERE ID = :ID AND USER_ID = :USER_ID
 	`
 
 	_, err := db.NamedExecContext(ctx, query, ts)
