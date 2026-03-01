@@ -92,7 +92,7 @@ export const UserEventFoodLogFactory = {
                 recommended_insulin_amount: 0,
                 actual_insulin_taken: 0,
             },
-            foodlogs: [TblUserFoodLogFactory.empty(), TblUserFoodLogFactory.empty(), TblUserFoodLogFactory.empty()],
+            foodlogs: [],
             total_protein: 0,
             total_carb: 0,
             total_fibre: 0,

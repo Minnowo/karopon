@@ -34,6 +34,8 @@ type AddEventsPanelState = {
     copyDate?: boolean;
 };
 
+const TRAILING = 3;
+
 export function AddEventsPanel(p: AddEventsPanelState) {
     // Used for the foods array key={} when rendering the food list.
     // The foods array is a ref which is passed into the row component, where it is edited by ref.
@@ -55,20 +57,40 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const render = DoRender();
 
+    const ensureTrailingRows = () => {
+        let trailingEmpty = 0;
+        for (let i = foods.current.length - 1; i >= 0; i--) {
+            if (foods.current[i].name === '') {
+                trailingEmpty++;
+            } else {
+                break;
+            }
+        }
+        while (trailingEmpty < TRAILING) {
+            foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
+            trailingEmpty++;
+        }
+    };
+
+    const renderWithTrailing = () => {
+        ensureTrailingRows();
+        render();
+    };
+
     useLayoutEffect(() => {
         setEvent(p.fromEvent.eventlog.event);
         setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
         setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
-        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + 3);
+        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + TRAILING);
         let i = 0;
         for (; i < p.fromEvent.foodlogs.length; i++) {
             foods.current[i] = {...p.fromEvent.foodlogs[i], key: --keyRef.current};
         }
-        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
-        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
-        foods.current[i++] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
+        for (; i < foods.current.length; i++) {
+            foods.current[i] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
+        }
     }, [p.fromEvent, p.copyDate]);
 
     const reset = () => {
@@ -77,11 +99,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         setBloodSugar(0);
         setInsulinToCarbRatio(0);
         setInsulinTaken(0);
-        foods.current = [
-            mutateWithKey(TblUserFoodLogFactory.empty()),
-            mutateWithKey(TblUserFoodLogFactory.empty()),
-            mutateWithKey(TblUserFoodLogFactory.empty()),
-        ];
+        foods.current.length = 0;
+        ensureTrailingRows();
         DoRender();
     };
 
@@ -168,17 +187,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const buildTableHead = () => {
         return (
             <tr className="font-semibold text-xs text-center">
-                <th className="text-left py-1">
-                    <button
-                        className="w-full sm:w-32"
-                        onClick={() => {
-                            foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
-                            render();
-                        }}
-                    >
-                        Add Row
-                    </button>
-                </th>
+                <th className="text-left py-1" />
                 <th className="py-1">Amt</th>
                 <th className="py-1 pr-2">Fat</th>
                 <th className="py-1 pr-2">Carb</th>
@@ -196,7 +205,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <>
                 {foods.current.length > 1 && (
                     <tr className="text-center">
-                        <td className="text-right w-full">Total</td>
+                        <td className="text-right w-full" />
                         <td className="pr-1">-</td>
                         <td className="pr-2 text-right"> {totals.fat.toFixed(1)}</td>
                         <td className="pr-2 text-right">{totals.carb.toFixed(1)}</td>
@@ -275,10 +284,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                     user={p.user}
                                     foods={p.foods}
                                     food={food}
-                                    render={render}
+                                    render={renderWithTrailing}
                                     deleteSelf={() => {
                                         foods.current.splice(index, 1);
-                                        render();
+                                        renderWithTrailing();
                                     }}
                                 />
                             );
