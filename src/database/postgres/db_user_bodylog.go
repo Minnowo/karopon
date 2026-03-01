@@ -55,6 +55,28 @@ func (db *PGDatabase) AddUserBodyLogs(ctx context.Context, log *database.TblUser
 	return retUserID, err
 }
 
+func (db *PGDatabase) UpdateUserBodyLog(ctx context.Context, log *database.TblUserBodyLog) error {
+
+	query := `
+		UPDATE PON.USER_BODYLOG
+		SET
+			USER_TIME        = :user_time,
+			WEIGHT_KG        = :weight_kg,
+			HEIGHT_CM        = :height_cm,
+			BODY_FAT_PERCENT = :body_fat_percent,
+			BMI              = :bmi,
+			BP_SYSTOLIC      = :bp_systolic,
+			BP_DIASTOLIC     = :bp_diastolic,
+			HEART_RATE_BPM   = :heart_rate_bpm,
+			STEPS_COUNT      = :steps_count
+		WHERE ID = :id AND USER_ID = :user_id
+	`
+
+	_, err := db.NamedExecContext(ctx, query, log)
+
+	return err
+}
+
 func (db *PGDatabase) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
 
 	query := `DELETE FROM PON.USER_BODYLOG WHERE USER_ID = $1 AND ID = $2`

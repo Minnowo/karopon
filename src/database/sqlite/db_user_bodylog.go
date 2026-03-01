@@ -38,6 +38,28 @@ func (db *SqliteDatabase) AddUserBodyLogs(ctx context.Context, log *database.Tbl
 	return db.NamedInsertGetLastRowID(ctx, query, log)
 }
 
+func (db *SqliteDatabase) UpdateUserBodyLog(ctx context.Context, log *database.TblUserBodyLog) error {
+
+	query := `
+		UPDATE PON_USER_BODYLOG
+		SET
+			USER_TIME        = :USER_TIME,
+			WEIGHT_KG        = :WEIGHT_KG,
+			HEIGHT_CM        = :HEIGHT_CM,
+			BODY_FAT_PERCENT = :BODY_FAT_PERCENT,
+			BMI              = :BMI,
+			BP_SYSTOLIC      = :BP_SYSTOLIC,
+			BP_DIASTOLIC     = :BP_DIASTOLIC,
+			HEART_RATE_BPM   = :HEART_RATE_BPM,
+			STEPS_COUNT      = :STEPS_COUNT
+		WHERE ID = :ID AND USER_ID = :USER_ID
+	`
+
+	_, err := db.NamedExecContext(ctx, query, log)
+
+	return err
+}
+
 func (db *SqliteDatabase) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
 
 	query := `DELETE FROM PON_USER_BODYLOG WHERE USER_ID = $1 AND ID = $2`

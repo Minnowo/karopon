@@ -286,6 +286,18 @@ export const ApiDeleteUserGoal = (goal: TblUserGoal): Promise<void> => {
     );
 };
 
+export const ApiUpdateUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/bodylog/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(log),
+        })
+    );
+};
+
 export const ApiDeleteUserBodyLog = (log: TblUserBodyLog): Promise<void> => {
     return fetchNone(
         apiFetch(`${ApiBase}/api/bodylog/delete`, {

@@ -201,6 +201,9 @@ type DB interface {
 	// Add the given bodylog to the db.
 	AddUserBodyLogs(ctx context.Context, log *TblUserBodyLog) (int, error)
 
+	// Update the given bodylog in the db.
+	UpdateUserBodyLog(ctx context.Context, log *TblUserBodyLog) error
+
 	// Delete the given bodylog with the user ID and row ID.
 	DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error
 

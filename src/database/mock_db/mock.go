@@ -233,6 +233,10 @@ func (p *BaseMockDB) AddUserBodyLogs(ctx context.Context, log *database.TblUserB
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) UpdateUserBodyLog(ctx context.Context, log *database.TblUserBodyLog) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
 	panic("not implemented")
 }

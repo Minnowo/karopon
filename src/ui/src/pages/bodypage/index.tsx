@@ -3,11 +3,12 @@ import {useState} from 'preact/hooks';
 import {ErrorDiv} from '../../components/error_div';
 import {TblUserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
-import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog} from '../../api/api';
+import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog, ApiUpdateUserBodyLog} from '../../api/api';
 import {BodyLogPanel} from './bodylog_panel';
 
 export function BodyPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [editLog, setEditLog] = useState<TblUserBodyLog | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [tmpLog, setTmpLog] = useState<TblUserBodyLog>({
@@ -63,6 +64,16 @@ export function BodyPage(state: BaseState) {
             .catch(handleErr);
     };
 
+    const updateBodyLog = (bodylog: TblUserBodyLog) => {
+        ApiUpdateUserBodyLog(bodylog)
+            .then((updated: TblUserBodyLog) => {
+                state.setBodyLogs((e) => (e !== null ? e.map((x) => (x.id === updated.id ? updated : x)) : null));
+                setEditLog(null);
+                setErrorMsg(null);
+            })
+            .catch(handleErr);
+    };
+
     const copyBodyLog = (bodylog: TblUserBodyLog) => {
         setTmpLog(bodylog);
         setShowNewEventPanel(true);
@@ -100,15 +111,35 @@ export function BodyPage(state: BaseState) {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {state.bodylogs.map((log: TblUserBodyLog) => (
-                        <BodyLogPanel
-                            key={log.id}
-                            bodyLog={log}
-                            onCopy={copyBodyLog}
-                            onEdit={() => alert('This is not implemented yet!')}
-                            onDelete={deleteBodyLog}
-                        />
-                    ))}
+                    {state.bodylogs.map((log: TblUserBodyLog) =>
+                        editLog?.id === log.id ? (
+                            <AddBodyPanel
+                                key={log.id}
+                                title="Edit Body Log"
+                                preserveTime={true}
+                                bodylog={editLog}
+                                addBodyLog={updateBodyLog}
+                                className="mb-4"
+                                actionButtons={[
+                                    <button
+                                        key="cancel"
+                                        className="text-sm bg-c-red font-bold w-24 sm:mx-1 mb-1 sm:mb-0"
+                                        onClick={() => setEditLog(null)}
+                                    >
+                                        Cancel
+                                    </button>,
+                                ]}
+                            />
+                        ) : (
+                            <BodyLogPanel
+                                key={log.id}
+                                bodyLog={log}
+                                onCopy={copyBodyLog}
+                                onEdit={(l) => setEditLog(l)}
+                                onDelete={deleteBodyLog}
+                            />
+                        )
+                    )}
                 </div>
             )}
         </>

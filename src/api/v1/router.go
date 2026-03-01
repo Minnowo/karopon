@@ -93,6 +93,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/eventlog/delete", a.deleteUserEventLog)
 	post.HandleFunc("/eventfoodlog/update", a.updateUserEventFoodLog)
 	post.HandleFunc("/bodylog/new", a.createUserBodyLog)
+	post.HandleFunc("/bodylog/update", a.updateUserBodyLog)
 	post.HandleFunc("/bodylog/delete", a.deleteUserBodyLog)
 	post.HandleFunc("/goal/new", a.newUserGoal)
 	post.HandleFunc("/goal/delete", a.deleteUserGoal)

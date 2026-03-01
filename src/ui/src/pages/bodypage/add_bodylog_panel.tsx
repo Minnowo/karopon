@@ -4,10 +4,14 @@ import {DoRender} from '../../hooks/doRender';
 import {TblUserBodyLog} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {CmToFeetInches, FeetInchesToCm, KgToLbs, LbsToKg} from '../../utils/units';
+import {JSX} from 'preact';
 
 type AddBodyPanelProps = {
     bodylog: TblUserBodyLog;
     addBodyLog: (bodylog: TblUserBodyLog) => void;
+    title?: string;
+    preserveTime?: boolean;
+    actionButtons?: JSX.Element[];
     className?: string;
 };
 
@@ -20,7 +24,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
         () => ({
             ...state.bodylog,
             created: Date.now(),
-            user_time: Date.now(),
+            user_time: state.preserveTime ? state.bodylog.user_time : Date.now(),
         }),
         [state.bodylog]
     );
@@ -39,7 +43,10 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
     return (
         <>
             <div className={`rounded-sm p-2 border container-theme ${state.className}`}>
-                <span className="text-lg font-bold">New Body Log</span>
+                <div className="flex w-full justify-between">
+                    <span className="text-lg font-bold">{state.title ?? 'New Body Log'}</span>
+                    {state.actionButtons && <div className="flex flex-col sm:flex-row">{state.actionButtons}</div>}
+                </div>
                 <ErrorDiv errorMsg={errorMsg} />
                 <div className="flex flex-col justify-between">
                     <div className="w-full flex flex-wrap">
