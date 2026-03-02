@@ -85,5 +85,5 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 
 	event.ID = id
 
-	api.WriteJSONArr(w, event)
+	api.WriteJSONObj(w, event)
 }

@@ -61,7 +61,7 @@ func WriteJSONObj(w http.ResponseWriter, obj any) {
 	}
 }
 
-func WriteJSONArr(w http.ResponseWriter, arr any) {
+func WriteJSONArr[T any](w http.ResponseWriter, arr []T) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

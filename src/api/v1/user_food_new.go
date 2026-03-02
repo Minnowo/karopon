@@ -66,5 +66,5 @@ func (a *APIV1) addUserFood(w http.ResponseWriter, r *http.Request) {
 
 	food.ID = newID
 
-	api.WriteJSONArr(w, food)
+	api.WriteJSONObj(w, food)
 }

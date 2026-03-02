@@ -31,5 +31,5 @@ func (a *APIV1) getUserGoals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.WriteJSONObj(w, goals)
+	api.WriteJSONArr(w, goals)
 }
