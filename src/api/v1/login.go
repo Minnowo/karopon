@@ -77,7 +77,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, expires, err := a.UserReg.Login(r.Context(), username, password)
+	token, expires, err := a.UserReg.Login(r.Context(), username, password, r.Header.Get("User-Agent"))
 
 	if err != nil {
 

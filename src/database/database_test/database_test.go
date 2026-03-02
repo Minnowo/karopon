@@ -825,11 +825,13 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
 		var logID int
 		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
 			var err error
 			logID, err = db.AddUserEventLogTx(tx, &database.TblUserEventLog{
 				UserID:  userID,
 				EventID: eventID,
 			})
+
 			return err
 		}))
 		require.NotZero(t, logID)
@@ -935,7 +937,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Lunch"})
 		require.NoError(t, err)
 
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
 			require.NoError(t, err)
 		}
@@ -958,7 +960,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Snack"})
 		require.NoError(t, err)
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
 			require.NoError(t, err)
 		}
@@ -1067,8 +1069,10 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		}
 		var id int
 		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
 			var err error
 			id, err = db.AddUserFoodLogTx(tx, foodlog)
+
 			return err
 		}))
 		require.NotZero(t, id)

@@ -55,3 +55,7 @@ func (a *AccessToken) HashBytes() []byte {
 
 	return hash[:]
 }
+
+func (t *AccessTokenHash) String() string {
+	return hex.EncodeToString(t[:])
+}

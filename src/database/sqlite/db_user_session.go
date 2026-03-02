@@ -36,12 +36,28 @@ func (db *SqliteDatabase) AddUserSession(ctx context.Context, session *database.
 
 	query := `
 		INSERT INTO PON_USER_SESSION (
-			USER_ID, EXPIRES, TOKEN
+			USER_ID, EXPIRES, TOKEN, USER_AGENT
 		) VALUES (
-			:USER_ID, :EXPIRES, :TOKEN
+			:USER_ID, :EXPIRES, :TOKEN, :USER_AGENT
 		)
 	`
 	_, err := db.NamedExecContext(ctx, query, session)
+
+	return err
+}
+
+func (db *SqliteDatabase) DeleteUserSessionByUserAndToken(ctx context.Context, userID int, token []byte) error {
+
+	if len(token) != 32 {
+		return database.ErrInvalidSessionTokenLength
+	}
+
+	query := `
+		DELETE FROM PON_USER_SESSION
+		WHERE USER_ID = $1 AND TOKEN = $2
+	`
+
+	_, err := db.ExecContext(ctx, query, userID, token)
 
 	return err
 }

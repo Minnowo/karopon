@@ -109,6 +109,10 @@ func (p *BaseMockDB) DeleteUserSessionByToken(ctx context.Context, token []byte)
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) DeleteUserSessionByUserAndToken(ctx context.Context, userID int, token []byte) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) DeleteUserSessionsExpireAfter(ctx context.Context, t time.Time) error {
 	panic("not implemented")
 }

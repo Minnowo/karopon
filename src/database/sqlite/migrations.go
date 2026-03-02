@@ -8,6 +8,7 @@ import (
 
 var sqliteUpMigrations = []database.Migration{
 	database.NewFileMigration(database.VERSION_NONE, 0, "sqlite/0001_system"),
+	database.NewFileMigration(0, 1, "sqlite/0002_session_user_agent"),
 }
 
 func (db *SqliteDatabase) GetMigrationMaxVersion() database.Version {

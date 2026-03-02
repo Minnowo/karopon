@@ -153,3 +153,67 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 }
+
+func TestGetToken(t *testing.T) {
+
+	const validToken = "this_is_auth_token" //nolint:gosec
+
+	reg := &fakeUserReg{tokenToUsers: make(map[string]*database.TblUser)}
+	reg.tokenToUsers[validToken] = &database.TblUser{Name: "test"}
+
+	captureToken := func(wantToken string) func(w http.ResponseWriter, r *http.Request) {
+		return func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, wantToken, GetToken(r))
+		}
+	}
+
+	handler := func(wantToken string) http.Handler {
+		return ParseAuth(reg)(http.HandlerFunc(captureToken(wantToken)))
+	}
+
+	t.Run("no auth returns empty token", func(t *testing.T) {
+
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+
+		handler("").ServeHTTP(rr, req)
+	})
+
+	t.Run("valid cookie sets token in context", func(t *testing.T) {
+
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: validToken})
+		req.AddCookie(&http.Cookie{Name: sessionValidCookie, Value: "peko!"})
+
+		handler(validToken).ServeHTTP(rr, req)
+	})
+
+	t.Run("valid bearer header sets token in context", func(t *testing.T) {
+
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		handler(validToken).ServeHTTP(rr, req)
+	})
+
+	t.Run("invalid token returns empty token", func(t *testing.T) {
+
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "bad_token"})
+		req.AddCookie(&http.Cookie{Name: sessionValidCookie, Value: "peko!"})
+
+		handler("").ServeHTTP(rr, req)
+	})
+
+	t.Run("invalid bearer token returns empty token", func(t *testing.T) {
+
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer bad_token")
+
+		handler("").ServeHTTP(rr, req)
+	})
+}

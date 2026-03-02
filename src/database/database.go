@@ -86,6 +86,9 @@ type DB interface {
 	AddUserSession(ctx context.Context, session *TblUserSession) error
 
 	DeleteUserSessionByToken(ctx context.Context, token []byte) error
+	// Delete a session belonging to the given user identified by the token hash.
+	// The token must be 32 bytes in size.
+	DeleteUserSessionByUserAndToken(ctx context.Context, userID int, token []byte) error
 	// Delete all user sessions where the expire time is less than the given time.
 	DeleteUserSessionsExpireAfter(ctx context.Context, time time.Time) error
 

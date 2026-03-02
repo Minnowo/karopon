@@ -56,6 +56,7 @@ func (u *UserRegistry) NewToken(
 	ctx context.Context,
 	userID int,
 	sessionExpireTime int64,
+	userAgent string,
 ) (AccessToken, time.Time, error) {
 
 	var token AccessToken
@@ -66,9 +67,10 @@ func (u *UserRegistry) NewToken(
 	tokenHash := token.Hash()
 
 	session := database.TblUserSession{
-		Expires: database.TimeMillis(expires),
-		UserID:  userID,
-		Token:   tokenHash[:],
+		Expires:   database.TimeMillis(expires),
+		UserID:    userID,
+		Token:     tokenHash[:],
+		UserAgent: userAgent,
 	}
 
 	if err := u.db.AddUserSession(ctx, &session); err != nil {
@@ -121,6 +123,32 @@ func (u *UserRegistry) ExpireToken(tokenStr string) {
 		err := u.db.DeleteUserSessionByToken(context.Background(), hash[:])
 		log.Debug().Err(err).Msg("DeleteUserSessionByToken failed")
 	}
+}
+
+// ExpireSessionForUser deletes the session identified by its hash if it belongs to the given userID.
+func (u *UserRegistry) ExpireSessionForUser(ctx context.Context, userID int, hash AccessTokenHash) error {
+
+	var err error
+
+	u.sessionsLock.Lock()
+	{
+		s, ok := u.sessions[hash]
+
+		if ok {
+			if s.userID == userID {
+				delete(u.sessions, hash)
+			} else {
+				err = errInvalidToken
+			}
+		}
+	}
+	u.sessionsLock.Unlock()
+
+	if err != nil {
+		return err
+	}
+
+	return u.db.DeleteUserSessionByUserAndToken(ctx, userID, hash[:])
 }
 
 func (u *UserRegistry) CheckToken(ctx context.Context, tokenStr string) (*database.TblUser, bool) {
@@ -203,7 +231,7 @@ func (u *UserRegistry) GetUserBySession(ctx context.Context, session Session) (*
 	return &dbUser, true
 }
 
-func (u *UserRegistry) Login(ctx context.Context, name, password string) (string, time.Time, error) {
+func (u *UserRegistry) Login(ctx context.Context, name, password, userAgent string) (string, time.Time, error) {
 
 	var userID int
 	var userPassword []byte
@@ -251,7 +279,7 @@ func (u *UserRegistry) Login(ctx context.Context, name, password string) (string
 		return "", time.Time{}, ErrUserPasswordDoesNotMatch
 	}
 
-	token, expires, err := u.NewToken(ctx, userID, userSessionTime)
+	token, expires, err := u.NewToken(ctx, userID, userSessionTime, userAgent)
 
 	if err != nil {
 		return "", time.Time{}, err

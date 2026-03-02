@@ -112,7 +112,7 @@ func TestLoginSuccessInMemoryCache(t *testing.T) {
 	reg.usersByName[user.Name] = user
 	reg.usersByID[user.ID] = user
 
-	token, expires, err := reg.Login(context.Background(), "alice", "secret")
+	token, expires, err := reg.Login(context.Background(), "alice", "secret", "test-token")
 
 	assert.Nil(t, err, "expected nil error")
 	assert.NotEmpty(t, token, "expected token")
@@ -135,7 +135,7 @@ func TestLoginSuccessNoMemoryCache(t *testing.T) {
 
 	reg := NewRegistry(mock)
 
-	token, expires, err := reg.Login(context.Background(), "alice", "secret")
+	token, expires, err := reg.Login(context.Background(), "alice", "secret", "test-token")
 
 	assert.Nil(t, err, "expected nil error")
 	assert.NotEmpty(t, token, "expected token")
@@ -161,7 +161,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 	reg := NewRegistry(mock)
 
-	_, _, err := reg.Login(context.Background(), "alice", "wrong")
+	_, _, err := reg.Login(context.Background(), "alice", "wrong", "test-token")
 
 	if !errors.Is(err, ErrUserPasswordDoesNotMatch) {
 		t.Fatalf("expected ErrUserPasswordDoesNotMatch, got %v", err)
@@ -172,7 +172,7 @@ func TestLoginUserNotFound(t *testing.T) {
 
 	reg := NewRegistry(&sessionMockDB{})
 
-	_, _, err := reg.Login(context.Background(), "ghost", "pw")
+	_, _, err := reg.Login(context.Background(), "ghost", "pw", "test-token")
 
 	if !errors.Is(err, ErrUserDoesNotExist) {
 		t.Fatalf("expected ErrUserDoesNotExist, got %v", err)

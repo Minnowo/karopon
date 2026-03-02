@@ -64,6 +64,7 @@ func newLoginRequest(t *testing.T, username, password, tokenType string) *http.R
 	req, err := http.NewRequest(http.MethodPost, "/api/login", &body)
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", w.FormDataContentType())
+
 	return req
 }
 
@@ -77,9 +78,11 @@ func newTestAPI(db database.DB) *APIV1 {
 
 // hashPassword returns a bcrypt hash of the given password using the minimum cost.
 func hashPassword(t *testing.T, password string) []byte {
+
 	t.Helper()
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	require.NoError(t, err)
+
 	return hash
 }
 
@@ -271,7 +274,7 @@ func TestLogout_WithUser_WithCookie_ExpiresToken(t *testing.T) {
 	user := &database.TblUser{ID: 1, Name: "alice", SessionExpireTimeSeconds: 3600}
 	a.UserReg.PutUser(user)
 
-	token, _, err := a.UserReg.NewToken(context.Background(), user.ID, user.SessionExpireTimeSeconds)
+	token, _, err := a.UserReg.NewToken(context.Background(), user.ID, user.SessionExpireTimeSeconds, "test-token")
 	require.NoError(t, err)
 
 	req, err := http.NewRequest(http.MethodGet, "/api/logout", nil)

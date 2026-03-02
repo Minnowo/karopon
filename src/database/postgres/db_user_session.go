@@ -36,12 +36,28 @@ func (db *PGDatabase) AddUserSession(ctx context.Context, session *database.TblU
 
 	query := `
 		INSERT INTO PON.USER_SESSION (
-			USER_ID, EXPIRES, TOKEN
+			USER_ID, EXPIRES, TOKEN, USER_AGENT
 		) VALUES (
-			:user_id, :expires, :token
+			:user_id, :expires, :token, :user_agent
 		)
 	`
 	_, err := db.NamedExecContext(ctx, query, session)
+
+	return err
+}
+
+func (db *PGDatabase) DeleteUserSessionByUserAndToken(ctx context.Context, userID int, token []byte) error {
+
+	if len(token) != 32 {
+		return database.ErrInvalidSessionTokenLength
+	}
+
+	query := `
+		DELETE FROM PON.USER_SESSION
+		WHERE USER_ID = $1 AND TOKEN = $2
+	`
+
+	_, err := db.ExecContext(ctx, query, userID, token)
 
 	return err
 }

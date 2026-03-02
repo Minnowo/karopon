@@ -70,10 +70,11 @@ func (u *TblUser) Copy() *TblUser {
 }
 
 type TblUserSession struct {
-	UserID  int        `db:"user_id" json:"user_id"`
-	Created TimeMillis `db:"created" json:"created"`
-	Expires TimeMillis `db:"expires" json:"expires"`
-	Token   []byte     `db:"token"   json:"token"`
+	UserID    int        `db:"user_id"    json:"user_id"`
+	Created   TimeMillis `db:"created"    json:"created"`
+	Expires   TimeMillis `db:"expires"    json:"expires"`
+	Token     []byte     `db:"token"      json:"token"`
+	UserAgent string     `db:"user_agent" json:"user_agent"`
 }
 
 type TblUserEventLog struct {

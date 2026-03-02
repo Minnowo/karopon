@@ -14,6 +14,7 @@ import (
 
 var (
 	ctxUserKey         = struct{ name string }{name: "user"}
+	ctxTokenKey        = struct{ name string }{name: "token"}
 	sessionCookie      = constants.SESSION_COOKIE
 	sessionValidCookie = constants.SESSION_VALID_COOKIE
 	tokenHeader        = "Authorization"
@@ -106,6 +107,7 @@ func ParseAuth(tokenProvider TokenProvider) func(next http.Handler) http.Handler
 						Msg("Authentication successful")
 
 					r = PutUser(r, user)
+					r = putToken(r, token)
 				} else {
 					ExpireAuthToken(w)
 				}
@@ -165,6 +167,21 @@ func GetUser(r *http.Request) *database.TblUser {
 func PutUser(r *http.Request, user *database.TblUser) *http.Request {
 
 	ctx := context.WithValue(r.Context(), ctxUserKey, user)
+
+	return r.WithContext(ctx)
+}
+
+// GetToken returns the raw session token string stored in the request context, or empty string if not present.
+func GetToken(r *http.Request) string {
+
+	t, _ := r.Context().Value(ctxTokenKey).(string)
+
+	return t
+}
+
+func putToken(r *http.Request, token string) *http.Request {
+
+	ctx := context.WithValue(r.Context(), ctxTokenKey, token)
 
 	return r.WithContext(ctx)
 }
