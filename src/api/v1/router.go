@@ -104,4 +104,5 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/timespan/delete", a.deleteUserTimespan)
 	post.HandleFunc("/timespan/update", a.updateUserTimespan)
 	post.HandleFunc("/timespan/update/tags", a.updateUserTimespanTags)
+	post.HandleFunc("/session/delete", a.deleteUserSession)
 }

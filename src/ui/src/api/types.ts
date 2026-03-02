@@ -237,3 +237,11 @@ export type TaggedTimespan = {
     timespan: TblUserTimespan;
     tags: TblUserTag[];
 };
+
+export type UserSession = {
+    created: number;
+    expires: number;
+    user_agent: string;
+    token_id: string;
+    is_current: boolean;
+};

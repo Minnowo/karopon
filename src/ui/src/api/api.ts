@@ -18,6 +18,7 @@ import {
     TblUserTag,
     TblUserTimespan,
     TaggedTimespan,
+    UserSession,
 } from './types';
 
 export class ApiError extends Error {
@@ -354,6 +355,20 @@ export const ApiDeleteUserEventLog = (eventlog: TblUserEventLog): Promise<void> 
             },
             method: 'POST',
             body: JSON.stringify(eventlog),
+        })
+    );
+};
+
+export const ApiGetUserSessions = (): Promise<UserSession[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/sessions`));
+};
+
+export const ApiDeleteUserSession = (session: UserSession): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/session/delete`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({token_id: session.token_id}),
         })
     );
 };

@@ -11,10 +11,11 @@ var (
 	errInvalidToken error = errors.New("token is invalid")
 )
 
-const TOKEN_BYTES int = 32
+const TokenByteSize int = 32
+const TokenHashByteSize int = sha256.Size
 
-type AccessToken [TOKEN_BYTES]byte
-type AccessTokenHash [sha256.Size]byte
+type AccessToken [TokenByteSize]byte
+type AccessTokenHash [TokenHashByteSize]byte
 
 func (a *AccessToken) New() {
 	rand.Read(a[:])
@@ -56,6 +57,17 @@ func (a *AccessToken) HashBytes() []byte {
 	return hash[:]
 }
 
-func (t *AccessTokenHash) String() string {
-	return hex.EncodeToString(t[:])
+func (h *AccessTokenHash) FromString(s string) error {
+
+	n, err := hex.Decode(h[:], []byte(s))
+
+	if err != nil || n != len(h) {
+		return errInvalidToken
+	}
+
+	return nil
+}
+
+func (h *AccessTokenHash) String() string {
+	return hex.EncodeToString(h[:])
 }

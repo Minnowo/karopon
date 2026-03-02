@@ -25,6 +25,9 @@ export function UserHeader({user}: UserHeaderProps) {
                     <a href="#settings" onClick={() => setShowDropDown(false)}>
                         Settings
                     </a>
+                    <a href="#sessions" onClick={() => setShowDropDown(false)}>
+                        Sessions
+                    </a>
                     <a href="#tags" onClick={() => setShowDropDown(false)}>
                         Tags
                     </a>
