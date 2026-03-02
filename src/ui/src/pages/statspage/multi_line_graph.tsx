@@ -84,7 +84,37 @@ export const RenderMultiLineGraph = (
         return l;
     }, [data, width, height, pad, maxVal]);
 
-    const buckets: Map<number, number[]> = new Map();
+    const labelPositions = useMemo(() => {
+        const positions: Partial<Record<MacroType, Map<number, number>>> = {};
+        const xBuckets = new Map<number, Array<{key: MacroType; y: number}>>();
+
+        for (const key of visibleMacros) {
+            for (const p of lines[key]) {
+                if (!xBuckets.has(p.x)) {
+                    xBuckets.set(p.x, []);
+                }
+                xBuckets.get(p.x)!.push({key, y: p.y});
+            }
+        }
+
+        const spacing = 14;
+        for (const [x, points] of xBuckets) {
+            points.sort((a, b) => b.y - a.y);
+            let prevAssignedY = Infinity;
+
+            for (const point of points) {
+                // Nudge UP (decrease y) if too close to the previous (lower-value) label
+                const adjustedY = Math.min(point.y, prevAssignedY - spacing);
+                prevAssignedY = adjustedY;
+                if (!positions[point.key]) {
+                    positions[point.key] = new Map();
+                }
+                positions[point.key]!.set(x, adjustedY);
+            }
+        }
+
+        return positions as Record<MacroType, Map<number, number>>;
+    }, [visibleMacros, lines]);
 
     return (
         <div ref={containerRef} className="mb-8 w-full">
@@ -125,7 +155,7 @@ export const RenderMultiLineGraph = (
                         preserveAspectRatio="xMinYMin meet"
                         className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                     >
-                        {visibleMacros.map((key, keyIndex) => {
+                        {visibleMacros.map((key) => {
                             const line = lines[key];
 
                             return (
@@ -138,27 +168,15 @@ export const RenderMultiLineGraph = (
                                     />
 
                                     {line.map((p) => {
-                                        let bucket = buckets.get(p.x);
-                                        if (!bucket) {
-                                            bucket = new Array(visibleMacros.length);
-                                            buckets.set(p.x, bucket);
-                                        }
-                                        let adjustedY = p.y;
-                                        const spacing = 14;
-
-                                        while (bucket.some((off) => Math.abs(off - adjustedY) < spacing)) {
-                                            adjustedY -= 1;
-                                        }
-
-                                        bucket[keyIndex] = adjustedY;
+                                        const adjustedY = labelPositions[key]?.get(p.x) ?? p.y;
 
                                         return (
                                             <g key={p.date + key}>
                                                 <circle cx={p.x} cy={p.y} r="5" fill={colors[key]} />
                                                 {showText && (
                                                     <text
-                                                        x={p.x}
-                                                        y={adjustedY - 10}
+                                                        x={p.x + 5}
+                                                        y={adjustedY - 5}
                                                         fill={colors[key]}
                                                         fontSize="10"
                                                         textAnchor="end"
