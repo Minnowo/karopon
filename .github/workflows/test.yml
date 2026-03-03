@@ -18,6 +18,35 @@ jobs:
           - "0"  # pure-Go SQLite (modernc.org/sqlite)
           - "1"  # CGO SQLite (mattn/go-sqlite3)
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_test
+          POSTGRES_DB: karopon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      postgres-migration:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_migration_test
+          POSTGRES_DB: karopon
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,8 +73,9 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      # Postgres tests are skipped automatically because POSTGRES_DSN is not set.
       - name: Run tests
         run: go test ./...
         env:
           CGO_ENABLED: ${{ matrix.cgo }}
+          POSTGRES_DSN: "user=postgres password=postgres_test host=localhost port=5432 sslmode=disable"
+          POSTGRES_MIGRATION_TEST_DSN: "user=postgres password=postgres_migration_test host=localhost port=5433 sslmode=disable"
