@@ -39,8 +39,7 @@ func (db *SqliteDatabase) AddUserEventLogWith(
 
 			food.UserID = event.UserID
 			food.Event = event.Event
-			food.EventID = &event.EventID
-			food.EventLogID = &eventLogID
+			food.EventLogID = eventLogID
 			food.UserTime = event.UserTime
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
@@ -273,8 +272,7 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 			food.UserID = eventlog.Eventlog.UserID
 			food.UserTime = eventlog.Eventlog.UserTime
 			food.Event = eventlog.Eventlog.Event
-			food.EventID = &eventlog.Eventlog.EventID
-			food.EventLogID = &eventlog.Eventlog.ID
+			food.EventLogID = eventlog.Eventlog.ID
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
 
@@ -309,37 +307,11 @@ func (db *SqliteDatabase) DeleteUserEventLog(
 	ctx context.Context,
 	userID int,
 	eventlogID int,
-	deleteFoodLogs bool,
 ) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	_, err := db.ExecContext(ctx, `DELETE FROM PON_USER_EVENTLOG WHERE USER_ID = $1 AND ID = $2`, userID, eventlogID)
 
-		var err error
-
-		if deleteFoodLogs {
-
-			_, err = tx.Exec(`DELETE FROM PON_USER_FOODLOG WHERE USER_ID = $1 AND EVENTLOG_ID = $2`, userID, eventlogID)
-
-			if err != nil {
-				return err
-			}
-		} else {
-
-			_, err = tx.Exec(
-				`UPDATE PON_USER_FOODLOG SET EVENTLOG_ID = null WHERE USER_ID = $1 AND EVENTLOG_ID = $2`,
-				userID,
-				eventlogID,
-			)
-
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = tx.Exec(`DELETE FROM PON_USER_EVENTLOG WHERE USER_ID = $1 AND ID = $2`, userID, eventlogID)
-
-		return err
-	})
+	return err
 }
 
 func (db *SqliteDatabase) ExportUserEventLogsCSV(ctx context.Context, w io.Writer) error {

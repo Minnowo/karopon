@@ -36,7 +36,7 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.Db.DeleteUserEventLog(r.Context(), user.ID, eventlog.ID, false)
+	err = a.Db.DeleteUserEventLog(r.Context(), user.ID, eventlog.ID)
 
 	if err != nil {
 

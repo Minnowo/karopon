@@ -116,18 +116,16 @@ func (f *TblUserFood) Scale() {
 }
 
 type TblUserFoodLog struct {
-	ID       int        `db:"id"        json:"id"`
-	UserID   int        `db:"user_id"   json:"user_id"`
-	FoodID   *int       `db:"food_id"   json:"food_id"`
-	Created  TimeMillis `db:"created"   json:"created"`
-	UserTime TimeMillis `db:"user_time" json:"user_time"`
-	Name     string     `db:"name"      json:"name"`
+	ID         int        `db:"id"          json:"id"`
+	UserID     int        `db:"user_id"     json:"user_id"`
+	EventLogID int        `db:"eventlog_id" json:"eventlog_id"`
+	FoodID     *int       `db:"food_id"     json:"food_id"`
+	Created    TimeMillis `db:"created"     json:"created"`
+	UserTime   TimeMillis `db:"user_time"   json:"user_time"`
+	Name       string     `db:"name"        json:"name"`
 
-	EventLogID *int   `db:"eventlog_id" json:"eventlog_id"`
-	EventID    *int   `db:"event_id"    json:"event_id"`
-	Event      string `db:"event"       json:"event"`
-
-	Unit string `db:"unit" json:"unit"`
+	Event string `db:"event" json:"event"`
+	Unit  string `db:"unit"  json:"unit"`
 
 	Portion float64 `db:"portion" json:"portion"`
 	Protein float64 `db:"protein" json:"protein"`

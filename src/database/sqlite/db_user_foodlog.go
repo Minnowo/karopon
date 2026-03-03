@@ -11,25 +11,6 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
-func (db *SqliteDatabase) AddUserFoodLog(ctx context.Context, food *database.TblUserFoodLog) (int, error) {
-
-	var retID int = -1
-
-	err := db.WithTx(ctx, func(tx *sqlx.Tx) error {
-
-		id, err := db.AddUserFoodLogTx(tx, food)
-		if err != nil {
-			return err
-		}
-
-		retID = id
-
-		return nil
-	})
-
-	return retID, err
-}
-
 func (db *SqliteDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLog) (int, error) {
 
 	var query string
@@ -86,48 +67,13 @@ func (db *SqliteDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFo
 		}
 	}
 
-	// Load or create the event based off the name, if we have a name, and no ID.
-	if food.Event != "" && (food.EventID == nil || *food.EventID <= 0) {
-
-		query = `SELECT ID FROM PON_USER_EVENT e WHERE e.USER_ID = $1 AND e.NAME = $2 LIMIT 1`
-
-		err := tx.QueryRow(query, food.UserID, food.Event).Scan(&food.EventID)
-
-		switch {
-
-		case errors.Is(err, sql.ErrNoRows):
-
-			log.Debug().Msg("got error no rows")
-
-			event := database.TblUserEvent{
-				UserID: food.UserID,
-				Name:   food.Event,
-			}
-
-			query = `INSERT INTO PON_USER_EVENT (USER_ID, NAME) VALUES (:USER_ID, :NAME)`
-
-			if id, err := db.NamedInsertGetLastRowIDTx(tx, query, event); err != nil {
-				return -1, err
-			} else {
-				food.EventID = &id
-				log.Debug().Int("id", *food.EventID).Msg("created new event")
-			}
-
-		case err != nil:
-			return -1, err
-
-		default:
-			log.Debug().Int("id", *food.EventID).Msg("found existing event")
-		}
-	}
-
 	query = `INSERT INTO PON_USER_FOODLOG ` +
 		`(` +
 		`USER_ID, FOOD_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, ` +
-		`CARB, FIBRE, FAT, EVENT_ID, EVENTLOG_ID` +
+		`CARB, FIBRE, FAT, EVENTLOG_ID` +
 		`) VALUES (` +
 		`:USER_ID, :FOOD_ID, :USER_TIME, :NAME, :EVENT, :UNIT, :PORTION, ` +
-		`:PROTEIN, :CARB, :FIBRE, :FAT, :EVENT_ID, :EVENTLOG_ID` +
+		`:PROTEIN, :CARB, :FIBRE, :FAT, :EVENTLOG_ID` +
 		`) `
 
 	id, err := db.NamedInsertGetLastRowIDTx(tx, query, food)
@@ -137,29 +83,6 @@ func (db *SqliteDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFo
 	}
 
 	return id, nil
-}
-
-func (db *SqliteDatabase) LoadUserFoodLogs(ctx context.Context, userID int, out *[]database.TblUserFoodLog) error {
-
-	query := `SELECT * FROM PON_USER_FOODLOG fl ` +
-		`WHERE fl.USER_ID = $1 ` +
-		`ORDER BY fl.USER_TIME DESC`
-
-	return db.SelectContext(ctx, out, query, userID)
-}
-
-func (db *SqliteDatabase) LoadUserFoodLogByEvent(
-	ctx context.Context,
-	userID int,
-	eventID int,
-	out *[]database.TblUserFoodLog,
-) error {
-
-	query := `SELECT * FROM PON_USER_FOODLOG fl ` +
-		`WHERE fl.USER_ID = $1 AND fl.EVENT_ID = $2 ` +
-		`ORDER BY fl.USER_TIME DESC`
-
-	return db.SelectContext(ctx, out, query, userID, eventID)
 }
 
 func (db *SqliteDatabase) LoadUserFoodLogByEventLogTx(

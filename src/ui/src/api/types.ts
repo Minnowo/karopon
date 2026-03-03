@@ -66,15 +66,13 @@ export type TblUserFood = {
 export type TblUserFoodLog = {
     id: number;
     user_id: number;
+    eventlog_id: number;
     food_id: number | null;
     created: number;
     user_time: number;
     name: string;
 
-    eventlog_id: number | null;
-    event_id: number | null;
     event: string;
-
     unit: string;
 
     portion: number;

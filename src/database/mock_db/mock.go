@@ -187,7 +187,7 @@ func (p *BaseMockDB) LoadUserEventLogsTx(tx *sqlx.Tx, userID int, events *[]data
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) DeleteUserEventLog(ctx context.Context, userID int, eventlogID int, deleteFoodLogs bool) error {
+func (p *BaseMockDB) DeleteUserEventLog(ctx context.Context, userID int, eventlogID int) error {
 	panic("not implemented")
 }
 
@@ -222,10 +222,6 @@ func (p *BaseMockDB) AddUserFoodLog(ctx context.Context, food *database.TblUserF
 }
 
 func (p *BaseMockDB) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLog) (int, error) {
-	panic("not implemented")
-}
-
-func (p *BaseMockDB) LoadUserFoodLogs(ctx context.Context, userID int, out *[]database.TblUserFoodLog) error {
 	panic("not implemented")
 }
 

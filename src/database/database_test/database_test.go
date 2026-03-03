@@ -287,6 +287,33 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		var logs []database.TblUserEventLog
 		require.NoError(t, db.LoadUserEventLogs(ctx, userID, &logs))
 		assert.Len(t, logs, 1)
+
+		foodlog := &database.TblUserFoodLog{
+			UserID:     userID,
+			EventLogID: logID,
+			Name:       "Toast",
+			Event:      event.Name,
+			Unit:       "g",
+			Portion:    50,
+			Protein:    4,
+			Carb:       15,
+			Fat:        2,
+		}
+		var id int
+		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
+
+			var err error
+			id, err = db.AddUserFoodLogTx(tx, foodlog)
+
+			return err
+		}))
+		require.NotZero(t, id)
+
+		var eventlogwithfood database.UserEventFoodLog
+		require.NoError(t, db.LoadUserEventFoodLog(ctx, userID, logID, &eventlogwithfood))
+		assert.Len(t, eventlogwithfood.Foodlogs, 1)
+		assert.Equal(t, id, eventlogwithfood.Eventlog.ID)
+		assert.Equal(t, foodlog.Name, eventlogwithfood.Foodlogs[0].Name)
 	})
 
 	t.Run("datasource_and_similar_search", func(t *testing.T) {
@@ -881,7 +908,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		logID, err := db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
 		require.NoError(t, err)
 
-		require.NoError(t, db.DeleteUserEventLog(ctx, userID, logID, false))
+		require.NoError(t, db.DeleteUserEventLog(ctx, userID, logID))
 
 		var logs []database.TblUserEventLog
 		require.NoError(t, db.LoadUserEventLogs(ctx, userID, &logs))
@@ -1015,72 +1042,6 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		require.NoError(t, db.LoadUserEventFoodLog(ctx, userID, logID, &eflog))
 		require.Len(t, eflog.Foodlogs, 1)
 		assert.Equal(t, "Milk", eflog.Foodlogs[0].Name)
-	})
-
-	t.Run("foodlog_crud", func(t *testing.T) {
-
-		lock.Lock()
-		t.Cleanup(lock.Unlock)
-
-		ctx := t.Context()
-		db := newTestDB(t)
-
-		userID := getTestUser(t, db)
-
-		foodlog := &database.TblUserFoodLog{
-			UserID:  userID,
-			Name:    "Egg",
-			Unit:    "g",
-			Portion: 100,
-			Protein: 13,
-			Carb:    1,
-			Fat:     11,
-			Event:   "Breakfast",
-		}
-		id, err := db.AddUserFoodLog(ctx, foodlog)
-		require.NoError(t, err)
-		require.NotZero(t, id)
-
-		var logs []database.TblUserFoodLog
-		require.NoError(t, db.LoadUserFoodLogs(ctx, userID, &logs))
-		require.Len(t, logs, 1)
-		assert.Equal(t, "Egg", logs[0].Name)
-	})
-
-	t.Run("AddUserFoodLogTx", func(t *testing.T) {
-
-		lock.Lock()
-		t.Cleanup(lock.Unlock)
-
-		ctx := t.Context()
-		db := newTestDB(t)
-
-		userID := getTestUser(t, db)
-
-		foodlog := &database.TblUserFoodLog{
-			UserID:  userID,
-			Name:    "Toast",
-			Unit:    "g",
-			Portion: 50,
-			Protein: 4,
-			Carb:    15,
-			Fat:     2,
-			Event:   "Breakfast",
-		}
-		var id int
-		require.NoError(t, db.WithTx(ctx, func(tx *sqlx.Tx) error {
-
-			var err error
-			id, err = db.AddUserFoodLogTx(tx, foodlog)
-
-			return err
-		}))
-		require.NotZero(t, id)
-
-		var logs []database.TblUserFoodLog
-		require.NoError(t, db.LoadUserFoodLogs(ctx, userID, &logs))
-		require.Len(t, logs, 1)
-		assert.Equal(t, "Toast", logs[0].Name)
 	})
 
 	t.Run("bodylog_crud", func(t *testing.T) {

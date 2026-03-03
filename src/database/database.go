@@ -157,8 +157,7 @@ type DB interface {
 	LoadUserEventLogsTx(tx *sqlx.Tx, userID int, events *[]TblUserEventLog) error
 
 	// Delete the eventlog with the given ID.
-	// If deleteFoodLogs is true, also delete any associated foodlogs.
-	DeleteUserEventLog(ctx context.Context, userID int, eventlogID int, deleteFoodLogs bool) error
+	DeleteUserEventLog(ctx context.Context, userID int, eventlogID int) error
 
 	///
 	/// EventFoodLog Functions
@@ -189,10 +188,7 @@ type DB interface {
 	// If the EventID is null or 0, loads or creates the event based off the name.
 	// Loads or creates the given food.
 	// Returns the TblUserFoodLog ID or an error.
-	AddUserFoodLog(ctx context.Context, food *TblUserFoodLog) (int, error)
 	AddUserFoodLogTx(tx *sqlx.Tx, food *TblUserFoodLog) (int, error)
-
-	LoadUserFoodLogs(ctx context.Context, userID int, out *[]TblUserFoodLog) error
 
 	///
 	/// Bodylog Functions
