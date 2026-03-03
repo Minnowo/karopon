@@ -1187,6 +1187,51 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Empty(t, goals)
 	})
 
+	t.Run("UpdateUserGoal", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		goal := &database.TblUserGoal{
+			UserID:          userID,
+			Name:            "Daily Protein",
+			TargetValue:     150.0,
+			TargetCol:       string(database.TargetColumnProtein),
+			AggregationType: string(database.AggregationSum),
+			ValueComparison: string(database.ComparisonGreaterThan),
+			TimeExpr:        "DAILY",
+		}
+		goalID, err := db.AddUserGoal(ctx, goal)
+		require.NoError(t, err)
+		goal.ID = goalID
+
+		goal.Name = "Weekly Protein"
+		goal.TargetValue = 200.0
+		goal.TimeExpr = "WEEKLY"
+		require.NoError(t, db.UpdateUserGoal(ctx, goal))
+
+		var goals []database.TblUserGoal
+		require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
+		require.Len(t, goals, 1)
+		assert.Equal(t, "Weekly Protein", goals[0].Name)
+		assert.InDelta(t, 200.0, goals[0].TargetValue, 0.001)
+		assert.Equal(t, "WEEKLY", goals[0].TimeExpr)
+
+		// Updating with a different user_id should not affect this user's row.
+		other := &database.TblUserGoal{ID: goalID, UserID: userID + 99, Name: "Hijacked"}
+		require.NoError(t, db.UpdateUserGoal(ctx, other))
+
+		goals = goals[:0]
+		require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
+		require.Len(t, goals, 1)
+		assert.Equal(t, "Weekly Protein", goals[0].Name, "row should be unchanged after wrong-user update")
+	})
+
 	t.Run("DeleteUserTimespan", func(t *testing.T) {
 
 		lock.Lock()
@@ -1318,6 +1363,9 @@ func TestDB_Postgres(t *testing.T) {
 		conn, err := postgres.OpenPGDatabase(t.Context(), dsn)
 		require.NoError(t, err)
 		require.NotNil(t, conn)
+
+		// _, err = conn.ExecContext(t.Context(), `DROP SCHEMA IF EXISTS pon CASCADE`)
+		// require.NoError(t, err)
 
 		err = conn.Migrate(t.Context())
 		require.NoError(t, err)

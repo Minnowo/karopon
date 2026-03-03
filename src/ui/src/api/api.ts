@@ -239,6 +239,17 @@ export const ApiNewUserGoal = (goal: TblUserGoal): Promise<TblUserGoal> => {
         })
     );
 };
+export const ApiUpdateUserGoal = (goal: TblUserGoal): Promise<TblUserGoal> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/goal/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(goal),
+        })
+    );
+};
 export const ApiNewUserTag = (tag: TblUserTag): Promise<TblUserTag> => {
     return fetchJson(
         apiFetch(`${ApiBase}/api/tag/new`, {

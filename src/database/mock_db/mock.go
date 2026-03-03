@@ -288,6 +288,10 @@ func (p *BaseMockDB) AddUserGoal(ctx context.Context, userGoal *database.TblUser
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) UpdateUserGoal(ctx context.Context, userGoal *database.TblUserGoal) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,

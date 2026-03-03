@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {TblUserGoal, UserGoalProgress} from '../../api/types';
-import {ApiDeleteUserGoal, ApiError, ApiGetUserGoalProgress, ApiNewUserGoal} from '../../api/api';
+import {ApiDeleteUserGoal, ApiError, ApiGetUserGoalProgress, ApiNewUserGoal, ApiUpdateUserGoal} from '../../api/api';
 import {GoalCreationPanel} from './add_goal_panel';
 import {FormatDuration} from '../../utils/time';
 import {NewTblUserGoal} from '../../api/factories';
@@ -11,9 +11,10 @@ import {SnakeCaseToTitle} from '../../utils/strings';
 
 type GoalPanelProps = {
     goal: TblUserGoal;
-    deleteGoal: (food: TblUserGoal) => void;
+    editGoal: (goal: TblUserGoal) => void;
+    deleteGoal: (goal: TblUserGoal) => void;
 };
-const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
+const GoalPanel = ({goal, editGoal, deleteGoal}: GoalPanelProps) => {
     const [progress, setProgress] = useState<UserGoalProgress | null>(null);
 
     useEffect(() => {
@@ -47,6 +48,10 @@ const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
                 <h2 className="text-lg font-semibold">{goal.name}</h2>
                 <DropdownButton
                     actions={[
+                        {
+                            label: 'Edit',
+                            onClick: () => editGoal(goal),
+                        },
                         {
                             label: 'Delete',
                             dangerous: true,
@@ -83,6 +88,7 @@ const GoalPanel = ({goal, deleteGoal}: GoalPanelProps) => {
 
 export function GoalsPage(state: BaseState) {
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
+    const [editingGoal, setEditingGoal] = useState<TblUserGoal | null>(null);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
 
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -106,6 +112,17 @@ export function GoalsPage(state: BaseState) {
                 newGoal.current = NewTblUserGoal({target_value: 1500});
                 state.setGoals((oldGoals) => (oldGoals === null ? null : [g, ...oldGoals]));
                 setShowNewGoalPanel(false);
+            })
+            .catch(handleErr);
+    };
+
+    const updateGoal = (goal: TblUserGoal) => {
+        ApiUpdateUserGoal(goal)
+            .then((updated) => {
+                state.setGoals((oldGoals) =>
+                    oldGoals === null ? null : oldGoals.map((g) => (g.id === updated.id ? updated : g))
+                );
+                setEditingGoal(null);
             })
             .catch(handleErr);
     };
@@ -138,7 +155,24 @@ export function GoalsPage(state: BaseState) {
                 {state.goals.length === 0 ? (
                     <p>No goals found.</p>
                 ) : (
-                    state.goals.map((g: TblUserGoal) => <GoalPanel key={g.id} goal={g} deleteGoal={deleteGoal} />)
+                    state.goals.map((g: TblUserGoal) =>
+                        editingGoal?.id === g.id ? (
+                            <GoalCreationPanel
+                                key={g.id}
+                                userGoal={editingGoal}
+                                onCreated={createGoal}
+                                onUpdated={updateGoal}
+                                onCancel={() => setEditingGoal(null)}
+                            />
+                        ) : (
+                            <GoalPanel
+                                key={g.id}
+                                goal={g}
+                                editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
+                                deleteGoal={deleteGoal}
+                            />
+                        )
+                    )
                 )}
             </div>
         </>

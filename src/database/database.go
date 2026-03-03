@@ -242,6 +242,7 @@ type DB interface {
 	DeleteUserGoal(ctx context.Context, userID int, goalID int) error
 	LoadUserGoals(ctx context.Context, userID int, out *[]TblUserGoal) error
 	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
+	UpdateUserGoal(ctx context.Context, userGoal *TblUserGoal) error
 	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
 
 	///

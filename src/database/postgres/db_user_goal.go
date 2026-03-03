@@ -60,6 +60,24 @@ func (db *PGDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUse
 	return id, nil
 }
 
+func (db *PGDatabase) UpdateUserGoal(ctx context.Context, userGoal *database.TblUserGoal) error {
+
+	query := `
+		UPDATE PON.USER_GOAL SET
+			name             = :name,
+			target_value     = :target_value,
+			target_col       = :target_col,
+			aggregation_type = :aggregation_type,
+			value_comparison = :value_comparison,
+			time_expr        = :time_expr
+		WHERE id = :id AND user_id = :user_id
+	`
+
+	_, err := db.NamedExecContext(ctx, query, userGoal)
+
+	return err
+}
+
 func (db *PGDatabase) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,

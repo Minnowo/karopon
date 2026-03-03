@@ -81,16 +81,16 @@ func (a GoalAggregationFunc) IsValid() bool {
 type GoalValueComparison string
 
 const (
-	ComparisonEQ       GoalValueComparison = "EQUAL_TO"
-	ComparisonLessThan GoalValueComparison = "LESS_THAN"
-	ComparisonMoreThan GoalValueComparison = "GREATER_THAN"
-	ComparisonLessEq   GoalValueComparison = "LESS_THAN_OR_EQUAL_TO"
-	ComparisonMoreEq   GoalValueComparison = "GREATER_THAN_OR_EQUAL_TO"
+	ComparisonEQ          GoalValueComparison = "EQUAL_TO"
+	ComparisonLessThan    GoalValueComparison = "LESS_THAN"
+	ComparisonGreaterThan GoalValueComparison = "GREATER_THAN"
+	ComparisonLessEq      GoalValueComparison = "LESS_THAN_OR_EQUAL_TO"
+	ComparisonMoreEq      GoalValueComparison = "GREATER_THAN_OR_EQUAL_TO"
 )
 
 func (v GoalValueComparison) IsValid() bool {
 	switch v {
-	case ComparisonEQ, ComparisonLessThan, ComparisonMoreThan,
+	case ComparisonEQ, ComparisonLessThan, ComparisonGreaterThan,
 		ComparisonLessEq, ComparisonMoreEq:
 		return true
 	default:

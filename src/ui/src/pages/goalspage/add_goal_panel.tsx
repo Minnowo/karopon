@@ -19,15 +19,18 @@ import {SnakeCaseToTitle} from '../../utils/strings';
 type Props = {
     userGoal: TblUserGoal;
     onCreated: (goal: TblUserGoal) => void;
+    onUpdated?: (goal: TblUserGoal) => void;
+    onCancel?: () => void;
     className?: string;
 };
 
-export function GoalCreationPanel({userGoal, onCreated, className = ''}: Props) {
+export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, className = ''}: Props) {
     const [error, setError] = useState<string | null>(null);
     const goal = useMemo(() => ({...userGoal}), [userGoal]);
     const render = DoRender();
+    const isEditing = onUpdated !== undefined;
 
-    const onCreate = () => {
+    const onSubmit = () => {
         setError(null);
 
         goal.name = goal.name.trim();
@@ -41,17 +44,28 @@ export function GoalCreationPanel({userGoal, onCreated, className = ''}: Props) 
             return;
         }
 
-        onCreated({...goal});
+        if (isEditing) {
+            onUpdated({...goal});
+        } else {
+            onCreated({...goal});
+        }
     };
 
     return (
         <div className={`rounded-sm p-2 border container-theme ${className}`}>
-            <h2 className="text-lg font-semibold">Create a New Goal</h2>
+            <div className="flex w-full justify-between">
+                <h2 className="text-lg font-semibold">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
+                {onCancel && (
+                    <button className="text-sm bg-c-red font-bold w-24" onClick={onCancel}>
+                        Cancel
+                    </button>
+                )}
+            </div>
             <ErrorDiv errorMsg={error} />
 
             <div className="flex flex-col gap-2">
                 <input
-                    className="border rounded px-2 py-1 w-full"
+                    className="border rounded px-2 py-1 mt-1 w-full"
                     value={goal.name}
                     placeholder="Your goal name"
                     title="Enter the name of your goal here"
@@ -158,8 +172,8 @@ export function GoalCreationPanel({userGoal, onCreated, className = ''}: Props) 
                 </div>
 
                 <div className="flex sm:justify-end">
-                    <button className="bg-c-green font-bold my-1 w-full sm:w-32" onClick={onCreate}>
-                        Create Goal
+                    <button className="bg-c-green font-bold my-1 w-full sm:w-32" onClick={onSubmit}>
+                        {isEditing ? 'Update Goal' : 'Create Goal'}
                     </button>
                 </div>
             </div>

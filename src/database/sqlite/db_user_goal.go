@@ -59,6 +59,24 @@ func (db *SqliteDatabase) AddUserGoal(ctx context.Context, userGoal *database.Tb
 	return id, nil
 }
 
+func (db *SqliteDatabase) UpdateUserGoal(ctx context.Context, userGoal *database.TblUserGoal) error {
+
+	query := `
+		UPDATE PON_USER_GOAL SET
+			NAME             = :NAME,
+			TARGET_VALUE     = :TARGET_VALUE,
+			TARGET_COL       = :TARGET_COL,
+			AGGREGATION_TYPE = :AGGREGATION_TYPE,
+			VALUE_COMPARISON = :VALUE_COMPARISON,
+			TIME_EXPR        = :TIME_EXPR
+		WHERE ID = :ID AND USER_ID = :USER_ID
+	`
+
+	_, err := db.NamedExecContext(ctx, query, userGoal)
+
+	return err
+}
+
 func (db *SqliteDatabase) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,

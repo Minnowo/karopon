@@ -21,7 +21,10 @@ var pgMigrationLock sync.Mutex
 func openAndResetPGDB(t *testing.T) *PGDatabase {
 	t.Helper()
 
-	dsn := os.Getenv("POSTGRES_DSN")
+	// This DSN should be a different postgres instance that the one in the database_test package, or at least should
+	// not be run at the same time. POSTGRES_MIGRATION_TEST_DSN="user=postgres password=postgres_migration_test
+	// port=9432 host=localhost sslmode=disable"
+	dsn := os.Getenv("POSTGRES_MIGRATION_TEST_DSN")
 	if dsn == "" {
 		t.Skip("POSTGRES_DSN not set; skipping postgres migration tests")
 	}
