@@ -57,12 +57,11 @@ export const TblUserFoodLogFactory = {
         return {
             id,
             user_id: 0,
+            eventlog_id: 0,
             food_id: 0,
             created: 0,
             user_time: 0,
             name: '',
-            eventlog_id: 0,
-            event_id: 0,
             event: '',
             unit: '',
             portion: 0,
