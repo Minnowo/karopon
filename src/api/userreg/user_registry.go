@@ -333,7 +333,7 @@ func (u *UserRegistry) ClearExpiredSessions() {
 	u.sessionsLock.Unlock()
 
 	err := u.db.DeleteUserSessionsExpireAfter(context.Background(), time.Now())
-	log.Debug().Err(err).Msg("DeleteUserSessionsExpireAfter failed")
+	log.Debug().Err(err).Msg("DeleteUserSessionsExpireAfter")
 }
 
 func (u *UserRegistry) ClearExpiredSessionsOncePerHour() bool {
