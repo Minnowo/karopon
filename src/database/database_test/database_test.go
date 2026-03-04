@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 	"io"
 	"karopon/src/database"
 	"karopon/src/database/postgres"
@@ -15,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vinovest/sqlx"
@@ -1351,24 +1353,72 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 }
 
 func TestDB_Postgres(t *testing.T) {
-	// Set POSTGRES_DSN to run these tests, e.g.:
-	// POSTGRES_DSN="user=postgres password=postgres_test port=9432 host=localhost sslmode=disable"
-	dsn := os.Getenv("POSTGRES_DSN")
+
+	// TEST_POSTGRES_DSN="user=postgres password=postgres_test port=9432 host=localhost sslmode=disable"
+	dsn := os.Getenv("TEST_POSTGRES_DSN")
+
 	if dsn == "" {
-		t.Skip("POSTGRES_DSN not set; skipping postgres tests")
+		t.Skip("TEST_POSTGRES_DSN not set; skipping postgres tests")
 	}
 
+	require.NotContains(
+		t,
+		dsn,
+		"dbname=",
+		"The POSTGRES_DSN must not contain any dbname parameter, and the default 'postgres' database must exist.",
+	)
+
+	// we will create a new database to run all the tests, so we can use a single instance of postgres accross many
+	// tests.
+	testDbName := strings.ToLower(fmt.Sprintf("TestDB_Postgres_%d", time.Now().UnixMilli()))
+
+	contDSN := fmt.Sprintf("%s dbname=postgres", dsn)
+	testDSN := fmt.Sprintf("%s dbname=%s", dsn, testDbName)
+
+	ctx := t.Context()
+	controlConn, err := postgres.OpenPGDatabase(ctx, contDSN)
+	require.NoError(t, err)
+	require.NotNil(t, controlConn)
+
+	// Create fresh database
+	_, err = controlConn.ExecContext(ctx, "CREATE DATABASE "+testDbName)
+	require.NoError(t, err)
+
+	conn, err := postgres.OpenPGDatabase(ctx, testDSN)
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+
+	err = conn.Migrate(ctx)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := conn.Close(); err != nil {
+			log.Error().Err(err).Msg("cleanup: conn.Close")
+		}
+
+		_, err := controlConn.ExecContext(
+			cleanupCtx,
+			`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1`,
+			testDbName,
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("cleanup: terminate backends")
+		}
+
+		_, err = controlConn.ExecContext(cleanupCtx, `DROP DATABASE "`+testDbName+`"`)
+		if err != nil {
+			log.Error().Err(err).Msg("cleanup: drop database")
+		}
+
+		if err := controlConn.Close(); err != nil {
+			log.Error().Err(err).Msg("cleanup: controlConn.Close")
+		}
+	})
+
 	runDbTests(t, func(t *testing.T) database.DB {
-
-		conn, err := postgres.OpenPGDatabase(t.Context(), dsn)
-		require.NoError(t, err)
-		require.NotNil(t, conn)
-
-		// _, err = conn.ExecContext(t.Context(), `DROP SCHEMA IF EXISTS pon CASCADE`)
-		// require.NoError(t, err)
-
-		err = conn.Migrate(t.Context())
-		require.NoError(t, err)
 
 		tbls := []string{
 			"pon.data_source",

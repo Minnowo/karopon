@@ -1,55 +1,86 @@
 package postgres
 
 import (
+	"context"
+	"fmt"
 	"os"
-	"sync"
+	"strings"
 	"testing"
+	"time"
 
 	"karopon/src/database"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// pgMigrationLock serialises all PG migration tests against one another since they share
-// a single database instance and mutate the schema between runs.
-var pgMigrationLock sync.Mutex
-
-// openAndResetPGDB opens a PG connection, drops the pon schema entirely for a clean slate,
-// and registers the lock-release as a test cleanup function.
-// Tests are skipped when POSTGRES_MIGRATION_TEST_DSN is not set.
-func openAndResetPGDB(t *testing.T) *PGDatabase {
-	t.Helper()
-
-	// This DSN should be a different postgres instance that the one in the database_test package, or at least should
-	// not be run at the same time.
-	// POSTGRES_MIGRATION_TEST_DSN="user=postgres password=postgres_migration_test port=9431 host=localhost
-	// sslmode=disable"
-	dsn := os.Getenv("POSTGRES_MIGRATION_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_DSN not set; skipping postgres migration tests")
-	}
-
-	pgMigrationLock.Lock()
-	t.Cleanup(pgMigrationLock.Unlock)
-
-	ctx := t.Context()
-	conn, err := OpenPGDatabase(ctx, dsn)
-	require.NoError(t, err)
-
-	_, err = conn.ExecContext(ctx, `DROP SCHEMA IF EXISTS pon CASCADE`)
-	require.NoError(t, err)
-
-	return conn
-}
 
 // TestPostgresMigrations runs each migration in order on a single shared database.
 // Each subtest applies exactly one migration step and validates the resulting schema change.
 // State (inserted IDs, etc.) is shared across subtests so later tests build on earlier ones.
 // To add a test for a new migration, append a new t.Run block at the bottom.
 func TestPostgresMigrations(t *testing.T) {
+
+	// TEST_POSTGRES_DSN="user=postgres password=postgres_test port=9432 host=localhost sslmode=disable"
+	dsn := os.Getenv("TEST_POSTGRES_DSN")
+
+	if dsn == "" {
+		t.Skip("TEST_POSTGRES_DSN not set; skipping postgres tests")
+	}
+
+	require.NotContains(
+		t,
+		dsn,
+		"dbname=",
+		"The POSTGRES_DSN must not contain any dbname parameter, and the default 'postgres' database must exist.",
+	)
+
+	// we will create a new database to run all the tests, so we can use a single instance of postgres accross many
+	// tests.
+	testDbName := strings.ToLower(fmt.Sprintf("TestPostgresMigrations_%d", time.Now().UnixMilli()))
+
+	contDSN := fmt.Sprintf("%s dbname=postgres", dsn)
+	testDSN := fmt.Sprintf("%s dbname=%s", dsn, testDbName)
+
 	ctx := t.Context()
-	conn := openAndResetPGDB(t)
+	controlConn, err := OpenPGDatabase(ctx, contDSN)
+	require.NoError(t, err)
+	require.NotNil(t, controlConn)
+
+	// Create fresh database
+	_, err = controlConn.ExecContext(ctx, "CREATE DATABASE "+testDbName)
+	require.NoError(t, err)
+
+	conn, err := OpenPGDatabase(ctx, testDSN)
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+
+	t.Cleanup(func() {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := conn.Close(); err != nil {
+			log.Error().Err(err).Msg("cleanup: conn.Close")
+		}
+
+		_, err := controlConn.ExecContext(
+			cleanupCtx,
+			`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1`,
+			testDbName,
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("cleanup: terminate backends")
+		}
+
+		_, err = controlConn.ExecContext(cleanupCtx, `DROP DATABASE "`+testDbName+`"`)
+		if err != nil {
+			log.Error().Err(err).Msg("cleanup: drop database")
+		}
+
+		if err := controlConn.Close(); err != nil {
+			log.Error().Err(err).Msg("cleanup: controlConn.Close")
+		}
+	})
 
 	var (
 		userID       int

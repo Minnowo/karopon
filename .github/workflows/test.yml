@@ -24,23 +24,9 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres_test
-          POSTGRES_DB: karopon
+          POSTGRES_DB: postgres # MUST be the default 'postgres' otherwise the tests will fail
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      postgres-migration:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_migration_test
-          POSTGRES_DB: karopon
-        ports:
-          - 5433:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -77,5 +63,5 @@ jobs:
         run: go test ./...
         env:
           CGO_ENABLED: ${{ matrix.cgo }}
-          POSTGRES_DSN: "user=postgres password=postgres_test host=localhost port=5432 sslmode=disable"
-          POSTGRES_MIGRATION_TEST_DSN: "user=postgres password=postgres_migration_test host=localhost port=5433 sslmode=disable"
+          TEST_POSTGRES_DSN: "user=postgres password=postgres_test host=localhost port=5432 sslmode=disable"
+
