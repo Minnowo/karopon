@@ -34,9 +34,8 @@ type AddEventsPanelState = {
     copyDate?: boolean;
 };
 
-const TRAILING = 3;
-
 export function AddEventsPanel(p: AddEventsPanelState) {
+    const TRAILING = Math.max(1, p.user.event_log_trailing_rows);
     // Used for the foods array key={} when rendering the food list.
     // The foods array is a ref which is passed into the row component, where it is edited by ref.
     // This ensures that each row in the array has a unique key for proper re-render.

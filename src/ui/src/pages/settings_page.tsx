@@ -136,6 +136,16 @@ export function SettingsPage(state: BaseState) {
             <NumberInput
                 className="w-full input-like"
                 innerClassName="w-full text-right"
+                label="Event Log Trailing Rows"
+                value={userRef.current.event_log_trailing_rows}
+                onValueChange={(value: number) => update('event_log_trailing_rows', value)}
+                disabled={!isEditing}
+                min={1}
+                step={1}
+            />
+            <NumberInput
+                className="w-full input-like"
+                innerClassName="w-full text-right"
                 label="Event History Fetch Limit"
                 value={userRef.current.event_history_fetch_limit}
                 onValueChange={(value: number) => update('event_history_fetch_limit', value)}

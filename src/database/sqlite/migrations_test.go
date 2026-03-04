@@ -10,178 +10,132 @@ import (
 )
 
 func openMemoryDB(t *testing.T) *SqliteDatabase {
-
 	t.Helper()
 	conn, err := OpenSqliteDatabase(t.Context(), ":memory:")
 	require.NoError(t, err)
-
 	return conn
 }
 
-// TestSqliteMigration_FreshInstall verifies that a fresh database migrates cleanly to the
-// latest version and that the schema is functional.
-func TestSqliteMigration_FreshInstall(t *testing.T) {
+// TestSqliteMigrations runs each migration in order on a single shared in-memory database.
+// Each subtest applies exactly one migration step and validates the resulting schema change.
+// State (inserted IDs, etc.) is shared across subtests so later tests build on earlier ones.
+// To add a test for a new migration, append a new t.Run block at the bottom.
+func TestSqliteMigrations(t *testing.T) {
 	ctx := t.Context()
 	conn := openMemoryDB(t)
 
-	require.NoError(t, conn.Migrate(ctx))
+	var userID int
 
-	ver, err := conn.GetVersion(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, conn.GetMigrationMaxVersion(), ver)
+	// 0001_system: VERSION_NONE → 0
+	// Creates all core tables (PON_USER, PON_USER_EVENT, PON_USER_EVENTLOG, etc.).
+	t.Run("0001_system", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, database.VERSION_NONE, sqliteUpMigrations[0:1])
+		require.NoError(t, err)
 
-	// Verify the schema is functional by performing a basic insert.
-	userID, err := conn.AddUser(ctx, &database.TblUser{Name: "testuser", Password: []byte{1}})
-	require.NoError(t, err)
-	require.NotZero(t, userID)
-}
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(0), ver)
 
-// TestSqliteMigration_SessionUserAgentPreserved verifies that sessions inserted at version 0
-// (before migration 0→1 adds the USER_AGENT column) survive the migration and default to ”.
-func TestSqliteMigration_SessionUserAgentPreserved(t *testing.T) {
-	ctx := t.Context()
-	conn := openMemoryDB(t)
+		// Verify the schema is functional by inserting a user.
+		res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER (NAME, PASSWORD) VALUES ('alice', X'010203')`)
+		require.NoError(t, err)
+		id, err := res.LastInsertId()
+		require.NoError(t, err)
+		userID = int(id)
+		require.NotZero(t, userID)
+	})
 
-	// Run only the first migration (VERSION_NONE → 0): creates all tables without USER_AGENT on PON_USER_SESSION.
-	_, err := database.RunUpMigrations(ctx, conn, database.VERSION_NONE, sqliteUpMigrations[:1])
-	require.NoError(t, err)
+	// 0002_session_user_agent: 0 → 1
+	// Adds USER_AGENT TEXT NOT NULL DEFAULT '' to PON_USER_SESSION.
+	t.Run("0002_session_user_agent", func(t *testing.T) {
+		// Insert a session before migration — the USER_AGENT column does not exist yet.
+		token := make([]byte, 32)
+		_, err := conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_SESSION (USER_ID, EXPIRES, TOKEN) VALUES (?, datetime('now','+1 hour'), ?)`,
+			userID, token)
+		require.NoError(t, err)
 
-	// Insert a user using raw SQL at the v0 schema.
-	res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER (NAME, PASSWORD) VALUES ('alice', X'010203')`)
-	require.NoError(t, err)
-	userIDInt64, err := res.LastInsertId()
-	require.NoError(t, err)
-	userID := int(userIDInt64)
+		_, err = database.RunUpMigrations(ctx, conn, 0, sqliteUpMigrations[1:2])
+		require.NoError(t, err)
 
-	// Insert a session — v0 PON_USER_SESSION has no USER_AGENT column.
-	token := make([]byte, 32)
-	_, err = conn.ExecContext(ctx,
-		`INSERT INTO PON_USER_SESSION (USER_ID, EXPIRES, TOKEN) VALUES (?, datetime('now','+1 hour'), ?)`,
-		userID, token,
-	)
-	require.NoError(t, err)
+		// Pre-existing session must survive with USER_AGENT defaulting to ''.
+		var userAgent string
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT USER_AGENT FROM PON_USER_SESSION WHERE USER_ID = ?`, userID,
+		).Scan(&userAgent))
+		assert.Equal(t, "", userAgent)
+	})
 
-	// Run remaining migrations (0 → 1 → 2).
-	_, err = database.RunUpMigrations(ctx, conn, 0, sqliteUpMigrations[1:])
-	require.NoError(t, err)
+	// 0003_foodlog_eventlog_delete_cascade: 1 → 2
+	// Deletes PON_USER_FOODLOG rows with NULL EVENTLOG_ID and adds ON DELETE CASCADE on that FK.
+	t.Run("0003_foodlog_eventlog_delete_cascade", func(t *testing.T) {
+		// Insert event and eventlog to anchor a valid foodlog.
+		res, err := conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_EVENT (USER_ID, NAME) VALUES (?, 'Dinner')`, userID)
+		require.NoError(t, err)
+		eventIDInt64, _ := res.LastInsertId()
+		eventID := int(eventIDInt64)
 
-	// Session must still exist and USER_AGENT must default to ''.
-	var userAgent string
-	err = conn.QueryRowContext(ctx,
-		`SELECT USER_AGENT FROM PON_USER_SESSION WHERE USER_ID = ?`, userID,
-	).Scan(&userAgent)
-	require.NoError(t, err)
-	assert.Equal(t, "", userAgent)
-}
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_EVENTLOG
+				(USER_ID, EVENT_ID, USER_TIME, EVENT,
+				 NET_CARBS, BLOOD_GLUCOSE, INSULIN_SENSITIVITY_FACTOR,
+				 INSULIN_TO_CARB_RATIO, BLOOD_GLUCOSE_TARGET,
+				 RECOMMENDED_INSULIN_AMOUNT, ACTUAL_INSULIN_TAKEN)
+			VALUES (?, ?, datetime('now'), 'Dinner', 0, 0, 0, 0, 0, 0, 0)`,
+			userID, eventID)
+		require.NoError(t, err)
+		eventlogIDInt64, _ := res.LastInsertId()
+		eventlogID := int(eventlogIDInt64)
 
-// TestSqliteMigration_FoodlogNullEventlogIDRemoved verifies that migration 1→2
-// (0003_foodlog_eventlog_delete_cascade) deletes foodlog rows where EVENTLOG_ID is NULL
-// and preserves rows that have a valid EVENTLOG_ID.
-func TestSqliteMigration_FoodlogNullEventlogIDRemoved(t *testing.T) {
-	ctx := t.Context()
-	conn := openMemoryDB(t)
+		// Foodlog with valid EVENTLOG_ID — must survive the migration.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_FOODLOG
+				(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
+			VALUES (?, ?, datetime('now'), 'Egg', 'Dinner', 'g', 100, 13, 1, 0, 11)`,
+			userID, eventlogID)
+		require.NoError(t, err)
 
-	// Set up at version 1 (first two migrations: VERSION_NONE → 0 → 1).
-	_, err := database.RunUpMigrations(ctx, conn, database.VERSION_NONE, sqliteUpMigrations[:2])
-	require.NoError(t, err)
+		// Foodlog with NULL EVENTLOG_ID — must be deleted by the migration.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_FOODLOG
+				(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
+			VALUES (?, NULL, datetime('now'), 'Toast', 'Dinner', 'g', 50, 4, 15, 2, 1)`,
+			userID)
+		require.NoError(t, err)
 
-	// Insert user.
-	res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER (NAME, PASSWORD) VALUES ('alice', X'010203')`)
-	require.NoError(t, err)
-	userIDInt64, err := res.LastInsertId()
-	require.NoError(t, err)
-	userID := int(userIDInt64)
+		_, err = database.RunUpMigrations(ctx, conn, 1, sqliteUpMigrations[2:3])
+		require.NoError(t, err)
 
-	// Insert event.
-	res, err = conn.ExecContext(ctx,
-		`INSERT INTO PON_USER_EVENT (USER_ID, NAME) VALUES (?, 'Dinner')`, userID)
-	require.NoError(t, err)
-	eventIDInt64, err := res.LastInsertId()
-	require.NoError(t, err)
-	eventID := int(eventIDInt64)
+		var count int
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM PON_USER_FOODLOG`).Scan(&count))
+		assert.Equal(t, 1, count, "only the foodlog with EVENTLOG_ID should survive")
 
-	// Insert eventlog.
-	res, err = conn.ExecContext(ctx, `
-		INSERT INTO PON_USER_EVENTLOG
-			(USER_ID, EVENT_ID, USER_TIME, EVENT,
-			 NET_CARBS, BLOOD_GLUCOSE, INSULIN_SENSITIVITY_FACTOR,
-			 INSULIN_TO_CARB_RATIO, BLOOD_GLUCOSE_TARGET,
-			 RECOMMENDED_INSULIN_AMOUNT, ACTUAL_INSULIN_TAKEN)
-		VALUES (?, ?, datetime('now'), 'Dinner', 0, 0, 0, 0, 0, 0, 0)`,
-		userID, eventID)
-	require.NoError(t, err)
-	eventlogIDInt64, err := res.LastInsertId()
-	require.NoError(t, err)
-	eventlogID := int(eventlogIDInt64)
+		var name string
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT NAME FROM PON_USER_FOODLOG`).Scan(&name))
+		assert.Equal(t, "Egg", name)
 
-	// Insert a foodlog WITH a valid EVENTLOG_ID — should survive the migration.
-	_, err = conn.ExecContext(ctx, `
-		INSERT INTO PON_USER_FOODLOG
-			(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
-		VALUES (?, ?, datetime('now'), 'Egg', 'Dinner', 'g', 100, 13, 1, 0, 11)`,
-		userID, eventlogID)
-	require.NoError(t, err)
+		// Verify ON DELETE CASCADE: deleting the eventlog must also delete its foodlog.
+		require.NoError(t, conn.DeleteUserEventLog(ctx, userID, eventlogID))
 
-	// Insert a foodlog WITHOUT EVENTLOG_ID — should be deleted by the migration.
-	_, err = conn.ExecContext(ctx, `
-		INSERT INTO PON_USER_FOODLOG
-			(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
-		VALUES (?, NULL, datetime('now'), 'Toast', 'Dinner', 'g', 50, 4, 15, 2, 1)`,
-		userID)
-	require.NoError(t, err)
+		var afterCascade int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM PON_USER_FOODLOG WHERE EVENTLOG_ID = ?`, eventlogID,
+		).Scan(&afterCascade))
+		assert.Equal(t, 0, afterCascade, "foodlog should be cascade-deleted with its eventlog")
+	})
 
-	// Confirm both rows exist before the migration.
-	var preMigCount int
-	require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM PON_USER_FOODLOG`).Scan(&preMigCount))
-	require.Equal(t, 2, preMigCount, "both foodlogs should exist before migration")
+	// 0004_event_log_trailing_rows: 2 → 3
+	// Adds EVENT_LOG_TRAILING_ROWS INTEGER NOT NULL DEFAULT 3 to PON_USER.
+	t.Run("0004_event_log_trailing_rows", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 2, sqliteUpMigrations[3:4])
+		require.NoError(t, err)
 
-	// Run the final migration (1 → 2).
-	_, err = database.RunUpMigrations(ctx, conn, 1, sqliteUpMigrations[2:])
-	require.NoError(t, err)
-
-	// Only the row with EVENTLOG_ID should remain.
-	var postMigCount int
-	require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM PON_USER_FOODLOG`).Scan(&postMigCount))
-	assert.Equal(t, 1, postMigCount, "only the foodlog with EVENTLOG_ID should survive")
-
-	var survivingName string
-	require.NoError(t, conn.QueryRowContext(ctx, `SELECT NAME FROM PON_USER_FOODLOG`).Scan(&survivingName))
-	assert.Equal(t, "Egg", survivingName)
-}
-
-// TestSqliteMigration_FoodlogCascadeDeleteAfterMigration verifies that on the fully-migrated
-// schema, deleting an eventlog also cascade-deletes its associated foodlogs.
-func TestSqliteMigration_FoodlogCascadeDeleteAfterMigration(t *testing.T) {
-	ctx := t.Context()
-	conn := openMemoryDB(t)
-	require.NoError(t, conn.Migrate(ctx))
-
-	userID, err := conn.AddUser(ctx, &database.TblUser{Name: "alice", Password: []byte{1}})
-	require.NoError(t, err)
-
-	eventID, err := conn.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Dinner"})
-	require.NoError(t, err)
-
-	logID, err := conn.AddUserEventLogWith(ctx,
-		&database.TblUserEventLog{UserID: userID, EventID: eventID},
-		[]database.TblUserFoodLog{{
-			UserID: userID, Name: "Egg", Unit: "g",
-			Portion: 100, Protein: 13, Carb: 1, Fat: 11,
-		}},
-	)
-	require.NoError(t, err)
-
-	var before int
-	require.NoError(t, conn.QueryRowContext(ctx,
-		`SELECT COUNT(*) FROM PON_USER_FOODLOG WHERE EVENTLOG_ID = ?`, logID,
-	).Scan(&before))
-	require.Equal(t, 1, before)
-
-	require.NoError(t, conn.DeleteUserEventLog(ctx, userID, logID))
-
-	var after int
-	require.NoError(t, conn.QueryRowContext(ctx,
-		`SELECT COUNT(*) FROM PON_USER_FOODLOG WHERE EVENTLOG_ID = ?`, logID,
-	).Scan(&after))
-	assert.Equal(t, 0, after, "foodlog should have been cascade-deleted with the eventlog")
+		// Pre-existing user row must have the column default value of 3.
+		var trailing int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT EVENT_LOG_TRAILING_ROWS FROM PON_USER WHERE ID = ?`, userID,
+		).Scan(&trailing))
+		assert.Equal(t, 3, trailing)
+	})
 }

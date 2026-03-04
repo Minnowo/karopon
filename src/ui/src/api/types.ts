@@ -14,6 +14,7 @@ export type TblUser = {
     session_expire_time_seconds: number;
     time_format: string;
     date_format: string;
+    event_log_trailing_rows: number;
 };
 
 export type TblUpdateUser = {

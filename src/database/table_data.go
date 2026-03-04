@@ -38,6 +38,7 @@ type TblUser struct {
 	SessionExpireTimeSeconds int64             `db:"session_expire_time_seconds" json:"session_expire_time_seconds"`
 	TimeFormat               string            `db:"time_format"                 json:"time_format"`
 	DateFormat               string            `db:"date_format"                 json:"date_format"`
+	EventLogTrailingRows     int               `db:"event_log_trailing_rows"     json:"event_log_trailing_rows"`
 }
 
 func (u *TblUser) Copy() *TblUser {
@@ -66,6 +67,7 @@ func (u *TblUser) Copy() *TblUser {
 		SessionExpireTimeSeconds: u.SessionExpireTimeSeconds,
 		TimeFormat:               u.TimeFormat,
 		DateFormat:               u.DateFormat,
+		EventLogTrailingRows:     u.EventLogTrailingRows,
 	}
 }
 

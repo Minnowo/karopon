@@ -33,14 +33,16 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 				INSULIN_SENSITIVITY_FACTOR, EVENT_HISTORY_FETCH_LIMIT, TARGET_BLOOD_SUGAR,
 				SESSION_EXPIRE_TIME_SECONDS,
 				TIME_FORMAT,
-				DATE_FORMAT
+				DATE_FORMAT,
+				EVENT_LOG_TRAILING_ROWS
 			) VALUES (
 				:name, :password,
 				:theme, :show_diabetes, :caloric_calc_method,
 				:insulin_sensitivity_factor, :event_history_fetch_limit, :target_blood_sugar,
 				:session_expire_time_seconds,
 				:time_format,
-				:date_format
+				:date_format,
+				:event_log_trailing_rows
 			)
     	    RETURNING ID;
     	`
@@ -72,7 +74,8 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	EVENT_HISTORY_FETCH_LIMIT=:event_history_fetch_limit,
 	SESSION_EXPIRE_TIME_SECONDS=:session_expire_time_seconds,
 	TIME_FORMAT=:time_format,
-	DATE_FORMAT=:date_format
+	DATE_FORMAT=:date_format,
+	EVENT_LOG_TRAILING_ROWS=:event_log_trailing_rows
 	WHERE ID=:id
 	`
 
