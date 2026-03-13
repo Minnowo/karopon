@@ -384,6 +384,16 @@ export const ApiDeleteUserSession = (session: UserSession): Promise<void> => {
     );
 };
 
+export const ApiUpdateUserSession = (session: UserSession, userAgent: string): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/session/update`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({token_id: session.token_id, user_agent: userAgent}),
+        })
+    );
+};
+
 export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodLog> => {
     return fetchJson(
         apiFetch(`${ApiBase}/api/eventlog/new`, {
