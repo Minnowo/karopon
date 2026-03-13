@@ -47,7 +47,7 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := goal.TimeRange(time.Now()); err != nil {
+	if _, _, err := goal.TimeRange(time.Now(), 0); err != nil {
 		api.BadReq(w, "Time expression is invalid.")
 		return
 	}

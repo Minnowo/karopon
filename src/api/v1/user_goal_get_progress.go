@@ -15,6 +15,7 @@ type CheckGoalProgress struct {
 	database.TblUserGoal
 
 	Timezone database.Timezone
+	AsOf     database.TimeMillis `json:"as_of"`
 }
 
 func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
@@ -53,17 +54,27 @@ func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := goal.TimeRange(time.Now()); err != nil {
+	if _, _, err := goal.TimeRange(time.Now(), 0); err != nil {
 		api.BadReq(w, "Time expression is invalid.")
 		return
 	}
 
 	goal.UserID = user.ID
 
+	var baseTime time.Time
+
+	if goal.AsOf.Time().IsZero() {
+		baseTime = time.Now()
+	} else {
+		baseTime = goal.AsOf.Time()
+	}
+
+	timeNow := baseTime.In(goal.Timezone.Loc())
+	shift := time.Second * time.Duration(user.DayTimeOffsetSeconds)
+
 	var goalProgress database.UserGoalProgress
 
-	timeNow := time.Now().In(goal.Timezone.Loc()).Add(time.Second * time.Duration(-user.DayTimeOffsetSeconds))
-	err = a.Db.LoadUserGoalProgress(r.Context(), timeNow, &goal.TblUserGoal, &goalProgress)
+	err = a.Db.LoadUserGoalProgress(r.Context(), timeNow, shift, &goal.TblUserGoal, &goalProgress)
 
 	if err != nil {
 

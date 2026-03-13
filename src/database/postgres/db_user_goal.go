@@ -81,11 +81,12 @@ func (db *PGDatabase) UpdateUserGoal(ctx context.Context, userGoal *database.Tbl
 func (db *PGDatabase) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,
+	timeShift time.Duration,
 	userGoal *database.TblUserGoal,
 	out *database.UserGoalProgress,
 ) error {
 
-	startTime, endTime, err := userGoal.TimeRange(curTime)
+	startTime, endTime, err := userGoal.TimeRange(curTime, timeShift)
 
 	if err != nil {
 		return err

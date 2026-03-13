@@ -246,7 +246,13 @@ type DB interface {
 	LoadUserGoals(ctx context.Context, userID int, out *[]TblUserGoal) error
 	AddUserGoal(ctx context.Context, userGoal *TblUserGoal) (int, error)
 	UpdateUserGoal(ctx context.Context, userGoal *TblUserGoal) error
-	LoadUserGoalProgress(ctx context.Context, curTime time.Time, userGoal *TblUserGoal, out *UserGoalProgress) error
+	LoadUserGoalProgress(
+		ctx context.Context,
+		curTime time.Time,
+		timeShift time.Duration,
+		userGoal *TblUserGoal,
+		out *UserGoalProgress,
+	) error
 
 	///
 	/// User Tags

@@ -1218,7 +1218,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, "Daily Weight", goals[0].Name)
 
 		var progress database.UserGoalProgress
-		require.NoError(t, db.LoadUserGoalProgress(ctx, time.Now(), &goals[0], &progress))
+		require.NoError(t, db.LoadUserGoalProgress(ctx, time.Now(), 0, &goals[0], &progress))
 		assert.InDelta(t, 70.0, progress.TargetValue, 0.001)
 
 		require.NoError(t, db.DeleteUserGoal(ctx, userID, goalID))

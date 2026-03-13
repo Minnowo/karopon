@@ -299,6 +299,7 @@ func (p *BaseMockDB) UpdateUserGoal(ctx context.Context, userGoal *database.TblU
 func (p *BaseMockDB) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,
+	timeShift time.Duration,
 	userGoal *database.TblUserGoal,
 	out *database.UserGoalProgress,
 ) error {

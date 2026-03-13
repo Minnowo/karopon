@@ -230,8 +230,8 @@ type TblUserGoal struct {
 	TimeExpr        string     `db:"time_expr"        json:"time_expr"`
 }
 
-func (u *TblUserGoal) TimeRange(now time.Time) (time.Time, time.Time, error) {
-	return ParseGoalTimeExpression(u.TimeExpr, now)
+func (u *TblUserGoal) TimeRange(now time.Time, shift time.Duration) (time.Time, time.Time, error) {
+	return ParseGoalTimeExpression(u.TimeExpr, now, shift)
 }
 
 func (u *TblUserGoal) TargetColumn() GoalTargetColumn {

@@ -80,11 +80,12 @@ func (db *SqliteDatabase) UpdateUserGoal(ctx context.Context, userGoal *database
 func (db *SqliteDatabase) LoadUserGoalProgress(
 	ctx context.Context,
 	curTime time.Time,
+	timeShift time.Duration,
 	userGoal *database.TblUserGoal,
 	out *database.UserGoalProgress,
 ) error {
 
-	startTime, endTime, err := userGoal.TimeRange(curTime)
+	startTime, endTime, err := userGoal.TimeRange(curTime, timeShift)
 
 	if err != nil {
 		return err
@@ -190,8 +191,8 @@ func (db *SqliteDatabase) LoadUserGoalProgress(
 	log.Debug().
 		Str("sql", query).
 		Int("userID", userGoal.UserID).
-		Time("start", startTime).
-		Time("end", endTime).
+		Time("startUTC", startTime.UTC()).
+		Time("endUTC", endTime.UTC()).
 		Dur("range", endTime.Sub(startTime)).
 		Msg("getting user goal progress")
 

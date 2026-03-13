@@ -11,18 +11,20 @@ import {SnakeCaseToTitle} from '../../utils/strings';
 
 type GoalPanelProps = {
     goal: TblUserGoal;
+    asOf: number;
     editGoal: (goal: TblUserGoal) => void;
     deleteGoal: (goal: TblUserGoal) => void;
 };
-const GoalPanel = ({goal, editGoal, deleteGoal}: GoalPanelProps) => {
+const GoalPanel = ({goal, asOf, editGoal, deleteGoal}: GoalPanelProps) => {
     const [progress, setProgress] = useState<UserGoalProgress | null>(null);
 
     useEffect(() => {
+        setProgress(null);
         (async () => {
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            setProgress(await ApiGetUserGoalProgress({...goal, timezone}));
+            setProgress(await ApiGetUserGoalProgress({...goal, timezone, as_of: asOf}));
         })();
-    }, [goal]);
+    }, [goal, asOf]);
 
     const barColor = (() => {
         switch (goal.target_col) {
@@ -90,6 +92,16 @@ export function GoalsPage(state: BaseState) {
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
     const [editingGoal, setEditingGoal] = useState<TblUserGoal | null>(null);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
+    const [selectedDate, setSelectedDate] = useState<string>('');
+
+    const asOf = selectedDate
+        ? (() => {
+              // gets the set date with nows time
+              const now = new Date();
+              const [y, m, d] = selectedDate.split('-').map(Number);
+              return new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()).getTime();
+          })()
+        : 0;
 
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -135,7 +147,7 @@ export function GoalsPage(state: BaseState) {
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
+            <div className="w-full flex justify-evenly my-4 gap-2">
                 <button
                     className={`w-24 ${showNewGoalPanel && 'bg-c-red font-bold'}`}
                     onClick={() => {
@@ -145,6 +157,8 @@ export function GoalsPage(state: BaseState) {
                 >
                     {!showNewGoalPanel ? 'New Goal' : 'Cancel'}
                 </button>
+                <input type="date" value={selectedDate} onInput={(e) => setSelectedDate((e.target as HTMLInputElement).value)} />
+                {selectedDate && <button onClick={() => setSelectedDate('')}>Today</button>}
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -168,6 +182,7 @@ export function GoalsPage(state: BaseState) {
                             <GoalPanel
                                 key={g.id}
                                 goal={g}
+                                asOf={asOf}
                                 editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
                                 deleteGoal={deleteGoal}
                             />

@@ -209,6 +209,7 @@ export type TblUserGoal = {
 
 export type CheckGoalProgress = TblUserGoal & {
     timezone: string;
+    as_of: number;
 };
 
 export type UserGoalProgress = {

@@ -111,7 +111,7 @@ const (
 
 // ParseGoalTimeExpression converts the base time into a range.
 // Returns startTime, stopTime, or error.
-func ParseGoalTimeExpression(expr string, now time.Time) (time.Time, time.Time, error) {
+func ParseGoalTimeExpression(expr string, now time.Time, shift time.Duration) (time.Time, time.Time, error) {
 
 	base := timeBase(strings.ToUpper(expr))
 
@@ -122,21 +122,21 @@ func ParseGoalTimeExpression(expr string, now time.Time) (time.Time, time.Time, 
 
 	case baseToday:
 
-		t1 := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		t1 := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Add(shift)
 		t2 := t1.AddDate(0, 0, 1)
 
 		return t1, t2, nil
 
 	case baseHour:
 
-		t1 := now.Truncate(time.Hour)
+		t1 := now.Truncate(time.Hour).Add(shift)
 		t2 := t1.Add(time.Hour)
 
 		return t1, t2, nil
 
 	case baseWeek:
 
-		t1 := now
+		t1 := now.Add(shift)
 
 		for t1.Weekday() != time.Monday {
 			t1 = t1.AddDate(0, 0, -1)
@@ -148,14 +148,14 @@ func ParseGoalTimeExpression(expr string, now time.Time) (time.Time, time.Time, 
 
 	case baseMonth:
 
-		t1 := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		t1 := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).Add(shift)
 		t2 := t1.AddDate(0, 1, 0)
 
 		return t1, t2, nil
 
 	case baseYear:
 
-		t1 := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location())
+		t1 := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()).Add(shift)
 		t2 := t1.AddDate(1, 0, 0)
 
 		return t1, t2, nil
