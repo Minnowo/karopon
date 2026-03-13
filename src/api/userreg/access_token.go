@@ -12,12 +12,12 @@ var (
 	errInvalidToken error = errors.New("token is invalid")
 )
 
-// A token is a nonce concatenated with HMAC-SHA256(nonce, key).
 const TokenNonceSize int = 16
 const TokenHMACSize int = sha256.Size
 const TokenByteSize int = TokenNonceSize + TokenHMACSize
 const TokenHashByteSize int = sha256.Size
 
+// AccessToken is a nonce concatenated with HMAC-SHA256(nonce, key).
 type AccessToken [TokenByteSize]byte
 type AccessTokenHash [TokenHashByteSize]byte
 
@@ -32,9 +32,11 @@ func (a *AccessToken) New(key []byte) {
 
 // Verify returns true if the token's HMAC is valid for the given key.
 func (a *AccessToken) Verify(key []byte) bool {
+
 	mac := hmac.New(sha256.New, key)
 	mac.Write(a[:TokenNonceSize])
 	expected := mac.Sum(nil)
+
 	return hmac.Equal(a[TokenNonceSize:], expected)
 }
 

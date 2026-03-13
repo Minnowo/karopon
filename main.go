@@ -209,8 +209,9 @@ func main() {
 						Required: false,
 					},
 					&cli.StringFlag{
-						Name:     "session-secret",
-						Usage:    "Secret key used to sign session tokens (HMAC-SHA256). If unset, a random key is generated and sessions will not survive a restart.",
+						Name: "session-secret",
+						Usage: "Secret key used to sign session tokens (HMAC-SHA256). " +
+							"If unset, a random key is generated and sessions will not survive a restart.",
 						Sources:  cli.EnvVars("SESSION_SECRET"),
 						Required: false,
 					},

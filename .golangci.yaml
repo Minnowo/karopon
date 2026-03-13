@@ -82,7 +82,7 @@ linters:
       nlreturn:
         # Size of the block (including return statement that is still "OK"),
         # so no return split required.
-        block-size: 2
+        block-size: 3
       copyloopvar:
           # Check all assigning the loop variable to another variable.
           check-alias: true

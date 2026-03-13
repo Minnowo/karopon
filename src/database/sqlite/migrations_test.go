@@ -10,9 +10,11 @@ import (
 )
 
 func openMemoryDB(t *testing.T) *SqliteDatabase {
+
 	t.Helper()
 	conn, err := OpenSqliteDatabase(t.Context(), ":memory:")
 	require.NoError(t, err)
+
 	return conn
 }
 

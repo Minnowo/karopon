@@ -1411,8 +1411,8 @@ func TestDB_Postgres(t *testing.T) {
 	// tests.
 	testDbName := strings.ToLower(fmt.Sprintf("TestDB_Postgres_%d", time.Now().UnixMilli()))
 
-	contDSN := fmt.Sprintf("%s dbname=postgres", dsn)
-	testDSN := fmt.Sprintf("%s dbname=%s", dsn, testDbName)
+	contDSN := dsn + " dbname=postgres"
+	testDSN := dsn + " dbname=" + testDbName
 
 	ctx := t.Context()
 	controlConn, err := postgres.OpenPGDatabase(ctx, contDSN)

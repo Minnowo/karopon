@@ -17,10 +17,12 @@ var okHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 })
 
 func doRequest(handler http.Handler, remoteAddr string) int {
+
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.RemoteAddr = remoteAddr
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
+
 	return rr.Code
 }
 

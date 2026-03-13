@@ -39,8 +39,8 @@ func TestPostgresMigrations(t *testing.T) {
 	// tests.
 	testDbName := strings.ToLower(fmt.Sprintf("TestPostgresMigrations_%d", time.Now().UnixMilli()))
 
-	contDSN := fmt.Sprintf("%s dbname=postgres", dsn)
-	testDSN := fmt.Sprintf("%s dbname=%s", dsn, testDbName)
+	contDSN := dsn + " dbname=postgres"
+	testDSN := dsn + " dbname=" + testDbName
 
 	ctx := t.Context()
 	controlConn, err := OpenPGDatabase(ctx, contDSN)

@@ -58,12 +58,14 @@ func (a *APIV1) updateUserGoal(w http.ResponseWriter, r *http.Request) {
 	goal.UserID = user.ID
 
 	if err := a.Db.UpdateUserGoal(r.Context(), &goal); err != nil {
+
 		api.ServerErr(w, "Unexpected error updating the goal in the database")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).
 			Int("goalid", goal.ID).
 			Msg("Unexpected error updating a user's goal in the database")
+
 		return
 	}
 
