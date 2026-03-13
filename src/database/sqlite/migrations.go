@@ -11,6 +11,7 @@ var sqliteUpMigrations = []database.Migration{
 	database.NewFileMigration(0, 1, "sqlite/0002_session_user_agent"),
 	database.NewFileMigration(1, 2, "sqlite/0003_foodlog_eventlog_delete_cascade"),
 	database.NewFileMigration(2, 3, "sqlite/0004_event_log_trailing_rows"),
+	database.NewFileMigration(3, 4, "sqlite/0005_day_time_offset"),
 }
 
 func (db *SqliteDatabase) GetMigrationMaxVersion() database.Version {

@@ -15,6 +15,7 @@ export type TblUser = {
     time_format: string;
     date_format: string;
     event_log_trailing_rows: number;
+    day_time_offset_seconds: number;
 };
 
 export type TblUpdateUser = {

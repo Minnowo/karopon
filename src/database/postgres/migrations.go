@@ -22,6 +22,7 @@ var postgresUpMigrations = []database.Migration{
 	database.NewFileMigration(11, 12, "pg/0013_session_user_agent"),
 	database.NewFileMigration(12, 13, "pg/0014_foodlog_eventlog_delete_cascade"),
 	database.NewFileMigration(13, 14, "pg/0015_event_log_trailing_rows"),
+	database.NewFileMigration(14, 15, "pg/0016_day_time_offset"),
 }
 
 func (db *PGDatabase) GetMigrationMaxVersion() database.Version {

@@ -42,7 +42,7 @@ const buildTodayMacros = (rows: UserEventFoodLog[], range: RangeType): MacroTota
     return totals;
 };
 
-const buildMacroChartData = (rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
+const buildMacroChartData = (dayOffsetSeconds: number, rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
     const nowMs = new Date().getTime();
     const buckets = new Map<number, {n: number; point: MacroPoint}>();
     for (let i = 0; i < rows.length; i++) {
@@ -66,16 +66,19 @@ const buildMacroChartData = (rows: UserEventFoodLog[], display: GraphDisplay): M
                 break;
         }
 
-        const d = new Date(event.eventlog.user_time);
         let key = 0;
         switch (display.range) {
-            case '24 hours':
+            case '24 hours': {
+                const d = new Date(event.eventlog.user_time);
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
                 break;
+            }
             case '7 days':
-            case '28 days':
+            case '28 days': {
+                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
+            }
         }
         let obj = buckets.get(key);
         if (obj === undefined) {
@@ -102,6 +105,7 @@ const buildMacroChartData = (rows: UserEventFoodLog[], display: GraphDisplay): M
 };
 
 const buildChartData = (
+    dayOffsetSeconds: number,
     events: UserEventFoodLog[],
     keyGetter: (e: UserEventFoodLog) => number,
     display: GraphDisplay
@@ -111,7 +115,6 @@ const buildChartData = (
 
     for (let i = 0; i < events.length; i++) {
         const event = events[i];
-        const d = new Date(event.eventlog.user_time);
         switch (display.range) {
             case '24 hours':
                 if (!Within24Hour(nowMs, event.eventlog.user_time)) {
@@ -132,13 +135,17 @@ const buildChartData = (
 
         let key = 0;
         switch (display.range) {
-            case '24 hours':
+            case '24 hours': {
+                const d = new Date(event.eventlog.user_time);
                 key = d.getTime();
                 break;
+            }
             case '7 days':
-            case '28 days':
+            case '28 days': {
+                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
                 key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 break;
+            }
         }
 
         let obj = grouped.get(key);
@@ -178,13 +185,14 @@ export function StatsPage(state: BaseState) {
     const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['fat', 'carbs', 'fibre', 'protein']);
 
     useEffect(() => {
-        setMacroData(buildMacroChartData(state.eventlogs, carbRange));
-    }, [state.eventlogs, carbRange]);
+        setMacroData(buildMacroChartData(state.user.day_time_offset_seconds, state.eventlogs, carbRange));
+    }, [state.user.day_time_offset_seconds, state.eventlogs, carbRange]);
 
     useEffect(
         () =>
             setCalorieData(
                 buildChartData(
+                    state.user.day_time_offset_seconds,
                     state.eventlogs,
                     (e) =>
                         CalculateCalories(
@@ -197,15 +205,26 @@ export function StatsPage(state: BaseState) {
                     calorieRange
                 )
             ),
-        [state.user.caloric_calc_method, state.eventlogs, calorieRange]
+        [state.user.day_time_offset_seconds, state.user.caloric_calc_method, state.eventlogs, calorieRange]
     );
     useEffect(
-        () => setBloodData(buildChartData(state.eventlogs, (e) => e.eventlog.blood_glucose, bloodRange)),
-        [state.eventlogs, bloodRange]
+        () =>
+            setBloodData(
+                buildChartData(state.user.day_time_offset_seconds, state.eventlogs, (e) => e.eventlog.blood_glucose, bloodRange)
+            ),
+        [state.user.day_time_offset_seconds, state.eventlogs, bloodRange]
     );
     useEffect(
-        () => setInsulinData(buildChartData(state.eventlogs, (e) => e.eventlog.actual_insulin_taken, insulinRange)),
-        [state.eventlogs, insulinRange]
+        () =>
+            setInsulinData(
+                buildChartData(
+                    state.user.day_time_offset_seconds,
+                    state.eventlogs,
+                    (e) => e.eventlog.actual_insulin_taken,
+                    insulinRange
+                )
+            ),
+        [state.user.day_time_offset_seconds, state.eventlogs, insulinRange]
     );
 
     useEffect(() => setMacros(buildTodayMacros(state.eventlogs, pieChartRange)), [state.eventlogs, pieChartRange]);

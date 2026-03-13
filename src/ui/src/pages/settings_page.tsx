@@ -159,6 +159,17 @@ export function SettingsPage(state: BaseState) {
                 onValueChange={(value: number) => update('session_expire_time_seconds', value * 60 * 60)}
                 disabled={!isEditing}
             />
+            <NumberInput
+                className="w-full input-like"
+                innerClassName="w-full text-right"
+                label="Day Start Offset (in Hours)"
+                value={userRef.current.day_time_offset_seconds / (60 * 60)}
+                onValueChange={(value: number) => update('day_time_offset_seconds', value * 60 * 60)}
+                disabled={!isEditing}
+                min={0}
+                max={23}
+                step={1}
+            />
 
             <div>
                 <div className="font-bold">Color Theme</div>

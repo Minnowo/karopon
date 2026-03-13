@@ -62,7 +62,8 @@ func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
 
 	var goalProgress database.UserGoalProgress
 
-	err = a.Db.LoadUserGoalProgress(r.Context(), time.Now().In(goal.Timezone.Loc()), &goal.TblUserGoal, &goalProgress)
+	timeNow := time.Now().In(goal.Timezone.Loc()).Add(time.Second * time.Duration(-user.DayTimeOffsetSeconds))
+	err = a.Db.LoadUserGoalProgress(r.Context(), timeNow, &goal.TblUserGoal, &goalProgress)
 
 	if err != nil {
 

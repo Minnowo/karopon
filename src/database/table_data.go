@@ -39,6 +39,7 @@ type TblUser struct {
 	TimeFormat               string            `db:"time_format"                 json:"time_format"`
 	DateFormat               string            `db:"date_format"                 json:"date_format"`
 	EventLogTrailingRows     int               `db:"event_log_trailing_rows"     json:"event_log_trailing_rows"`
+	DayTimeOffsetSeconds     int               `db:"day_time_offset_seconds"     json:"day_time_offset_seconds"`
 }
 
 func (u *TblUser) Copy() *TblUser {
@@ -68,6 +69,7 @@ func (u *TblUser) Copy() *TblUser {
 		TimeFormat:               u.TimeFormat,
 		DateFormat:               u.DateFormat,
 		EventLogTrailingRows:     u.EventLogTrailingRows,
+		DayTimeOffsetSeconds:     u.DayTimeOffsetSeconds,
 	}
 }
 
