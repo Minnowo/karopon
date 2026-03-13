@@ -29,20 +29,24 @@ install-js:
 generate:
 	make -C ./src/ui generate
 
-format:
-	golangci-lint fmt || (gofmt -w -s . && goimports -w .)
+format: format-go format-js
+
+format-js:
 	make -C ./src/ui format
 
-test: format generate
+format-go:
+	golangci-lint fmt || (gofmt -w -s . && goimports -w .)
+
+test: format-go generate
 	go test ./...
 
-test-race: format generate
+test-race: format-go generate
 	go test -race ./... -v
 
-test-verbose: format generate
+test-verbose: format-go generate
 	go test ./... -v
 
-test-clean: format generate
+test-clean: format-go generate
 	go clean -testcache
 
 build-site:
@@ -56,7 +60,7 @@ build-site-windows:
 		$(SITE_SRC)
 
 run: format generate
-	LOG_LEVEL=debug go run $(SITE_SRC) run # --fake-auth-as-user minno
+	LOG_LEVEL=debug SESSION_SECRET=secret go run $(SITE_SRC) run # --fake-auth-as-user minno
 
 docker-pg:
 	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
