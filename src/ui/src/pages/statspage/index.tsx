@@ -7,63 +7,46 @@ import {RenderMultiLineGraph} from './multi_line_graph';
 import {PieChart} from './pie_chart';
 import {ChartPoint, GraphDisplay, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
 
-import {Within24Hour, WithinMonth, WithinWeek} from '../../utils/time';
+import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 
-const buildTodayMacros = (rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
-    const nowMs = new Date().getTime();
+const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
     const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
+
+    const nowMs = Date.now();
+    const startMs =
+        range === '24 hours' ? nowMs - DAY_IN_MS : StartOfRangeMs(nowMs, dayOffsetSeconds, range === '7 days' ? 7 : 28);
+
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-
-        switch (range) {
-            case '24 hours':
-                if (!Within24Hour(nowMs, row.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '7 days':
-                if (!WithinWeek(nowMs, row.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '28 days':
-                if (!WithinMonth(nowMs, row.eventlog.user_time)) {
-                    continue;
-                }
-                break;
+        if (row.eventlog.user_time < startMs) {
+            continue;
         }
-
         totals.carbs += row.total_carb;
         totals.protein += row.total_protein;
         totals.fat += row.total_fat;
         totals.fibre += row.total_fibre;
     }
+
+    // show net carbs
+    totals.carbs -= totals.fibre;
+
     return totals;
 };
 
 const buildMacroChartData = (dayOffsetSeconds: number, rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
-    const nowMs = new Date().getTime();
     const buckets = new Map<number, {n: number; point: MacroPoint}>();
+
+    const nowMs = Date.now();
+    const startMs =
+        display.range === '24 hours'
+            ? nowMs - DAY_IN_MS
+            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
+
     for (let i = 0; i < rows.length; i++) {
         const event = rows[i];
-
-        switch (display.range) {
-            case '24 hours':
-                if (!Within24Hour(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '7 days':
-                if (!WithinWeek(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '28 days':
-                if (!WithinMonth(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
+        if (event.eventlog.user_time < startMs) {
+            continue;
         }
 
         let key = 0;
@@ -110,27 +93,18 @@ const buildChartData = (
     keyGetter: (e: UserEventFoodLog) => number,
     display: GraphDisplay
 ): ChartPoint[] => {
-    const nowMs = new Date().getTime();
     const grouped = new Map<number, {n: number; v: number}>();
+
+    const nowMs = Date.now();
+    const startMs =
+        display.range === '24 hours'
+            ? nowMs - DAY_IN_MS
+            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
 
     for (let i = 0; i < events.length; i++) {
         const event = events[i];
-        switch (display.range) {
-            case '24 hours':
-                if (!Within24Hour(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '7 days':
-                if (!WithinWeek(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
-            case '28 days':
-                if (!WithinMonth(nowMs, event.eventlog.user_time)) {
-                    continue;
-                }
-                break;
+        if (event.eventlog.user_time < startMs) {
+            continue;
         }
 
         let key = 0;
@@ -227,7 +201,10 @@ export function StatsPage(state: BaseState) {
         [state.user.day_time_offset_seconds, state.eventlogs, insulinRange]
     );
 
-    useEffect(() => setMacros(buildTodayMacros(state.eventlogs, pieChartRange)), [state.eventlogs, pieChartRange]);
+    useEffect(
+        () => setMacros(buildTodayMacros(state.user.day_time_offset_seconds, state.eventlogs, pieChartRange)),
+        [state.user.day_time_offset_seconds, state.eventlogs, pieChartRange]
+    );
 
     return (
         <>

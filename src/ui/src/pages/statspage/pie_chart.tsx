@@ -28,7 +28,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
     const total = data.carbs + data.protein + data.fat + data.fibre;
     const slices = [
         {label: 'Fat', value: data.fat, color: 'var(--color-c-flamingo)'},
-        {label: 'Carbs', value: data.carbs, color: 'var(--color-c-yellow)'},
+        {label: 'NetCarbs', value: data.carbs, color: 'var(--color-c-yellow)'},
         {label: 'Fibre', value: data.fibre, color: 'var(--color-c-sapphire)'},
         {label: 'Protein', value: data.protein, color: 'var(--color-c-green)'},
     ];
