@@ -13,6 +13,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var testHMACKey = []byte("test-hmac-key-for-unit-tests-only")
+
 // Mock db.
 var errNotFound = errors.New("not found")
 
@@ -108,7 +110,7 @@ func TestLoginSuccessInMemoryCache(t *testing.T) {
 	}
 
 	mock := newSessionMock(nil)
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 	reg.usersByName[user.Name] = user
 	reg.usersByID[user.ID] = user
 
@@ -133,7 +135,7 @@ func TestLoginSuccessNoMemoryCache(t *testing.T) {
 		SessionExpireTimeSeconds: 120,
 	})
 
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 
 	token, expires, err := reg.Login(context.Background(), "alice", "secret", "test-token")
 
@@ -159,7 +161,7 @@ func TestLoginWrongPassword(t *testing.T) {
 		SessionExpireTimeSeconds: 120,
 	})
 
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 
 	_, _, err := reg.Login(context.Background(), "alice", "wrong", "test-token")
 
@@ -170,7 +172,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 func TestLoginUserNotFound(t *testing.T) {
 
-	reg := NewRegistry(&sessionMockDB{})
+	reg := NewRegistry(&sessionMockDB{}, testHMACKey)
 
 	_, _, err := reg.Login(context.Background(), "ghost", "pw", "test-token")
 
@@ -182,10 +184,10 @@ func TestLoginUserNotFound(t *testing.T) {
 func TestCheckTokenDatabaseGet(t *testing.T) {
 
 	var token AccessToken
-	token.New()
+	token.New(testHMACKey)
 
 	mock := newSessionMock(&database.TblUser{ID: 1})
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 	reg.sessions[token.Hash()] = Session{
 		userID:  1,
 		expires: time.Now().Add(time.Hour),
@@ -202,10 +204,10 @@ func TestCheckTokenDatabaseGet(t *testing.T) {
 func TestCheckTokenMemoryHit(t *testing.T) {
 
 	var token AccessToken
-	token.New()
+	token.New(testHMACKey)
 
 	mock := newSessionMock(nil)
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 	reg.usersByID[1] = &database.TblUser{ID: 1}
 	reg.usersByName[""] = &database.TblUser{ID: 1}
 	reg.sessions[token.Hash()] = Session{
@@ -222,7 +224,7 @@ func TestCheckTokenMemoryHit(t *testing.T) {
 func TestExpireToken(t *testing.T) {
 
 	var token AccessToken
-	token.New()
+	token.New(testHMACKey)
 
 	mock := newSessionMock(&database.TblUser{ID: 1})
 	mock.sessions[string(token.HashBytes())] = &database.TblUserSession{
@@ -230,7 +232,7 @@ func TestExpireToken(t *testing.T) {
 		Token:  token.HashBytes(),
 	}
 
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 	reg.sessions[token.Hash()] = Session{}
 
 	reg.ExpireToken(token.String())
@@ -245,7 +247,7 @@ func TestExpireToken(t *testing.T) {
 func TestClearExpiredSessions(t *testing.T) {
 
 	mock := newSessionMock(nil)
-	reg := NewRegistry(mock)
+	reg := NewRegistry(mock, testHMACKey)
 
 	hash := AccessTokenHash{9, 9, 9}
 
@@ -258,8 +260,49 @@ func TestClearExpiredSessions(t *testing.T) {
 	assert.Empty(t, reg.sessions, "expected expired session removed")
 }
 
+func TestAccessToken_VerifyValid(t *testing.T) {
+	var token AccessToken
+	token.New(testHMACKey)
+	assert.True(t, token.Verify(testHMACKey), "token signed with key should verify")
+}
+
+func TestAccessToken_VerifyWrongKey(t *testing.T) {
+	var token AccessToken
+	token.New(testHMACKey)
+	assert.False(t, token.Verify([]byte("wrong-key")), "token should not verify with different key")
+}
+
+func TestAccessToken_VerifyTampered(t *testing.T) {
+	var token AccessToken
+	token.New(testHMACKey)
+	// flip a bit in the nonce
+	token[0] ^= 0xFF
+	assert.False(t, token.Verify(testHMACKey), "tampered token nonce should not verify")
+}
+
+func TestCheckToken_RejectsWrongKey(t *testing.T) {
+	var token AccessToken
+	token.New([]byte("other-key"))
+
+	mock := newSessionMock(&database.TblUser{ID: 1})
+	reg := NewRegistry(mock, testHMACKey)
+	reg.sessions[token.Hash()] = Session{
+		userID:  1,
+		expires: time.Now().Add(time.Hour),
+	}
+
+	_, ok := reg.CheckToken(context.Background(), token.String())
+	assert.False(t, ok, "token signed with a different key should be rejected")
+}
+
+func TestCheckToken_RejectsGarbage(t *testing.T) {
+	reg := NewRegistry(newSessionMock(nil), testHMACKey)
+	_, ok := reg.CheckToken(context.Background(), "notahexstring")
+	assert.False(t, ok, "garbage token string should be rejected")
+}
+
 func TestPutUserWithNewName(t *testing.T) {
-	reg := NewRegistry(&mock_db.BaseMockDB{})
+	reg := NewRegistry(&mock_db.BaseMockDB{}, testHMACKey)
 
 	user := &database.TblUser{
 		ID:   10,

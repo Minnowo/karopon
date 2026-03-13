@@ -40,14 +40,17 @@ type UserRegistry struct {
 
 	lastClearTime time.Time
 
+	hmacKey []byte
+
 	db database.DB
 }
 
-func NewRegistry(db database.DB) *UserRegistry {
+func NewRegistry(db database.DB, hmacKey []byte) *UserRegistry {
 	return &UserRegistry{
 		usersByName: make(map[string]*database.TblUser),
 		usersByID:   make(map[int]*database.TblUser),
 		sessions:    make(map[AccessTokenHash]Session),
+		hmacKey:     hmacKey,
 		db:          db,
 	}
 }
@@ -63,7 +66,7 @@ func (u *UserRegistry) NewToken(
 
 	expires := time.Now().Add(time.Second * time.Duration(max(60, sessionExpireTime)))
 
-	token.New()
+	token.New(u.hmacKey)
 	tokenHash := token.Hash()
 
 	session := database.TblUserSession{
@@ -99,6 +102,10 @@ func (u *UserRegistry) ExpireToken(tokenStr string) {
 	var token AccessToken
 
 	if err := token.FromString(tokenStr); err != nil {
+		return
+	}
+
+	if !token.Verify(u.hmacKey) {
 		return
 	}
 
@@ -156,6 +163,10 @@ func (u *UserRegistry) CheckToken(ctx context.Context, tokenStr string) (*databa
 	var token AccessToken
 
 	if err := token.FromString(tokenStr); err != nil {
+		return nil, false
+	}
+
+	if !token.Verify(u.hmacKey) {
 		return nil, false
 	}
 

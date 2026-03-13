@@ -68,11 +68,13 @@ func newLoginRequest(t *testing.T, username, password, tokenType string) *http.R
 	return req
 }
 
+var testHMACKey = []byte("test-hmac-key-for-unit-tests-only")
+
 // newTestAPI builds an APIV1 with a real UserRegistry backed by the given mock DB.
 func newTestAPI(db database.DB) *APIV1 {
 	return &APIV1{
 		Db:      db,
-		UserReg: userreg.NewRegistry(db),
+		UserReg: userreg.NewRegistry(db, testHMACKey),
 	}
 }
 

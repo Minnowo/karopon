@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"karopon/src/api/middleware"
 	"karopon/src/api/userreg"
@@ -62,7 +63,16 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	userReg := userreg.NewRegistry(db)
+	sessionSecret := []byte(c.Value("session-secret").(string))
+
+	if len(sessionSecret) == 0 {
+		log.Warn().
+			Msg("no session-secret set; generating a random one — existing sessions will be invalidated on restart")
+		sessionSecret = make([]byte, 32)
+		rand.Read(sessionSecret)
+	}
+
+	userReg := userreg.NewRegistry(db, sessionSecret)
 	userReg.ClearExpiredSessions()
 
 	apiv1 := v1.APIV1{
