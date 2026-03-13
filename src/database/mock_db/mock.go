@@ -117,6 +117,10 @@ func (p *BaseMockDB) DeleteUserSessionsExpireAfter(ctx context.Context, t time.T
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) UpdateUserSessionUserAgent(ctx context.Context, userID int, token []byte, userAgent string) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) AddUserFood(ctx context.Context, food *database.TblUserFood) (int, error) {
 	panic("not implemented")
 }

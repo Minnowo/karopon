@@ -735,6 +735,45 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, validToken, sessions[0].Token)
 	})
 
+	t.Run("UpdateUserSessionUserAgent", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		token := make([]byte, 32)
+		token[0] = 1
+
+		require.NoError(t, db.AddUserSession(ctx, &database.TblUserSession{
+			UserID:    userID,
+			Token:     token,
+			Expires:   database.TimeMillis(time.Now().Add(time.Hour)),
+			UserAgent: "Mozilla/5.0",
+		}))
+
+		// rename the session
+		require.NoError(t, db.UpdateUserSessionUserAgent(ctx, userID, token, "My Laptop"))
+
+		var sessions []database.TblUserSession
+		require.NoError(t, db.LoadUserSessions(ctx, userID, &sessions))
+		require.Len(t, sessions, 1)
+		assert.Equal(t, "My Laptop", sessions[0].UserAgent)
+
+		// updating with a different user_id should not affect the session
+		otherToken := make([]byte, 32)
+		otherToken[0] = 2
+		require.NoError(t, db.UpdateUserSessionUserAgent(ctx, userID+99, token, "Hijacked"))
+
+		sessions = sessions[:0]
+		require.NoError(t, db.LoadUserSessions(ctx, userID, &sessions))
+		require.Len(t, sessions, 1)
+		assert.Equal(t, "My Laptop", sessions[0].UserAgent, "session should be unchanged after wrong-user update")
+	})
+
 	t.Run("UpdateUserFood", func(t *testing.T) {
 
 		lock.Lock()

@@ -91,6 +91,9 @@ type DB interface {
 	DeleteUserSessionByUserAndToken(ctx context.Context, userID int, token []byte) error
 	// Delete all user sessions where the expire time is less than the given time.
 	DeleteUserSessionsExpireAfter(ctx context.Context, time time.Time) error
+	// Update the user_agent field for a session belonging to the given user.
+	// The token must be 32 bytes in size.
+	UpdateUserSessionUserAgent(ctx context.Context, userID int, token []byte, userAgent string) error
 
 	///
 	/// Food Functions

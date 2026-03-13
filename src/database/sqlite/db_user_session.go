@@ -74,6 +74,28 @@ func (db *SqliteDatabase) DeleteUserSessionByToken(ctx context.Context, token []
 	return err
 }
 
+func (db *SqliteDatabase) UpdateUserSessionUserAgent(
+	ctx context.Context,
+	userID int,
+	token []byte,
+	userAgent string,
+) error {
+
+	if len(token) != 32 {
+		return database.ErrInvalidSessionTokenLength
+	}
+
+	query := `
+		UPDATE PON_USER_SESSION
+		SET USER_AGENT = $1
+		WHERE USER_ID = $2 AND TOKEN = $3
+	`
+
+	_, err := db.ExecContext(ctx, query, userAgent, userID, token)
+
+	return err
+}
+
 func (db *SqliteDatabase) DeleteUserSessionsExpireAfter(ctx context.Context, time time.Time) error {
 
 	query := `
