@@ -69,8 +69,18 @@ func (a *APIV1) getUserGoalProgress(w http.ResponseWriter, r *http.Request) {
 		baseTime = goal.AsOf.Time()
 	}
 
-	timeNow := baseTime.In(goal.Timezone.Loc())
+	// If the user has set the start of the day at 2am (user.DayTimeOffsetSeconds = 2),
+	// and the date is 2026-03-14 02:00, that means the current day is supposed to be 2026-03-13.
+	// When goal.TimeRange generates the time range for the given timeNow,
+	// it will directly pull the day value from the given time.
+	//
+	// So we need to subtract the DayTimeOffset for this to work.
+	// This should get us start=2026-03-13:00:00 end=2026-03-14:00:00,
+	// but now we need to shift this forward to account for the user's day offset again.
+	//
+	// Giving the final, correct range of start=2026-03-13 02:00 end=2026-03-14 02:00.
 	shift := time.Second * time.Duration(user.DayTimeOffsetSeconds)
+	timeNow := baseTime.Add(-shift).In(goal.Timezone.Loc())
 
 	var goalProgress database.UserGoalProgress
 

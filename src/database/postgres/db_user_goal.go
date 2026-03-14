@@ -206,8 +206,9 @@ func (db *PGDatabase) LoadUserGoalProgress(
 	if curValue.CurrentValue != nil {
 		out.CurrentValue = *curValue.CurrentValue
 	}
+	// need to unshift the endTime to get a proper calculation.
+	out.TimeRemaining = database.DurationMillis(endTime.Add(-timeShift).Sub(curTime))
 	out.TargetValue = userGoal.TargetValue
-	out.TimeRemaining = database.DurationMillis(endTime.Sub(curTime))
 
 	return nil
 }
