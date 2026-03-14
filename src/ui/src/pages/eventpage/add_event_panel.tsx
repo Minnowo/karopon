@@ -21,6 +21,7 @@ import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
 import {NumberInput} from '../../components/number_input';
+import {ApiUploadEventPhoto} from '../../api/api';
 
 type AddEventsPanelState = {
     dialogTitle: string;
@@ -52,6 +53,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
     const foods = useRef<TblUserFoodLogWithKey[]>([]);
 
     const render = DoRender();
@@ -220,7 +224,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     return (
         <div className="w-full p-2 rounded-sm container-theme">
-            <div className="flex w-full justify-between">
+            <div className="flex w-full justify-between mb-2">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
                 <div className="flex flex-col sm:flex-row">
@@ -232,14 +236,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex flex-col sm:flex-row w-full mb-4">
+            <div className="flex flex-col sm:flex-row w-full mb-4 gap-y-2 sm:gap-x-2">
                 <FuzzySearch<TblUserEvent>
                     query={event}
                     onQueryChange={setEvent}
                     data={p.events}
                     dataDisplayStr={(d: TblUserEvent) => d.name}
                     dataSearchStr={(d: TblUserEvent) => d.name}
-                    className="w-full my-1"
+                    className="w-full"
                     placeholder="Event Name"
                     noResultsText="New Event"
                     onSelect={(evnt: TblUserEvent | null) => {
@@ -252,7 +256,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
                 <input
                     tabindex={-1}
-                    class="w-full my-1 sm:mx-2"
+                    class="w-full"
                     type="datetime-local"
                     name="Event Date"
                     onChange={onEventTimeChange}
@@ -261,7 +265,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
                 {p.user.show_diabetes && (
                     <NumberInput
-                        className="my-1 flex-1 flex-grow"
+                        className="flex-1 flex-grow"
                         innerClassName="w-full min-w-12"
                         label="Blood Sugar"
                         value={bloodSugar}
@@ -270,6 +274,62 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     />
                 )}
             </div>
+
+            <div className="flex items-center gap-2 mb-2">
+                <button
+                    tabindex={-1}
+                    type="button"
+                    className="w-24 items-center gap-1 text-sm"
+                    onClick={() => photoInputRef.current?.click()}
+                >
+                    Take Photo
+                </button>
+
+                <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                            setPhotoUrl(URL.createObjectURL(file));
+                            setPhotoFile(file);
+                        }
+                    }}
+                />
+
+                {photoUrl && (
+                    <>
+                        <button
+                            type="button"
+                            className="text-sm font-bold w-24 text-c-red"
+                            onClick={() => {
+                                setPhotoUrl(null);
+                                if (photoInputRef.current) {
+                                    photoInputRef.current.value = '';
+                                }
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="text-sm font-bold w-24 text-c-green"
+                            onClick={() => {
+                                if (photoFile) {
+                                    ApiUploadEventPhoto(photoFile);
+                                }
+                            }}
+                        >
+                            Upload
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {photoUrl && <img src={photoUrl} alt="Food photo" className="w-full max-h-64 object-contain rounded mb-2" />}
 
             <div className="overflow-x-scroll">
                 <table className="w-full text-sm border-collapse">

@@ -168,6 +168,17 @@ export const ApiGetDataSourceFoods = (dataSourceID: number, search: string): Pro
     return fetchJson(apiFetch(`${ApiBase}/api/datasources/${dataSourceID}/${encodedSearch}`));
 };
 
+export const ApiUploadEventPhoto = (file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/eventlogphoto/new`, {
+            method: 'POST',
+            body: formData,
+        })
+    );
+};
+
 export const ApiUpdateUser = (user: TblUpdateUser): Promise<TblUser> => {
     return fetchJson(
         apiFetch(`${ApiBase}/api/user/update`, {
