@@ -231,6 +231,10 @@
     button {
         @apply input-like;
     }
+
+    button {
+        @apply hover:cursor-pointer;
+    }
 }
 
 @utility input-like {
@@ -242,6 +246,7 @@
         py-1
         border
         border-c-surface2
+        hover:border-c-accent1
         focus:border-c-accent2
         focus:outline-none
         focus-within:border-c-accent2
