@@ -5,11 +5,13 @@ import {TblUserTag} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 import {TagToString} from '../../utils/tags';
 import {DropdownButton} from '../../components/drop_down_button';
+import {NumberInput} from '../../components/number_input';
 
 export function TagsPage(state: BaseState) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [allTags, setAllTags] = useState<TblUserTag[]>([]);
+    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const [showNewTag, setShowNewTag] = useState(false);
     const [newNamespace, setNewNamespace] = useState('');
@@ -137,6 +139,7 @@ export function TagsPage(state: BaseState) {
                 >
                     {showNewTag ? 'Cancel' : '+ New Tag'}
                 </button>
+                <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -180,7 +183,7 @@ export function TagsPage(state: BaseState) {
                 {filteredTags.length === 0 ? (
                     <p>{allTags.length === 0 ? 'No tags found.' : 'No tags match your search.'}</p>
                 ) : (
-                    filteredTags.map((t: TblUserTag) => {
+                    filteredTags.slice(0, numberToShow).map((t: TblUserTag) => {
                         const tagStr = TagToString(t);
                         const isEditing = editingTag?.namespace === t.namespace && editingTag?.name === t.name;
                         return (
