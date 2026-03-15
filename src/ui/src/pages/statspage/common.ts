@@ -30,7 +30,27 @@ export type Point2D = {
     y: number;
 };
 
-export type ChartType = 'pie' | 'macros' | 'calories' | 'blood_glucose' | 'insulin';
+export type BpPoint = {
+    date: number;
+    systolic: number;
+    diastolic: number;
+};
+
+export type ChartType =
+    | 'pie'
+    | 'macros'
+    | 'calories'
+    | 'blood_glucose'
+    | 'insulin'
+    | 'body_weight'
+    | 'body_height'
+    | 'body_fat'
+    | 'body_bmi'
+    | 'bp_systolic'
+    | 'bp_diastolic'
+    | 'bp_combined'
+    | 'heart_rate'
+    | 'steps';
 
 export type DashboardCard = {
     id: string;

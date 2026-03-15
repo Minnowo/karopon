@@ -10,6 +10,15 @@ const CHART_LABELS: Record<DashboardCard['type'], string> = {
     calories: 'Calories',
     blood_glucose: 'Blood Glucose',
     insulin: 'Insulin',
+    body_weight: 'Body Weight (kg)',
+    body_height: 'Height (cm)',
+    body_fat: 'Body Fat (%)',
+    body_bmi: 'BMI',
+    bp_systolic: 'Blood Pressure - Systolic',
+    bp_diastolic: 'Blood Pressure - Diastolic',
+    bp_combined: 'Blood Pressure (Sys + Dia)',
+    heart_rate: 'Heart Rate (bpm)',
+    steps: 'Steps',
 };
 
 let idCounter = 0;
@@ -104,6 +113,7 @@ export function StatsPage(state: BaseState) {
                         key={card.id}
                         card={card}
                         eventlogs={state.eventlogs}
+                        bodylogs={state.bodylogs}
                         dayOffsetSeconds={state.user.day_time_offset_seconds}
                         caloricCalcMethod={state.user.caloric_calc_method}
                         editing={editing}
