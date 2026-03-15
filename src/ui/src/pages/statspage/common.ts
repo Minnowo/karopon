@@ -30,6 +30,36 @@ export type Point2D = {
     y: number;
 };
 
+export type ChartType = 'pie' | 'macros' | 'calories' | 'blood_glucose' | 'insulin';
+
+export type DashboardCard = {
+    id: string;
+    type: ChartType;
+    title: string;
+    display: GraphDisplay;
+    visibleMacros: MacroType[];
+};
+
+export const DEFAULT_DASHBOARD: DashboardCard[] = [
+    {id: 'd-pie', type: 'pie', title: 'Macronutrient Totals', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+    {
+        id: 'd-macros',
+        type: 'macros',
+        title: 'Macronutrients Consumed (g)',
+        display: {range: '24 hours', group: 'sum'},
+        visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
+    },
+    {id: 'd-cal', type: 'calories', title: 'Calories (kcal)', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+    {
+        id: 'd-blood',
+        type: 'blood_glucose',
+        title: 'Blood Glucose (mmol/L)',
+        display: {range: '24 hours', group: 'sum'},
+        visibleMacros: [],
+    },
+    {id: 'd-ins', type: 'insulin', title: 'Insulin Taken (mL)', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+];
+
 export const FormatXLabel = (key: number, range: RangeType): string => {
     switch (range) {
         case '24 hours':

@@ -1,231 +1,117 @@
+import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {useEffect, useState} from 'preact/hooks';
-import {UserEventFoodLog} from '../../api/types';
+import {DashboardCard, DEFAULT_DASHBOARD} from './common';
+import {LocalGetDashboard, LocalStoreDashboard} from '../../utils/localstate';
+import {DashboardCardComponent} from './dashboard_card';
 
-import {RenderGraph} from './single_line_graph';
-import {RenderMultiLineGraph} from './multi_line_graph';
-import {PieChart} from './pie_chart';
-import {ChartPoint, GraphDisplay, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
-
-import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
-import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
-
-const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
-    const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
-
-    const nowMs = Date.now();
-    const startMs =
-        range === '24 hours' ? nowMs - DAY_IN_MS : StartOfRangeMs(nowMs, dayOffsetSeconds, range === '7 days' ? 7 : 28);
-
-    for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (row.eventlog.user_time < startMs) {
-            continue;
-        }
-        totals.carbs += row.total_carb;
-        totals.protein += row.total_protein;
-        totals.fat += row.total_fat;
-        totals.fibre += row.total_fibre;
-    }
-
-    // show net carbs
-    totals.carbs -= totals.fibre;
-
-    return totals;
+const CHART_LABELS: Record<DashboardCard['type'], string> = {
+    pie: 'Pie Chart',
+    macros: 'Macronutrients',
+    calories: 'Calories',
+    blood_glucose: 'Blood Glucose',
+    insulin: 'Insulin',
 };
 
-const buildMacroChartData = (dayOffsetSeconds: number, rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
-    const buckets = new Map<number, {n: number; point: MacroPoint}>();
-
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-
-    for (let i = 0; i < rows.length; i++) {
-        const event = rows[i];
-        if (event.eventlog.user_time < startMs) {
-            continue;
-        }
-
-        let key = 0;
-        switch (display.range) {
-            case '24 hours': {
-                const d = new Date(event.eventlog.user_time);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
-                break;
-            }
-            case '7 days':
-            case '28 days': {
-                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-        let obj = buckets.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, point: {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0}};
-            buckets.set(key, obj);
-        }
-        obj.point.carbs += event.total_carb - event.total_fibre;
-        obj.point.protein += event.total_protein;
-        obj.point.fat += event.total_fat;
-        obj.point.fibre += event.total_fibre;
-        obj.n++;
-    }
-
-    return Array.from(buckets.values(), (x) => {
-        if (display.group === 'average') {
-            x.point.carbs /= x.n;
-            x.point.protein /= x.n;
-            x.point.fat /= x.n;
-            x.point.fibre /= x.n;
-        }
-
-        return x.point;
-    }).sort((a, b) => a.date - b.date);
-};
-
-const buildChartData = (
-    dayOffsetSeconds: number,
-    events: UserEventFoodLog[],
-    keyGetter: (e: UserEventFoodLog) => number,
-    display: GraphDisplay
-): ChartPoint[] => {
-    const grouped = new Map<number, {n: number; v: number}>();
-
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-
-    for (let i = 0; i < events.length; i++) {
-        const event = events[i];
-        if (event.eventlog.user_time < startMs) {
-            continue;
-        }
-
-        let key = 0;
-        switch (display.range) {
-            case '24 hours': {
-                const d = new Date(event.eventlog.user_time);
-                key = d.getTime();
-                break;
-            }
-            case '7 days':
-            case '28 days': {
-                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-
-        let obj = grouped.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, v: 0};
-            grouped.set(key, obj);
-        }
-        obj.n++;
-        obj.v += keyGetter(event);
-    }
-
-    return Array.from(grouped.entries(), ([key, val]) => {
-        if (display.group === 'average') {
-            val.v /= val.n;
-        }
-
-        return {
-            date: key,
-            value: val.v,
-        };
-    }).sort((a, b) => a.date - b.date);
-};
+let idCounter = 0;
+const newId = () => `card-${Date.now()}-${idCounter++}`;
 
 export function StatsPage(state: BaseState) {
-    const [carbRange, setCarbRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
-    const [bloodRange, setBloodRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
-    const [calorieRange, setCalorieRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
-    const [insulinRange, setInsulinRange] = useState<GraphDisplay>({range: '24 hours', group: 'sum'});
-    const [pieChartRange, setPieChartRange] = useState<RangeType>('24 hours');
+    const [cards, setCards] = useState<DashboardCard[]>(() => LocalGetDashboard() ?? DEFAULT_DASHBOARD);
+    const [editing, setEditing] = useState(false);
+    const [addType, setAddType] = useState<DashboardCard['type']>('calories');
 
-    const [macroData, setMacroData] = useState<MacroPoint[]>([]);
-    const [calorieData, setCalorieData] = useState<ChartPoint[]>([]);
-    const [bloodData, setBloodData] = useState<ChartPoint[]>([]);
-    const [insulinData, setInsulinData] = useState<ChartPoint[]>([]);
-    const [macros, setMacros] = useState<MacroTotals>({carbs: 0, protein: 0, fat: 0, fibre: 0} as MacroTotals);
+    const updateCards = (next: DashboardCard[]) => {
+        setCards(next);
+        LocalStoreDashboard(next);
+    };
 
-    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['fat', 'carbs', 'fibre', 'protein']);
+    const handleUpdate = (index: number, card: DashboardCard) => {
+        const next = cards.slice();
+        next[index] = card;
+        updateCards(next);
+    };
 
-    useEffect(() => {
-        setMacroData(buildMacroChartData(state.user.day_time_offset_seconds, state.eventlogs, carbRange));
-    }, [state.user.day_time_offset_seconds, state.eventlogs, carbRange]);
+    const handleRemove = (index: number) => {
+        updateCards(cards.filter((_, i) => i !== index));
+    };
 
-    useEffect(
-        () =>
-            setCalorieData(
-                buildChartData(
-                    state.user.day_time_offset_seconds,
-                    state.eventlogs,
-                    (e) =>
-                        CalculateCalories(
-                            e.total_protein,
-                            e.total_carb - e.total_fibre,
-                            e.total_fibre,
-                            e.total_fat,
-                            Str2CalorieFormula(state.user.caloric_calc_method)
-                        ),
-                    calorieRange
-                )
-            ),
-        [state.user.day_time_offset_seconds, state.user.caloric_calc_method, state.eventlogs, calorieRange]
-    );
-    useEffect(
-        () =>
-            setBloodData(
-                buildChartData(state.user.day_time_offset_seconds, state.eventlogs, (e) => e.eventlog.blood_glucose, bloodRange)
-            ),
-        [state.user.day_time_offset_seconds, state.eventlogs, bloodRange]
-    );
-    useEffect(
-        () =>
-            setInsulinData(
-                buildChartData(
-                    state.user.day_time_offset_seconds,
-                    state.eventlogs,
-                    (e) => e.eventlog.actual_insulin_taken,
-                    insulinRange
-                )
-            ),
-        [state.user.day_time_offset_seconds, state.eventlogs, insulinRange]
-    );
+    const handleMoveUp = (index: number) => {
+        if (index === 0)  { return; }
+        const next = cards.slice();
+        [next[index - 1], next[index]] = [next[index], next[index - 1]];
+        updateCards(next);
+    };
 
-    useEffect(
-        () => setMacros(buildTodayMacros(state.user.day_time_offset_seconds, state.eventlogs, pieChartRange)),
-        [state.user.day_time_offset_seconds, state.eventlogs, pieChartRange]
-    );
+    const handleMoveDown = (index: number) => {
+        if (index === cards.length - 1) { return; }
+        const next = cards.slice();
+        [next[index], next[index + 1]] = [next[index + 1], next[index]];
+        updateCards(next);
+    };
+
+    const handleAdd = () => {
+        const card: DashboardCard = {
+            id: newId(),
+            type: addType,
+            title: CHART_LABELS[addType],
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: addType === 'macros' ? ['fat', 'carbs', 'fibre', 'protein'] : [],
+        };
+        updateCards([...cards, card]);
+    };
 
     return (
         <>
-            <PieChart title="Macronutrient Totals" data={macros} size={250} range={pieChartRange} setRange={setPieChartRange} />
+            <div className="flex justify-end mb-4">
+                <button
+                    className={`px-3 py-1 border rounded ${editing ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                    onClick={() => setEditing(!editing)}
+                >
+                    {editing ? 'Done' : 'Edit Dashboard'}
+                </button>
+            </div>
 
-            {RenderMultiLineGraph(
-                macroData,
-                carbRange,
-                'Macronutrients Consumed (g)',
-                visibleMacros,
-                setVisibleMacros,
-                setCarbRange
+            {cards.map((card, index) => {
+                if (!state.user.show_diabetes && (card.type === 'blood_glucose' || card.type === 'insulin')) {
+                    return null;
+                }
+                return (
+                    <DashboardCardComponent
+                        key={card.id}
+                        card={card}
+                        eventlogs={state.eventlogs}
+                        dayOffsetSeconds={state.user.day_time_offset_seconds}
+                        caloricCalcMethod={state.user.caloric_calc_method}
+                        editing={editing}
+                        isFirst={index === 0}
+                        isLast={index === cards.length - 1}
+                        onUpdate={(updated) => handleUpdate(index, updated)}
+                        onRemove={() => handleRemove(index)}
+                        onMoveUp={() => handleMoveUp(index)}
+                        onMoveDown={() => handleMoveDown(index)}
+                    />
+                );
+            })}
+
+            {editing && (
+                <div className="flex items-center gap-2 mt-4">
+                    <span>Add chart:</span>
+                    <select
+                        className="px-2 py-1 border rounded"
+                        value={addType}
+                        onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
+                    >
+                        {(Object.keys(CHART_LABELS) as DashboardCard['type'][]).map((t) => (
+                            <option key={t} value={t}>
+                                {CHART_LABELS[t]}
+                            </option>
+                        ))}
+                    </select>
+                    <button className="px-3 py-1 border rounded" onClick={handleAdd}>
+                        + Add
+                    </button>
+                </div>
             )}
-
-            {RenderGraph(calorieData, calorieRange, 'value', 'Calories (kcal)', 'var(--color-c-yellow)', setCalorieRange, 0)}
-
-            {state.user.show_diabetes &&
-                RenderGraph(bloodData, bloodRange, 'value', 'Blood Glucose (mmol/L)', 'var(--color-c-sky)', setBloodRange)}
-
-            {state.user.show_diabetes &&
-                RenderGraph(insulinData, insulinRange, 'value', 'Insulin Taken (mL)', 'var(--color-c-green)', setInsulinRange)}
         </>
     );
 }

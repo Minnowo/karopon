@@ -8,6 +8,7 @@ import type {
     TblUserGoal,
     TaggedTimespan,
 } from '../api/types';
+import type {DashboardCard} from '../pages/statspage/common';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 const LOCAL_STORAGE_KEY_EVENTS = 'events';
@@ -65,6 +66,9 @@ export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_B
 export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
 export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
+
+export const LocalStoreDashboard = (cards: DashboardCard[]) => store('dashboard', JSON.stringify(cards));
+export const LocalGetDashboard = (): DashboardCard[] | null => load<DashboardCard[]>('dashboard');
 
 export const LocalClearAll = () => {
     try {
