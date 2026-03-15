@@ -50,7 +50,8 @@ export type ChartType =
     | 'bp_diastolic'
     | 'bp_combined'
     | 'heart_rate'
-    | 'steps';
+    | 'steps'
+    | 'time';
 
 export type DashboardCard = {
     id: string;
@@ -58,26 +59,50 @@ export type DashboardCard = {
     title: string;
     display: GraphDisplay;
     visibleMacros: MacroType[];
+    selectedTags: string[];
 };
 
 export const DEFAULT_DASHBOARD: DashboardCard[] = [
-    {id: 'd-pie', type: 'pie', title: 'Macronutrient Totals', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+    {
+        id: 'd-pie',
+        type: 'pie',
+        title: 'Macronutrient Totals',
+        display: {range: '24 hours', group: 'sum'},
+        visibleMacros: [],
+        selectedTags: [],
+    },
     {
         id: 'd-macros',
         type: 'macros',
         title: 'Macronutrients Consumed (g)',
         display: {range: '24 hours', group: 'sum'},
         visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
+        selectedTags: [],
     },
-    {id: 'd-cal', type: 'calories', title: 'Calories (kcal)', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+    {
+        id: 'd-cal',
+        type: 'calories',
+        title: 'Calories (kcal)',
+        display: {range: '24 hours', group: 'sum'},
+        visibleMacros: [],
+        selectedTags: [],
+    },
     {
         id: 'd-blood',
         type: 'blood_glucose',
         title: 'Blood Glucose (mmol/L)',
         display: {range: '24 hours', group: 'sum'},
         visibleMacros: [],
+        selectedTags: [],
     },
-    {id: 'd-ins', type: 'insulin', title: 'Insulin Taken (mL)', display: {range: '24 hours', group: 'sum'}, visibleMacros: []},
+    {
+        id: 'd-ins',
+        type: 'insulin',
+        title: 'Insulin Taken (mL)',
+        display: {range: '24 hours', group: 'sum'},
+        visibleMacros: [],
+        selectedTags: [],
+    },
 ];
 
 export const FormatXLabel = (key: number, range: RangeType): string => {

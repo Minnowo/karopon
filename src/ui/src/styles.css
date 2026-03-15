@@ -299,7 +299,7 @@
 }
 
 @utility wsnw {
-    @apply whitespace-nowrap
+    @apply whitespace-nowrap;
 }
 
 .no-summary-arrow summary {

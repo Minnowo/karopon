@@ -174,7 +174,7 @@ export const RenderGenericMultiLineGraph = <K extends string>(
                         })}
                     </svg>
 
-                    <div className="flex gap-6 mt-3">
+                    <div className="flex flex-wrap gap-3 mt-3">
                         {keys.map((k) => {
                             const isActive = visibleKeys.includes(k);
                             return (

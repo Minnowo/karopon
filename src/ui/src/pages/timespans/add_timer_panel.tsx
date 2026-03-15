@@ -117,7 +117,13 @@ export const AddTimerPanel = (p: Props) => {
             <div className="mt-1">
                 <span className="font-semibold">Tags</span>
                 <div className="container-theme">
-                    <TagInput namespaces={p.namespaces} setNamespaces={p.setNamespaces} thisTags={tags} onChange={setTags} />
+                    <TagInput
+                        className="px-2 py-1"
+                        namespaces={p.namespaces}
+                        setNamespaces={p.setNamespaces}
+                        thisTags={tags}
+                        onChange={setTags}
+                    />
                 </div>
             </div>
 

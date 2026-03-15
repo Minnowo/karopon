@@ -13,6 +13,7 @@ type TagInputProps = {
     placeholder?: string;
     disabled?: boolean;
     onSearchError?: (err: unknown) => void;
+    className?: string;
 };
 
 export function TagInput({
@@ -23,6 +24,7 @@ export function TagInput({
     placeholder = 'Add tag',
     disabled = false,
     onSearchError = undefined,
+    className = '',
 }: TagInputProps) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState<boolean>(false);
@@ -223,7 +225,11 @@ export function TagInput({
     };
 
     return (
-        <div ref={containerRef} onFocusOut={onFocusOut} className="w-full flex flex-wrap items-center gap-1 px-2 py-1 text-sm">
+        <div
+            ref={containerRef}
+            onFocusOut={onFocusOut}
+            className={`w-full flex flex-wrap items-center gap-1 text-sm ${className === undefined ? '' : className}`}
+        >
             {thisTags.map((tag, i) => (
                 <TagChip key={TagToString(tag)} tag={tag} onRemove={() => removeTag(i)} />
             ))}

@@ -66,11 +66,7 @@ export const TimerPanel = ({
                         <div className="wsnw">
                             {running ? (
                                 <TimeNowContext.Consumer>
-                                    {(now) => (
-                                        <span className="wsnw">
-                                            {FormatDuration(now - timer.timespan.start_time)}
-                                        </span>
-                                    )}
+                                    {(now) => <span className="wsnw">{FormatDuration(now - timer.timespan.start_time)}</span>}
                                 </TimeNowContext.Consumer>
                             ) : (
                                 <span className="wsnw">

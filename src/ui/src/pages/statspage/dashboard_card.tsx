@@ -1,5 +1,5 @@
-import {useMemo, useRef, useState} from 'preact/hooks';
-import {TblUserBodyLog, UserEventFoodLog} from '../../api/types';
+import {Dispatch, StateUpdater, useMemo, useRef, useState} from 'preact/hooks';
+import {TaggedTimespan, TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
 import {
@@ -15,7 +15,9 @@ import {
 } from './common';
 import {PieChart} from './pie_chart';
 import {RenderGraph} from './single_line_graph';
-import {RenderGenericMultiLineGraph} from './multi_line_graph';
+import {RenderGenericMultiLineGraph, MultiLinePoint} from './multi_line_graph';
+import {SplitTag, TagToString} from '../../utils/tags';
+import {TagInput} from '../../components/tag_input';
 
 const MACRO_COLORS: Record<MacroType, string> = {
     fat: 'var(--color-c-flamingo)',
@@ -39,6 +41,90 @@ const BP_COLORS: Record<BpKey, string> = {
 const BP_LABELS: Record<BpKey, string> = {
     systolic: 'Systolic',
     diastolic: 'Diastolic',
+};
+
+const TAG_COLOR_PALETTE = [
+    'var(--color-c-red)',
+    'var(--color-c-peach)',
+    'var(--color-c-yellow)',
+    'var(--color-c-green)',
+    'var(--color-c-teal)',
+    'var(--color-c-sky)',
+    'var(--color-c-sapphire)',
+    'var(--color-c-lavender)',
+    'var(--color-c-mauve)',
+    'var(--color-c-pink)',
+    'var(--color-c-flamingo)',
+];
+
+const buildTimeChartData = (
+    dayOffsetSeconds: number,
+    spans: TaggedTimespan[],
+    selectedTags: string[],
+    display: GraphDisplay
+): Array<MultiLinePoint<string>> => {
+    if (selectedTags.length === 0) {
+        return [];
+    }
+    const selectedSet = new Set(selectedTags);
+    const buckets = new Map<number, Map<string, {n: number; total: number}>>();
+    const nowMs = Date.now();
+    const startMs =
+        display.range === '24 hours'
+            ? nowMs - DAY_IN_MS
+            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
+
+    for (const {timespan, tags} of spans) {
+        if (timespan.stop_time <= timespan.start_time) {
+            continue;
+        }
+        if (timespan.start_time < startMs) {
+            continue;
+        }
+        const durationHours = (timespan.stop_time - timespan.start_time) / 3_600_000;
+
+        let bucketKey = 0;
+        switch (display.range) {
+            case '24 hours': {
+                const d = new Date(timespan.start_time);
+                bucketKey = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
+                break;
+            }
+            case '7 days':
+            case '28 days': {
+                const d = new Date(timespan.start_time - dayOffsetSeconds * 1000);
+                bucketKey = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+                break;
+            }
+        }
+
+        if (!buckets.has(bucketKey)) {
+            buckets.set(bucketKey, new Map());
+        }
+        const bucket = buckets.get(bucketKey)!;
+
+        for (const t of tags) {
+            const k = TagToString(t);
+            if (!selectedSet.has(k)) {
+                continue;
+            }
+            if (!bucket.has(k)) {
+                bucket.set(k, {n: 0, total: 0});
+            }
+            const entry = bucket.get(k)!;
+            entry.n++;
+            entry.total += durationHours;
+        }
+    }
+
+    return Array.from(buckets.entries(), ([date, tagMap]) => {
+        const point = {date} as MultiLinePoint<string>;
+        for (const t of selectedTags) {
+            const entry = tagMap.get(t);
+            point[t] = entry ? (display.group === 'average' ? entry.total / entry.n : entry.total) : 0;
+        }
+        return point;
+    }).sort((a, b) => a.date - b.date);
 };
 
 const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
@@ -256,11 +342,14 @@ type DashboardCardProps = {
     card: DashboardCard;
     eventlogs: UserEventFoodLog[];
     bodylogs: TblUserBodyLog[];
+    timespans: TaggedTimespan[];
     dayOffsetSeconds: number;
     caloricCalcMethod: string;
     editing: boolean;
     isFirst: boolean;
     isLast: boolean;
+    namespaces: string[];
+    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     onUpdate: (card: DashboardCard) => void;
     onRemove: () => void;
     onMoveUp: () => void;
@@ -271,11 +360,14 @@ export function DashboardCardComponent({
     card,
     eventlogs,
     bodylogs,
+    timespans,
     dayOffsetSeconds,
     caloricCalcMethod,
     editing,
     isFirst,
     isLast,
+    namespaces,
+    setNamespaces,
     onUpdate,
     onRemove,
     onMoveUp,
@@ -287,6 +379,15 @@ export function DashboardCardComponent({
         card.visibleMacros.length > 0 ? card.visibleMacros : ['fat', 'carbs', 'fibre', 'protein']
     );
     const [visibleBpKeys, setVisibleBpKeys] = useState<BpKey[]>(['systolic', 'diastolic']);
+    const [visibleTimeTags, setVisibleTimeTags] = useState<string[]>(card.selectedTags ?? []);
+
+    const timeData = useMemo(
+        () =>
+            card.type === 'time' && card.selectedTags?.length > 0
+                ? buildTimeChartData(dayOffsetSeconds, timespans, card.selectedTags, display)
+                : [],
+        [card.type, card.selectedTags, dayOffsetSeconds, timespans, display]
+    );
 
     const macros = useMemo(
         () =>
@@ -468,13 +569,35 @@ export function DashboardCardComponent({
                 return RenderGraph(heartRateData, display, 'value', card.title, 'var(--color-c-red)', handleDisplayChange);
             case 'steps':
                 return RenderGraph(stepsData, display, 'value', card.title, 'var(--color-c-teal)', handleDisplayChange, 0);
+            case 'time': {
+                const selectedTags = card.selectedTags ?? [];
+                const tagColors: Record<string, string> = Object.fromEntries(
+                    selectedTags.map((t, i) => [t, TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]])
+                );
+                const tagLabels: Record<string, string> = Object.fromEntries(selectedTags.map((t) => [t, t]));
+                return RenderGenericMultiLineGraph(
+                    timeData,
+                    selectedTags,
+                    tagColors,
+                    tagLabels,
+                    display,
+                    card.title,
+                    visibleTimeTags,
+                    setVisibleTimeTags,
+                    handleDisplayChange,
+                    2
+                );
+            }
         }
     };
 
     return (
         <div ref={thisRef}>
             {editing && (
-                <div className="flex flex-wrap items-center gap-2 mb-2">
+                <div className="flex flex-col gap-2">
+
+                <div className="flex flex-row items-center gap-2">
+
                     <div className="flex gap-2 shrink-0">
                         <button
                             className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
@@ -499,6 +622,20 @@ export function DashboardCardComponent({
                     <button className="shrink-0 px-2 py-1 border rounded text-c-red" onClick={onRemove}>
                         ✕ Remove
                     </button>
+                    </div>
+                    {card.type === 'time' && (
+                        <>
+                            <div>
+                                <h2 className="text-lg font-bold">Tags</h2>
+                                <TagInput
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
+                                    thisTags={card.selectedTags.map(SplitTag)}
+                                    onChange={(tags) => onUpdate({...card, selectedTags: tags.map(TagToString)})}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
             {renderChart()}
