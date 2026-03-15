@@ -298,78 +298,93 @@ export function DashboardCardComponent({
     };
 
     const macros = useMemo(
-        () => buildTodayMacros(dayOffsetSeconds, eventlogs, display.range),
-        [dayOffsetSeconds, eventlogs, display.range]
+        () =>
+            card.type === 'pie'
+                ? buildTodayMacros(dayOffsetSeconds, eventlogs, display.range)
+                : {carbs: 0, protein: 0, fat: 0, fibre: 0},
+        [card.type, dayOffsetSeconds, eventlogs, display.range]
     );
 
     const macroData = useMemo(
-        () => buildMacroChartData(dayOffsetSeconds, eventlogs, display),
-        [dayOffsetSeconds, eventlogs, display]
+        () => (card.type === 'macros' ? buildMacroChartData(dayOffsetSeconds, eventlogs, display) : []),
+        [card.type, dayOffsetSeconds, eventlogs, display]
     );
 
     const calorieData = useMemo(
         () =>
-            buildChartData(
-                dayOffsetSeconds,
-                eventlogs,
-                (e) =>
-                    CalculateCalories(
-                        e.total_protein,
-                        e.total_carb - e.total_fibre,
-                        e.total_fibre,
-                        e.total_fat,
-                        Str2CalorieFormula(caloricCalcMethod)
-                    ),
-                display
-            ),
-        [dayOffsetSeconds, eventlogs, caloricCalcMethod, display]
+            card.type === 'calories'
+                ? buildChartData(
+                      dayOffsetSeconds,
+                      eventlogs,
+                      (e) =>
+                          CalculateCalories(
+                              e.total_protein,
+                              e.total_carb - e.total_fibre,
+                              e.total_fibre,
+                              e.total_fat,
+                              Str2CalorieFormula(caloricCalcMethod)
+                          ),
+                      display
+                  )
+                : [],
+        [card.type, dayOffsetSeconds, eventlogs, caloricCalcMethod, display]
     );
 
     const bloodData = useMemo(
-        () => buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.blood_glucose, display),
-        [dayOffsetSeconds, eventlogs, display]
+        () =>
+            card.type === 'blood_glucose'
+                ? buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.blood_glucose, display)
+                : [],
+        [card.type, dayOffsetSeconds, eventlogs, display]
     );
 
     const insulinData = useMemo(
-        () => buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.actual_insulin_taken, display),
-        [dayOffsetSeconds, eventlogs, display]
+        () =>
+            card.type === 'insulin'
+                ? buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.actual_insulin_taken, display)
+                : [],
+        [card.type, dayOffsetSeconds, eventlogs, display]
     );
 
     const weightData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.weight_kg, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () => (card.type === 'body_weight' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.weight_kg, display) : []),
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const heightData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.height_cm, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () => (card.type === 'body_height' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.height_cm, display) : []),
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const bodyFatData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.body_fat_percent, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () =>
+            card.type === 'body_fat' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.body_fat_percent, display) : [],
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const bmiData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bmi, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () => (card.type === 'body_bmi' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bmi, display) : []),
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const bpSysData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_systolic, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () =>
+            card.type === 'bp_systolic' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_systolic, display) : [],
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const bpDiaData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_diastolic, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () =>
+            card.type === 'bp_diastolic' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_diastolic, display) : [],
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const heartRateData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.heart_rate_bpm, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () =>
+            card.type === 'heart_rate' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.heart_rate_bpm, display) : [],
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const stepsData = useMemo(
-        () => buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.steps_count, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () => (card.type === 'steps' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.steps_count, display) : []),
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
     const bpCombinedData = useMemo(
-        () => buildBpChartData(dayOffsetSeconds, bodylogs, display),
-        [dayOffsetSeconds, bodylogs, display]
+        () => (card.type === 'bp_combined' ? buildBpChartData(dayOffsetSeconds, bodylogs, display) : []),
+        [card.type, dayOffsetSeconds, bodylogs, display]
     );
 
     const renderChart = () => {
