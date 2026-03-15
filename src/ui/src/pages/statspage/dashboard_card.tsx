@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'preact/hooks';
+import {useMemo, useRef, useState} from 'preact/hooks';
 import {TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
@@ -281,21 +281,12 @@ export function DashboardCardComponent({
     onMoveUp,
     onMoveDown,
 }: DashboardCardProps) {
+    const thisRef = useRef<HTMLDivElement>(null);
     const [display, setDisplay] = useState<GraphDisplay>(card.display);
     const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(
         card.visibleMacros.length > 0 ? card.visibleMacros : ['fat', 'carbs', 'fibre', 'protein']
     );
     const [visibleBpKeys, setVisibleBpKeys] = useState<BpKey[]>(['systolic', 'diastolic']);
-
-    const handleDisplayChange = (d: GraphDisplay) => {
-        setDisplay(d);
-        onUpdate({...card, display: d});
-    };
-
-    const handleVisibleMacrosChange = (m: MacroType[]) => {
-        setVisibleMacros(m);
-        onUpdate({...card, visibleMacros: m});
-    };
 
     const macros = useMemo(
         () =>
@@ -387,6 +378,38 @@ export function DashboardCardComponent({
         [card.type, dayOffsetSeconds, bodylogs, display]
     );
 
+    const handleMoveUP = () => {
+        onMoveUp();
+
+        requestAnimationFrame(() => {
+            thisRef.current?.scrollIntoView({
+                block: 'center',
+                behavior: 'instant',
+            });
+        });
+    };
+
+    const handleMoveDown = () => {
+        onMoveDown();
+
+        requestAnimationFrame(() => {
+            thisRef.current?.scrollIntoView({
+                block: 'center',
+                behavior: 'instant',
+            });
+        });
+    };
+
+    const handleDisplayChange = (d: GraphDisplay) => {
+        setDisplay(d);
+        onUpdate({...card, display: d});
+    };
+
+    const handleVisibleMacrosChange = (m: MacroType[]) => {
+        setVisibleMacros(m);
+        onUpdate({...card, visibleMacros: m});
+    };
+
     const renderChart = () => {
         switch (card.type) {
             case 'pie':
@@ -449,20 +472,20 @@ export function DashboardCardComponent({
     };
 
     return (
-        <div>
+        <div ref={thisRef}>
             {editing && (
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                     <div className="flex gap-2 shrink-0">
                         <button
                             className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                            onClick={onMoveUp}
+                            onClick={handleMoveUP}
                             disabled={isFirst}
                         >
                             ↑
                         </button>
                         <button
                             className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                            onClick={onMoveDown}
+                            onClick={handleMoveDown}
                             disabled={isLast}
                         >
                             ↓
