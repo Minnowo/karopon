@@ -95,7 +95,7 @@ export const RenderGenericMultiLineGraph = <K extends string>(
     }, [visibleKeys, lines]);
 
     return (
-        <div ref={containerRef} className="mb-8 w-full">
+        <div ref={containerRef} className="w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">

@@ -298,6 +298,10 @@
     -webkit-touch-callout: none;
 }
 
+@utility wsnw {
+    @apply whitespace-nowrap
+}
+
 .no-summary-arrow summary {
     list-style: none;
 }

@@ -85,10 +85,12 @@ export function StatsPage(state: BaseState) {
             </div>
 
             {editing && (
-                <div className="flex items-center gap-2 my-4">
-                    <span>Add chart:</span>
+                <div className="flex flex-col p-2 mt-4 mb-8 container-theme">
+
+                    <span className="text-lg font-bold">Add Chart</span>
+                    <div class="flex gap-2 items-center ">
                     <select
-                        className="px-2 py-1"
+                        className="w-full px-2 py-1"
                         value={addType}
                         onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
                     >
@@ -98,12 +100,14 @@ export function StatsPage(state: BaseState) {
                             </option>
                         ))}
                     </select>
-                    <button className="px-3 py-1" onClick={handleAdd}>
+                    <button className="px-3 py-1 wsnw" onClick={handleAdd}>
                         + Add
                     </button>
                 </div>
+                </div>
             )}
 
+            <div class="flex flex-col gap-16">
             {cards.map((card, index) => {
                 if (!state.user.show_diabetes && (card.type === 'blood_glucose' || card.type === 'insulin')) {
                     return null;
@@ -126,6 +130,7 @@ export function StatsPage(state: BaseState) {
                     />
                 );
             })}
+                </div>
         </>
     );
 }

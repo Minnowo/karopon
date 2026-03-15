@@ -46,7 +46,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
     const radius = center - 10;
 
     return (
-        <div className="flex flex-col my-8">
+        <div className="flex flex-col">
             <h1 className="text-2xl mb-2">{title}</h1>
             <div className="flex gap-4 mb-4">
                 {RangeTypeKeys.map((r) => (
