@@ -36,14 +36,18 @@ export function StatsPage(state: BaseState) {
     };
 
     const handleMoveUp = (index: number) => {
-        if (index === 0)  { return; }
+        if (index === 0) {
+            return;
+        }
         const next = cards.slice();
         [next[index - 1], next[index]] = [next[index], next[index - 1]];
         updateCards(next);
     };
 
     const handleMoveDown = (index: number) => {
-        if (index === cards.length - 1) { return; }
+        if (index === cards.length - 1) {
+            return;
+        }
         const next = cards.slice();
         [next[index], next[index + 1]] = [next[index + 1], next[index]];
         updateCards(next);

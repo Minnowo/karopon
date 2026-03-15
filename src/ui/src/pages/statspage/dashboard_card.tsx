@@ -14,7 +14,9 @@ const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], ra
         range === '24 hours' ? nowMs - DAY_IN_MS : StartOfRangeMs(nowMs, dayOffsetSeconds, range === '7 days' ? 7 : 28);
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        if (row.eventlog.user_time < startMs) continue;
+        if (row.eventlog.user_time < startMs) {
+            continue;
+        }
         totals.carbs += row.total_carb;
         totals.protein += row.total_protein;
         totals.fat += row.total_fat;
@@ -33,7 +35,9 @@ const buildMacroChartData = (dayOffsetSeconds: number, rows: UserEventFoodLog[],
             : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
     for (let i = 0; i < rows.length; i++) {
         const event = rows[i];
-        if (event.eventlog.user_time < startMs) continue;
+        if (event.eventlog.user_time < startMs) {
+            continue;
+        }
         let key = 0;
         switch (display.range) {
             case '24 hours': {
@@ -84,7 +88,9 @@ const buildChartData = (
             : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
     for (let i = 0; i < events.length; i++) {
         const event = events[i];
-        if (event.eventlog.user_time < startMs) continue;
+        if (event.eventlog.user_time < startMs) {
+            continue;
+        }
         let key = 0;
         switch (display.range) {
             case '24 hours': {
@@ -108,7 +114,9 @@ const buildChartData = (
         obj.v += keyGetter(event);
     }
     return Array.from(grouped.entries(), ([key, val]) => {
-        if (display.group === 'average') val.v /= val.n;
+        if (display.group === 'average') {
+            val.v /= val.n;
+        }
         return {date: key, value: val.v};
     }).sort((a, b) => a.date - b.date);
 };
@@ -226,27 +234,29 @@ export function DashboardCardComponent({
     return (
         <div>
             {editing && (
-                <div className="flex items-center gap-2 mb-2">
-                    <button
-                        className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                        onClick={onMoveUp}
-                        disabled={isFirst}
-                    >
-                        ↑
-                    </button>
-                    <button
-                        className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                        onClick={onMoveDown}
-                        disabled={isLast}
-                    >
-                        ↓
-                    </button>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <div className="flex gap-2 shrink-0">
+                        <button
+                            className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
+                            onClick={onMoveUp}
+                            disabled={isFirst}
+                        >
+                            ↑
+                        </button>
+                        <button
+                            className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
+                            onClick={onMoveDown}
+                            disabled={isLast}
+                        >
+                            ↓
+                        </button>
+                    </div>
                     <input
-                        className="flex-1 px-2 py-1 border rounded bg-transparent text-c-text"
+                        className="min-w-0 flex-1 px-2 py-1 border rounded bg-transparent text-c-text"
                         value={card.title}
                         onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
                     />
-                    <button className="px-2 py-1 border rounded text-c-red" onClick={onRemove}>
+                    <button className="shrink-0 px-2 py-1 border rounded text-c-red" onClick={onRemove}>
                         ✕ Remove
                     </button>
                 </div>
