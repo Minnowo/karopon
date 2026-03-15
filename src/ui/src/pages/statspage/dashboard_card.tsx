@@ -595,33 +595,31 @@ export function DashboardCardComponent({
         <div ref={thisRef}>
             {editing && (
                 <div className="flex flex-col gap-2">
-
-                <div className="flex flex-row items-center gap-2">
-
-                    <div className="flex gap-2 shrink-0">
-                        <button
-                            className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                            onClick={handleMoveUP}
-                            disabled={isFirst}
-                        >
-                            ↑
+                    <div className="flex flex-row items-center gap-2">
+                        <div className="flex gap-2 shrink-0">
+                            <button
+                                className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
+                                onClick={handleMoveUP}
+                                disabled={isFirst}
+                            >
+                                ↑
+                            </button>
+                            <button
+                                className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
+                                onClick={handleMoveDown}
+                                disabled={isLast}
+                            >
+                                ↓
+                            </button>
+                        </div>
+                        <input
+                            className="min-w-0 flex-1 px-2 py-1 border rounded bg-transparent text-c-text"
+                            value={card.title}
+                            onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
+                        />
+                        <button className="shrink-0 px-2 py-1 border rounded text-c-red" onClick={onRemove}>
+                            ✕ Remove
                         </button>
-                        <button
-                            className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                            onClick={handleMoveDown}
-                            disabled={isLast}
-                        >
-                            ↓
-                        </button>
-                    </div>
-                    <input
-                        className="min-w-0 flex-1 px-2 py-1 border rounded bg-transparent text-c-text"
-                        value={card.title}
-                        onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
-                    />
-                    <button className="shrink-0 px-2 py-1 border rounded text-c-red" onClick={onRemove}>
-                        ✕ Remove
-                    </button>
                     </div>
                     {card.type === 'time' && (
                         <>

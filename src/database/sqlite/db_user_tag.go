@@ -18,6 +18,22 @@ func (db *SqliteDatabase) AddUserTag(ctx context.Context, tag *database.TblUserT
 	return db.NamedInsertGetLastRowID(ctx, query, tag)
 }
 
+func (db *SqliteDatabase) DeleteUserTag(ctx context.Context, userID int, namespace, name string) error {
+	query := `DELETE FROM PON_USER_TAG WHERE USER_ID = $1 AND NAMESPACE = $2 AND NAME = $3`
+	_, err := db.ExecContext(ctx, query, userID, namespace, name)
+	return err
+}
+
+func (db *SqliteDatabase) UpdateUserTag(
+	ctx context.Context,
+	userID int,
+	namespace, name, newNamespace, newName string,
+) error {
+	query := `UPDATE PON_USER_TAG SET NAMESPACE = $1, NAME = $2 WHERE USER_ID = $3 AND NAMESPACE = $4 AND NAME = $5`
+	_, err := db.ExecContext(ctx, query, newNamespace, newName, userID, namespace, name)
+	return err
+}
+
 func (db *SqliteDatabase) LoadUserTags(ctx context.Context, userID int, out *[]database.TblUserTag) error {
 
 	query := `

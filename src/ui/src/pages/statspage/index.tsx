@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useMemo, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {DashboardCard, DEFAULT_DASHBOARD} from './common';
 import {LocalGetDashboard, LocalStoreDashboard} from '../../utils/localstate';

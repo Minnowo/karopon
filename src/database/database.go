@@ -259,6 +259,8 @@ type DB interface {
 	///
 
 	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
+	DeleteUserTag(ctx context.Context, userID int, namespace, name string) error
+	UpdateUserTag(ctx context.Context, userID int, namespace, name, newNamespace, newName string) error
 	LoadUserTags(ctx context.Context, userID int, out *[]TblUserTag) error
 	LoadUserTagNamespaces(ctx context.Context, userID int, out *[]string) error
 	LoadUserNamespaceTags(ctx context.Context, userID int, namespace string, out *[]TblUserTag) error

@@ -122,6 +122,8 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/goal/delete", a.deleteUserGoal)
 	post.HandleFunc("/goal/progress", a.getUserGoalProgress)
 	post.HandleFunc("/tag/new", a.newUserTag)
+	post.HandleFunc("/tag/delete", a.deleteUserTag)
+	post.HandleFunc("/tag/update", a.updateUserTag)
 	post.HandleFunc("/timespan/new", a.newUserTimespan)
 	post.HandleFunc("/timespan/delete", a.deleteUserTimespan)
 	post.HandleFunc("/timespan/update", a.updateUserTimespan)

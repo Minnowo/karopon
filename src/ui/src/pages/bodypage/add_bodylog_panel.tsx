@@ -209,7 +209,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
 
                     <div className="flex justify-end mt-2">
                         <button className="bg-c-green font-bold max-w-32 w-full" onClick={onSaveClick}>
-                            Save Log
+                            Update Log
                         </button>
                     </div>
                 </div>

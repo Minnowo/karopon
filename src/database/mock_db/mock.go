@@ -310,6 +310,17 @@ func (p *BaseMockDB) AddUserTag(ctx context.Context, tag *database.TblUserTag) (
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) DeleteUserTag(ctx context.Context, userID int, namespace, name string) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserTag(
+	ctx context.Context,
+	userID int,
+	namespace, name, newNamespace, newName string,
+) error {
+	panic("not implemented")
+}
 func (p *BaseMockDB) LoadUserTags(ctx context.Context, userID int, out *[]database.TblUserTag) error {
 	panic("not implemented")
 }

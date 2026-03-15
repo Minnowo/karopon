@@ -273,6 +273,35 @@ export const ApiNewUserTag = (tag: TblUserTag): Promise<TblUserTag> => {
     );
 };
 
+export const ApiDeleteUserTag = (tag: TblUserTag): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/tag/delete`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify(tag),
+        })
+    );
+};
+
+export const ApiUpdateUserTag = (tag: TblUserTag, newNamespace: string, newName: string): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/tag/update`, {
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({
+                namespace: tag.namespace,
+                name: tag.name,
+                new_namespace: newNamespace,
+                new_name: newName,
+            }),
+        })
+    );
+};
+
 export const ApiNewUserTimespan = (tag: TaggedTimespan): Promise<TaggedTimespan> => {
     return fetchJson(
         apiFetch(`${ApiBase}/api/timespan/new`, {
