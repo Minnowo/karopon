@@ -126,14 +126,14 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                                         </tr>
                                     )}
                                     <tr onClick={toggle} className={`cursor-pointer ${rowColor}`}>
-                                        <td className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2`}>
+                                        <td className={`wsnw max-w-[100px] sm:w-full pr-2`}>
                                             {!shown ? (
                                                 <div className="overflow-x-hidden">{food.name}</div>
                                             ) : (
                                                 <div className="w-full">&nbsp;</div>
                                             )}
                                         </td>
-                                        <td className="text-right whitespace-nowrap pr-2">
+                                        <td className="text-right wsnw pr-2">
                                             {food.portion} {food.unit}
                                         </td>
                                         <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
@@ -309,14 +309,14 @@ export function AddFoodPanel({food, dataSources, addFood, className, doRefresh}:
                     <div className="flex flex-row flex-wrap">
                         <input
                             ref={foodRef}
-                            className="mb-2 whitespace-nowrap flex-auto mr-1"
+                            className="mb-2 wsnw flex-auto mr-1"
                             type="text"
                             value={tmpFood.name}
                             onInput={(e) => (tmpFood.name = e.currentTarget.value)}
                             placeholder="Food Name"
                         />
                         <input
-                            className="mb-2 whitespace-nowrap flex-auto max-w-32"
+                            className="mb-2 wsnw flex-auto max-w-32"
                             type="text"
                             value={tmpFood.unit}
                             onInput={(e) => (tmpFood.unit = e.currentTarget.value)}

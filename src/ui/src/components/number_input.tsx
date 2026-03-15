@@ -92,7 +92,7 @@ export function NumberInput({
     return (
         <div aria-disabled={disabled} className={`flex flex-row relative input-like p-0 ${className}`}>
             {labelOnLeftSide && label && (
-                <div className="flex items-center whitespace-nowrap select-none px-1" onClick={onLabelClick}>
+                <div className="flex items-center wsnw select-none px-1" onClick={onLabelClick}>
                     {label}
                 </div>
             )}
@@ -120,7 +120,7 @@ export function NumberInput({
                 onBlur={handleBlur}
             />
             {!labelOnLeftSide && label && (
-                <div className="flex items-center whitespace-nowrap select-none pl-1 pr-0.5" onClick={onLabelClick}>
+                <div className="flex items-center wsnw select-none pl-1 pr-0.5" onClick={onLabelClick}>
                     {label}
                 </div>
             )}

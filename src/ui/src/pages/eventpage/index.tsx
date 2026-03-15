@@ -78,7 +78,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                             <tbody>
                                 {foodGroup.foodlogs.length > 1 && (
                                     <tr>
-                                        <td className="whitespace-nowrap">Total</td>
+                                        <td className="wsnw">Total</td>
                                         <td className="text-center">-</td>
                                         <td className="text-right pr-2">{foodGroup.total_fat.toFixed(1)}</td>
                                         <td className="text-right pr-2">{foodGroup.total_carb.toFixed(1)}</td>
@@ -112,7 +112,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                             )}
                                             <tr onClick={toggle} className="cursor-pointer">
                                                 <td
-                                                    className={`whitespace-nowrap max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-accent2' : ''} `}
+                                                    className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-accent2' : ''} `}
                                                 >
                                                     {!shown ? (
                                                         <div className="overflow-x-hidden">{food.name}</div>
@@ -120,7 +120,7 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                                                         <div className="w-full">&nbsp;</div>
                                                     )}
                                                 </td>
-                                                <td className="text-right whitespace-nowrap pr-2">
+                                                <td className="text-right wsnw pr-2">
                                                     {' '}
                                                     {food.portion} {food.unit}{' '}
                                                 </td>

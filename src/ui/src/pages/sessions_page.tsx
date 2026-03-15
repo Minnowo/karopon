@@ -43,7 +43,7 @@ function SessionRow({
         >
             <div className="flex items-start justify-between gap-2">
                 <span className="break-all text-sm font-semibold">{label}</span>
-                {session.is_current && <span className="text-c-l-green font-bold text-xs whitespace-nowrap">current</span>}
+                {session.is_current && <span className="text-c-l-green font-bold text-xs wsnw">current</span>}
             </div>
 
             {editing ? (

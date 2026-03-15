@@ -52,7 +52,7 @@ export const TimerPanel = ({
                     />
 
                     <div className="flex flex-row sm:flex-col items-center font-mono justify-evenly">
-                        <div className="whitespace-nowrap">
+                        <div className="wsnw">
                             <span>{FormatTimerTimestamp(timer.timespan.start_time)}</span>
                             <span className="text-faded mx-2">{'-'}</span>
                             {running ? (
@@ -63,17 +63,17 @@ export const TimerPanel = ({
                                 <span>{FormatTimerTimestamp(timer.timespan.stop_time)}</span>
                             )}
                         </div>
-                        <div className="whitespace-nowrap">
+                        <div className="wsnw">
                             {running ? (
                                 <TimeNowContext.Consumer>
                                     {(now) => (
-                                        <span className="whitespace-nowrap">
+                                        <span className="wsnw">
                                             {FormatDuration(now - timer.timespan.start_time)}
                                         </span>
                                     )}
                                 </TimeNowContext.Consumer>
                             ) : (
-                                <span className="whitespace-nowrap">
+                                <span className="wsnw">
                                     {FormatDuration(timer.timespan.stop_time - timer.timespan.start_time)}
                                 </span>
                             )}

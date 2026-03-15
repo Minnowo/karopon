@@ -48,7 +48,7 @@ export function AddFoodlogPanelRow({
     return (
         <>
             <tr>
-                <td className="whitespace-nowrap w-full pr-1">
+                <td className="wsnw w-full pr-1">
                     <FuzzySearch<TblUserFood>
                         query={foodTemplate.current.name}
                         onQueryChange={(q) => {

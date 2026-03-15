@@ -76,21 +76,21 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                     <>
                         <div class="w-full px-1">
                             <input
-                                class="mb-2 whitespace-nowrap w-full"
+                                class="mb-2 wsnw w-full"
                                 type="text"
                                 onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
                                 value={tmpFood.current.name}
                                 placeholder="Food Name"
                             />
                             <input
-                                class="mb-2 whitespace-nowrap w-full"
+                                class="mb-2 wsnw w-full"
                                 type="text"
                                 onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
                                 value={tmpFood.current.unit}
                                 placeholder="Portion Unit"
                             />
                             <NumberInput
-                                className={'whitespace-nowrap'}
+                                className={'wsnw'}
                                 innerClassName="w-full"
                                 label={'Portion'}
                                 value={tmpFood.current.portion}
@@ -173,7 +173,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
             {showUpdatePanel ? (
                 <div className="flex flex-wrap">
                     <NumberInput
-                        className={'mx-1 mt-2 whitespace-nowrap'}
+                        className={'mx-1 mt-2 wsnw'}
                         innerClassName="w-16"
                         label={'Fat'}
                         value={tmpFood.current.fat}
@@ -184,7 +184,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 whitespace-nowrap'}
+                        className={'mx-1 mt-2 wsnw'}
                         innerClassName="w-16"
                         label={'Carb'}
                         value={tmpFood.current.carb}
@@ -195,7 +195,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 whitespace-nowrap'}
+                        className={'mx-1 mt-2 wsnw'}
                         innerClassName="w-16"
                         label={'Fibre'}
                         value={tmpFood.current.fibre}
@@ -206,7 +206,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 whitespace-nowrap'}
+                        className={'mx-1 mt-2 wsnw'}
                         innerClassName="w-16"
                         label={'Protein'}
                         value={tmpFood.current.protein}

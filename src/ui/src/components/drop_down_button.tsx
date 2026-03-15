@@ -59,7 +59,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className={`${action.dangerous ? 'text-c-red' : ''} w-full text-left whitespace-nowrap rounded-none border-none bg-c-surface0 hover:bg-c-surface2 px-2 py-1`}
+                            className={`${action.dangerous ? 'text-c-red' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface0 hover:bg-c-surface2 px-2 py-1`}
                         >
                             {action.label}
                         </button>
