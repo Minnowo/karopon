@@ -61,19 +61,39 @@ export function StatsPage(state: BaseState) {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: addType === 'macros' ? ['fat', 'carbs', 'fibre', 'protein'] : [],
         };
-        updateCards([...cards, card]);
+        updateCards([card, ...cards]);
     };
 
     return (
         <>
             <div className="flex justify-end mb-4">
                 <button
-                    className={`px-3 py-1 border rounded ${editing ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                    className={`px-3 py-1 ${editing ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
                     onClick={() => setEditing(!editing)}
                 >
                     {editing ? 'Done' : 'Edit Dashboard'}
                 </button>
             </div>
+
+            {editing && (
+                <div className="flex items-center gap-2 my-4">
+                    <span>Add chart:</span>
+                    <select
+                        className="px-2 py-1"
+                        value={addType}
+                        onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
+                    >
+                        {(Object.keys(CHART_LABELS) as DashboardCard['type'][]).map((t) => (
+                            <option key={t} value={t}>
+                                {CHART_LABELS[t]}
+                            </option>
+                        ))}
+                    </select>
+                    <button className="px-3 py-1" onClick={handleAdd}>
+                        + Add
+                    </button>
+                </div>
+            )}
 
             {cards.map((card, index) => {
                 if (!state.user.show_diabetes && (card.type === 'blood_glucose' || card.type === 'insulin')) {
@@ -96,26 +116,6 @@ export function StatsPage(state: BaseState) {
                     />
                 );
             })}
-
-            {editing && (
-                <div className="flex items-center gap-2 mt-4">
-                    <span>Add chart:</span>
-                    <select
-                        className="px-2 py-1 border rounded"
-                        value={addType}
-                        onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
-                    >
-                        {(Object.keys(CHART_LABELS) as DashboardCard['type'][]).map((t) => (
-                            <option key={t} value={t}>
-                                {CHART_LABELS[t]}
-                            </option>
-                        ))}
-                    </select>
-                    <button className="px-3 py-1 border rounded" onClick={handleAdd}>
-                        + Add
-                    </button>
-                </div>
-            )}
         </>
     );
 }
