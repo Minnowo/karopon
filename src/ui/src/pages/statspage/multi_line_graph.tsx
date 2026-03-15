@@ -1,37 +1,21 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {
-    FormatXLabel,
-    MacroTypeKeys,
-    MacroPoint,
-    MacroType,
-    RangeTypeKeys,
-    NoInformationMessage,
-    GraphDisplay,
-    GroupTypeKeys,
-} from './common';
+import {FormatXLabel, GroupTypeKeys, NoInformationMessage, GraphDisplay, RangeTypeKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
-type GraphLines = {
-    carbs: GraphPoint[];
-    protein: GraphPoint[];
-    fat: GraphPoint[];
-    fibre: GraphPoint[];
-};
-const colors = {
-    carbs: 'var(--color-c-yellow)',
-    protein: 'var(--color-c-green)',
-    fat: 'var(--color-c-flamingo)',
-    fibre: 'var(--color-c-sapphire)',
-} satisfies Record<MacroType, string>;
 
-export const RenderMultiLineGraph = (
-    data: MacroPoint[],
+export type MultiLinePoint<K extends string> = {date: number} & Record<K, number>;
+
+export const RenderGenericMultiLineGraph = <K extends string>(
+    data: Array<MultiLinePoint<K>>,
+    keys: readonly K[],
+    colors: Record<K, string>,
+    labels: Record<K, string>,
     display: GraphDisplay,
     title: string,
-    visibleMacros: MacroType[],
-    setVisibleMacros: (m: MacroType[]) => void,
-    setDisplay: (r: GraphDisplay) => void,
+    visibleKeys: K[],
+    setVisibleKeys: (keys: K[]) => void,
+    setDisplay: (d: GraphDisplay) => void,
     precision = 1
 ) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -46,13 +30,9 @@ export const RenderMultiLineGraph = (
 
     useEffect(() => {
         window.addEventListener('resize', handleResize);
-
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
+        return () => window.removeEventListener('resize', handleResize);
     }, [handleResize]);
 
-    const showText = true;
     const width = size.width;
     const height = 300;
     const pad = 40;
@@ -60,18 +40,18 @@ export const RenderMultiLineGraph = (
     const maxVal = useMemo(() => {
         let max = 0;
         for (const p of data) {
-            for (const key of MacroTypeKeys) {
+            for (const key of keys) {
                 if (p[key] > max) {
                     max = p[key];
                 }
             }
         }
-        return max;
-    }, [data]);
+        return max || 1;
+    }, [data, keys]);
 
-    const lines: GraphLines = useMemo(() => {
-        const l = {} as GraphLines;
-        for (const key of MacroTypeKeys) {
+    const lines = useMemo(() => {
+        const l = {} as Record<K, GraphPoint[]>;
+        for (const key of keys) {
             const line = new Array(data.length);
             for (let i = 0; i < data.length; i++) {
                 const d = data[i];
@@ -82,13 +62,13 @@ export const RenderMultiLineGraph = (
             l[key] = line;
         }
         return l;
-    }, [data, width, height, pad, maxVal]);
+    }, [data, keys, width, maxVal]);
 
     const labelPositions = useMemo(() => {
-        const positions: Partial<Record<MacroType, Map<number, number>>> = {};
-        const xBuckets = new Map<number, Array<{key: MacroType; y: number}>>();
+        const positions: Partial<Record<K, Map<number, number>>> = {};
+        const xBuckets = new Map<number, Array<{key: K; y: number}>>();
 
-        for (const key of visibleMacros) {
+        for (const key of visibleKeys) {
             for (const p of lines[key]) {
                 if (!xBuckets.has(p.x)) {
                     xBuckets.set(p.x, []);
@@ -98,23 +78,21 @@ export const RenderMultiLineGraph = (
         }
 
         const spacing = 14;
-        for (const [x, points] of xBuckets) {
+        for (const [, points] of xBuckets) {
             points.sort((a, b) => b.y - a.y);
             let prevAssignedY = Infinity;
-
             for (const point of points) {
-                // Nudge UP (decrease y) if too close to the previous (lower-value) label
                 const adjustedY = Math.min(point.y, prevAssignedY - spacing);
                 prevAssignedY = adjustedY;
                 if (!positions[point.key]) {
                     positions[point.key] = new Map();
                 }
-                positions[point.key]!.set(x, adjustedY);
+                positions[point.key]!.set(point.y, adjustedY);
             }
         }
 
-        return positions as Record<MacroType, Map<number, number>>;
-    }, [visibleMacros, lines]);
+        return positions as Record<K, Map<number, number>>;
+    }, [visibleKeys, lines]);
 
     return (
         <div ref={containerRef} className="mb-8 w-full">
@@ -155,9 +133,8 @@ export const RenderMultiLineGraph = (
                         preserveAspectRatio="xMinYMin meet"
                         className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                     >
-                        {visibleMacros.map((key) => {
+                        {visibleKeys.map((key) => {
                             const line = lines[key];
-
                             return (
                                 <g key={key}>
                                     <polyline
@@ -166,24 +143,20 @@ export const RenderMultiLineGraph = (
                                         strokeWidth="2"
                                         points={line.map((p) => `${p.x},${p.y}`).join(' ')}
                                     />
-
                                     {line.map((p) => {
-                                        const adjustedY = labelPositions[key]?.get(p.x) ?? p.y;
-
+                                        const adjustedY = labelPositions[key]?.get(p.y) ?? p.y;
                                         return (
                                             <g key={p.date + key}>
                                                 <circle cx={p.x} cy={p.y} r="5" fill={colors[key]} />
-                                                {showText && (
-                                                    <text
-                                                        x={p.x + 5}
-                                                        y={adjustedY - 5}
-                                                        fill={colors[key]}
-                                                        fontSize="10"
-                                                        textAnchor="end"
-                                                    >
-                                                        {Number(p.value).toFixed(precision)}
-                                                    </text>
-                                                )}
+                                                <text
+                                                    x={p.x + 5}
+                                                    y={adjustedY - 5}
+                                                    fill={colors[key]}
+                                                    fontSize="10"
+                                                    textAnchor="end"
+                                                >
+                                                    {p.value.toFixed(precision)}
+                                                </text>
                                             </g>
                                         );
                                     })}
@@ -202,18 +175,18 @@ export const RenderMultiLineGraph = (
                     </svg>
 
                     <div className="flex gap-6 mt-3">
-                        {MacroTypeKeys.map((k) => {
-                            const isActive = visibleMacros.includes(k);
+                        {keys.map((k) => {
+                            const isActive = visibleKeys.includes(k);
                             return (
                                 <div
                                     key={k}
                                     className={`flex items-center gap-2 cursor-pointer ${isActive ? '' : 'opacity-40'}`}
-                                    onClick={() => {
-                                        setVisibleMacros(isActive ? visibleMacros.filter((m) => m !== k) : [...visibleMacros, k]);
-                                    }}
+                                    onClick={() =>
+                                        setVisibleKeys(isActive ? visibleKeys.filter((v) => v !== k) : [...visibleKeys, k])
+                                    }
                                 >
                                     <div className="w-4 h-4 rounded-full" style={{backgroundColor: colors[k]}} />
-                                    <span>{k.toUpperCase()}</span>
+                                    <span>{labels[k]}</span>
                                 </div>
                             );
                         })}

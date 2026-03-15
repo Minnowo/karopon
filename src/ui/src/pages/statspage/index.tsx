@@ -92,7 +92,7 @@ export function StatsPage(state: BaseState) {
                         value={addType}
                         onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
                     >
-                        {(Object.keys(CHART_LABELS) as DashboardCard['type'][]).map((t) => (
+                        {(Object.keys(CHART_LABELS) as Array<DashboardCard['type']>).map((t) => (
                             <option key={t} value={t}>
                                 {CHART_LABELS[t]}
                             </option>

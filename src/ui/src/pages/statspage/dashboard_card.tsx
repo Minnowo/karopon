@@ -2,11 +2,44 @@ import {useMemo, useState} from 'preact/hooks';
 import {TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
-import {BpPoint, ChartPoint, DashboardCard, GraphDisplay, MacroPoint, MacroTotals, MacroType, RangeType} from './common';
+import {
+    BpPoint,
+    ChartPoint,
+    DashboardCard,
+    GraphDisplay,
+    MacroPoint,
+    MacroTotals,
+    MacroType,
+    MacroTypeKeys,
+    RangeType,
+} from './common';
 import {PieChart} from './pie_chart';
-import {RenderMultiLineGraph} from './multi_line_graph';
 import {RenderGraph} from './single_line_graph';
-import {RenderBpGraph} from './bp_graph';
+import {RenderGenericMultiLineGraph} from './multi_line_graph';
+
+const MACRO_COLORS: Record<MacroType, string> = {
+    fat: 'var(--color-c-flamingo)',
+    carbs: 'var(--color-c-yellow)',
+    fibre: 'var(--color-c-sapphire)',
+    protein: 'var(--color-c-green)',
+};
+const MACRO_LABELS: Record<MacroType, string> = {
+    fat: 'FAT',
+    carbs: 'CARBS',
+    fibre: 'FIBRE',
+    protein: 'PROTEIN',
+};
+
+const BP_KEYS = ['systolic', 'diastolic'] as const;
+type BpKey = (typeof BP_KEYS)[number];
+const BP_COLORS: Record<BpKey, string> = {
+    systolic: 'var(--color-c-red)',
+    diastolic: 'var(--color-c-pink)',
+};
+const BP_LABELS: Record<BpKey, string> = {
+    systolic: 'Systolic',
+    diastolic: 'Diastolic',
+};
 
 const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
     const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
@@ -252,6 +285,7 @@ export function DashboardCardComponent({
     const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(
         card.visibleMacros.length > 0 ? card.visibleMacros : ['fat', 'carbs', 'fibre', 'protein']
     );
+    const [visibleBpKeys, setVisibleBpKeys] = useState<BpKey[]>(['systolic', 'diastolic']);
 
     const handleDisplayChange = (d: GraphDisplay) => {
         setDisplay(d);
@@ -351,8 +385,11 @@ export function DashboardCardComponent({
                     />
                 );
             case 'macros':
-                return RenderMultiLineGraph(
+                return RenderGenericMultiLineGraph(
                     macroData,
+                    MacroTypeKeys,
+                    MACRO_COLORS,
+                    MACRO_LABELS,
                     display,
                     card.title,
                     visibleMacros,
@@ -378,7 +415,17 @@ export function DashboardCardComponent({
             case 'bp_diastolic':
                 return RenderGraph(bpDiaData, display, 'value', card.title, 'var(--color-c-pink)', handleDisplayChange);
             case 'bp_combined':
-                return RenderBpGraph(bpCombinedData, display, card.title, handleDisplayChange);
+                return RenderGenericMultiLineGraph(
+                    bpCombinedData,
+                    BP_KEYS,
+                    BP_COLORS,
+                    BP_LABELS,
+                    display,
+                    card.title,
+                    visibleBpKeys,
+                    setVisibleBpKeys,
+                    handleDisplayChange
+                );
             case 'heart_rate':
                 return RenderGraph(heartRateData, display, 'value', card.title, 'var(--color-c-red)', handleDisplayChange);
             case 'steps':
