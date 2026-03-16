@@ -34,6 +34,16 @@ func getTestUser(t *testing.T, db database.DB) int {
 
 	return userID
 }
+func getTestUser2(t *testing.T, db database.DB) int {
+
+	user := &database.TblUser{
+		Name: "test_user2",
+	}
+	userID, err := db.AddUser(t.Context(), user)
+	require.NoError(t, err)
+
+	return userID
+}
 
 func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
@@ -1355,7 +1365,54 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &tagged))
 		require.Len(t, tagged, 1)
 		require.Len(t, tagged[0].Tags, 1)
+		assert.Equal(t, userID, tagged[0].Timespan.UserID)
+		assert.Equal(t, note, *tagged[0].Timespan.Note)
 		assert.Equal(t, "Egg", tagged[0].Tags[0].Name)
+		assert.Equal(t, "food", tagged[0].Tags[0].Namespace)
+	})
+
+	t.Run("LoadUserTimespansWithTags_permission_check", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		note := "with tags"
+		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+		})
+		require.NoError(t, err)
+
+		// Add a second timespan on a different user.
+		// The bug fixed was that LoadUserTimespansWithTags would load timespans from ALL users.
+		userID2 := getTestUser2(t, db)
+		_, err = db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID2,
+			StartTime: database.TimeMillis(time.Now()),
+			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			Note:      &note,
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "food", Name: "Egg"},
+		})
+		require.NoError(t, err)
+
+		var tagged []database.TaggedTimespan
+		require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &tagged))
+		require.Len(t, tagged, 1)
+		require.Len(t, tagged[0].Tags, 1)
+		assert.Equal(t, userID, tagged[0].Timespan.UserID)
+		assert.Equal(t, note, *tagged[0].Timespan.Note)
+		assert.Equal(t, "Egg", tagged[0].Tags[0].Name)
+		assert.Equal(t, "food", tagged[0].Tags[0].Namespace)
 	})
 
 	t.Run("SetUserTimespanTags", func(t *testing.T) {

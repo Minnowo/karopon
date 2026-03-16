@@ -111,14 +111,15 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(
 		FROM PON_USER_TIMESPAN ut
 		LEFT JOIN PON_USER_TIMESPAN_TAG utt
 		ON (
-			ut.USER_ID = $1  -- Use placeholder $1 for userID
+			ut.USER_ID = $1
 			AND utt.TIMESPAN_ID = ut.ID
 		)
 		LEFT JOIN PON_USER_TAG utag
 		ON (
-			utag.USER_ID = $1  -- Use placeholder $1 for userID
+			utag.USER_ID = $1
 			AND utt.TAG_ID = utag.ID
 		)
+		WHERE ut.USER_ID = $1
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
 		ORDER BY ut.START_TIME DESC;
 	`

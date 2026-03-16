@@ -111,6 +111,7 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int,
 			utag.USER_ID = $1
 			AND utt.TAG_ID = utag.ID
 		)
+		WHERE ut.USER_ID = $1
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
 		ORDER BY ut.START_TIME DESC;
 	`
