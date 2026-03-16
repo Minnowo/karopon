@@ -36,6 +36,10 @@ export function EventPanel({user, foodGroup, actions}: EventPanelState) {
                         >{`BGL ${foodGroup.eventlog.blood_glucose.toFixed(1)}`}</span>
                         <span
                             className="mx-1"
+                            title="Insulin to Carb Ratio"
+                        >{`ITCR ${foodGroup.eventlog.insulin_to_carb_ratio.toFixed(1)}`}</span>
+                        <span
+                            className="mx-1"
                             title="Insulin Recommended"
                         >{`InsRec ${foodGroup.eventlog.recommended_insulin_amount.toFixed(1)}`}</span>
                         <span
