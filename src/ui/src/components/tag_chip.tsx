@@ -14,7 +14,7 @@ export const TagChip = ({tag, onRemove = undefined}: Props) => {
             </span>
             {showDeleteButton && (
                 <button
-                    className="px-2 mr-1 font-bold bg-transparent border-none rounded-2xl text-inherit"
+                    className="px-2 mr-1 font-bold bg-transparent border-none rounded-2xl text-inherit focus:bg-c-surface2 hover:bg-c-surface2"
                     type="button"
                     onClick={() => onRemove()}
                 >

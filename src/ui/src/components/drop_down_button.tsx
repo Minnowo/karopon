@@ -37,7 +37,7 @@ export function DropdownButton({
     return (
         <div className={`relative h-fit w-fit ${className !== undefined ? className : ''}`} ref={menuRef}>
             <div className="flex items-center">
-                <button onClick={() => setOpen(!open)} className={buttonClassName}>
+                <button tabindex={-1} onClick={() => setOpen(!open)} className={buttonClassName}>
                     {label === '[:]' ? (
                         <svg className="w-full h-full p-0 m-0 border-none" viewBox="0 0 32 32" fill="currentColor">
                             <circle cx="16" cy="8" r="2.5" />
@@ -59,7 +59,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className={`${action.dangerous ? 'text-c-red' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface0 hover:bg-c-surface2 px-2 py-1`}
+                            className={`${action.dangerous ? 'text-c-red' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface0 focus:bg-c-surface2 hover:bg-c-surface2 px-2 py-1`}
                         >
                             {action.label}
                         </button>
