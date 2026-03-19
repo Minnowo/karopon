@@ -1,22 +1,78 @@
 import {useRef, useState} from 'preact/hooks';
 
-const ITEM_H = 48; // px per row
+const ITEM_HEIGHT_PX = 32;
 const VISIBLE = 3; // prev, current, next
 const HALF = 1;
 
-type BarrelPickerProps = {
+// Drag & velocity
+const DRAG_THRESHOLD_PX = 4; // min movement before a drag is registered
+const VEL_EMA_PREV = 0.6; // EMA weight for previous velocity sample
+const VEL_EMA_NEW = 0.4; // EMA weight for incoming velocity sample
+const STATIONARY_MS = 80; // if pointer hasn't moved for this long, treat release velocity as zero
+
+// Momentum animation
+const MAX_FRAME_MS = 32; // dt cap to avoid jumps after tab switches
+const MOMENTUM_MIN_VEL = 0.15; // px/ms — below this, skip momentum and snap directly
+const MOMENTUM_STOP_VEL = 0.03; // px/ms — friction has decayed enough to snap
+const MOMENTUM_FRICTION = 0.94; // velocity multiplier per 16ms
+
+// Snap-to animation
+const SNAP_DECAY = 0.75; // remaining-distance multiplier per 16ms
+const SNAP_ARRIVE_PX = 0.5; // px — close enough to the target to commit
+
+type BarrelPickerBase = {
     label: string;
-    values: number[];
     selected: number;
     onChange: (v: number) => void;
     format: (v: number) => string;
     width?: string;
+    allowWrap?: boolean;
 };
 
-export const BarrelPicker = ({label, values, selected, onChange, format, width = 'w-16'}: BarrelPickerProps) => {
-    const n = values.length;
+type BarrelPickerWithValues = BarrelPickerBase & {
+    values: number[];
+    min?: never;
+    max?: never;
+};
 
-    const selIdx = Math.max(0, values.indexOf(selected));
+type BarrelPickerWithRange = BarrelPickerBase & {
+    values?: never;
+    min: number;
+    max: number;
+};
+
+type BarrelPickerProps = BarrelPickerWithValues | BarrelPickerWithRange;
+
+export const BarrelPicker = ({
+    label,
+    values,
+    min,
+    max,
+    selected,
+    onChange,
+    format,
+    width = 'w-16',
+    allowWrap = true,
+}: BarrelPickerProps) => {
+    const n = values ? values.length : max - min + 1;
+    const selIdx = values ? Math.max(0, values.indexOf(selected)) : selected - min;
+
+    const valueAt = (delta: number): number => {
+        if (allowWrap) {
+            const idx = (((selIdx + delta) % n) + n) % n;
+            return values ? values[idx] : min! + idx;
+        }
+        const idx = Math.max(0, Math.min(n - 1, selIdx + delta));
+        return values ? values[idx] : min! + idx;
+    };
+
+    const inRange = (delta: number): boolean => {
+        if (allowWrap) {
+            return true;
+        }
+        const idx = selIdx + delta;
+        return idx >= 0 && idx < n;
+    };
 
     // scrollPx: total visual offset in pixels. Positive = dragged down = showing earlier values.
     const [scrollPx, setScrollPx] = useState(0);
@@ -33,16 +89,46 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
     } | null>(null);
 
     // Decompose scroll into integer steps + fractional offset.
-    const liveOffset = -scrollPx / ITEM_H;
+    const liveOffset = -scrollPx / ITEM_HEIGHT_PX;
     const base = Math.floor(liveOffset);
     const frac = liveOffset - base;
     const centerDelta = Math.round(frac);
 
-    const snapTo = (scroll: number) => {
-        const delta = -Math.round(scroll / ITEM_H);
-        onChange(values[(((selIdx + delta) % n) + n) % n]);
-        scrollRef.current = 0;
-        setScrollPx(0);
+    // When not wrapping, clamp scroll so it can't animate past the first/last item.
+    const clampScroll = (scroll: number): number => {
+        if (allowWrap) {
+            return scroll;
+        }
+        const maxBack = selIdx * ITEM_HEIGHT_PX;
+        const maxForward = (n - 1 - selIdx) * ITEM_HEIGHT_PX;
+        return Math.max(-maxForward, Math.min(maxBack, scroll));
+    };
+
+    // Smoothly ease scrollPx to the nearest snap position, then commit.
+    const snapToSmooth = () => {
+        const target = Math.round(scrollRef.current / ITEM_HEIGHT_PX) * ITEM_HEIGHT_PX;
+
+        const animateSnap = (prevT: number) => {
+            const now = performance.now();
+            const dt = Math.min(now - prevT, MAX_FRAME_MS);
+
+            const remaining = target - scrollRef.current;
+            scrollRef.current += remaining * (1 - Math.pow(SNAP_DECAY, dt / 16));
+
+            if (Math.abs(target - scrollRef.current) < SNAP_ARRIVE_PX) {
+                rafRef.current = null;
+                const delta = -Math.round(target / ITEM_HEIGHT_PX);
+                onChange(valueAt(delta));
+                scrollRef.current = 0;
+                setScrollPx(0);
+                return;
+            }
+
+            setScrollPx(scrollRef.current);
+            rafRef.current = requestAnimationFrame(() => animateSnap(now));
+        };
+
+        rafRef.current = requestAnimationFrame(() => animateSnap(performance.now()));
     };
 
     const onPointerDown = (e: PointerEvent) => {
@@ -50,6 +136,7 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
             cancelAnimationFrame(rafRef.current);
             rafRef.current = null;
         }
+
         ptr.current = {
             startY: e.clientY,
             startScroll: scrollRef.current,
@@ -58,6 +145,7 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
             lastT: performance.now(),
             vel: 0,
         };
+
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         e.preventDefault();
     };
@@ -66,21 +154,25 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
         if (!ptr.current) {
             return;
         }
+
         const dy = e.clientY - ptr.current.startY;
-        if (Math.abs(dy) > 4) {
+        if (Math.abs(dy) > DRAG_THRESHOLD_PX) {
             ptr.current.moved = true;
         }
+
         const now = performance.now();
         const dt = now - ptr.current.lastT;
         if (dt > 0) {
             const raw = (e.clientY - ptr.current.lastY) / dt;
-            ptr.current.vel = ptr.current.vel * 0.6 + raw * 0.4;
+            ptr.current.vel = ptr.current.vel * VEL_EMA_PREV + raw * VEL_EMA_NEW;
         }
         ptr.current.lastY = e.clientY;
         ptr.current.lastT = now;
-        const next = ptr.current.startScroll + dy;
+
+        const next = clampScroll(ptr.current.startScroll + dy);
         scrollRef.current = next;
         setScrollPx(next);
+
         e.preventDefault();
     };
 
@@ -92,36 +184,44 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
         ptr.current = null;
 
         if (!p.moved) {
-            // Tap → jump to tapped row.
+            // tapped only, no motion
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-            const row = Math.floor((e.clientY - rect.top) / ITEM_H);
+            const row = Math.floor((e.clientY - rect.top) / ITEM_HEIGHT_PX);
             const delta = row - HALF;
             if (delta !== 0) {
-                onChange(values[(((selIdx + delta) % n) + n) % n]);
+                onChange(valueAt(delta));
             }
             scrollRef.current = 0;
             setScrollPx(0);
             return;
         }
 
-        if (Math.abs(p.vel) < 0.15) {
-            snapTo(scrollRef.current);
+        // If the pointer was stationary before release, ignore accumulated velocity.
+        const vel = performance.now() - p.lastT > STATIONARY_MS ? 0 : p.vel;
+
+        if (Math.abs(vel) < MOMENTUM_MIN_VEL) {
+            snapToSmooth();
             return;
         }
 
         // Momentum: continue with friction until velocity dies out, then snap.
-        animVel.current = p.vel;
+        animVel.current = vel;
         const animate = (prevT: number) => {
             const now = performance.now();
-            const dt = Math.min(now - prevT, 32);
-            animVel.current *= Math.pow(0.96, dt / 16);
-            scrollRef.current += animVel.current * dt;
-            setScrollPx(scrollRef.current);
-            if (Math.abs(animVel.current) < 0.03) {
+            const dt = Math.min(now - prevT, MAX_FRAME_MS);
+
+            animVel.current *= Math.pow(MOMENTUM_FRICTION, dt / 16);
+            const next = clampScroll(scrollRef.current + animVel.current * dt);
+            const hitBoundary = next !== scrollRef.current + animVel.current * dt;
+            scrollRef.current = next;
+            setScrollPx(next);
+
+            if (hitBoundary || Math.abs(animVel.current) < MOMENTUM_STOP_VEL) {
                 rafRef.current = null;
-                snapTo(scrollRef.current);
+                snapToSmooth();
                 return;
             }
+
             rafRef.current = requestAnimationFrame(() => animate(now));
         };
         rafRef.current = requestAnimationFrame(() => animate(performance.now()));
@@ -142,7 +242,7 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
             <span className="w-full text-center">{label}</span>
             <div
                 className={`relative overflow-hidden select-none ${width} cursor-grab`}
-                style={{height: VISIBLE * ITEM_H, touchAction: 'none'}}
+                style={{height: VISIBLE * ITEM_HEIGHT_PX, touchAction: 'none'}}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
@@ -150,22 +250,22 @@ export const BarrelPicker = ({label, values, selected, onChange, format, width =
             >
                 {[-1, 0, 1, 2].map((delta) => {
                     const k = base + delta;
-                    const idx = (((selIdx + k) % n) + n) % n;
-                    const top = HALF * ITEM_H + (delta - frac) * ITEM_H;
+                    const top = HALF * ITEM_HEIGHT_PX + (delta - frac) * ITEM_HEIGHT_PX;
                     const isCenter = delta === centerDelta;
-                    const opacity = isCenter ? 1 : 0.5;
+                    const visible = inRange(k);
+                    const opacity = !visible ? 0 : isCenter ? 1 : 0.5;
                     return (
                         <div
                             key={delta}
                             className={`absolute inset-x-0 flex items-center justify-center text-xl ${isCenter ? 'font-bold' : ''}`}
-                            style={{top, height: ITEM_H, opacity}}
+                            style={{top, height: ITEM_HEIGHT_PX, opacity}}
                         >
-                            {format(values[idx])}
+                            {visible ? format(valueAt(k)) : ''}
                         </div>
                     );
                 })}
             </div>
-            <span className="w-full text-center">&nbsp;</span>
+            <span className="w-full select-none text-center">&nbsp;</span>
         </div>
     );
 };

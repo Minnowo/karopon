@@ -1,12 +1,11 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {Ref} from 'preact';
+import {RefObject} from 'preact';
 import {BarrelPicker} from './barrel_picker';
 import {DoRender} from '../hooks/doRender';
 
-const HOURS12 = Array.from({length: 12}, (_, i) => i + 1);
-const HOURS24 = Array.from({length: 24}, (_, i) => i);
-const MINSECONDS = Array.from({length: 60}, (_, i) => i);
-const AMPM_VALUES = [0, 1];
+const THIS_YEAR = new Date().getFullYear();
+const YEARS_TO_ALLOW = 1000;
+
 const AMPM_FORMAT = (v: number) => (v === 0 ? 'AM' : 'PM');
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
@@ -18,18 +17,23 @@ type DialogProps = {
     onSave: (d: Date) => void;
     onClose: () => void;
     showSeconds: boolean;
+    showDate: boolean;
     hour12: boolean;
 };
 
-const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogProps) => {
+const TimeInputDialog = ({value, onSave, onClose, showDate, showSeconds, hour12}: DialogProps) => {
     const timeRef = useMemo(() => {
         return {
-            hours: value.getHours(),
+            year: value.getFullYear(),
+            month: value.getMonth(),
+            day: value.getDate(),
+            // if we are 12 hour time, this holds 12 hour time, otherwise it holds 24 hour time
+            hours: hour12 ? to12(value.getHours()) : value.getHours(),
             minutes: value.getMinutes(),
             seconds: value.getSeconds(),
             isPm: value.getHours() >= 12,
         };
-    }, [value]);
+    }, [value, hour12]);
 
     useEffect(() => {
         document.body.classList.add('overflow-hidden');
@@ -42,13 +46,22 @@ const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogPr
 
     const doSave = () => {
         const d = new Date(value);
-        d.setHours(timeRef.isPm ? 12 + timeRef.hours : timeRef.hours);
+        if (showDate) {
+            d.setFullYear(timeRef.year);
+            d.setMonth(timeRef.month);
+            d.setDate(timeRef.day);
+        }
+        if (hour12) {
+            d.setHours(to24(timeRef.hours, timeRef.isPm));
+        } else {
+            d.setHours(timeRef.hours);
+        }
         d.setMinutes(timeRef.minutes);
         d.setSeconds(timeRef.seconds);
         onSave(d);
     };
 
-    const sep = <div className="flex items-center text-2xl font-bold text-faded mx-1 self-center">:</div>;
+    const sep = <div className="flex items-center select-none text-2xl font-bold text-faded mx-1 self-center">:</div>;
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-c-crust/50" onClick={onClose}>
@@ -57,12 +70,56 @@ const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogPr
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-stretch justify-center">
+                    {showDate && (
+                        <BarrelPicker
+                            label="Year"
+                            min={THIS_YEAR - YEARS_TO_ALLOW}
+                            max={THIS_YEAR + YEARS_TO_ALLOW}
+                            selected={timeRef.year}
+                            onChange={(h) => {
+                                timeRef.year = h;
+                                render();
+                            }}
+                            format={pad2}
+                        />
+                    )}
+                    {showDate && sep}
+                    {showDate && (
+                        <BarrelPicker
+                            label="Month"
+                            min={1}
+                            max={12}
+                            selected={timeRef.month + 1}
+                            onChange={(h) => {
+                                timeRef.month = h - 1;
+                                render();
+                            }}
+                            format={pad2}
+                        />
+                    )}
+                    {showDate && sep}
+                    {showDate && (
+                        <BarrelPicker
+                            label="Day"
+                            min={1}
+                            max={31}
+                            selected={timeRef.day}
+                            onChange={(h) => {
+                                timeRef.day = h;
+                                render();
+                            }}
+                            format={pad2}
+                        />
+                    )}
+                </div>
+                <div className="flex items-stretch justify-center">
                     <BarrelPicker
                         label="Hour"
-                        values={hour12 ? HOURS12 : HOURS24}
-                        selected={hour12 ? to12(timeRef.hours) : timeRef.hours}
+                        min={hour12 ? 1 : 0}
+                        max={hour12 ? 12 : 23}
+                        selected={timeRef.hours}
                         onChange={(h) => {
-                            timeRef.hours = hour12 ? to24(h, timeRef.isPm) : h;
+                            timeRef.hours = h;
                             render();
                         }}
                         format={pad2}
@@ -70,7 +127,8 @@ const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogPr
                     {sep}
                     <BarrelPicker
                         label="Min"
-                        values={MINSECONDS}
+                        min={0}
+                        max={59}
                         selected={timeRef.minutes}
                         onChange={(m) => {
                             timeRef.minutes = m;
@@ -82,7 +140,8 @@ const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogPr
                     {showSeconds && (
                         <BarrelPicker
                             label="Sec"
-                            values={MINSECONDS}
+                            min={0}
+                            max={59}
                             selected={timeRef.seconds}
                             onChange={(s) => {
                                 timeRef.seconds = s;
@@ -94,7 +153,9 @@ const TimeInputDialog = ({value, onSave, onClose, showSeconds, hour12}: DialogPr
                     {hour12 && (
                         <BarrelPicker
                             label="Am/Pm"
-                            values={AMPM_VALUES}
+                            allowWrap={false}
+                            min={0}
+                            max={1}
                             selected={timeRef.isPm ? 1 : 0}
                             onChange={(v) => {
                                 timeRef.isPm = v === 1;
@@ -123,53 +184,53 @@ type SegmentProps = {
     value: number;
     min: number;
     max: number;
+    digits?: number;
     onChange: (v: number) => void;
-    inputRef?: Ref<HTMLInputElement>;
+    inputRef: RefObject<HTMLInputElement>;
     onAutoAdvance?: () => void;
 };
 
-const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance}: SegmentProps) => {
+const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2}: SegmentProps) => {
     const [text, setText] = useState(pad2(value));
-    const isEditing = useRef(false);
 
     useEffect(() => {
-        if (!isEditing.current) {
-            setText(pad2(value));
-        }
+        setText(pad2(value));
     }, [value]);
 
-    const commit = (raw: string) => {
-        const n = parseInt(raw, 10);
-        if (!isNaN(n)) {
-            const clamped = Math.min(max, Math.max(min, n));
-            setText(pad2(clamped));
-            onChange(clamped);
-        } else {
-            setText(pad2(value));
+    const commitN = (n: number) => {
+        const clamped = Math.min(max, Math.max(min, n));
+        const newVal = pad2(clamped);
+        if (inputRef.current) {
+            // this prevents commitN being called again on onFocusOut
+            inputRef.current.value = newVal;
         }
+        setText(newVal);
+        onChange(clamped);
     };
 
-    // const step = (dir: 1 | -1) => {
-    //     const next = value + dir;
-    //     const wrapped = next > max ? min : next < min ? max : next;
-    //     onChange(wrapped);
-    // };
-
     return (
-        <div className="flex flex-row items-center ">
+        <div className="flex flex-row items-center">
             <input
                 ref={inputRef}
-                className="w-[2ch] p-0 border-none focus:outline-none text-center"
+                className="p-0 border-none focus:outline-none text-center"
+                style={{width: `${digits}ch`}}
                 type="text"
                 inputMode="numeric"
                 value={text}
                 onFocusIn={(e) => {
-                    isEditing.current = true;
                     e.currentTarget.select();
                 }}
                 onFocusOut={(e) => {
-                    isEditing.current = false;
-                    commit(e.currentTarget.value);
+                    const v = e.currentTarget.value;
+                    if (v === text) {
+                        return;
+                    }
+                    const n = parseInt(v, 10);
+                    if (isNaN(n)) {
+                        e.currentTarget.value = pad2(value);
+                    } else {
+                        commitN(n);
+                    }
                 }}
                 onInput={(e) => {
                     const v = e.currentTarget.value;
@@ -177,35 +238,14 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance}: SegmentPr
 
                     if (isNaN(val) || val < 0) {
                         setText(v.substring(Math.max(0, v.length - 1), v.length));
-                    } else if (val <= 10 && val * 10 <= max && v.length === 1) {
+                    } else if (val <= Math.pow(10, digits - 1) && val * 10 <= max && v.length < digits) {
                         setText(v);
                     } else {
-                        commit(v);
+                        commitN(val);
                         onAutoAdvance?.();
                     }
                 }}
             />
-
-            {/* not sure if i want this or not */
-            /*
-            <span className="select-none  text-faded px-0.5">{label}</span>
-            <div className="flex flex-col justify-between">
-                <HoldButton
-                    tabIndex={-1}
-                    onStep={() => step(1)}
-                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
-                >
-                    ▲
-                </HoldButton>
-                <HoldButton
-                    tabIndex={-1}
-                    onStep={() => step(-1)}
-                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
-                >
-                    ▼
-                </HoldButton>
-            </div>
-            */}
         </div>
     );
 };
@@ -216,10 +256,22 @@ type TimeInputProps = {
     value: Date;
     onChange: (value: Date) => void;
     showSeconds?: boolean;
+    showDate?: boolean;
     hour12?: boolean;
 };
 
-export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 = false, className = ''}: TimeInputProps) => {
+export const TimeInput = ({
+    value,
+    onChange,
+    label,
+    showDate = false,
+    showSeconds = false,
+    hour12 = false,
+    className = '',
+}: TimeInputProps) => {
+    const yearRef = useRef<HTMLInputElement>(null);
+    const monthRef = useRef<HTMLInputElement>(null);
+    const dayRef = useRef<HTMLInputElement>(null);
     const hourRef = useRef<HTMLInputElement>(null);
     const minuteRef = useRef<HTMLInputElement>(null);
     const secondRef = useRef<HTMLInputElement>(null);
@@ -229,10 +281,32 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
     const h24 = value.getHours();
     const isPm = h24 >= 12;
 
-    const focusHour = (e: MouseEvent) => {
+    const focusFirst = (e: MouseEvent) => {
         if ((e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'BUTTON') {
-            hourRef.current?.focus();
+            if (showDate) {
+                yearRef.current?.focus();
+            } else {
+                hourRef.current?.focus();
+            }
         }
+    };
+
+    const setYear = (h: number) => {
+        const d = new Date(value);
+        d.setFullYear(h);
+        onChange(d);
+    };
+
+    const setMonth = (h: number) => {
+        const d = new Date(value);
+        d.setMonth(h - 1);
+        onChange(d);
+    };
+
+    const setDay = (h: number) => {
+        const d = new Date(value);
+        d.setDate(h);
+        onChange(d);
     };
 
     const setHours = (h: number) => {
@@ -265,6 +339,15 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
         onChange(d);
     };
 
+    const advanceFromYear = () => {
+        monthRef.current?.focus();
+    };
+    const advanceFromMonth = () => {
+        dayRef.current?.focus();
+    };
+    const advanceFromDay = () => {
+        hourRef.current?.focus();
+    };
     const advanceFromHour = () => {
         minuteRef.current?.focus();
     };
@@ -281,12 +364,49 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
         }
     };
 
-    const sep = <span className="flex items-center select-none text-faded px-0.5">:</span>;
+    const timeSep = <span className="flex items-center select-none text-faded px-0.5">:</span>;
+    const dateSep = <span className="flex items-center select-none text-faded px-0.5">/</span>;
+    const invisSep = <span className="flex items-center select-none text-faded px-0.5">&nbsp;&nbsp;</span>;
 
     return (
         <>
-            <div className={`flex flex-row items-center input-like p-0 pr-1 ${className}`} onClick={focusHour}>
+            <div className={`flex flex-row items-center input-like p-0 pr-1 ${className}`} onClick={focusFirst}>
                 {label && <div className="flex flex-1 items-center wsnw select-none px-1">{label}</div>}
+                {showDate && (
+                    <Segment
+                        inputRef={yearRef}
+                        value={value.getFullYear()}
+                        digits={4}
+                        min={THIS_YEAR - YEARS_TO_ALLOW}
+                        max={THIS_YEAR + YEARS_TO_ALLOW}
+                        onChange={setYear}
+                        onAutoAdvance={advanceFromYear}
+                    />
+                )}
+                {showDate && dateSep}
+                {showDate && (
+                    <Segment
+                        inputRef={monthRef}
+                        value={value.getMonth() + 1}
+                        min={1}
+                        max={12}
+                        onChange={setMonth}
+                        onAutoAdvance={advanceFromMonth}
+                    />
+                )}
+                {showDate && dateSep}
+                {showDate && (
+                    <Segment
+                        inputRef={dayRef}
+                        value={value.getDate()}
+                        min={1}
+                        max={31}
+                        onChange={setDay}
+                        onAutoAdvance={advanceFromDay}
+                    />
+                )}
+
+                {showDate && invisSep}
 
                 <Segment
                     inputRef={hourRef}
@@ -296,7 +416,7 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
                     onChange={hour12 ? setHours12 : setHours}
                     onAutoAdvance={advanceFromHour}
                 />
-                {sep}
+                {timeSep}
                 <Segment
                     inputRef={minuteRef}
                     value={value.getMinutes()}
@@ -305,7 +425,7 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
                     onChange={setMinutes}
                     onAutoAdvance={advanceFromMinute}
                 />
-                {showSeconds && sep}
+                {showSeconds && timeSep}
                 {showSeconds && (
                     <Segment
                         inputRef={secondRef}
@@ -335,13 +455,6 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
                                 }
                             }}
                         />
-                        <button
-                            tabIndex={-1}
-                            className="px-1 border-none text-xs bg-transparent hover:bg-c-overlay1 select-none leading-none"
-                            onClick={toggleAmPm}
-                        >
-                            ⇅
-                        </button>
                     </div>
                 )}
 
@@ -365,6 +478,7 @@ export const TimeInput = ({value, onChange, label, showSeconds = false, hour12 =
                         setDialogOpen(false);
                     }}
                     onClose={() => setDialogOpen(false)}
+                    showDate={showDate}
                     showSeconds={showSeconds}
                     hour12={hour12}
                 />
