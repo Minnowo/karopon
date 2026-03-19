@@ -112,15 +112,19 @@ export function TimespansPage(state: BaseState) {
     };
 
     const deleteTimer = (timer: TaggedTimespan) => {
-        const payload = {
-            id: timer.timespan.id,
-        } as TblUserTimespan;
+        if (confirm('Delete this timer?')) {
+            const payload = {
+                id: timer.timespan.id,
+            } as TblUserTimespan;
 
-        ApiDeleteUserTimespan(payload)
-            .then(() => {
-                state.setTimespans((oldTs) => (oldTs === null ? null : oldTs.filter((t) => t.timespan.id !== timer.timespan.id)));
-            })
-            .catch(handleErr);
+            ApiDeleteUserTimespan(payload)
+                .then(() => {
+                    state.setTimespans((oldTs) =>
+                        oldTs === null ? null : oldTs.filter((t) => t.timespan.id !== timer.timespan.id)
+                    );
+                })
+                .catch(handleErr);
+        }
     };
 
     return (
