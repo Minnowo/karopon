@@ -1,4 +1,5 @@
 import {useState, useRef, useEffect} from 'preact/hooks';
+import {ThreeVertDots} from './svg';
 
 export type DropdownButtonAction = {
     label: string;
@@ -38,15 +39,7 @@ export function DropdownButton({
         <div className={`relative h-fit w-fit ${className !== undefined ? className : ''}`} ref={menuRef}>
             <div className="flex items-center">
                 <button tabindex={-1} onClick={() => setOpen(!open)} className={buttonClassName}>
-                    {label === '[:]' ? (
-                        <svg className="w-full h-full p-0 m-0 border-none" viewBox="0 0 32 32" fill="currentColor">
-                            <circle cx="16" cy="8" r="2.5" />
-                            <circle cx="16" cy="16" r="2.5" />
-                            <circle cx="16" cy="24" r="2.5" />
-                        </svg>
-                    ) : (
-                        label
-                    )}
+                    {label === '[:]' ? ThreeVertDots : label}
                 </button>
             </div>
 

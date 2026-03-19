@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'preact/hooks';
 import {HoldButton} from './hold_button';
+import {DownArrow, UpArrow} from './svg';
 
 type FloatInputProps = {
     className?: string;
@@ -132,7 +133,7 @@ export function NumberInput({
                     onStep={() => stepBy(1)}
                     className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
-                    ▲
+                    {UpArrow}
                 </HoldButton>
                 <HoldButton
                     tabIndex={-1}
@@ -140,7 +141,7 @@ export function NumberInput({
                     onStep={() => stepBy(-1)}
                     className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
                 >
-                    ▼
+                    {DownArrow}
                 </HoldButton>
             </div>
         </div>

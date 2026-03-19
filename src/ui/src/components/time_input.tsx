@@ -2,6 +2,7 @@ import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {RefObject} from 'preact';
 import {BarrelPicker} from './barrel_picker';
 import {DoRender} from '../hooks/doRender';
+import {StopWatchSvg} from './svg';
 
 const THIS_YEAR = new Date().getFullYear();
 const YEARS_TO_ALLOW = 1000;
@@ -370,7 +371,7 @@ export const TimeInput = ({
 
     return (
         <>
-            <div className={`flex flex-row items-center input-like p-0 pr-1 ${className}`} onClick={focusFirst}>
+            <div className={`flex flex-row items-center input-like ${className}`} onClick={focusFirst}>
                 {label && <div className="flex flex-1 items-center wsnw select-none px-1">{label}</div>}
                 {showDate && (
                     <Segment
@@ -460,13 +461,13 @@ export const TimeInput = ({
 
                 <button
                     tabIndex={-1}
-                    className="px-1 border-none text-xs bg-transparent hover:bg-c-overlay1 select-none leading-none"
+                    className="h-full select-none px-2 p-0 leading-none border-none bg-transparent hover:bg-c-overlay1"
                     onClick={(e) => {
                         e.stopPropagation();
                         setDialogOpen(true);
                     }}
                 >
-                    ▾
+                    {StopWatchSvg}
                 </button>
             </div>
 
