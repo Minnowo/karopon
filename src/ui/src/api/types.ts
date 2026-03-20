@@ -246,3 +246,10 @@ export type UserSession = {
     token_id: string;
     is_current: boolean;
 };
+
+export type TblUserDashboard = {
+    id: number;
+    user_id: number;
+    name: string;
+    data: string;
+};

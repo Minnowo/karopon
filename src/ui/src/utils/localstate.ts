@@ -7,8 +7,8 @@ import type {
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
+    TblUserDashboard,
 } from '../api/types';
-import type {DashboardCard} from '../pages/statspage/common';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 const LOCAL_STORAGE_KEY_EVENTS = 'events';
@@ -18,6 +18,7 @@ const LOCAL_STORAGE_KEY_GOALS = 'goals';
 const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
 const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
 const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
+const LOCAL_STORAGE_KEY_DASHBOARDS = 'dashboards';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
@@ -53,6 +54,7 @@ export const LocalStoreGoals = (goals: TblUserGoal[]) => store(LOCAL_STORAGE_KEY
 export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
 export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAGE_KEY_NAMESPACES, JSON.stringify(namespaces));
 export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
+export const LocalStoreDashboards = (cards: TblUserDashboard[]) => store(LOCAL_STORAGE_KEY_DASHBOARDS, JSON.stringify(cards));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
 export const LocalGetServerToken = () => load<string>(LOCAL_STORAGE_KEY_REMOTE_TOKEN, true);
@@ -65,10 +67,8 @@ export const LocalGetGoals = () => load<TblUserGoal[]>(LOCAL_STORAGE_KEY_GOALS);
 export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
 export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
 export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
+export const LocalGetDashboards = () => load<TblUserDashboard[]>(LOCAL_STORAGE_KEY_DASHBOARDS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
-
-export const LocalStoreDashboard = (cards: DashboardCard[]) => store('dashboard', JSON.stringify(cards));
-export const LocalGetDashboard = (): DashboardCard[] | null => load<DashboardCard[]>('dashboard');
 
 export const LocalClearAll = () => {
     try {
@@ -81,6 +81,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_DASHBOARDS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
     } catch {}
 };

@@ -1,11 +1,12 @@
-import {Dispatch, StateUpdater, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {DashboardCard, DEFAULT_DASHBOARD} from './common';
-import {LocalGetDashboard, LocalStoreDashboard} from '../../utils/localstate';
+import {DashboardCard, DEFAULT_DASHBOARD, UserDashboard} from './common';
+import {ApiDeleteDashboard, ApiGetDashboards, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
 import {DashboardCardComponent} from './dashboard_card';
 import {TagInput} from '../../components/tag_input';
-import {TblUserTag} from '../../api/types';
+import {TblUserDashboard, TblUserTag} from '../../api/types';
 import {TagToString} from '../../utils/tags';
+import {DashboardComponent} from './dashboard';
 
 const CHART_LABELS: Record<DashboardCard['type'], string> = {
     pie: 'Pie Chart',
@@ -85,89 +86,58 @@ export function EditDashboardPanel({namespaces, setNamespaces, handleAdd}: EditD
 }
 
 export function StatsPage(state: BaseState) {
-    const [cards, setCards] = useState<DashboardCard[]>(() => LocalGetDashboard() ?? DEFAULT_DASHBOARD);
-    const [editing, setEditing] = useState(false);
+    const [curDashboard, setCurDashboard] = useState<number>(0);
 
-    const updateCards = (next: DashboardCard[]) => {
-        setCards(next);
-        LocalStoreDashboard(next);
+    const newDashboard = () => {
+        ApiNewDashboard(DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards)).then((db) =>
+            state.setDashboards([...state.dashboards, db])
+        );
     };
 
-    const handleUpdate = (index: number, card: DashboardCard) => {
-        const next = cards.slice();
-        next[index] = card;
-        updateCards(next);
+    const onUpdate = (dashboard: UserDashboard) => {
+        const udb = {
+            id: dashboard.id,
+            user_id: state.user.id,
+            name: dashboard.name,
+            data: JSON.stringify(dashboard.cards),
+        };
+
+        ApiUpdateDashboard(udb.id, udb.name, udb.data).then(() =>
+            state.setDashboards(state.dashboards.map((db) => (db.id === dashboard.id ? udb : db)))
+        );
     };
 
-    const handleRemove = (index: number) => {
-        updateCards(cards.filter((_, i) => i !== index));
-    };
-
-    const handleMoveUp = (index: number) => {
-        if (index === 0) {
-            return;
-        }
-        const next = cards.slice();
-        [next[index - 1], next[index]] = [next[index], next[index - 1]];
-        updateCards(next);
-    };
-
-    const handleMoveDown = (index: number) => {
-        if (index === cards.length - 1) {
-            return;
-        }
-        const next = cards.slice();
-        [next[index], next[index + 1]] = [next[index + 1], next[index]];
-        updateCards(next);
-    };
-
-    const handleAdd = (card: DashboardCard) => {
-        card.id = newId();
-        updateCards([card, ...cards]);
+    const onDelete = (dashboard: UserDashboard) => {
+        ApiDeleteDashboard(dashboard.id).then(() => state.setDashboards(state.dashboards.filter((db) => db.id !== dashboard.id)));
     };
 
     return (
         <>
-            <div className="flex justify-end mb-4">
-                <button
-                    className={`px-3 py-1 ${editing ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
-                    onClick={() => setEditing(!editing)}
-                >
-                    {editing ? 'Done' : 'Edit Dashboard'}
+            <div className="flex justify-center mb-4">
+                <button className={`px-3 py-1 text-c-text`} onClick={newDashboard}>
+                    New Dashboard
                 </button>
+
+                {state.dashboards.map((db, i) => (
+                    <button
+                        key={db.id}
+                        className={`px-3 py-1 ${curDashboard === i ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                        onClick={() => setCurDashboard(i)}
+                    >
+                        {db.name}
+                    </button>
+                ))}
             </div>
 
-            {editing && (
-                <EditDashboardPanel namespaces={state.namespaces} setNamespaces={state.setNamespaces} handleAdd={handleAdd} />
+            {curDashboard >= 0 && curDashboard < state.dashboards.length && (
+                <DashboardComponent
+                    key={state.dashboards[curDashboard].id}
+                    baseState={state}
+                    dashboard={state.dashboards[curDashboard]}
+                    onUpdate={onUpdate}
+                    onDelete={onDelete}
+                />
             )}
-
-            <div class="flex flex-col gap-16">
-                {cards.map((card, index) => {
-                    if (!state.user.show_diabetes && (card.type === 'blood_glucose' || card.type === 'insulin')) {
-                        return null;
-                    }
-                    return (
-                        <DashboardCardComponent
-                            key={card.id}
-                            card={card}
-                            eventlogs={state.eventlogs}
-                            bodylogs={state.bodylogs}
-                            timespans={state.timespans}
-                            dayOffsetSeconds={state.user.day_time_offset_seconds}
-                            caloricCalcMethod={state.user.caloric_calc_method}
-                            editing={editing}
-                            isFirst={index === 0}
-                            isLast={index === cards.length - 1}
-                            namespaces={state.namespaces}
-                            setNamespaces={state.setNamespaces}
-                            onUpdate={(updated) => handleUpdate(index, updated)}
-                            onRemove={() => handleRemove(index)}
-                            onMoveUp={() => handleMoveUp(index)}
-                            onMoveDown={() => handleMoveDown(index)}
-                        />
-                    );
-                })}
-            </div>
         </>
     );
 }

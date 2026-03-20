@@ -293,6 +293,19 @@ type DB interface {
 	// Any tags that do not exist are created for the given userID.
 	// Returns an error for any failures.
 	SetUserTimespanTags(ctx context.Context, userID, timespanID int, tags []TblUserTag) error
+
+	// LoadUserDashboards loads all dashboards owned by the given user.
+	LoadUserDashboards(ctx context.Context, userID int, out *[]TblUserDashboard) error
+
+	// AddUserDashboard inserts a new dashboard row and returns its generated ID.
+	AddUserDashboard(ctx context.Context, dashboard *TblUserDashboard) (int, error)
+
+	// UpdateUserDashboard updates the name and data of an existing dashboard.
+	// The update is scoped to the owning user so one user cannot modify another's rows.
+	UpdateUserDashboard(ctx context.Context, dashboard *TblUserDashboard) error
+
+	// DeleteUserDashboard removes a dashboard by ID, scoped to the owning user.
+	DeleteUserDashboard(ctx context.Context, userID, dashboardID int) error
 }
 
 type SQLxDB struct {

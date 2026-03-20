@@ -19,6 +19,7 @@ import {
     TblUserTimespan,
     TaggedTimespan,
     UserSession,
+    TblUserDashboard,
 } from './types';
 
 export class ApiError extends Error {
@@ -430,6 +431,40 @@ export const ApiUpdateUserSession = (session: UserSession, userAgent: string): P
             headers: {'content-type': 'application/json'},
             method: 'POST',
             body: JSON.stringify({token_id: session.token_id, user_agent: userAgent}),
+        })
+    );
+};
+
+export const ApiGetDashboards = (): Promise<TblUserDashboard[]> => {
+    return fetchJson(apiFetch(`${ApiBase}/api/dashboards`));
+};
+
+export const ApiNewDashboard = (name: string, data: string): Promise<TblUserDashboard> => {
+    return fetchJson(
+        apiFetch(`${ApiBase}/api/dashboard/new`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({name, data}),
+        })
+    );
+};
+
+export const ApiUpdateDashboard = (id: number, name: string, data: string): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/dashboard/update`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({id, name, data}),
+        })
+    );
+};
+
+export const ApiDeleteDashboard = (id: number): Promise<void> => {
+    return fetchNone(
+        apiFetch(`${ApiBase}/api/dashboard/delete`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({id}),
         })
     );
 };

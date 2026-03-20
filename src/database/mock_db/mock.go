@@ -379,3 +379,19 @@ func (p *BaseMockDB) SetUserTimespanTags(
 ) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) LoadUserDashboards(ctx context.Context, userID int, out *[]database.TblUserDashboard) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserDashboard(ctx context.Context, dashboard *database.TblUserDashboard) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserDashboard(ctx context.Context, dashboard *database.TblUserDashboard) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserDashboard(ctx context.Context, userID, dashboardID int) error {
+	panic("not implemented")
+}

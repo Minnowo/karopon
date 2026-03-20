@@ -272,3 +272,10 @@ type TblUserTimespanTag struct {
 	TimespanID int `db:"timespan_id" json:"timespan_id"`
 	TagID      int `db:"tag_id"      json:"tag_id"`
 }
+
+type TblUserDashboard struct {
+	ID     int    `db:"id"      json:"id"`
+	UserID int    `db:"user_id" json:"user_id"`
+	Name   string `db:"name"    json:"name"`
+	Data   string `db:"data"    json:"data"`
+}

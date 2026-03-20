@@ -8,6 +8,7 @@ import {
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
+    TblUserDashboard,
 } from '../api/types';
 
 export type BaseState = {
@@ -34,6 +35,9 @@ export type BaseState = {
 
     timespans: TaggedTimespan[];
     setTimespans: Dispatch<StateUpdater<TaggedTimespan[] | null>>;
+
+    dashboards: TblUserDashboard[];
+    setDashboards: Dispatch<StateUpdater<TblUserDashboard[] | null>>;
 
     dataSources: TblDataSource[] | null;
 

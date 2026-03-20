@@ -57,7 +57,7 @@ export const GraphStyleKeys = ['line', 'bar'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
 
 export type DashboardCard = {
-    id: string;
+    id: number;
     type: ChartType;
     title: string;
     display: GraphDisplay;
@@ -66,48 +66,58 @@ export type DashboardCard = {
     graphStyle?: GraphStyle;
 };
 
-export const DEFAULT_DASHBOARD: DashboardCard[] = [
-    {
-        id: 'd-pie',
-        type: 'pie',
-        title: 'Macronutrient Totals',
-        display: {range: '24 hours', group: 'sum'},
-        visibleMacros: [],
-        selectedTags: [],
-    },
-    {
-        id: 'd-macros',
-        type: 'macros',
-        title: 'Macronutrients Consumed (g)',
-        display: {range: '24 hours', group: 'sum'},
-        visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
-        selectedTags: [],
-    },
-    {
-        id: 'd-cal',
-        type: 'calories',
-        title: 'Calories (kcal)',
-        display: {range: '24 hours', group: 'sum'},
-        visibleMacros: [],
-        selectedTags: [],
-    },
-    {
-        id: 'd-blood',
-        type: 'blood_glucose',
-        title: 'Blood Glucose (mmol/L)',
-        display: {range: '24 hours', group: 'sum'},
-        visibleMacros: [],
-        selectedTags: [],
-    },
-    {
-        id: 'd-ins',
-        type: 'insulin',
-        title: 'Insulin Taken (mL)',
-        display: {range: '24 hours', group: 'sum'},
-        visibleMacros: [],
-        selectedTags: [],
-    },
-];
+export type UserDashboard = {
+    id: number;
+    name: string;
+    cards: DashboardCard[];
+};
+
+export const DEFAULT_DASHBOARD: UserDashboard = {
+    id: -1,
+    name: 'Default',
+    cards: [
+        {
+            id: 0,
+            type: 'pie',
+            title: 'Macronutrient Totals',
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: [],
+            selectedTags: [],
+        },
+        {
+            id: 1,
+            type: 'macros',
+            title: 'Macronutrients Consumed (g)',
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
+            selectedTags: [],
+        },
+        {
+            id: 2,
+            type: 'calories',
+            title: 'Calories (kcal)',
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: [],
+            selectedTags: [],
+        },
+        {
+            id: 3,
+            type: 'blood_glucose',
+            title: 'Blood Glucose (mmol/L)',
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: [],
+            selectedTags: [],
+        },
+        {
+            id: 4,
+            type: 'insulin',
+            title: 'Insulin Taken (mL)',
+            display: {range: '24 hours', group: 'sum'},
+            visibleMacros: [],
+            selectedTags: [],
+        },
+    ],
+};
 
 export const FormatXLabel = (key: number, range: RangeType): string => {
     switch (range) {

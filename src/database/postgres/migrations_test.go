@@ -397,4 +397,46 @@ func TestPostgresMigrations(t *testing.T) {
 		).Scan(&trailing))
 		assert.Equal(t, 3, trailing)
 	})
+
+	// 0016_day_time_offset: 14 → 15
+	// Adds day_time_offset_seconds INTEGER NOT NULL DEFAULT 0 to pon.user.
+	t.Run("0016_day_time_offset", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 14, postgresUpMigrations[15:16])
+		require.NoError(t, err)
+
+		// Pre-existing user row must have the default of 0.
+		var offset int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT day_time_offset_seconds FROM pon.user WHERE id = $1`, userID,
+		).Scan(&offset))
+		assert.Equal(t, 0, offset)
+	})
+
+	// 0017_dashboard: 15 → 16
+	// Creates PON.USER_DASHBOARD(id PK SERIAL, user_id FK, name, data).
+	t.Run("0017_dashboard", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 15, postgresUpMigrations[16:17])
+		require.NoError(t, err)
+
+		// Table must accept inserts with the full set of columns.
+		var dashID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`INSERT INTO pon.user_dashboard (user_id, name, data) VALUES ($1, 'My Board', '[]') RETURNING id`,
+			userID,
+		).Scan(&dashID))
+		require.NotZero(t, dashID)
+
+		// name and data must round-trip correctly.
+		var name, data string
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT name, data FROM pon.user_dashboard WHERE id = $1`, dashID,
+		).Scan(&name, &data))
+		assert.Equal(t, "My Board", name)
+		assert.Equal(t, "[]", data)
+
+		// FK must prevent referencing a non-existent user.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_dashboard (user_id, name, data) VALUES (99999, 'Ghost', '[]')`)
+		require.Error(t, err, "FK violation should be rejected")
+	})
 }

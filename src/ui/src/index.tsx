@@ -21,6 +21,7 @@ import {
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
+    TblUserDashboard,
 } from './api/types';
 import {
     ApiGetUserFoods,
@@ -33,12 +34,14 @@ import {
     ApiGetUserGoals,
     ApiGetUserTimespans,
     ApiGetUserNamespaces,
+    ApiGetDashboards,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
 import {
     LocalGetBodyLogs,
+    LocalGetDashboards,
     LocalGetDataSources,
     LocalGetEventLogs,
     LocalGetEvents,
@@ -48,6 +51,7 @@ import {
     LocalGetTimespans,
     LocalGetUser,
     LocalStoreBodyLogs,
+    LocalStoreDashboards,
     LocalStoreDataSources,
     LocalStoreEventLogs,
     LocalStoreEvents,
@@ -78,6 +82,7 @@ export function App() {
     const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
     const [namespaces, setNamespaces] = useState<string[] | null>(LocalGetNamespaces());
     const [timespans, setTimespans] = useState<TaggedTimespan[] | null>(LocalGetTimespans());
+    const [dashboards, setDashboards] = useState<TblUserDashboard[] | null>(LocalGetDashboards());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
@@ -141,6 +146,12 @@ export function App() {
     }, [timespans]);
 
     useLayoutEffect(() => {
+        if (dashboards !== null) {
+            LocalStoreDashboards(dashboards);
+        }
+    }, [dashboards]);
+
+    useLayoutEffect(() => {
         if (dataSources !== null) {
             LocalStoreDataSources(dataSources);
         }
@@ -157,6 +168,7 @@ export function App() {
                 const myGoals = await ApiGetUserGoals();
                 const myNamespaces = await ApiGetUserNamespaces();
                 const myTimespans = await ApiGetUserTimespans();
+                const myDashboards = await ApiGetDashboards();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -168,6 +180,7 @@ export function App() {
                 setBodyLogs(myBodyLogs);
                 setNamespaces(myNamespaces);
                 setTimespans(myTimespans);
+                setDashboards(myDashboards);
                 setDataSources(svrDataSources);
                 setErrorMsg(null);
             })
@@ -190,7 +203,8 @@ export function App() {
         bodylogs === null ||
         goals === null ||
         namespaces === null ||
-        timespans === null
+        timespans === null ||
+        dashboards === null
     ) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
@@ -236,6 +250,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -260,6 +276,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -285,6 +303,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -309,6 +329,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -333,6 +355,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -357,6 +381,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -381,6 +407,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -404,6 +432,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -429,6 +459,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -453,6 +485,8 @@ export function App() {
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
                                     setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />

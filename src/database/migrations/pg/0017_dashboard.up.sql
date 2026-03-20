@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS PON.USER_DASHBOARD (
+    id      SERIAL  PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    name    TEXT    NOT NULL DEFAULT 'Default',
+    data    TEXT    NOT NULL DEFAULT '[]',
+    FOREIGN KEY (user_id) REFERENCES PON.USER(id)
+);
