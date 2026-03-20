@@ -7,6 +7,7 @@ import {
     ChartPoint,
     DashboardCard,
     GraphDisplay,
+    GraphStyle,
     MacroPoint,
     MacroTotals,
     MacroType,
@@ -15,7 +16,8 @@ import {
 } from './common';
 import {PieChart} from './pie_chart';
 import {RenderGraph} from './single_line_graph';
-import {RenderGenericMultiLineGraph, MultiLinePoint} from './multi_line_graph';
+import {MultiLineGraph, MultiLinePoint} from './multi_line_graph';
+import {StackedBarGraph} from './stacked_bar_graph';
 import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 
@@ -511,6 +513,14 @@ export function DashboardCardComponent({
         onUpdate({...card, visibleMacros: m});
     };
 
+    const graphStyle: GraphStyle = card.graphStyle ?? 'line';
+
+    const handleGraphStyleChange = (s: GraphStyle) => {
+        onUpdate({...card, graphStyle: s});
+    };
+
+    const MultiSeriesGraph = graphStyle === 'bar' ? StackedBarGraph : MultiLineGraph;
+
     const renderChart = () => {
         switch (card.type) {
             case 'pie':
@@ -524,16 +534,20 @@ export function DashboardCardComponent({
                     />
                 );
             case 'macros':
-                return RenderGenericMultiLineGraph(
-                    macroData,
-                    MacroTypeKeys,
-                    MACRO_COLORS,
-                    MACRO_LABELS,
-                    display,
-                    card.title,
-                    visibleMacros,
-                    handleVisibleMacrosChange,
-                    handleDisplayChange
+                return (
+                    <MultiSeriesGraph
+                        data={macroData}
+                        keys={MacroTypeKeys}
+                        colors={MACRO_COLORS}
+                        labels={MACRO_LABELS}
+                        display={display}
+                        title={card.title}
+                        visibleKeys={visibleMacros}
+                        setVisibleKeys={handleVisibleMacrosChange}
+                        setDisplay={handleDisplayChange}
+                        graphStyle={graphStyle}
+                        onGraphStyleChange={handleGraphStyleChange}
+                    />
                 );
             case 'calories':
                 return RenderGraph(calorieData, display, 'value', card.title, 'var(--color-c-yellow)', handleDisplayChange, 0);
@@ -554,16 +568,20 @@ export function DashboardCardComponent({
             case 'bp_diastolic':
                 return RenderGraph(bpDiaData, display, 'value', card.title, 'var(--color-c-pink)', handleDisplayChange);
             case 'bp_combined':
-                return RenderGenericMultiLineGraph(
-                    bpCombinedData,
-                    BP_KEYS,
-                    BP_COLORS,
-                    BP_LABELS,
-                    display,
-                    card.title,
-                    visibleBpKeys,
-                    setVisibleBpKeys,
-                    handleDisplayChange
+                return (
+                    <MultiSeriesGraph
+                        data={bpCombinedData}
+                        keys={BP_KEYS}
+                        colors={BP_COLORS}
+                        labels={BP_LABELS}
+                        display={display}
+                        title={card.title}
+                        visibleKeys={visibleBpKeys}
+                        setVisibleKeys={setVisibleBpKeys}
+                        setDisplay={handleDisplayChange}
+                        graphStyle={graphStyle}
+                        onGraphStyleChange={handleGraphStyleChange}
+                    />
                 );
             case 'heart_rate':
                 return RenderGraph(heartRateData, display, 'value', card.title, 'var(--color-c-red)', handleDisplayChange);
@@ -575,17 +593,21 @@ export function DashboardCardComponent({
                     selectedTags.map((t, i) => [t, TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]])
                 );
                 const tagLabels: Record<string, string> = Object.fromEntries(selectedTags.map((t) => [t, t]));
-                return RenderGenericMultiLineGraph(
-                    timeData,
-                    selectedTags,
-                    tagColors,
-                    tagLabels,
-                    display,
-                    card.title,
-                    visibleTimeTags,
-                    setVisibleTimeTags,
-                    handleDisplayChange,
-                    2
+                return (
+                    <MultiSeriesGraph
+                        data={timeData}
+                        keys={selectedTags}
+                        colors={tagColors}
+                        labels={tagLabels}
+                        display={display}
+                        title={card.title}
+                        visibleKeys={visibleTimeTags}
+                        setVisibleKeys={setVisibleTimeTags}
+                        setDisplay={handleDisplayChange}
+                        precision={2}
+                        graphStyle={graphStyle}
+                        onGraphStyleChange={handleGraphStyleChange}
+                    />
                 );
             }
         }

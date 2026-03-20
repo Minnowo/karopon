@@ -1,23 +1,48 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, GroupTypeKeys, NoInformationMessage, GraphDisplay, RangeTypeKeys} from './common';
+import {
+    FormatXLabel,
+    GroupTypeKeys,
+    GraphDisplay,
+    GraphStyle,
+    GraphStyleKeys,
+    NoInformationMessage,
+    RangeTypeKeys,
+} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
 
 export type MultiLinePoint<K extends string> = {date: number} & Record<K, number>;
 
-export const RenderGenericMultiLineGraph = <K extends string>(
-    data: Array<MultiLinePoint<K>>,
-    keys: readonly K[],
-    colors: Record<K, string>,
-    labels: Record<K, string>,
-    display: GraphDisplay,
-    title: string,
-    visibleKeys: K[],
-    setVisibleKeys: (keys: K[]) => void,
-    setDisplay: (d: GraphDisplay) => void,
-    precision = 1
-) => {
+export type MultiLineGraphProps<K extends string> = {
+    data: Array<MultiLinePoint<K>>;
+    keys: readonly K[];
+    colors: Record<K, string>;
+    labels: Record<K, string>;
+    display: GraphDisplay;
+    title: string;
+    visibleKeys: K[];
+    setVisibleKeys: (keys: K[]) => void;
+    setDisplay: (d: GraphDisplay) => void;
+    precision?: number;
+    graphStyle?: GraphStyle;
+    onGraphStyleChange?: (s: GraphStyle) => void;
+};
+
+export function MultiLineGraph<K extends string>({
+    data,
+    keys,
+    colors,
+    labels,
+    display,
+    title,
+    visibleKeys,
+    setVisibleKeys,
+    setDisplay,
+    precision = 1,
+    graphStyle,
+    onGraphStyleChange,
+}: MultiLineGraphProps<K>) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
 
@@ -120,6 +145,19 @@ export const RenderGenericMultiLineGraph = <K extends string>(
                         </button>
                     ))}
                 </div>
+                {onGraphStyleChange && (
+                    <div className="flex gap-2 mb-4">
+                        {GraphStyleKeys.map((s) => (
+                            <button
+                                key={s}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                onClick={() => onGraphStyleChange(s)}
+                            >
+                                {s.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {data.length === 0 ? (
@@ -191,11 +229,35 @@ export const RenderGenericMultiLineGraph = <K extends string>(
                             );
                         })}
                     </div>
-                    <p className="mt-1">
-                        <strong>Note:</strong> You can toggle graphs by clicking the legend components
-                    </p>
                 </>
             )}
         </div>
     );
-};
+}
+
+// Backward-compatible function wrapper for existing call sites.
+export const RenderGenericMultiLineGraph = <K extends string>(
+    data: Array<MultiLinePoint<K>>,
+    keys: readonly K[],
+    colors: Record<K, string>,
+    labels: Record<K, string>,
+    display: GraphDisplay,
+    title: string,
+    visibleKeys: K[],
+    setVisibleKeys: (keys: K[]) => void,
+    setDisplay: (d: GraphDisplay) => void,
+    precision = 1
+) => (
+    <MultiLineGraph
+        data={data}
+        keys={keys}
+        colors={colors}
+        labels={labels}
+        display={display}
+        title={title}
+        visibleKeys={visibleKeys}
+        setVisibleKeys={setVisibleKeys}
+        setDisplay={setDisplay}
+        precision={precision}
+    />
+);

@@ -53,6 +53,9 @@ export type ChartType =
     | 'steps'
     | 'time';
 
+export const GraphStyleKeys = ['line', 'bar'] as const;
+export type GraphStyle = (typeof GraphStyleKeys)[number];
+
 export type DashboardCard = {
     id: string;
     type: ChartType;
@@ -60,6 +63,7 @@ export type DashboardCard = {
     display: GraphDisplay;
     visibleMacros: MacroType[];
     selectedTags: string[];
+    graphStyle?: GraphStyle;
 };
 
 export const DEFAULT_DASHBOARD: DashboardCard[] = [
