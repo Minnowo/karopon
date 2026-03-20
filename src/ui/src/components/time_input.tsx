@@ -193,9 +193,8 @@ type SegmentProps = {
 };
 
 const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2, tabIndex}: SegmentProps) => {
-
     useEffect(() => {
-        if(inputRef.current){
+        if (inputRef.current) {
             inputRef.current.value = pad2(value);
         }
     }, [value, inputRef]);
@@ -210,40 +209,40 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
     };
 
     return (
-            <input
-                ref={inputRef}
-                className="p-0 border-none focus:outline-none text-center"
-                style={{width: `${digits}ch`}}
-                type="text"
-                inputMode="numeric"
-                tabIndex={tabIndex}
-                value={inputRef.current?.value || pad2(value)}
-                onFocusIn={(e) => {
-                    e.currentTarget.select();
-                }}
-                onFocusOut={(e) => {
-                    const n = parseInt(e.currentTarget.value, 10);
+        <input
+            ref={inputRef}
+            className="p-0 border-none focus:outline-none text-center"
+            style={{width: `${digits}ch`}}
+            type="text"
+            inputMode="numeric"
+            tabIndex={tabIndex}
+            value={inputRef.current?.value || pad2(value)}
+            onFocusIn={(e) => {
+                e.currentTarget.select();
+            }}
+            onFocusOut={(e) => {
+                const n = parseInt(e.currentTarget.value, 10);
 
-                    if (isNaN(n)) {
-                        e.currentTarget.value = pad2(value);
-                    } else {
-                        commitN(n);
-                    }
-                }}
-                onInput={(e) => {
-                    const v = e.currentTarget.value;
-                    const val = parseInt(v, 10);
+                if (isNaN(n)) {
+                    e.currentTarget.value = pad2(value);
+                } else {
+                    commitN(n);
+                }
+            }}
+            onInput={(e) => {
+                const v = e.currentTarget.value;
+                const val = parseInt(v, 10);
 
-                    if (isNaN(val) || val < 0) {
-                        e.currentTarget.value = v.substring(Math.max(0, v.length - 1), v.length);
-                    } else if (val <= Math.pow(10, digits - 1) && val * 10 <= max && v.length < digits) {
-                        e.currentTarget.value = v;
-                    } else {
-                        commitN(val);
-                        onAutoAdvance?.();
-                    }
-                }}
-            />
+                if (isNaN(val) || val < 0) {
+                    e.currentTarget.value = v.substring(Math.max(0, v.length - 1), v.length);
+                } else if (val <= Math.pow(10, digits - 1) && val * 10 <= max && v.length < digits) {
+                    e.currentTarget.value = v;
+                } else {
+                    commitN(val);
+                    onAutoAdvance?.();
+                }
+            }}
+        />
     );
 };
 

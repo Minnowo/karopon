@@ -1,11 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {
-    FormatXLabel,
-    GroupTypeKeys,
-    GraphStyleKeys,
-    NoInformationMessage,
-    RangeTypeKeys,
-} from './common';
+import {FormatXLabel, GroupTypeKeys, GraphStyleKeys, NoInformationMessage, RangeTypeKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {MultiLinePoint, MultiLineGraphProps} from './multi_line_graph';
 
@@ -67,13 +61,17 @@ export function StackedBarGraph<K extends string>({
             for (const k of visibleKeys) {
                 sum += p[k] ?? 0;
             }
-            if (sum > max) { max = sum; }
+            if (sum > max) {
+                max = sum;
+            }
         }
         return max || 1;
     }, [data, visibleKeys]);
 
     const bars = useMemo((): BarData[] => {
-        if (data.length === 0) { return []; }
+        if (data.length === 0) {
+            return [];
+        }
 
         const slotW = (width - PAD * 2) / data.length;
         const barW = slotW * BAR_FILL_RATIO;
@@ -87,7 +85,9 @@ export function StackedBarGraph<K extends string>({
 
             for (const k of visibleKeys) {
                 const val = (point[k] as number) ?? 0;
-                if (val <= 0) { continue; }
+                if (val <= 0) {
+                    continue;
+                }
                 const segH = (val / maxTotal) * innerH;
                 const segY = CHART_HEIGHT - PAD - ((cumulative + val) / maxTotal) * innerH;
                 segments.push({key: k, color: colors[k], segY, segH});
@@ -177,7 +177,13 @@ export function StackedBarGraph<K extends string>({
                                     {segments.map(({key, color, segY, segH}) => (
                                         <rect key={key} x={barX} y={segY} width={barW} height={segH} fill={color} />
                                     ))}
-                                    <text x={barX + barW / 2} y={totalLabelY} fill="currentColor" fontSize="9" textAnchor="middle">
+                                    <text
+                                        x={barX + barW / 2}
+                                        y={totalLabelY}
+                                        fill="currentColor"
+                                        fontSize="9"
+                                        textAnchor="middle"
+                                    >
                                         {total.toFixed(precision)}
                                     </text>
                                     <text
@@ -193,45 +199,52 @@ export function StackedBarGraph<K extends string>({
                             ))}
                         </svg>
 
-                        {clickedBar !== null && (() => {
-                            const rows = visibleKeys.filter((k) => ((clickedBar.point[k] as number) ?? 0) > 0);
-                            return (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        left: tooltipLeft,
-                                        top: clickedBar.totalLabelY - 8,
-                                        transform: 'translateX(-50%) translateY(-100%)',
-                                        maxWidth: TOOLTIP_MAX_W,
-                                        overflowX: 'auto',
-                                    }}
-                                    className="container-theme border border-c-yellow rounded px-2 py-1 text-xs shadow-lg"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {rows.map((k) => {
-                                        const val = (clickedBar.point[k] as number) ?? 0;
-                                        const pct = clickedBar.total > 0 ? ((val / clickedBar.total) * 100).toFixed(1) : '0.0';
-                                        return (
-                                            <div key={k} className="flex items-center gap-1" style={{whiteSpace: 'nowrap'}}>
-                                                <div
-                                                    style={{
-                                                        width: 8,
-                                                        height: 8,
-                                                        borderRadius: 2,
-                                                        backgroundColor: colors[k],
-                                                        flexShrink: 0,
-                                                    }}
-                                                />
-                                                <span>{labels[k]}: {val.toFixed(precision)} ({pct}%)</span>
-                                            </div>
-                                        );
-                                    })}
-                                    <div style={{whiteSpace: 'nowrap'}} className="font-bold mt-0.5 border-t border-c-overlay1 pt-0.5">
-                                        Total: {clickedBar.total.toFixed(precision)}
+                        {clickedBar !== null &&
+                            (() => {
+                                const rows = visibleKeys.filter((k) => ((clickedBar.point[k] as number) ?? 0) > 0);
+                                return (
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            left: tooltipLeft,
+                                            top: clickedBar.totalLabelY - 8,
+                                            transform: 'translateX(-50%) translateY(-100%)',
+                                            maxWidth: TOOLTIP_MAX_W,
+                                            overflowX: 'auto',
+                                        }}
+                                        className="container-theme border border-c-yellow rounded px-2 py-1 text-xs shadow-lg"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {rows.map((k) => {
+                                            const val = (clickedBar.point[k] as number) ?? 0;
+                                            const pct =
+                                                clickedBar.total > 0 ? ((val / clickedBar.total) * 100).toFixed(1) : '0.0';
+                                            return (
+                                                <div key={k} className="flex items-center gap-1" style={{whiteSpace: 'nowrap'}}>
+                                                    <div
+                                                        style={{
+                                                            width: 8,
+                                                            height: 8,
+                                                            borderRadius: 2,
+                                                            backgroundColor: colors[k],
+                                                            flexShrink: 0,
+                                                        }}
+                                                    />
+                                                    <span>
+                                                        {labels[k]}: {val.toFixed(precision)} ({pct}%)
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                        <div
+                                            style={{whiteSpace: 'nowrap'}}
+                                            className="font-bold mt-0.5 border-t border-c-overlay1 pt-0.5"
+                                        >
+                                            Total: {clickedBar.total.toFixed(precision)}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })()}
+                                );
+                            })()}
                     </div>
 
                     <div className="flex flex-wrap gap-3 mt-3">
