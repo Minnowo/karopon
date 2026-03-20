@@ -234,7 +234,7 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
                 const val = parseInt(v, 10);
 
                 if (isNaN(val) || val < 0) {
-                    e.currentTarget.value = v.substring(Math.max(0, v.length - 1), v.length);
+                    e.currentTarget.value = v.length === 0 ? '' : v[v.length - 1];
                 } else if (val <= Math.pow(10, digits - 1) && val * 10 <= max && v.length < digits) {
                     e.currentTarget.value = v;
                 } else {
