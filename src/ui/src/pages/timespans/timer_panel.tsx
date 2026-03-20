@@ -134,7 +134,7 @@ export const TimerPanel = ({
                 {!showEdit && showNote && (
                     <textarea className="w-full mt-2" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
                 )}
-                {!showEdit && note !== timer.timespan.note && (
+                {!showEdit && showNote && note !== timer.timespan.note && (
                     <div className="flex gap-2 justify-end mt-2">
                         <button className="bg-c-red font-bold w-full max-w-32" onClick={() => setNote(timer.timespan.note)}>
                             Cancel
