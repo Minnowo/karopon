@@ -189,23 +189,23 @@ type SegmentProps = {
     onChange: (v: number) => void;
     inputRef: RefObject<HTMLInputElement>;
     onAutoAdvance?: () => void;
+    tabIndex?: number;
 };
 
-const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2}: SegmentProps) => {
-    const [text, setText] = useState(pad2(value));
+const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2, tabIndex}: SegmentProps) => {
 
     useEffect(() => {
-        setText(pad2(value));
-    }, [value]);
+        if(inputRef.current){
+            inputRef.current.value = pad2(value);
+        }
+    }, [value, inputRef]);
 
     const commitN = (n: number) => {
         const clamped = Math.min(max, Math.max(min, n));
         const newVal = pad2(clamped);
         if (inputRef.current) {
-            // this prevents commitN being called again on onFocusOut
             inputRef.current.value = newVal;
         }
-        setText(newVal);
         onChange(clamped);
     };
 
@@ -216,16 +216,14 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
                 style={{width: `${digits}ch`}}
                 type="text"
                 inputMode="numeric"
-                value={text}
+                tabIndex={tabIndex}
+                value={inputRef.current?.value || pad2(value)}
                 onFocusIn={(e) => {
                     e.currentTarget.select();
                 }}
                 onFocusOut={(e) => {
-                    const v = e.currentTarget.value;
-                    if (v === text) {
-                        return;
-                    }
-                    const n = parseInt(v, 10);
+                    const n = parseInt(e.currentTarget.value, 10);
+
                     if (isNaN(n)) {
                         e.currentTarget.value = pad2(value);
                     } else {
@@ -237,9 +235,9 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
                     const val = parseInt(v, 10);
 
                     if (isNaN(val) || val < 0) {
-                        setText(v.substring(Math.max(0, v.length - 1), v.length));
+                        e.currentTarget.value = v.substring(Math.max(0, v.length - 1), v.length);
                     } else if (val <= Math.pow(10, digits - 1) && val * 10 <= max && v.length < digits) {
-                        setText(v);
+                        e.currentTarget.value = v;
                     } else {
                         commitN(val);
                         onAutoAdvance?.();
@@ -257,6 +255,7 @@ type TimeInputProps = {
     showSeconds?: boolean;
     showDate?: boolean;
     hour12?: boolean;
+    skipTabIndex?: boolean;
 };
 
 export const TimeInput = ({
@@ -267,6 +266,7 @@ export const TimeInput = ({
     showSeconds = false,
     hour12 = false,
     className = '',
+    skipTabIndex = false,
 }: TimeInputProps) => {
     const yearRef = useRef<HTMLInputElement>(null);
     const monthRef = useRef<HTMLInputElement>(null);
@@ -275,7 +275,11 @@ export const TimeInput = ({
     const minuteRef = useRef<HTMLInputElement>(null);
     const secondRef = useRef<HTMLInputElement>(null);
     const ampmRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [hasFocus, setHasFocus] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
+
+    const childTabIndex = skipTabIndex && !hasFocus ? -1 : undefined;
 
     const h24 = value.getHours();
     const isPm = h24 >= 12;
@@ -369,7 +373,17 @@ export const TimeInput = ({
 
     return (
         <>
-            <div className={`flex flex-row items-center input-like pl-1 ${className}`} onClick={focusFirst}>
+            <div
+                ref={containerRef}
+                className={`flex flex-row items-center input-like pl-1 ${className}`}
+                onClick={focusFirst}
+                onFocusIn={() => setHasFocus(true)}
+                onFocusOut={(e) => {
+                    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+                        setHasFocus(false);
+                    }
+                }}
+            >
                 {label && <div className="flex flex-1 items-center wsnw select-none px-1">{label}</div>}
                 {showDate && (
                     <Segment
@@ -380,6 +394,7 @@ export const TimeInput = ({
                         max={THIS_YEAR + YEARS_TO_ALLOW}
                         onChange={setYear}
                         onAutoAdvance={advanceFromYear}
+                        tabIndex={childTabIndex}
                     />
                 )}
                 {showDate && dateSep}
@@ -391,6 +406,7 @@ export const TimeInput = ({
                         max={12}
                         onChange={setMonth}
                         onAutoAdvance={advanceFromMonth}
+                        tabIndex={childTabIndex}
                     />
                 )}
                 {showDate && dateSep}
@@ -402,6 +418,7 @@ export const TimeInput = ({
                         max={31}
                         onChange={setDay}
                         onAutoAdvance={advanceFromDay}
+                        tabIndex={childTabIndex}
                     />
                 )}
 
@@ -414,6 +431,7 @@ export const TimeInput = ({
                     max={hour12 ? 12 : 23}
                     onChange={hour12 ? setHours12 : setHours}
                     onAutoAdvance={advanceFromHour}
+                    tabIndex={childTabIndex}
                 />
                 {timeSep}
                 <Segment
@@ -423,6 +441,7 @@ export const TimeInput = ({
                     max={59}
                     onChange={setMinutes}
                     onAutoAdvance={advanceFromMinute}
+                    tabIndex={childTabIndex}
                 />
                 {showSeconds && timeSep}
                 {showSeconds && (
@@ -433,6 +452,7 @@ export const TimeInput = ({
                         max={59}
                         onChange={setSeconds}
                         onAutoAdvance={advanceFromSecond}
+                        tabIndex={childTabIndex}
                     />
                 )}
                 {hour12 && (
@@ -441,6 +461,7 @@ export const TimeInput = ({
                             ref={ampmRef}
                             className="w-8 border-none focus:outline-none text-center text-xs"
                             type="text"
+                            tabIndex={childTabIndex}
                             value={isPm ? 'PM' : 'AM'}
                             onFocusIn={(e) => e.currentTarget.select()}
                             onInput={(e) => {

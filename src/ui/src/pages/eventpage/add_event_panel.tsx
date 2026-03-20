@@ -255,7 +255,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     autofocus={p.fromEvent.eventlog.event.trim() === ''}
                 />
 
-                <TimeInput value={new Date(eventTime)} onChange={setEventTime} showDate={true} />
+                <TimeInput skipTabIndex={true} value={new Date(eventTime)} onChange={setEventTime} showDate={true} />
 
                 {p.user.show_diabetes && (
                     <NumberInput
