@@ -117,6 +117,10 @@ const buildTimeChartData = (
             entry.n++;
             entry.total += durationHours;
         }
+
+        if (bucket.size === 0) {
+            buckets.delete(bucketKey);
+        }
     }
 
     return Array.from(buckets.entries(), ([date, tagMap]) => {
