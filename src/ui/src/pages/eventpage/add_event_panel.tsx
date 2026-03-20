@@ -22,6 +22,7 @@ import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
 import {NumberInput} from '../../components/number_input';
 import {ApiUploadEventPhoto} from '../../api/api';
+import {TimeInput} from '../../components/time_input';
 
 type AddEventsPanelState = {
     dialogTitle: string;
@@ -254,14 +255,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     autofocus={p.fromEvent.eventlog.event.trim() === ''}
                 />
 
-                <input
-                    tabindex={-1}
-                    class="w-full"
-                    type="datetime-local"
-                    name="Event Date"
-                    onChange={onEventTimeChange}
-                    value={FormatDateForInput(eventTime)}
-                />
+                <TimeInput value={new Date(eventTime)} onChange={setEventTime} showDate={true} />
 
                 {p.user.show_diabetes && (
                     <NumberInput

@@ -210,7 +210,6 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
     };
 
     return (
-        <div className="flex flex-row items-center">
             <input
                 ref={inputRef}
                 className="p-0 border-none focus:outline-none text-center"
@@ -247,7 +246,6 @@ const Segment = ({value, min, max, onChange, inputRef, onAutoAdvance, digits = 2
                     }
                 }}
             />
-        </div>
     );
 };
 
@@ -371,7 +369,7 @@ export const TimeInput = ({
 
     return (
         <>
-            <div className={`flex flex-row items-center input-like ${className}`} onClick={focusFirst}>
+            <div className={`flex flex-row items-center input-like pl-1 ${className}`} onClick={focusFirst}>
                 {label && <div className="flex flex-1 items-center wsnw select-none px-1">{label}</div>}
                 {showDate && (
                     <Segment
