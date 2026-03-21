@@ -1,97 +1,21 @@
-import {Dispatch, StateUpdater, useEffect, useRef, useState} from 'preact/hooks';
+import {useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
-import {DashboardCard, DEFAULT_DASHBOARD, UserDashboard} from './common';
-import {ApiDeleteDashboard, ApiGetDashboards, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
-import {DashboardCardComponent} from './dashboard_card';
-import {TagInput} from '../../components/tag_input';
-import {TblUserDashboard, TblUserTag} from '../../api/types';
-import {TagToString} from '../../utils/tags';
+import {DEFAULT_DASHBOARD, UserDashboard} from './common';
+import {ApiDeleteDashboard, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
 import {DashboardComponent} from './dashboard';
-
-const CHART_LABELS: Record<DashboardCard['type'], string> = {
-    pie: 'Pie Chart',
-    macros: 'Macronutrients',
-    calories: 'Calories',
-    blood_glucose: 'Blood Glucose',
-    insulin: 'Insulin',
-    body_weight: 'Body Weight (kg)',
-    body_height: 'Height (cm)',
-    body_fat: 'Body Fat (%)',
-    body_bmi: 'BMI',
-    bp_systolic: 'Blood Pressure - Systolic',
-    bp_diastolic: 'Blood Pressure - Diastolic',
-    bp_combined: 'Blood Pressure (Sys + Dia)',
-    heart_rate: 'Heart Rate (bpm)',
-    steps: 'Steps',
-    time: 'Time Spent by Tag',
-};
-
-let idCounter = 0;
-const newId = () => `card-${Date.now()}-${idCounter++}`;
-
-type EditDashboardPanelProps = {
-    namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
-    handleAdd: (c: DashboardCard) => void;
-};
-export function EditDashboardPanel({namespaces, setNamespaces, handleAdd}: EditDashboardPanelProps) {
-    const [addType, setAddType] = useState<DashboardCard['type']>('calories');
-    const [tags, setTags] = useState<TblUserTag[]>([]);
-
-    const addCard = () => {
-        const card: DashboardCard = {
-            id: '',
-            type: addType,
-            title: CHART_LABELS[addType],
-            display: {range: '24 hours', group: 'sum'},
-            visibleMacros: addType === 'macros' ? ['fat', 'carbs', 'fibre', 'protein'] : [],
-            selectedTags: tags.map(TagToString),
-        };
-
-        handleAdd(card);
-    };
-
-    return (
-        <div className="flex flex-col gap-2 p-2 mt-4 mb-8 container-theme">
-            <div>
-                <h2 className="text-lg font-bold">Add Chart</h2>
-                <div class="flex gap-2 items-center ">
-                    <select
-                        className="w-full px-2 py-1"
-                        value={addType}
-                        onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
-                    >
-                        {(Object.keys(CHART_LABELS) as Array<DashboardCard['type']>).map((t) => (
-                            <option key={t} value={t}>
-                                {CHART_LABELS[t]}
-                            </option>
-                        ))}
-                    </select>
-                    <button className="px-3 py-1 wsnw" onClick={addCard}>
-                        + Add
-                    </button>
-                </div>
-            </div>
-
-            {addType === 'time' && (
-                <>
-                    <div>
-                        <h2 className="text-lg font-bold">Tags</h2>
-                        <TagInput namespaces={namespaces} setNamespaces={setNamespaces} thisTags={tags} onChange={setTags} />
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
+import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 
 export function StatsPage(state: BaseState) {
     const [curDashboard, setCurDashboard] = useState<number>(0);
+    const [showAddPanel, setShowAddPanel] = useState(false);
 
-    const newDashboard = () => {
-        ApiNewDashboard(DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards)).then((db) =>
-            state.setDashboards([...state.dashboards, db])
-        );
+    const onAdd = (name: string) => {
+        ApiNewDashboard(name || DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards)).then((db) => {
+            const newIndex = state.dashboards.length;
+            state.setDashboards([...state.dashboards, db]);
+            setCurDashboard(newIndex);
+            setShowAddPanel(false);
+        });
     };
 
     const onUpdate = (dashboard: UserDashboard) => {
@@ -108,26 +32,47 @@ export function StatsPage(state: BaseState) {
     };
 
     const onDelete = (dashboard: UserDashboard) => {
-        ApiDeleteDashboard(dashboard.id).then(() => state.setDashboards(state.dashboards.filter((db) => db.id !== dashboard.id)));
+        if (confirm('Do you want to delete this dashboard?')) {
+            ApiDeleteDashboard(dashboard.id).then(() => {
+                const next = state.dashboards.filter((db) => db.id !== dashboard.id);
+                state.setDashboards(next);
+                setCurDashboard((i) => Math.min(i, Math.max(0, next.length - 1)));
+            });
+        }
     };
 
     return (
         <>
-            <div className="flex justify-center mb-4">
-                <button className={`px-3 py-1 text-c-text`} onClick={newDashboard}>
-                    New Dashboard
+            <div className="w-full flex justify-evenly my-4">
+                <button disabled={showAddPanel} className="wsnw px-3" onClick={() => setShowAddPanel(true)} title="New Dashboard">
+                    New View
                 </button>
-
-                {state.dashboards.map((db, i) => (
-                    <button
-                        key={db.id}
-                        className={`px-3 py-1 ${curDashboard === i ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
-                        onClick={() => setCurDashboard(i)}
+                {state.dashboards.length > 0 && (
+                    <select
+                        className="px-2 max-w-32 sm:max-w-4/6"
+                        value={curDashboard}
+                        onChange={(e) => setCurDashboard(Number((e.target as HTMLSelectElement).value))}
                     >
-                        {db.name}
-                    </button>
-                ))}
+                        {state.dashboards.map((db, i) => (
+                            <option key={db.id} value={i}>
+                                {db.name}
+                            </option>
+                        ))}
+                    </select>
+                )}
             </div>
+
+            {showAddPanel && (
+                <AddEditDashboardPanel
+                    titleLabel="New View"
+                    namespaces={state.namespaces}
+                    setNamespaces={state.setNamespaces}
+                    initialName=""
+                    confirmLabel="Create"
+                    onConfirm={onAdd}
+                    onCancel={() => setShowAddPanel(false)}
+                />
+            )}
 
             {curDashboard >= 0 && curDashboard < state.dashboards.length && (
                 <DashboardComponent

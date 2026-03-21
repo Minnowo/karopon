@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {FormatXLabel, GroupTypeKeys, GraphStyleKeys, NoInformationMessage, RangeTypeKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {MultiLinePoint, MultiLineGraphProps} from './multi_line_graph';
@@ -40,17 +40,17 @@ export function StackedBarGraph<K extends string>({
     const updateWidth = () => setWidth(containerRef.current!.clientWidth);
     const [handleResize] = useDebouncedCallback(updateWidth, 500);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         updateWidth();
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [handleResize]);
 
     // Close tooltip when data changes (e.g. range switch).
-    useEffect(() => {
+    useLayoutEffect(() => {
         setClickedIdx(null);
     }, [data]);
 

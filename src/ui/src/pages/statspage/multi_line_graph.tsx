@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {
     FormatXLabel,
     GroupTypeKeys,
@@ -49,11 +49,11 @@ export function MultiLineGraph<K extends string>({
     const updateSize = () => setSize({width: containerRef.current!.clientWidth, height: containerRef.current!.clientWidth});
     const [handleResize] = useDebouncedCallback(updateSize, 500);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         updateSize();
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [handleResize]);

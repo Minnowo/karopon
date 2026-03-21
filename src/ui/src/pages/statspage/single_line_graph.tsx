@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {ChartPoint, RangeTypeKeys, FormatXLabel, NoInformationMessage, GraphDisplay, GroupTypeKeys} from './common';
 
@@ -17,11 +17,11 @@ export const RenderGraph = <T extends ChartPoint>(
     const updateSize = () => setSize({width: containerRef.current!.clientWidth, height: containerRef.current!.clientWidth});
     const [handleResize] = useDebouncedCallback(updateSize, 500);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         updateSize();
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);
 
         return () => {
@@ -34,7 +34,7 @@ export const RenderGraph = <T extends ChartPoint>(
     const pad = 40;
 
     return (
-        <div ref={containerRef} className="mb-8 w-full">
+        <div ref={containerRef} className="w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">

@@ -1,9 +1,9 @@
-import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {useMemo, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {DashboardCard, UserDashboard} from './common';
 import {DashboardCardComponent} from './dashboard_card';
 import {DoRender} from '../../hooks/doRender';
-import {EditDashboardPanel} from '.';
+import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 import {TblUserDashboard} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 
@@ -53,16 +53,13 @@ export const DashboardComponent = ({baseState, dashboard, onUpdate, onDelete}: D
 
     const render = DoRender();
 
-    const toggleCancelEdit = () => {
-        if (editing) {
-            setCancelUpdate((x) => !x);
-            setEditing(false);
-        } else {
-            setEditing(true);
-        }
+    const cancelEdit = () => {
+        setCancelUpdate((x) => !x);
+        setEditing(false);
     };
 
-    const doSave = () => {
+    const doSave = (name: string) => {
+        dashboardRef.db.name = name;
         onUpdate(dashboardRef.db);
         setEditing(false);
     };
@@ -105,26 +102,28 @@ export const DashboardComponent = ({baseState, dashboard, onUpdate, onDelete}: D
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
-                <button className={`w-24 ${editing && 'bg-c-red font-bold'}`} onClick={toggleCancelEdit}>
-                    {editing ? 'Cancel' : 'Edit Dashboard'}
-                </button>
-            </div>
-
             <ErrorDiv errorMsg={errorMsg} />
+
+            {!editing && (
+                <div className="w-full flex justify-evenly my-4">
+                    <button className="wsnw px-2" onClick={() => setEditing(true)}>
+                        Edit View
+                    </button>
+                </div>
+            )}
 
             {editing && (
                 <>
-                    <button className={`w-24 bg-c-red font-bold`} onClick={() => onDelete(dashboardRef.db)}>
-                        Delete
-                    </button>
-                    <button className={`w-24 bg-c-green font-bold`} onClick={doSave}>
-                        Save
-                    </button>
-                    <EditDashboardPanel
+                    <AddEditDashboardPanel
+                        titleLabel="Edit View"
                         namespaces={baseState.namespaces}
                         setNamespaces={baseState.setNamespaces}
-                        handleAdd={handleAdd}
+                        onCardAdded={handleAdd}
+                        initialName={dashboardRef.db.name}
+                        confirmLabel="Save"
+                        onConfirm={doSave}
+                        onDelete={() => onDelete(dashboardRef.db)}
+                        onCancel={cancelEdit}
                     />
                 </>
             )}

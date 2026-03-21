@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useMemo, useRef, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
@@ -485,6 +485,12 @@ export function DashboardCardComponent({
         [card.type, dayOffsetSeconds, bodylogs, display]
     );
 
+    useLayoutEffect(() => {
+        // used so that charts update their size when css editing styles change it.
+        const resizeEvent = new Event('resize');
+        window.dispatchEvent(resizeEvent);
+    }, [editing]);
+
     const handleMoveUP = () => {
         onMoveUp();
 
@@ -526,11 +532,12 @@ export function DashboardCardComponent({
     const MultiSeriesGraph = graphStyle === 'bar' ? StackedBarGraph : MultiLineGraph;
 
     const renderChart = () => {
+        const title = editing ? '' : card.title;
         switch (card.type) {
             case 'pie':
                 return (
                     <PieChart
-                        title={card.title}
+                        title={title}
                         data={macros}
                         size={250}
                         range={display.range}
@@ -545,7 +552,7 @@ export function DashboardCardComponent({
                         colors={MACRO_COLORS}
                         labels={MACRO_LABELS}
                         display={display}
-                        title={card.title}
+                        title={title}
                         visibleKeys={visibleMacros}
                         setVisibleKeys={handleVisibleMacrosChange}
                         setDisplay={handleDisplayChange}
@@ -554,23 +561,23 @@ export function DashboardCardComponent({
                     />
                 );
             case 'calories':
-                return RenderGraph(calorieData, display, 'value', card.title, 'var(--color-c-yellow)', handleDisplayChange, 0);
+                return RenderGraph(calorieData, display, 'value', title, 'var(--color-c-yellow)', handleDisplayChange, 0);
             case 'blood_glucose':
-                return RenderGraph(bloodData, display, 'value', card.title, 'var(--color-c-sky)', handleDisplayChange);
+                return RenderGraph(bloodData, display, 'value', title, 'var(--color-c-sky)', handleDisplayChange);
             case 'insulin':
-                return RenderGraph(insulinData, display, 'value', card.title, 'var(--color-c-green)', handleDisplayChange);
+                return RenderGraph(insulinData, display, 'value', title, 'var(--color-c-green)', handleDisplayChange);
             case 'body_weight':
-                return RenderGraph(weightData, display, 'value', card.title, 'var(--color-c-peach)', handleDisplayChange);
+                return RenderGraph(weightData, display, 'value', title, 'var(--color-c-peach)', handleDisplayChange);
             case 'body_height':
-                return RenderGraph(heightData, display, 'value', card.title, 'var(--color-c-lavender)', handleDisplayChange);
+                return RenderGraph(heightData, display, 'value', title, 'var(--color-c-lavender)', handleDisplayChange);
             case 'body_fat':
-                return RenderGraph(bodyFatData, display, 'value', card.title, 'var(--color-c-flamingo)', handleDisplayChange);
+                return RenderGraph(bodyFatData, display, 'value', title, 'var(--color-c-flamingo)', handleDisplayChange);
             case 'body_bmi':
-                return RenderGraph(bmiData, display, 'value', card.title, 'var(--color-c-mauve)', handleDisplayChange);
+                return RenderGraph(bmiData, display, 'value', title, 'var(--color-c-mauve)', handleDisplayChange);
             case 'bp_systolic':
-                return RenderGraph(bpSysData, display, 'value', card.title, 'var(--color-c-red)', handleDisplayChange);
+                return RenderGraph(bpSysData, display, 'value', title, 'var(--color-c-red)', handleDisplayChange);
             case 'bp_diastolic':
-                return RenderGraph(bpDiaData, display, 'value', card.title, 'var(--color-c-pink)', handleDisplayChange);
+                return RenderGraph(bpDiaData, display, 'value', title, 'var(--color-c-pink)', handleDisplayChange);
             case 'bp_combined':
                 return (
                     <MultiSeriesGraph
@@ -579,7 +586,7 @@ export function DashboardCardComponent({
                         colors={BP_COLORS}
                         labels={BP_LABELS}
                         display={display}
-                        title={card.title}
+                        title={title}
                         visibleKeys={visibleBpKeys}
                         setVisibleKeys={setVisibleBpKeys}
                         setDisplay={handleDisplayChange}
@@ -588,9 +595,9 @@ export function DashboardCardComponent({
                     />
                 );
             case 'heart_rate':
-                return RenderGraph(heartRateData, display, 'value', card.title, 'var(--color-c-red)', handleDisplayChange);
+                return RenderGraph(heartRateData, display, 'value', title, 'var(--color-c-red)', handleDisplayChange);
             case 'steps':
-                return RenderGraph(stepsData, display, 'value', card.title, 'var(--color-c-teal)', handleDisplayChange, 0);
+                return RenderGraph(stepsData, display, 'value', title, 'var(--color-c-teal)', handleDisplayChange, 0);
             case 'time': {
                 const selectedTags = card.selectedTags ?? [];
                 const tagColors: Record<string, string> = Object.fromEntries(
@@ -604,7 +611,7 @@ export function DashboardCardComponent({
                         colors={tagColors}
                         labels={tagLabels}
                         display={display}
-                        title={card.title}
+                        title={title}
                         visibleKeys={visibleTimeTags}
                         setVisibleKeys={setVisibleTimeTags}
                         setDisplay={handleDisplayChange}
@@ -618,34 +625,26 @@ export function DashboardCardComponent({
     };
 
     return (
-        <div ref={thisRef}>
+        <div ref={thisRef} className={`${editing ? 'flex flex-col container-theme gap-2' : ''}`}>
             {editing && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
-                        <div className="flex gap-2 shrink-0">
-                            <button
-                                className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                                onClick={handleMoveUP}
-                                disabled={isFirst}
-                            >
-                                ↑
-                            </button>
-                            <button
-                                className="px-2 py-1 border rounded text-c-text disabled:opacity-30"
-                                onClick={handleMoveDown}
-                                disabled={isLast}
-                            >
-                                ↓
-                            </button>
-                        </div>
+                        <button className="shrink-0 px-2 py-1 delete-btn" onClick={onRemove}>
+                            ✕ Remove
+                        </button>
                         <input
-                            className="min-w-0 flex-1 px-2 py-1 border rounded bg-transparent text-c-text"
+                            className="min-w-0 flex-1 px-2 py-1"
                             value={card.title}
                             onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
                         />
-                        <button className="shrink-0 px-2 py-1 border rounded text-c-red" onClick={onRemove}>
-                            ✕ Remove
-                        </button>
+                        <div className="flex gap-1 shrink-0">
+                            <button className="px-3 py-1" onClick={handleMoveUP} disabled={isFirst}>
+                                ↑
+                            </button>
+                            <button className="px-3 py-1" onClick={handleMoveDown} disabled={isLast}>
+                                ↓
+                            </button>
+                        </div>
                     </div>
                     {card.type === 'time' && (
                         <>
