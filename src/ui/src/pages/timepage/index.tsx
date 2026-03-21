@@ -55,7 +55,7 @@ export function TimespansPage(state: BaseState) {
         ApiNewUserTimespan(newTimespan)
             .then((ts: TaggedTimespan) => {
                 state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
-                if(closeCreatePanel) {
+                if (closeCreatePanel) {
                     setShowNewTimespan(false);
                 }
             })
@@ -134,8 +134,8 @@ export function TimespansPage(state: BaseState) {
                 </button>
 
                 <button
-                disabled={showNewTimespan}
-                    className={"w-24"}
+                    disabled={showNewTimespan}
+                    className={'w-24'}
                     onClick={() => {
                         setShowNewTimespan(true);
                         setTmpTimer(NewTaggedTimespan());
@@ -149,14 +149,14 @@ export function TimespansPage(state: BaseState) {
 
             {showNewTimespan && (
                 <AddTimerPanel
-                className="mb-4"
+                    className="mb-4"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     timer={tmpTimer}
                     showTimeEditing={false}
                     saveButtonTitle={'New Timer'}
-                    onCreate={(t)=>newTimer(t, true)}
-                    onCancel={()=> setShowNewTimespan(false)}
+                    onCreate={(t) => newTimer(t, true)}
+                    onCancel={() => setShowNewTimespan(false)}
                 />
             )}
 

@@ -91,17 +91,23 @@ export function BodyPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
-                <button
-                    className={`w-24 ${showNewEventPanel && 'bg-c-red font-bold'}`}
-                    onClick={() => setShowNewEventPanel((x) => !x)}
-                >
-                    {!showNewEventPanel ? 'New Event' : 'Cancel'}
+                <button disabled={showNewEventPanel} className={`w-24`} onClick={() => setShowNewEventPanel(true)}>
+                    New Event
                 </button>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            {showNewEventPanel && <AddBodyPanel className="mb-4" bodylog={tmpLog} addBodyLog={addBodyLog} />}
+            {showNewEventPanel && (
+                <AddBodyPanel
+                    className="mb-4"
+                    title="New Bodylog"
+                    saveButtonTitle="Create"
+                    bodylog={tmpLog}
+                    onCreate={addBodyLog}
+                    onCancel={() => setShowNewEventPanel(false)}
+                />
+            )}
 
             {state.bodylogs.length === 0 ? (
                 <div className="text-center font-bold py-32">
@@ -116,19 +122,12 @@ export function BodyPage(state: BaseState) {
                             <AddBodyPanel
                                 key={log.id}
                                 title="Edit Body Log"
+                                saveButtonTitle={'Update'}
                                 preserveTime={true}
                                 bodylog={editLog}
-                                addBodyLog={updateBodyLog}
+                                onCreate={updateBodyLog}
+                                onCancel={() => setEditLog(null)}
                                 className="mb-4"
-                                actionButtons={[
-                                    <button
-                                        key="cancel"
-                                        className="text-sm bg-c-red font-bold w-24 sm:mx-1 mb-1 sm:mb-0"
-                                        onClick={() => setEditLog(null)}
-                                    >
-                                        Cancel
-                                    </button>,
-                                ]}
                             />
                         ) : (
                             <BodyLogPanel

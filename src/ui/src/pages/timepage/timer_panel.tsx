@@ -72,7 +72,6 @@ export const TimerPanel = ({
         <div className={`flex flex-row items-start sm:items-center container-theme p-2`}>
             <div className="flex flex-1 flex-col gap-2">
                 <div className="flex flex-col gap-2 sm:flex-row">
-
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
@@ -132,11 +131,7 @@ export const TimerPanel = ({
                                 hour12={timeformat === UserTimeFormat.Hour12}
                             />
                         )}
-                        <textarea
-                            placeholder="Note"
-                            value={note ?? ''}
-                            onInput={(e) => setNote(e.currentTarget.value)}
-                        />
+                        <textarea placeholder="Note" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
                         <div className="flex gap-2 justify-end">
                             <button className="cancel-btn" onClick={() => setShowEdit(false)}>
                                 Cancel

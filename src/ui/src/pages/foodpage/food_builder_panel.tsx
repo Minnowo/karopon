@@ -10,7 +10,7 @@ type FoodBuilderPanelProps = {
     user: TblUser;
     foods: TblUserFood[];
     addFood: (food: TblUserFood) => void;
-    onCancel: ()=>void;
+    onCancel: () => void;
     className?: string;
 };
 
@@ -207,12 +207,12 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
 
             <table className="w-full text-center">
                 <thead>
-                <tr>
-                    <th>Fat</th>
-                    <th className="px-1">Carb</th>
-                    <th className="px-1">Fib</th>
-                    <th>Prot</th>
-                </tr>
+                    <tr>
+                        <th>Fat</th>
+                        <th className="px-1">Carb</th>
+                        <th className="px-1">Fib</th>
+                        <th>Prot</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -255,8 +255,13 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="cancel-btn" onClick={p.onCancel}> Cancel</button>
-                <button className="save-btn" onClick={onCreateClick}>Build Food </button>
+                <button className="cancel-btn" onClick={p.onCancel}>
+                    {' '}
+                    Cancel
+                </button>
+                <button className="save-btn" onClick={onCreateClick}>
+                    Build Food{' '}
+                </button>
             </div>
         </div>
     );

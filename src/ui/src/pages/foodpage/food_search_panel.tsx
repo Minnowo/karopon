@@ -1,9 +1,9 @@
-import { useState } from "preact/hooks";
-import { TblDataSource, TblDataSourceFood } from "../../api/types";
-import { ApiGetDataSourceFoods } from "../../api/api";
-import { GetErrorHandler } from "../../utils/error";
-import { ErrorDiv } from "../../components/error_div";
-import { Fragment } from "preact/jsx-runtime";
+import {useState} from 'preact/hooks';
+import {TblDataSource, TblDataSourceFood} from '../../api/types';
+import {ApiGetDataSourceFoods} from '../../api/api';
+import {GetErrorHandler} from '../../utils/error';
+import {ErrorDiv} from '../../components/error_div';
+import {Fragment} from 'preact/jsx-runtime';
 
 type FoodSearchPanelProps = {
     readonly doRefresh: () => void;
@@ -167,4 +167,3 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
         </div>
     );
 };
-

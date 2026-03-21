@@ -8,28 +8,38 @@ import {JSX} from 'preact';
 
 type AddBodyPanelProps = {
     bodylog: TblUserBodyLog;
-    addBodyLog: (bodylog: TblUserBodyLog) => void;
-    title?: string;
+    onCreate: (bodylog: TblUserBodyLog) => void;
+    onCancel: () => void;
+    title: string;
+    saveButtonTitle: string;
     preserveTime?: boolean;
     actionButtons?: JSX.Element[];
     className?: string;
 };
 
-export function AddBodyPanel(state: AddBodyPanelProps) {
+export function AddBodyPanel({
+    bodylog,
+    onCreate,
+    onCancel,
+    title,
+    saveButtonTitle,
+    preserveTime = false,
+    className = '',
+}: AddBodyPanelProps) {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const render = DoRender();
 
     const tmpLog = useMemo<TblUserBodyLog>(
         () => ({
-            ...state.bodylog,
+            ...bodylog,
             created: Date.now(),
-            user_time: state.preserveTime ? state.bodylog.user_time : Date.now(),
+            user_time: preserveTime ? bodylog.user_time : Date.now(),
         }),
-        [state.bodylog]
+        [bodylog, preserveTime]
     );
 
-    const onSaveClick = () => {
+    const doSave = () => {
         setErrorMsg(null);
 
         const newLog: TblUserBodyLog = {
@@ -37,24 +47,25 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
             bmi: tmpLog.height_cm > 0 ? +(tmpLog.weight_kg / Math.pow(tmpLog.height_cm / 100, 2)).toFixed(2) : 0,
         };
 
-        state.addBodyLog(newLog);
+        onCreate(newLog);
     };
 
     return (
         <>
-            <div className={`rounded-sm p-2 border container-theme ${state.className}`}>
-                <div className="flex w-full justify-between">
-                    <span className="text-lg font-bold">{state.title ?? 'New Body Log'}</span>
-                    {state.actionButtons && <div className="flex flex-col sm:flex-row">{state.actionButtons}</div>}
+            <div className={`container-theme ${className}`}>
+                <div className="flex">
+                    <span className="text-lg font-bold">{title}</span>
                 </div>
+
                 <ErrorDiv errorMsg={errorMsg} />
-                <div className="flex flex-col justify-between">
-                    <div className="w-full flex flex-wrap">
-                        <div className="w-full flex flex-col">
+
+                <div className="flex flex-col gap-2 justify-between">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex flex-col">
                             <span className="font-semibold">Weight</span>
-                            <div className="w-full flex flex-row gap-2">
+                            <div className="flex gap-2">
                                 <NumberInput
-                                    className="w-full my-1"
+                                    className="flex-1"
                                     innerClassName="w-full"
                                     label="kg"
                                     step={1}
@@ -68,7 +79,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                     }}
                                 />
                                 <NumberInput
-                                    className="w-full my-1"
+                                    className="flex-1"
                                     innerClassName="w-full"
                                     label="lbs"
                                     step={1}
@@ -84,11 +95,11 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                             </div>
                         </div>
 
-                        <div className="w-full flex flex-col">
+                        <div className="flex flex-col">
                             <span className="font-semibold">Height</span>
-                            <div className="w-full flex flex-row gap-2">
+                            <div className="flex flex-row gap-2">
                                 <NumberInput
-                                    className="w-full my-1"
+                                    className="flex-1"
                                     innerClassName="w-full"
                                     label="cm"
                                     value={tmpLog.height_cm}
@@ -103,7 +114,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                 />
 
                                 <NumberInput
-                                    className="w-full my-1"
+                                    className="flex-1"
                                     innerClassName="w-full"
                                     label="ft"
                                     value={CmToFeetInches(tmpLog.height_cm).feet}
@@ -119,7 +130,7 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                                 />
 
                                 <NumberInput
-                                    className="w-full my-1"
+                                    className="flex-1"
                                     innerClassName="w-full"
                                     label="in"
                                     value={CmToFeetInches(tmpLog.height_cm).inches}
@@ -137,8 +148,8 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         </div>
 
                         <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full text-right"
+                            className="flex-1"
+                            innerClassName="flex-1 min-w-0"
                             label="Body Fat %"
                             step={1}
                             min={0}
@@ -151,8 +162,8 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         />
 
                         <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full text-right"
+                            className="flex-1"
+                            innerClassName="flex-1 min-w-0"
                             label="Heart Rate (bpm)"
                             step={1}
                             min={0}
@@ -165,8 +176,8 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         />
 
                         <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full text-right"
+                            className="flex-1"
+                            innerClassName="flex-1 min-w-0"
                             label="BP Systolic"
                             step={1}
                             min={0}
@@ -179,8 +190,8 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         />
 
                         <NumberInput
-                            className="w-full my-1"
-                            innerClassName="w-full text-right"
+                            className="flex-1"
+                            innerClassName="flex-1 min-w-0"
                             label="BP Diastolic"
                             step={1}
                             min={0}
@@ -193,8 +204,8 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         />
 
                         <NumberInput
-                            className="w-full mt-1"
-                            innerClassName="w-full text-right"
+                            className="flex-1"
+                            innerClassName="flex-1 min-w-0"
                             label="Steps"
                             step={1}
                             min={0}
@@ -207,9 +218,12 @@ export function AddBodyPanel(state: AddBodyPanelProps) {
                         />
                     </div>
 
-                    <div className="flex justify-end mt-2">
-                        <button className="bg-c-green font-bold max-w-32 w-full" onClick={onSaveClick}>
-                            Update Log
+                    <div className="flex justify-end gap-2">
+                        <button className="cancel-btn" onClick={onCancel}>
+                            Cancel
+                        </button>
+                        <button className="save-btn" onClick={doSave}>
+                            {saveButtonTitle}
                         </button>
                     </div>
                 </div>

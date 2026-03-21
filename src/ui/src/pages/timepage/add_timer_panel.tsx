@@ -10,7 +10,7 @@ type Props = {
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     timer: TaggedTimespan;
     onCreate: (timer: TaggedTimespan) => void;
-    onCancel: ()=>void;
+    onCancel: () => void;
     showTimeEditing: boolean;
     saveButtonTitle: string;
     className?: string;
@@ -24,9 +24,8 @@ export const AddTimerPanel = ({
     onCancel,
     showTimeEditing,
     saveButtonTitle,
-    className = ""
+    className = '',
 }: Props) => {
-
     const [startTime, setStartTime] = useState<Date>(new Date(timer.timespan.start_time));
     const [stopTime, setStopTime] = useState<Date>(new Date(timer.timespan.stop_time));
     const [note, setNote] = useState<string | null>(timer.timespan.note);
@@ -57,7 +56,6 @@ export const AddTimerPanel = ({
 
     return (
         <div className={`flex flex-col gap-1 container-theme ${className}`}>
-
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer text-lg font-bold">
                     Create New Timer
@@ -129,12 +127,7 @@ export const AddTimerPanel = ({
 
             <div>
                 <span className="font-semibold">Tags</span>
-                    <TagInput
-                        namespaces={namespaces}
-                        setNamespaces={setNamespaces}
-                        thisTags={tags}
-                        onChange={setTags}
-                    />
+                <TagInput namespaces={namespaces} setNamespaces={setNamespaces} thisTags={tags} onChange={setTags} />
             </div>
 
             <div>
@@ -143,7 +136,7 @@ export const AddTimerPanel = ({
                     className="w-full"
                     rows={4}
                     value={note ?? ''}
-                    placeholder={"Note"}
+                    placeholder={'Note'}
                     onInput={(e) => setNote(e.currentTarget.value)}
                 />
             </div>
@@ -153,7 +146,7 @@ export const AddTimerPanel = ({
                     Cancel
                 </button>
                 <button className="save-btn" onClick={doCreate}>
-                {saveButtonTitle}
+                    {saveButtonTitle}
                 </button>
             </div>
         </div>

@@ -20,7 +20,7 @@ type Props = {
     userGoal: TblUserGoal;
     onCreated: (goal: TblUserGoal) => void;
     onUpdated?: (goal: TblUserGoal) => void;
-    onCancel?: () => void;
+    onCancel: () => void;
     className?: string;
 };
 
@@ -30,7 +30,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
     const render = DoRender();
     const isEditing = onUpdated !== undefined;
 
-    const onSubmit = () => {
+    const doCreateOrUpdate = () => {
         setError(null);
 
         goal.name = goal.name.trim();
@@ -52,20 +52,15 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme ${className}`}>
-            <div className="flex w-full justify-between">
+        <div className={`container-theme ${className}`}>
+            <div className="flex justify-between">
                 <h2 className="text-lg font-semibold">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
-                {onCancel && (
-                    <button className="text-sm bg-c-red font-bold w-24" onClick={onCancel}>
-                        Cancel
-                    </button>
-                )}
             </div>
             <ErrorDiv errorMsg={error} />
 
             <div className="flex flex-col gap-2">
                 <input
-                    className="border rounded px-2 py-1 mt-1 w-full"
+                    className="px-2 py-1 mt-1 w-full"
                     value={goal.name}
                     placeholder="Your goal name"
                     title="Enter the name of your goal here"
@@ -74,7 +69,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                 />
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="w-full" title="Time Range is the interval for the goal to start, finish, and repeat.">
+                    <div className="flex-1" title="Time Range is the interval for the goal to start, finish, and repeat.">
                         <label className="block text-sm font-medium">Time Range</label>
                         <select
                             className="border rounded px-2 py-1 w-full"
@@ -92,7 +87,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                         </select>
                     </div>
 
-                    <div className="w-full" title="Aggregation is how your current progress should be counted and grouped.">
+                    <div className="flex-1" title="Aggregation is how your current progress should be counted and grouped.">
                         <label className="block text-sm font-medium">Aggregation</label>
                         <select
                             className="border rounded px-2 py-1 w-full"
@@ -113,7 +108,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="w-full" title="Target defines what kind of data is your goal for.">
+                    <div className="flex-1" title="Target defines what kind of data is your goal for.">
                         <label className="block text-sm font-medium">Target</label>
                         <select
                             className="border rounded px-2 py-1 w-full"
@@ -133,7 +128,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                     </div>
 
                     <div
-                        className="w-full"
+                        className="flex-1"
                         title="Comparison is how your currently progress value should be compared to your target value."
                     >
                         <label className="block text-sm font-medium">Comparison</label>
@@ -171,8 +166,11 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                     {SnakeCaseToTitle(goal.target_col)} to be {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}.
                 </div>
 
-                <div className="flex sm:justify-end">
-                    <button className="bg-c-green font-bold my-1 w-full sm:w-32" onClick={onSubmit}>
+                <div className="flex justify-end gap-2">
+                    <button className="cancel-btn" onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button className="save-btn" onClick={doCreateOrUpdate}>
                         {isEditing ? 'Update Goal' : 'Create Goal'}
                     </button>
                 </div>

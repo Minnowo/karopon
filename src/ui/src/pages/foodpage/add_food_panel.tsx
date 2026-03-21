@@ -3,12 +3,12 @@ import {TblDataSource, TblDataSourceFood, TblUserFood} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 import {DoRender} from '../../hooks/doRender';
 import {NumberInput} from '../../components/number_input';
-import { FoodSearchPanel } from './food_search_panel';
+import {FoodSearchPanel} from './food_search_panel';
 
 type AddFoodPanelProps = {
     food: TblUserFood;
     addFood: (food: TblUserFood) => void;
-    onCancel: ()=>void;
+    onCancel: () => void;
     dataSources: TblDataSource[] | null;
     className?: string;
     readonly doRefresh: () => void;
@@ -142,34 +142,34 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
             <ErrorDiv errorMsg={errorMsg} />
 
             <div className="flex flex-col font-semibold gap-2">
-                    <div className="flex flex-row flex-wrap gap-2">
-                        <input
-                            ref={foodRef}
-                            className="flex-auto"
-                            type="text"
-                            value={tmpFood.name}
-                            onInput={(e) => (tmpFood.name = e.currentTarget.value)}
-                            placeholder="Food Name"
-                        />
-                        <input
-                            className="flex-auto max-w-32"
-                            type="text"
-                            value={tmpFood.unit}
-                            onInput={(e) => (tmpFood.unit = e.currentTarget.value)}
-                            placeholder="Portion Unit"
-                        />
-                    </div>
-                    <NumberInput
-                        className='w-full'
-                        innerClassName='w-full'
-                        min={0}
-                        label={'Portion'}
-                        value={tmpFood.portion}
-                        onValueChange={(portion: number) => {
-                            tmpFood.portion = portion;
-                            render();
-                        }}
+                <div className="flex flex-row flex-wrap gap-2">
+                    <input
+                        ref={foodRef}
+                        className="flex-auto"
+                        type="text"
+                        value={tmpFood.name}
+                        onInput={(e) => (tmpFood.name = e.currentTarget.value)}
+                        placeholder="Food Name"
                     />
+                    <input
+                        className="flex-auto max-w-32"
+                        type="text"
+                        value={tmpFood.unit}
+                        onInput={(e) => (tmpFood.unit = e.currentTarget.value)}
+                        placeholder="Portion Unit"
+                    />
+                </div>
+                <NumberInput
+                    className="w-full"
+                    innerClassName="w-full"
+                    min={0}
+                    label={'Portion'}
+                    value={tmpFood.portion}
+                    onValueChange={(portion: number) => {
+                        tmpFood.portion = portion;
+                        render();
+                    }}
+                />
             </div>
 
             <div className="flex flex-wrap flex-col sm:flex-row justify-evenly gap-x-2 gap-y-2 my-2">
@@ -222,6 +222,7 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                     }}
                 />
             </div>
+
             <div className="flex justify-end gap-2">
                 <button className="cancel-btn" onClick={onCancel}>
                     Cancel
