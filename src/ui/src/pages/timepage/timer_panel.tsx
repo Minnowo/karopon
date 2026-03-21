@@ -55,6 +55,7 @@ export const TimerPanel = ({
         });
         setNote(n === '' ? null : n);
     };
+
     const saveEdit = () => {
         const n = note ? note.trim() : null;
         updateTimespan({
@@ -69,8 +70,9 @@ export const TimerPanel = ({
 
     return (
         <div className={`flex flex-row items-start sm:items-center container-theme p-2`}>
-            <div className="w-full flex flex-col">
-                <div className="w-full flex flex-col sm:flex-row">
+            <div className="flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
+
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
@@ -111,7 +113,7 @@ export const TimerPanel = ({
                 </div>
 
                 {showEdit && (
-                    <div className="w-full mt-2 flex flex-col gap-2">
+                    <div className="flex flex-col gap-2">
                         <TimeInput
                             label="Start"
                             value={editStart}
@@ -131,16 +133,15 @@ export const TimerPanel = ({
                             />
                         )}
                         <textarea
-                            className="w-full"
                             placeholder="Note"
                             value={note ?? ''}
                             onInput={(e) => setNote(e.currentTarget.value)}
                         />
                         <div className="flex gap-2 justify-end">
-                            <button className="bg-c-red font-bold max-w-32 w-full" onClick={() => setShowEdit(false)}>
+                            <button className="cancel-btn" onClick={() => setShowEdit(false)}>
                                 Cancel
                             </button>
-                            <button className="bg-c-green font-bold max-w-32 w-full" onClick={saveEdit}>
+                            <button className="save-btn" onClick={saveEdit}>
                                 Save
                             </button>
                         </div>
@@ -148,14 +149,14 @@ export const TimerPanel = ({
                 )}
 
                 {!showEdit && showNote && (
-                    <textarea className="w-full mt-2" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
+                    <textarea placeholder="Note" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
                 )}
                 {!showEdit && showNote && note !== timer.timespan.note && (
-                    <div className="flex gap-2 justify-end mt-2">
-                        <button className="bg-c-red font-bold w-full max-w-32" onClick={() => setNote(timer.timespan.note)}>
+                    <div className="flex gap-2 justify-end">
+                        <button className="cancel-btn" onClick={() => setNote(timer.timespan.note)}>
                             Cancel
                         </button>
-                        <button className="bg-c-green font-bold w-full max-w-32" onClick={saveNote}>
+                        <button className="save-btn" onClick={saveNote}>
                             Save
                         </button>
                     </div>

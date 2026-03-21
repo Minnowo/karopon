@@ -65,7 +65,7 @@ import {ErrorDiv} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
 import {TagsPage} from './pages/tagspage';
-import {TimespansPage} from './pages/timespans';
+import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 

@@ -9,42 +9,55 @@ type Props = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     timer: TaggedTimespan;
-    createTimer: (timer: TaggedTimespan) => void;
+    onCreate: (timer: TaggedTimespan) => void;
+    onCancel: ()=>void;
     showTimeEditing: boolean;
     saveButtonTitle: string;
+    className?: string;
 };
 
-export const AddTimerPanel = (p: Props) => {
-    const [startTime, setStartTime] = useState<Date>(new Date(p.timer.timespan.start_time));
-    const [stopTime, setStopTime] = useState<Date>(new Date(p.timer.timespan.stop_time));
-    const [note, setNote] = useState<string | null>(p.timer.timespan.note);
-    const [tags, setTags] = useState<TblUserTag[]>([...p.timer.tags]);
+export const AddTimerPanel = ({
+    namespaces,
+    setNamespaces,
+    timer,
+    onCreate,
+    onCancel,
+    showTimeEditing,
+    saveButtonTitle,
+    className = ""
+}: Props) => {
+
+    const [startTime, setStartTime] = useState<Date>(new Date(timer.timespan.start_time));
+    const [stopTime, setStopTime] = useState<Date>(new Date(timer.timespan.stop_time));
+    const [note, setNote] = useState<string | null>(timer.timespan.note);
+    const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
 
     useLayoutEffect(() => {
-        setStartTime(new Date(p.timer.timespan.start_time));
-        setStopTime(new Date(p.timer.timespan.stop_time));
-        setNote(p.timer.timespan.note);
-        setTags([...p.timer.tags]);
-    }, [p.timer]);
+        setStartTime(new Date(timer.timespan.start_time));
+        setStopTime(new Date(timer.timespan.stop_time));
+        setNote(timer.timespan.note);
+        setTags([...timer.tags]);
+    }, [timer]);
 
-    const onCreate = () => {
-        const timer = {
+    const doCreate = () => {
+        const newTimer = {
             timespan: {
                 id: 0,
                 user_id: 0,
                 created: 0,
-                start_time: p.showTimeEditing ? startTime.getTime() : new Date().getTime(),
-                stop_time: p.showTimeEditing ? stopTime.getTime() : 0,
+                start_time: showTimeEditing ? startTime.getTime() : new Date().getTime(),
+                stop_time: showTimeEditing ? stopTime.getTime() : 0,
                 note,
             },
             tags,
         } as TaggedTimespan;
 
-        p.createTimer(timer);
+        onCreate(newTimer);
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme`}>
+        <div className={`flex flex-col gap-1 container-theme ${className}`}>
+
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer text-lg font-bold">
                     Create New Timer
@@ -66,7 +79,7 @@ export const AddTimerPanel = (p: Props) => {
                         <br />
                         <br />
                         For example, adding the tags:
-                        <span className="w-full flex flex-row gap-3 my-2">
+                        <span className="w-full flex flex-row flex-wrap gap-3 my-2">
                             {[
                                 {namespace: 'project', name: 'karopon'},
                                 {namespace: 'work', name: 'development'},
@@ -89,8 +102,8 @@ export const AddTimerPanel = (p: Props) => {
                 </div>
             </details>
 
-            {p.showTimeEditing && (
-                <div className="mt-1">
+            {showTimeEditing && (
+                <div>
                     <span className="font-semibold">Start Time</span>
                     <input
                         class="w-full my-1 sm:mx-1"
@@ -101,8 +114,8 @@ export const AddTimerPanel = (p: Props) => {
                     />
                 </div>
             )}
-            {p.showTimeEditing && (
-                <div className="mt-1">
+            {showTimeEditing && (
+                <div>
                     <span className="font-semibold">Stop Time</span>
                     <input
                         class="w-full my-1 sm:mx-1"
@@ -114,36 +127,34 @@ export const AddTimerPanel = (p: Props) => {
                 </div>
             )}
 
-            <div className="mt-1">
+            <div>
                 <span className="font-semibold">Tags</span>
-                <div className="container-theme">
                     <TagInput
-                        className="px-2 py-1"
-                        namespaces={p.namespaces}
-                        setNamespaces={p.setNamespaces}
+                        namespaces={namespaces}
+                        setNamespaces={setNamespaces}
                         thisTags={tags}
                         onChange={setTags}
                     />
-                </div>
             </div>
 
-            <div className="mt-1">
+            <div>
                 <span className="font-semibold">Note</span>
                 <textarea
-                    className="w-full border rounded px-2 py-1"
+                    className="w-full"
                     rows={4}
                     value={note ?? ''}
+                    placeholder={"Note"}
                     onInput={(e) => setNote(e.currentTarget.value)}
                 />
             </div>
 
-            <div className="w-full flex justify-end">
-                <input
-                    className="w-full my-1 sm:ml-1 sm:max-w-32 bg-c-green font-bold"
-                    type="submit"
-                    value={p.saveButtonTitle}
-                    onClick={onCreate}
-                />
+            <div className="flex justify-end gap-2">
+                <button className="cancel-btn" onClick={onCancel}>
+                    Cancel
+                </button>
+                <button className="save-btn" onClick={doCreate}>
+                {saveButtonTitle}
+                </button>
             </div>
         </div>
     );

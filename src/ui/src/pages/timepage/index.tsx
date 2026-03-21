@@ -16,9 +16,7 @@ import {NewTaggedTimespan} from '../../api/factories';
 
 export function TimespansPage(state: BaseState) {
     const [showNewTimespan, setShowNewTimespan] = useState(false);
-    // const [showManageTags, setShowManageTags] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
 
     const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
@@ -53,12 +51,13 @@ export function TimespansPage(state: BaseState) {
             .catch(handleErr);
     };
 
-    const newTimer = (newTimespan: TaggedTimespan) => {
+    const newTimer = (newTimespan: TaggedTimespan, closeCreatePanel = false) => {
         ApiNewUserTimespan(newTimespan)
             .then((ts: TaggedTimespan) => {
                 state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
-
-                setShowNewTimespan(false);
+                if(closeCreatePanel) {
+                    setShowNewTimespan(false);
+                }
             })
             .catch(handleErr);
     };
@@ -135,13 +134,14 @@ export function TimespansPage(state: BaseState) {
                 </button>
 
                 <button
-                    className={`w-24 ${showNewTimespan ? 'bg-c-red font-bold' : ''}`}
+                disabled={showNewTimespan}
+                    className={"w-24"}
                     onClick={() => {
-                        setShowNewTimespan((x) => !x);
+                        setShowNewTimespan(true);
                         setTmpTimer(NewTaggedTimespan());
                     }}
                 >
-                    {!showNewTimespan ? 'New Timer' : 'Cancel'}
+                    New Timer
                 </button>
             </div>
 
@@ -149,12 +149,14 @@ export function TimespansPage(state: BaseState) {
 
             {showNewTimespan && (
                 <AddTimerPanel
+                className="mb-4"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     timer={tmpTimer}
-                    createTimer={newTimer}
                     showTimeEditing={false}
                     saveButtonTitle={'New Timer'}
+                    onCreate={(t)=>newTimer(t, true)}
+                    onCancel={()=> setShowNewTimespan(false)}
                 />
             )}
 
