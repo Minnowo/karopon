@@ -33,7 +33,7 @@ type AddEventsPanelState = {
     events: TblUserEvent[];
     fromEvent: UserEventFoodLog;
     createEvent: (e: CreateUserEventLog) => void;
-    actionButtons?: JSX.Element[];
+    onCancel: () => void;
     copyDate?: boolean;
 };
 
@@ -97,17 +97,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             foods.current[i] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
         }
     }, [p.fromEvent, p.copyDate, trailingRows]);
-
-    const reset = () => {
-        setEvent('');
-        setEventTime(new Date()); /// don't copy this because they're gonna just assume current time
-        setBloodSugar(0);
-        setInsulinToCarbRatio(0);
-        setInsulinTaken(0);
-        foods.current.length = 0;
-        ensureTrailingRows();
-        DoRender();
-    };
 
     const totals = (() => {
         const cols = [0, 0, 0, 0];
@@ -222,12 +211,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             <div className="flex w-full justify-between mb-2">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
-                <div className="flex flex-col sm:flex-row">
-                    {p.actionButtons}
-                    <button className="text-sm text-c-red font-bold w-24 sm:ml-1" onClick={reset}>
-                        Reset
-                    </button>
-                </div>
+                <span />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -298,7 +282,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     <>
                         <button
                             type="button"
-                            className="text-sm font-bold w-24 text-c-red"
+                            className="cancel-btn"
                             onClick={() => {
                                 setPhotoUrl(null);
                                 if (photoInputRef.current) {
@@ -310,7 +294,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         </button>
                         <button
                             type="button"
-                            className="text-sm font-bold w-24 text-c-green"
+                            className="ok-btn"
                             onClick={() => {
                                 if (photoFile) {
                                     ApiUploadEventPhoto(photoFile);
@@ -354,52 +338,46 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </tbody>
                 </table>
             </div>
-            <div className="w-full flex flex-none justify-end">
+            <div className="flex flex-none justify-end gap-4">
                 {p.user.show_diabetes && (
                     <>
-                        <span className="px-2" title="Insulin injection location and blood meter prick side (changes daily)">
+                        <span title="Insulin injection location and blood meter prick side (changes daily)">
                             {`${days % 2 === 0 ? 'Left' : 'Right'}-${days % 4 <= 1 ? 'Upper' : 'Lower'}`}
                         </span>
-                        <span className="px-2" title="Insulin calculated for this event's food">
-                            Insulin Calc {insulin.toFixed(1)}
-                        </span>
-                        <span className="px-2" title="Net carbs for this event's food">
-                            Net Carbs {netCarb.toFixed(1)}
-                        </span>
+                        <span title="Insulin calculated for this event's food">Insulin Calc {insulin.toFixed(1)}</span>
+                        <span title="Net carbs for this event's food">Net Carbs {netCarb.toFixed(1)}</span>
                     </>
                 )}
-                <span className="px-2" title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>
-                    Calories {calories}
-                </span>
+                <span title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>Calories {calories}</span>
             </div>
 
-            <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
-                {p.user.show_diabetes && (
-                    <>
-                        <NumberInput
-                            className="my-1 sm:mx-1 flex-1 flex-grow"
-                            innerClassName="w-full min-w-12"
-                            label="Insulin To Carb Ratio"
-                            value={insulinToCarbRatio}
-                            onValueChange={setInsulinToCarbRatio}
-                            min={0}
-                        />
-                        <NumberInput
-                            className="my-1 sm:mx-1 flex-1 flex-grow"
-                            innerClassName="w-full min-w-12"
-                            label="Insulin Taken"
-                            value={insulinTaken}
-                            onValueChange={setInsulinTaken}
-                            min={0}
-                        />
-                    </>
-                )}
-                <input
-                    className="w-full my-1 sm:ml-1 sm:max-w-32 bg-c-green font-bold"
-                    type="submit"
-                    value={p.saveButtonTitle}
-                    onClick={onCreateClick}
-                />
+            {p.user.show_diabetes && (
+                <div className="w-full flex gap-2 flex-wrap flex-col sm:flex-row mb-2">
+                    <NumberInput
+                        className="flex-1 flex-grow"
+                        innerClassName="w-full min-w-12"
+                        label="Insulin To Carb Ratio"
+                        value={insulinToCarbRatio}
+                        onValueChange={setInsulinToCarbRatio}
+                        min={0}
+                    />
+                    <NumberInput
+                        className="flex-1 flex-grow"
+                        innerClassName="w-full min-w-12"
+                        label="Insulin Taken"
+                        value={insulinTaken}
+                        onValueChange={setInsulinTaken}
+                        min={0}
+                    />
+                </div>
+            )}
+            <div className="flex justify-between sm:justify-end gap-2">
+                <button className="cancel-btn" onClick={p.onCancel}>
+                    Cancel
+                </button>
+                <button className="save-btn" onClick={onCreateClick}>
+                    {p.saveButtonTitle}
+                </button>
             </div>
         </div>
     );

@@ -315,6 +315,10 @@
     @apply px-2 bg-c-green font-bold;
 }
 
+@utility ok-btn {
+    @apply px-2 text-c-green font-bold;
+}
+
 .no-summary-arrow summary {
     list-style: none;
 }
