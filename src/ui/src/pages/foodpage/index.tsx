@@ -12,7 +12,7 @@ import {NumberInput} from '../../components/number_input';
 import {FoodBuilderPanel} from './food_builder_panel';
 import {GetErrorHandler} from '../../utils/error';
 
-export function FoodPage(state: BaseState) {
+export const FoodPage = (state: BaseState) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [search, setSearch] = useState<string>('');
     const [showAddFoodPanel, setShowAddFoodPanel] = useState<boolean>(false);
@@ -74,23 +74,25 @@ export function FoodPage(state: BaseState) {
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
+            <div className="flex justify-evenly my-4">
                 <button
-                    className={`w-24 ${showAddFoodPanel ? 'bg-c-red font-bold' : ''}`}
+                disabled={showAddFoodPanel}
+                    className="w-24"
                     onClick={() => {
-                        setShowAddFoodPanel((x) => !x);
+                        setShowAddFoodPanel(true);
                         setBaseFood(TblUserFoodFactory.empty());
                     }}
                 >
-                    {!showAddFoodPanel ? 'New Food' : 'Cancel'}
+                    New Food
                 </button>
                 <button
-                    className={`w-24 ${showBuildFoodPanel ? 'bg-c-red font-bold' : ''}`}
+                disabled={showBuildFoodPanel}
+                    className="w-24"
                     onClick={() => {
-                        setShowBuildFoodPanel((x) => !x);
+                        setShowBuildFoodPanel(true);
                     }}
                 >
-                    {!showBuildFoodPanel ? 'Build Food' : 'Cancel'}
+                    Build Food
                 </button>
                 <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
@@ -103,6 +105,7 @@ export function FoodPage(state: BaseState) {
                     food={baseFood}
                     dataSources={state.dataSources}
                     addFood={(f) => addNewFood(setShowAddFoodPanel, f)}
+                    onCancel={()=> setShowAddFoodPanel(false)}
                     doRefresh={state.doRefresh}
                 />
             )}
@@ -113,14 +116,14 @@ export function FoodPage(state: BaseState) {
                     user={state.user}
                     foods={state.foods}
                     addFood={(f) => addNewFood(setShowBuildFoodPanel, f)}
+                    onCancel={()=>setShowBuildFoodPanel(false)}
                 />
             )}
-            <div className="w-full flex justify-evenly mb-4">
+            <div className="flex justify-evenly mb-4">
                 <input onInput={searchChange} className="w-full" type="text" placeholder="search" />
             </div>
 
             <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="w-full space-y-4">
                     {state.foods.length === 0 ? (
                         <div className="text-center font-bold py-32">
                             The list is empty.
@@ -150,8 +153,7 @@ export function FoodPage(state: BaseState) {
                                 );
                             })
                     )}
-                </div>
             </div>
         </>
     );
-}
+};

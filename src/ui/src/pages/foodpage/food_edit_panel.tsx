@@ -14,7 +14,7 @@ type FoodEditPanelProps = {
     copyFood?: (food: TblUserFood) => void;
 };
 
-export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) {
+export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: FoodEditPanelProps) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [showUpdatePanel, setShowUpdatePanel] = useState<boolean>(false);
     const [portion, setPortion] = useState<number>(food.portion);
@@ -69,7 +69,7 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
     };
 
     return (
-        <div key={food.id} className="rounded-sm p-2 border container-theme">
+        <div className="w-full container-theme">
             <ErrorDiv errorMsg={errorMsg} />
             <div className="flex justify-between font-semibold">
                 {showUpdatePanel ? (
@@ -259,4 +259,4 @@ export function FoodEditPanel({user, food, updateFood, copyFood, deleteFood}: Fo
             )}
         </div>
     );
-}
+};

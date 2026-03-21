@@ -10,10 +10,11 @@ type FoodBuilderPanelProps = {
     user: TblUser;
     foods: TblUserFood[];
     addFood: (food: TblUserFood) => void;
+    onCancel: ()=>void;
     className?: string;
 };
 
-export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
+export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
     // Used for the foods array key={} when rendering the food list.
     // The foods array is a ref which is passed into the row component, where it is edited by ref.
     // This ensures that each row in the array has a unique key for proper re-render.
@@ -96,8 +97,8 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme ${p.className}`}>
-            <div className="w-full">
+        <div className={`container-theme ${p.className}`}>
+            <div>
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer text-lg font-bold">
                         Food Builder
@@ -206,10 +207,12 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
 
             <table className="w-full text-center">
                 <thead>
+                <tr>
                     <th>Fat</th>
                     <th className="px-1">Carb</th>
                     <th className="px-1">Fib</th>
                     <th>Prot</th>
+                </tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -221,17 +224,17 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                 </tbody>
             </table>
 
-            <div className="w-full mt-4">
-                <div className="flex flex-row flex-wrap">
+            <div className="flex flex-col mt-4 mb-2 gap-2">
+                <div className="flex flex-row flex-wrap gap-2">
                     <input
-                        className="mb-2 flex-auto mr-1"
+                        className="flex-auto"
                         type="text"
                         value={food.current.name}
                         onInput={(e) => (food.current.name = e.currentTarget.value)}
                         placeholder="Food Name"
                     />
                     <input
-                        className="mb-2 flex-auto max-w-32"
+                        className="flex-auto max-w-32"
                         type="text"
                         value={food.current.unit}
                         onInput={(e) => (food.current.unit = e.currentTarget.value)}
@@ -239,7 +242,7 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                     />
                 </div>
                 <NumberInput
-                    className={'w-full mb-1'}
+                    className={'w-full'}
                     innerClassName={'w-full'}
                     min={0}
                     label={'Portion'}
@@ -251,14 +254,10 @@ export function FoodBuilderPanel(p: FoodBuilderPanelProps) {
                 />
             </div>
 
-            <div className="w-full flex flex-wrap flex-col sm:flex-row sm:justify-evenly justify-end">
-                <input
-                    className="w-full my-1 sm:ml-1 sm:max-w-32 bg-c-green font-bold"
-                    type="submit"
-                    value="Build Food"
-                    onClick={onCreateClick}
-                />
+            <div className="flex justify-end gap-2">
+                <button className="cancel-btn" onClick={p.onCancel}> Cancel</button>
+                <button className="save-btn" onClick={onCreateClick}>Build Food </button>
             </div>
         </div>
     );
-}
+};
