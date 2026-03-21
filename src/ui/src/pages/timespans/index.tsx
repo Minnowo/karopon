@@ -7,7 +7,7 @@ import {
     ApiUpdateUserTimespan,
     ApiUpdateUserTimespanTags,
 } from '../../api/api';
-import {TaggedTimespan, TblUserTag, TblUserTimespan} from '../../api/types';
+import {TaggedTimespan, TblUserTag, TblUserTimespan, UserTimeFormat} from '../../api/types';
 import {ErrorDiv} from '../../components/error_div';
 import {TimerPanel} from './timer_panel';
 import {ActiveTimerPanel} from './active_timers_panel';
@@ -143,15 +143,6 @@ export function TimespansPage(state: BaseState) {
                 >
                     {!showNewTimespan ? 'New Timer' : 'Cancel'}
                 </button>
-                {
-                    // <button
-                    //     className={`w-24 ${showManageTags ? 'bg-c-red font-bold' : ''}`}
-                    //     onClick={() => setShowManageTags((x) => !x)}
-                    // >
-                    //     {!showManageTags ? 'Edit Tags' : 'Cancel'}
-                    // </button>
-                    //                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
-                }
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -169,6 +160,7 @@ export function TimespansPage(state: BaseState) {
 
             <div className="grid gap-4">
                 <ActiveTimerPanel
+                    timeformat={state.user.time_format as UserTimeFormat}
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     timers={runningTimers}
@@ -188,6 +180,7 @@ export function TimespansPage(state: BaseState) {
                         .map((ts: TaggedTimespan) => (
                             <TimerPanel
                                 key={ts.timespan.id}
+                                timeformat={state.user.time_format as UserTimeFormat}
                                 namespaces={state.namespaces}
                                 setNamespaces={state.setNamespaces}
                                 timer={ts}

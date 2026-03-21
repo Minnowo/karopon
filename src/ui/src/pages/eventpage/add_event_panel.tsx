@@ -8,6 +8,7 @@ import {
     TblUserFoodLog,
     TblUserFoodLogWithKey,
     UserEventFoodLog,
+    UserTimeFormat,
 } from '../../api/types';
 import {FuzzySearch} from '../../components/select_list';
 import {ChangeEvent} from 'preact/compat';
@@ -16,7 +17,7 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {JSX} from 'preact';
-import {FormatDateForInput, FormatSmartTimestamp} from '../../utils/date_utils';
+import {FormatSmartTimestamp} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
@@ -37,7 +38,6 @@ type AddEventsPanelState = {
 };
 
 export function AddEventsPanel(p: AddEventsPanelState) {
-    const TRAILING = Math.max(1, p.user.event_log_trailing_rows);
     // Used for the foods array key={} when rendering the food list.
     // The foods array is a ref which is passed into the row component, where it is edited by ref.
     // This ensures that each row in the array has a unique key for proper re-render.
@@ -58,6 +58,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const photoInputRef = useRef<HTMLInputElement>(null);
     const foods = useRef<TblUserFoodLogWithKey[]>([]);
+    const trailingRows = Math.max(1, p.user.event_log_trailing_rows);
 
     const render = DoRender();
 
@@ -70,7 +71,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 break;
             }
         }
-        while (trailingEmpty < TRAILING) {
+        while (trailingEmpty < trailingRows) {
             foods.current.push(mutateWithKey(TblUserFoodLogFactory.empty()));
             trailingEmpty++;
         }
@@ -87,7 +88,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
         setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
-        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + TRAILING);
+        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + trailingRows);
         let i = 0;
         for (; i < p.fromEvent.foodlogs.length; i++) {
             foods.current[i] = {...p.fromEvent.foodlogs[i], key: --keyRef.current};
@@ -95,7 +96,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         for (; i < foods.current.length; i++) {
             foods.current[i] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
         }
-    }, [p.fromEvent, p.copyDate]);
+    }, [p.fromEvent, p.copyDate, trailingRows]);
 
     const reset = () => {
         setEvent('');
@@ -181,13 +182,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         });
     };
 
-    const onEventTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target) {
-            const value = e.currentTarget.value;
-            setEventTime(new Date(value));
-        }
-    };
-
     const buildTableHead = () => {
         return (
             <tr className="font-semibold text-xs text-center">
@@ -255,7 +249,13 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     autofocus={p.fromEvent.eventlog.event.trim() === ''}
                 />
 
-                <TimeInput skipTabIndex={true} value={new Date(eventTime)} onChange={setEventTime} showDate={true} />
+                <TimeInput
+                    skipTabIndex={true}
+                    value={new Date(eventTime)}
+                    onChange={setEventTime}
+                    showDate={true}
+                    hour12={p.user.time_format === UserTimeFormat.Hour12}
+                />
 
                 {p.user.show_diabetes && (
                     <NumberInput

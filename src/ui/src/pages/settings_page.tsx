@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../state/basestate';
 import {DoRender} from '../hooks/doRender';
-import {TblUpdateUser, TblUser} from '../api/types';
+import {TblUpdateUser, TblUser, UserTimeFormat} from '../api/types';
 import {NumberInput} from '../components/number_input';
 import {CalorieFormula} from '../utils/calories';
 import {FlipSwitch} from '../components/flip_switch';
@@ -171,6 +171,24 @@ export function SettingsPage(state: BaseState) {
                 step={1}
             />
 
+            <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-lg font-medium">Show Diabetes Features</span>
+                <FlipSwitch
+                    disabled={!isEditing}
+                    value={userRef.current.show_diabetes}
+                    onValueChanged={(v) => update('show_diabetes', v)}
+                />
+            </label>
+
+            <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-lg font-medium">Use 24 Hour Time</span>
+                <FlipSwitch
+                    disabled={!isEditing}
+                    value={userRef.current.time_format === UserTimeFormat.Hour24}
+                    onValueChanged={(v) => update('time_format', v ? UserTimeFormat.Hour24 : UserTimeFormat.Hour12)}
+                />
+            </label>
+
             <div>
                 <div className="font-bold">Color Theme</div>
                 <select
@@ -186,15 +204,6 @@ export function SettingsPage(state: BaseState) {
                     ))}
                 </select>
             </div>
-
-            <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-lg font-medium">Show Diabetes Features</span>
-                <FlipSwitch
-                    disabled={!isEditing}
-                    value={userRef.current.show_diabetes}
-                    onValueChanged={(v) => update('show_diabetes', v)}
-                />
-            </label>
 
             <div>
                 <div className="font-bold">Caloric Calculation Method</div>

@@ -253,3 +253,9 @@ export type TblUserDashboard = {
     name: string;
     data: string;
 };
+
+export enum UserTimeFormat {
+    Auto = '24-hour',
+    Hour24 = '24-hour',
+    Hour12 = '12-hour',
+}

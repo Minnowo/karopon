@@ -1,4 +1,4 @@
-import {TaggedTimespan, TblUserTag, TblUserTimespan} from '../../api/types';
+import {TaggedTimespan, TblUserTag, TblUserTimespan, UserTimeFormat} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {TagInput} from '../../components/tag_input';
 import {TimeInput} from '../../components/time_input';
@@ -9,6 +9,7 @@ import {TimeNowContext} from './context';
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 
 type TimerPanelProps = {
+    timeformat: UserTimeFormat;
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
     timer: TaggedTimespan;
@@ -21,6 +22,7 @@ type TimerPanelProps = {
 };
 
 export const TimerPanel = ({
+    timeformat,
     namespaces,
     setNamespaces,
     timer,
@@ -110,9 +112,23 @@ export const TimerPanel = ({
 
                 {showEdit && (
                     <div className="w-full mt-2 flex flex-col gap-2">
-                        <TimeInput label="Start" value={editStart} onChange={setEditStart} showDate={true} showSeconds={true} />
+                        <TimeInput
+                            label="Start"
+                            value={editStart}
+                            onChange={setEditStart}
+                            showDate={true}
+                            showSeconds={true}
+                            hour12={timeformat === UserTimeFormat.Hour12}
+                        />
                         {!running && (
-                            <TimeInput label="Stop" value={editStop} onChange={setEditStop} showDate={true} showSeconds={true} />
+                            <TimeInput
+                                label="Stop"
+                                value={editStop}
+                                onChange={setEditStop}
+                                showDate={true}
+                                showSeconds={true}
+                                hour12={timeformat === UserTimeFormat.Hour12}
+                            />
                         )}
                         <textarea
                             className="w-full"
