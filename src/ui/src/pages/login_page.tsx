@@ -36,6 +36,8 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                 if (wantToken) {
                     const js: {token: string; expires: number} = await res.json();
                     SetAuthToken(js.token);
+                } else {
+                    SetAuthToken('');
                 }
                 doRefresh();
             }
