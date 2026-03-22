@@ -7,7 +7,7 @@ import {TagChip} from '../../components/tag_chip';
 
 type Props = {
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     timer: TaggedTimespan;
     onCreate: (timer: TaggedTimespan) => void;

@@ -6,7 +6,7 @@ import {TimeNowContext} from './context';
 type ActiveTimerPanelProps = {
     timeformat: UserTimeFormat;
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     timers: TaggedTimespan[];
     updateTimespan: (timer: TblUserTimespan) => void;

@@ -27,7 +27,7 @@ type DashboardSettingsPanelProps = {
     initialName: string;
     confirmLabel: string;
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     onConfirm: (name: string) => void;
     onDelete?: () => void;

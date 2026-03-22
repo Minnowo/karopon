@@ -10,7 +10,7 @@ import {
     ApiDeleteUserTagColors,
 } from '../../api/api';
 import {TblUserTag, TblUserTagColor} from '../../api/types';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TagToString} from '../../utils/tags';
 import {DropdownButton} from '../../components/drop_down_button';
 import {NumberInput} from '../../components/number_input';
@@ -18,7 +18,7 @@ import {TagColorPanel} from './tag_color_panel';
 import {AddTagPanel} from './add_tag_panel';
 
 export const TagsPage = (state: BaseState) => {
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [search, setSearch] = useState('');
     const [allTags, setAllTags] = useState<TblUserTag[]>([]);
     const [numberToShow, setNumberToShow] = useState<number>(15);
@@ -31,12 +31,12 @@ export const TagsPage = (state: BaseState) => {
     const handleErr = useCallback(
         (e: unknown) => {
             if (e instanceof ApiError) {
-                setErrorMsg(e.message);
+                setErrorMsg(e);
                 if (e.isUnauthorizedError()) {
                     state.doRefresh();
                 }
             } else if (e instanceof Error) {
-                setErrorMsg(e.message);
+                setErrorMsg(e);
             } else {
                 setErrorMsg(`An unknown error occurred: ${e}`);
             }
@@ -88,18 +88,16 @@ export const TagsPage = (state: BaseState) => {
                         .sort((a, b) => TagToString(a).localeCompare(TagToString(b)))
                 );
                 state.setTimespans((old) =>
-                    old === null
-                        ? null
-                        : old.map((ts) => {
-                              for (let i = 0; i < ts.tags.length; i++) {
-                                  const t = ts.tags[i];
-                                  if (t.namespace === tag.namespace && t.name === tag.name) {
-                                      t.namespace = ns;
-                                      t.name = nm;
-                                  }
-                              }
-                              return ts;
-                          })
+                    old.map((ts) => {
+                        for (let i = 0; i < ts.tags.length; i++) {
+                            const t = ts.tags[i];
+                            if (t.namespace === tag.namespace && t.name === tag.name) {
+                                t.namespace = ns;
+                                t.name = nm;
+                            }
+                        }
+                        return ts;
+                    })
                 );
                 setEditingTag(null);
                 setErrorMsg(null);

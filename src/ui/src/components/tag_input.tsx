@@ -7,7 +7,7 @@ import {TagChip} from './tag_chip';
 
 type TagInputProps = {
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     thisTags: TblUserTag[];
     onChange: (tags: TblUserTag[]) => void;
     placeholder?: string;

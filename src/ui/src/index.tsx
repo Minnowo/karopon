@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 if (import.meta.env.MODE === 'development') {
     import('preact/debug');
 }
@@ -65,7 +66,7 @@ import {
     LocalStoreTimespans,
     LocalStoreUser,
 } from './utils/localstate';
-import {ErrorDiv} from './components/error_div';
+import {ErrorDiv, ErrorDivMsg} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
 import {TagsPage} from './pages/tagspage';
@@ -73,23 +74,23 @@ import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 
-export function App() {
+export const App = () => {
     // This cookie is set when there is a valid auth token cookie.
     const hasAuthCookie = HasAuth();
 
     const [hashRoute, setHashRoute] = useState<string>(window.location.hash);
     const [user, setUser] = useState<TblUser | null>(LocalGetUser());
-    const [foods, setFoods] = useState<TblUserFood[] | null>(LocalGetFoods());
-    const [events, setEvents] = useState<TblUserEvent[] | null>(LocalGetEvents());
-    const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[] | null>(LocalGetEventLogs());
-    const [goals, setGoals] = useState<TblUserGoal[] | null>(LocalGetGoals());
-    const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[] | null>(LocalGetBodyLogs());
-    const [namespaces, setNamespaces] = useState<string[] | null>(LocalGetNamespaces());
-    const [timespans, setTimespans] = useState<TaggedTimespan[] | null>(LocalGetTimespans());
-    const [dashboards, setDashboards] = useState<TblUserDashboard[] | null>(LocalGetDashboards());
-    const [tagColors, setTagColors] = useState<TblUserTagColor[] | null>(LocalGetTagColors());
-    const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [foods, setFoods] = useState<TblUserFood[]>(LocalGetFoods() ?? []);
+    const [events, setEvents] = useState<TblUserEvent[]>(LocalGetEvents() ?? []);
+    const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[]>(LocalGetEventLogs() ?? []);
+    const [goals, setGoals] = useState<TblUserGoal[]>(LocalGetGoals() ?? []);
+    const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[]>(LocalGetBodyLogs() ?? []);
+    const [namespaces, setNamespaces] = useState<string[]>(LocalGetNamespaces() ?? []);
+    const [timespans, setTimespans] = useState<TaggedTimespan[]>(LocalGetTimespans() ?? []);
+    const [dashboards, setDashboards] = useState<TblUserDashboard[]>(LocalGetDashboards() ?? []);
+    const [tagColors, setTagColors] = useState<TblUserTagColor[]>(LocalGetTagColors() ?? []);
+    const [dataSources, setDataSources] = useState<TblDataSource[]>(LocalGetDataSources() ?? []);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
     const doRefresh = useCallback(() => setRefresh((x) => x + 1), []);
 
@@ -170,34 +171,38 @@ export function App() {
 
     useLayoutEffect(() => {
         ApiWhoAmI()
-            .then(async (me) => {
-                const myFood = await ApiGetUserFoods();
-                const myEvents = await ApiGetUserEvents();
-                const myEventLogs = await ApiGetUserEventFoodLog(me.event_history_fetch_limit);
-                const myBodyLogs = await ApiGetUserBodyLog();
-                const svrDataSources = await ApiGetDataSources();
-                const myGoals = await ApiGetUserGoals();
-                const myNamespaces = await ApiGetUserNamespaces();
-                const myTimespans = await ApiGetUserTimespans();
-                const myDashboards = await ApiGetDashboards();
-                const myTagColors = await ApiGetUserTagColors();
-
-                myFood.sort((a, b) => a.name.localeCompare(b.name));
-
+            .then((me) => {
                 setUser(me);
-                setFoods(myFood);
-                setEvents(myEvents);
-                setEventLogsWithFoodlogs(myEventLogs);
-                setGoals(myGoals);
-                setBodyLogs(myBodyLogs);
-                setNamespaces(myNamespaces);
-                setTimespans(myTimespans);
-                setDashboards(myDashboards);
-                setTagColors(myTagColors);
-                setDataSources(svrDataSources);
-                setErrorMsg(null);
+
+                const requests = [
+                    ApiGetUserFoods().then(setFoods),
+                    ApiGetUserEvents().then(setEvents),
+                    ApiGetUserEventFoodLog(me.event_history_fetch_limit).then(setEventLogsWithFoodlogs),
+                    ApiGetUserBodyLog().then(setBodyLogs),
+                    ApiGetDataSources().then(setDataSources),
+                    ApiGetUserGoals().then(setGoals),
+                    ApiGetUserNamespaces().then(setNamespaces),
+                    ApiGetUserTimespans().then(setTimespans),
+                    ApiGetDashboards().then(setDashboards),
+                    ApiGetUserTagColors().then(setTagColors),
+                ];
+
+                Promise.allSettled(requests).then((results) => {
+                    const errors = results
+                        .filter((r) => r.status === 'rejected')
+                        .map((r: PromiseRejectedResult) => {
+                            if (r.reason instanceof Error) {
+                                return r.reason;
+                            }
+                            return new Error(`${r.reason}`);
+                        });
+
+                    if (errors.length > 0) {
+                        setErrorMsg(errors);
+                    }
+                });
             })
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch(setErrorMsg);
     }, [refresh]);
 
     useLayoutEffect(() => {
@@ -208,18 +213,7 @@ export function App() {
         }
     }, [user]);
 
-    if (
-        user === null ||
-        foods === null ||
-        events === null ||
-        eventlogs === null ||
-        bodylogs === null ||
-        goals === null ||
-        namespaces === null ||
-        timespans === null ||
-        dashboards === null ||
-        tagColors === null
-    ) {
+    if (user === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
 
@@ -530,6 +524,6 @@ export function App() {
             </div>
         </main>
     );
-}
+};
 
 render(<App />, document.getElementById('app'));

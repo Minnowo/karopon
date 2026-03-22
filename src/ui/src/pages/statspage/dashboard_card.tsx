@@ -355,7 +355,7 @@ type DashboardCardProps = {
     isFirst: boolean;
     isLast: boolean;
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     onUpdate: (card: DashboardCard) => void;
     onRemove: () => void;

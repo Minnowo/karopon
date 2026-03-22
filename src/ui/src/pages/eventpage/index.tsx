@@ -5,7 +5,7 @@ import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} 
 import {AddEventsPanel} from './add_event_panel';
 import {UserEventFoodLogFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {EventPanel} from './event_panel';
 
 export const EventsPage = (state: BaseState) => {
@@ -13,16 +13,16 @@ export const EventsPage = (state: BaseState) => {
     const [numberToShow, setNumberToShow] = useState<number>(15);
     const [newEvent, setNewEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
     const [editEvent, setEditEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
             if (e.isUnauthorizedError()) {
                 state.doRefresh();
             }
         } else if (e instanceof Error) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
         } else {
             setErrorMsg(`An unknown error occurred: ${e}`);
         }
@@ -63,15 +63,13 @@ export const EventsPage = (state: BaseState) => {
 
         ApiUpdateUserEventLog(updateEventLog)
             .then((newEventlog: UserEventFoodLog) => {
-                state.setEventLogs((e: UserEventFoodLog[] | null) =>
-                    e === null
-                        ? e
-                        : e.map((log: UserEventFoodLog) => {
-                              if (log.eventlog.id === newEventlog.eventlog.id) {
-                                  return newEventlog;
-                              }
-                              return log;
-                          })
+                state.setEventLogs((e: UserEventFoodLog[]) =>
+                    e.map((log: UserEventFoodLog) => {
+                        if (log.eventlog.id === newEventlog.eventlog.id) {
+                            return newEventlog;
+                        }
+                        return log;
+                    })
                 );
 
                 setEditEvent(UserEventFoodLogFactory.empty());
@@ -84,8 +82,8 @@ export const EventsPage = (state: BaseState) => {
         if (confirm('Delete this event?')) {
             ApiDeleteUserEventLog(eventlog.eventlog)
                 .then(() => {
-                    state.setEventLogs((old: UserEventFoodLog[] | null) => {
-                        return old ? old.filter((x: UserEventFoodLog) => x.eventlog.id !== eventlog.eventlog.id) : null;
+                    state.setEventLogs((old: UserEventFoodLog[]) => {
+                        return old.filter((x: UserEventFoodLog) => x.eventlog.id !== eventlog.eventlog.id);
                     });
 
                     setErrorMsg(null);

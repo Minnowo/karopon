@@ -8,7 +8,7 @@ import {
     ApiUpdateUserTimespanTags,
 } from '../../api/api';
 import {TaggedTimespan, TblUserTag, TblUserTimespan, UserTimeFormat} from '../../api/types';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TimerPanel} from './timer_panel';
 import {ActiveTimerPanel} from './active_timers_panel';
 import {AddTimerPanel} from './add_timer_panel';
@@ -16,7 +16,7 @@ import {NewTaggedTimespan} from '../../api/factories';
 
 export function TimespansPage(state: BaseState) {
     const [showNewTimespan, setShowNewTimespan] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
 
     const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
@@ -30,12 +30,12 @@ export function TimespansPage(state: BaseState) {
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
             if (e.isUnauthorizedError()) {
                 state.doRefresh();
             }
         } else if (e instanceof Error) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
         } else {
             setErrorMsg(`An unknown error occurred: ${e}`);
         }
@@ -44,15 +44,13 @@ export function TimespansPage(state: BaseState) {
     const updateTags = (timer: TaggedTimespan) => {
         ApiUpdateUserTimespanTags(timer)
             .then(() =>
-                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
-                    oldTs === null
-                        ? null
-                        : oldTs.map((t: TaggedTimespan) => {
-                              if (t.timespan.id === timer.timespan.id) {
-                                  return timer;
-                              }
-                              return t;
-                          })
+                state.setTimespans((oldTs: TaggedTimespan[]) =>
+                    oldTs.map((t: TaggedTimespan) => {
+                        if (t.timespan.id === timer.timespan.id) {
+                            return timer;
+                        }
+                        return t;
+                    })
                 )
             )
             .catch(handleErr);
@@ -72,15 +70,13 @@ export function TimespansPage(state: BaseState) {
     const updateTimespan = (newTimespan: TblUserTimespan) => {
         ApiUpdateUserTimespan(newTimespan)
             .then(() =>
-                state.setTimespans((oldTs: TaggedTimespan[] | null) =>
-                    oldTs === null
-                        ? null
-                        : oldTs.map((t: TaggedTimespan) => {
-                              if (t.timespan.id === newTimespan.id) {
-                                  t.timespan = newTimespan;
-                              }
-                              return t;
-                          })
+                state.setTimespans((oldTs: TaggedTimespan[]) =>
+                    oldTs.map((t: TaggedTimespan) => {
+                        if (t.timespan.id === newTimespan.id) {
+                            t.timespan = newTimespan;
+                        }
+                        return t;
+                    })
                 )
             )
             .catch(handleErr);
@@ -125,9 +121,7 @@ export function TimespansPage(state: BaseState) {
 
             ApiDeleteUserTimespan(payload)
                 .then(() => {
-                    state.setTimespans((oldTs) =>
-                        oldTs === null ? null : oldTs.filter((t) => t.timespan.id !== timer.timespan.id)
-                    );
+                    state.setTimespans((oldTs) => oldTs.filter((t) => t.timespan.id !== timer.timespan.id));
                 })
                 .catch(handleErr);
         }

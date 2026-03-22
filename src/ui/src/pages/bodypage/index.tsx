@@ -1,6 +1,6 @@
 import {BaseState} from '../../state/basestate';
 import {useState} from 'preact/hooks';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TblUserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
 import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog, ApiUpdateUserBodyLog} from '../../api/api';
@@ -9,7 +9,7 @@ import {BodyLogPanel} from './bodylog_panel';
 export function BodyPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
     const [editLog, setEditLog] = useState<TblUserBodyLog | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
     const [tmpLog, setTmpLog] = useState<TblUserBodyLog>({
         id: 0,
@@ -28,12 +28,12 @@ export function BodyPage(state: BaseState) {
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
             if (e.isUnauthorizedError()) {
                 state.doRefresh();
             }
         } else if (e instanceof Error) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
         } else {
             setErrorMsg(`An unknown error occurred: ${e}`);
         }
@@ -67,7 +67,7 @@ export function BodyPage(state: BaseState) {
     const updateBodyLog = (bodylog: TblUserBodyLog) => {
         ApiUpdateUserBodyLog(bodylog)
             .then((updated: TblUserBodyLog) => {
-                state.setBodyLogs((e) => (e !== null ? e.map((x) => (x.id === updated.id ? updated : x)) : null));
+                state.setBodyLogs((e) => e.map((x) => (x.id === updated.id ? updated : x)));
                 setEditLog(null);
                 setErrorMsg(null);
             })
@@ -82,7 +82,7 @@ export function BodyPage(state: BaseState) {
     const deleteBodyLog = (bodylog: TblUserBodyLog) => {
         ApiDeleteUserBodyLog(bodylog)
             .then(() => {
-                state.setBodyLogs((e) => (e !== null ? e.filter((x) => x.id !== bodylog.id) : null));
+                state.setBodyLogs((e) => e.filter((x) => x.id !== bodylog.id));
                 setErrorMsg(null);
             })
             .catch(handleErr);

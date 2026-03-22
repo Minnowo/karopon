@@ -1,10 +1,10 @@
 import {Dispatch, StateUpdater, useRef} from 'preact/hooks';
 import {GetApiBase, IsCrossOrigin, SetApiBase, SetAuthToken} from '../api/api';
-import {ErrorDiv} from '../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
 
 type Props = {
-    error: string | null;
-    setErrorMsg: Dispatch<StateUpdater<string | null>>;
+    error: ErrorDivMsg | null;
+    setErrorMsg: Dispatch<StateUpdater<ErrorDivMsg | null>>;
     doRefresh: () => void;
 };
 export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
@@ -43,7 +43,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
             }
         } catch (err: unknown) {
             if (err instanceof Error) {
-                setErrorMsg(err.message);
+                setErrorMsg(err);
             } else {
                 setErrorMsg(String(err));
             }

@@ -11,7 +11,7 @@ import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 type TimerPanelProps = {
     timeformat: UserTimeFormat;
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     timer: TaggedTimespan;
     updateTimespan: (timer: TblUserTimespan) => void;

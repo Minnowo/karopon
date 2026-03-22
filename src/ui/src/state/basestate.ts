@@ -11,40 +11,41 @@ import {
     TblUserDashboard,
     TblUserTagColor,
 } from '../api/types';
+import {ErrorDivMsg} from '../components/error_div';
 
 export type BaseState = {
     user: TblUser;
     setUser: Dispatch<StateUpdater<TblUser | null>>;
 
     foods: TblUserFood[];
-    setFoods: Dispatch<StateUpdater<TblUserFood[] | null>>;
+    setFoods: Dispatch<StateUpdater<TblUserFood[]>>;
 
     events: TblUserEvent[];
-    setEvents: Dispatch<StateUpdater<TblUserEvent[] | null>>;
+    setEvents: Dispatch<StateUpdater<TblUserEvent[]>>;
 
     eventlogs: UserEventFoodLog[];
-    setEventLogs: Dispatch<StateUpdater<UserEventFoodLog[] | null>>;
+    setEventLogs: Dispatch<StateUpdater<UserEventFoodLog[]>>;
 
     goals: TblUserGoal[];
-    setGoals: Dispatch<StateUpdater<TblUserGoal[] | null>>;
+    setGoals: Dispatch<StateUpdater<TblUserGoal[]>>;
 
     bodylogs: TblUserBodyLog[];
-    setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[] | null>>;
+    setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[]>>;
 
     namespaces: string[];
-    setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
 
     timespans: TaggedTimespan[];
-    setTimespans: Dispatch<StateUpdater<TaggedTimespan[] | null>>;
+    setTimespans: Dispatch<StateUpdater<TaggedTimespan[]>>;
 
     dashboards: TblUserDashboard[];
-    setDashboards: Dispatch<StateUpdater<TblUserDashboard[] | null>>;
+    setDashboards: Dispatch<StateUpdater<TblUserDashboard[]>>;
 
     tagColors: TblUserTagColor[];
-    setTagColors: Dispatch<StateUpdater<TblUserTagColor[] | null>>;
+    setTagColors: Dispatch<StateUpdater<TblUserTagColor[]>>;
 
     dataSources: TblDataSource[] | null;
 
-    setErrorMsg: Dispatch<StateUpdater<string | null>>;
+    setErrorMsg: Dispatch<StateUpdater<ErrorDivMsg | null>>;
     readonly doRefresh: () => void;
 };

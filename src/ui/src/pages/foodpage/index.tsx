@@ -4,7 +4,7 @@ import {BaseState} from '../../state/basestate';
 import {TblUserFood} from '../../api/types';
 import {ApiUpdateUserFood, ApiNewUserFood, ApiDeleteUserFood} from '../../api/api';
 import {FoodEditPanel} from './food_edit_panel';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
 import {AddFoodPanel} from './add_food_panel';
 import {TblUserFoodFactory} from '../../api/factories';
@@ -13,7 +13,7 @@ import {FoodBuilderPanel} from './food_builder_panel';
 import {GetErrorHandler} from '../../utils/error';
 
 export const FoodPage = (state: BaseState) => {
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [search, setSearch] = useState<string>('');
     const [showAddFoodPanel, setShowAddFoodPanel] = useState<boolean>(false);
     const [showBuildFoodPanel, setShowBuildFoodPanel] = useState<boolean>(false);

@@ -4,7 +4,7 @@ import {TblUserGoal} from '../../api/types';
 import {ApiDeleteUserGoal, ApiError, ApiNewUserGoal, ApiUpdateUserGoal} from '../../api/api';
 import {GoalCreationPanel} from './add_goal_panel';
 import {NewTblUserGoal} from '../../api/factories';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {GoalPanel} from './goal_panel';
 
 export function GoalsPage(state: BaseState) {
@@ -22,16 +22,16 @@ export function GoalsPage(state: BaseState) {
           })()
         : 0;
 
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
             if (e.isUnauthorizedError()) {
                 state.doRefresh();
             }
         } else if (e instanceof Error) {
-            setErrorMsg(e.message);
+            setErrorMsg(e);
         } else {
             setErrorMsg(`An unknown error occurred: ${e}`);
         }
@@ -41,7 +41,7 @@ export function GoalsPage(state: BaseState) {
         ApiNewUserGoal(goal)
             .then((g) => {
                 newGoal.current = NewTblUserGoal({target_value: 1500});
-                state.setGoals((oldGoals) => (oldGoals === null ? null : [g, ...oldGoals]));
+                state.setGoals((oldGoals) => [g, ...oldGoals]);
                 setShowNewGoalPanel(false);
             })
             .catch(handleErr);
@@ -50,9 +50,7 @@ export function GoalsPage(state: BaseState) {
     const updateGoal = (goal: TblUserGoal) => {
         ApiUpdateUserGoal(goal)
             .then((updated) => {
-                state.setGoals((oldGoals) =>
-                    oldGoals === null ? null : oldGoals.map((g) => (g.id === updated.id ? updated : g))
-                );
+                state.setGoals((oldGoals) => oldGoals.map((g) => (g.id === updated.id ? updated : g)));
                 setEditingGoal(null);
             })
             .catch(handleErr);
@@ -60,7 +58,7 @@ export function GoalsPage(state: BaseState) {
 
     const deleteGoal = (goal: TblUserGoal) => {
         ApiDeleteUserGoal(goal)
-            .then(() => state.setGoals((oldGoals) => (oldGoals === null ? null : oldGoals.filter((g) => g.id !== goal.id))))
+            .then(() => state.setGoals((oldGoals) => oldGoals.filter((g) => g.id !== goal.id)))
             .catch(handleErr);
     };
 
