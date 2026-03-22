@@ -7,6 +7,7 @@ type ActiveTimerPanelProps = {
     timeformat: UserTimeFormat;
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    tagColors?: Map<string, string>;
     timers: TaggedTimespan[];
     updateTimespan: (timer: TblUserTimespan) => void;
     updateTags: (timer: TaggedTimespan) => void;
@@ -20,6 +21,7 @@ export const ActiveTimerPanel = ({
     timeformat,
     namespaces,
     setNamespaces,
+    tagColors,
     timers,
     updateTimespan,
     updateTags,
@@ -55,6 +57,7 @@ export const ActiveTimerPanel = ({
                             timeformat={timeformat}
                             namespaces={namespaces}
                             setNamespaces={setNamespaces}
+                            tagColors={tagColors}
                             timer={ts}
                             updateTimespan={updateTimespan}
                             updateTags={updateTags}

@@ -13,7 +13,7 @@ import (
 
 var (
 	reColorHex    = regexp.MustCompile(`^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$`)
-	reColorCSSVar = regexp.MustCompile(`^var\(--[a-zA-Z][a-zA-Z0-9-]*\)$`)
+	reColorCSSVar = regexp.MustCompile(`^--[a-zA-Z][a-zA-Z0-9-]*$`)
 )
 
 func isValidTagColor(color string) bool {
@@ -29,26 +29,28 @@ func (a *APIV1) setUserTagColor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var color database.TblUserTagColor
+	var colors []database.TblUserTagColor
 
-	if err := json.NewDecoder(r.Body).Decode(&color); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&colors); err != nil {
 		api.BadReq(w, "invalid request body")
 		return
 	}
 
-	if color.Namespace == "" {
-		api.BadReq(w, "namespace must not be empty")
-		return
+	for i := range colors {
+		if colors[i].Namespace == "" {
+			api.BadReq(w, "namespace must not be empty")
+			return
+		}
+
+		if !isValidTagColor(colors[i].Color) {
+			api.BadReq(w, "color must be a hex color (#RGB or #RRGGBB) or a CSS variable name (--name)")
+			return
+		}
+
+		colors[i].UserID = user.ID
 	}
 
-	if !isValidTagColor(color.Color) {
-		api.BadReq(w, "color must be a hex color (#RGB or #RRGGBB) or a CSS variable (var(--name))")
-		return
-	}
-
-	color.UserID = user.ID
-
-	if err := a.Db.SetUserTagColor(r.Context(), &color); err != nil {
+	if err := a.Db.SetUserTagColors(r.Context(), colors); err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to set user tag color")
 		api.ServerErr(w, "failed while writing to the database")
 		return

@@ -22,6 +22,7 @@ import {
     TblUserGoal,
     TaggedTimespan,
     TblUserDashboard,
+    TblUserTagColor,
 } from './api/types';
 import {
     ApiGetUserFoods,
@@ -35,6 +36,7 @@ import {
     ApiGetUserTimespans,
     ApiGetUserNamespaces,
     ApiGetDashboards,
+    ApiGetUserTagColors,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -52,6 +54,8 @@ import {
     LocalGetUser,
     LocalStoreBodyLogs,
     LocalStoreDashboards,
+    LocalStoreTagColors,
+    LocalGetTagColors,
     LocalStoreDataSources,
     LocalStoreEventLogs,
     LocalStoreEvents,
@@ -83,6 +87,7 @@ export function App() {
     const [namespaces, setNamespaces] = useState<string[] | null>(LocalGetNamespaces());
     const [timespans, setTimespans] = useState<TaggedTimespan[] | null>(LocalGetTimespans());
     const [dashboards, setDashboards] = useState<TblUserDashboard[] | null>(LocalGetDashboards());
+    const [tagColors, setTagColors] = useState<TblUserTagColor[] | null>(LocalGetTagColors());
     const [dataSources, setDataSources] = useState<TblDataSource[] | null>(LocalGetDataSources());
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
@@ -152,6 +157,12 @@ export function App() {
     }, [dashboards]);
 
     useLayoutEffect(() => {
+        if (tagColors !== null) {
+            LocalStoreTagColors(tagColors);
+        }
+    }, [tagColors]);
+
+    useLayoutEffect(() => {
         if (dataSources !== null) {
             LocalStoreDataSources(dataSources);
         }
@@ -169,6 +180,7 @@ export function App() {
                 const myNamespaces = await ApiGetUserNamespaces();
                 const myTimespans = await ApiGetUserTimespans();
                 const myDashboards = await ApiGetDashboards();
+                const myTagColors = await ApiGetUserTagColors();
 
                 myFood.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -181,6 +193,7 @@ export function App() {
                 setNamespaces(myNamespaces);
                 setTimespans(myTimespans);
                 setDashboards(myDashboards);
+                setTagColors(myTagColors);
                 setDataSources(svrDataSources);
                 setErrorMsg(null);
             })
@@ -204,7 +217,8 @@ export function App() {
         goals === null ||
         namespaces === null ||
         timespans === null ||
-        dashboards === null
+        dashboards === null ||
+        tagColors === null
     ) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
@@ -252,6 +266,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -278,6 +294,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -305,6 +323,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -331,6 +351,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -357,6 +379,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -383,6 +407,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -409,6 +435,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -434,6 +462,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -461,6 +491,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -487,6 +519,8 @@ export function App() {
                                     setTimespans={setTimespans}
                                     dashboards={dashboards}
                                     setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />

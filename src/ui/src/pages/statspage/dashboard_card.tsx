@@ -356,6 +356,7 @@ type DashboardCardProps = {
     isLast: boolean;
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    tagColors?: Map<string, string>;
     onUpdate: (card: DashboardCard) => void;
     onRemove: () => void;
     onMoveUp: () => void;
@@ -374,6 +375,7 @@ export function DashboardCardComponent({
     isLast,
     namespaces,
     setNamespaces,
+    tagColors,
     onUpdate,
     onRemove,
     onMoveUp,
@@ -600,7 +602,7 @@ export function DashboardCardComponent({
                 return RenderGraph(stepsData, display, 'value', title, 'var(--color-c-teal)', handleDisplayChange, 0);
             case 'time': {
                 const selectedTags = card.selectedTags ?? [];
-                const tagColors: Record<string, string> = Object.fromEntries(
+                const colors: Record<string, string> = Object.fromEntries(
                     selectedTags.map((t, i) => [t, TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]])
                 );
                 const tagLabels: Record<string, string> = Object.fromEntries(selectedTags.map((t) => [t, t]));
@@ -608,7 +610,7 @@ export function DashboardCardComponent({
                     <MultiSeriesGraph
                         data={timeData}
                         keys={selectedTags}
-                        colors={tagColors}
+                        colors={colors}
                         labels={tagLabels}
                         display={display}
                         title={title}
@@ -655,6 +657,7 @@ export function DashboardCardComponent({
                                     setNamespaces={setNamespaces}
                                     thisTags={card.selectedTags.map(SplitTag)}
                                     onChange={(tags) => onUpdate({...card, selectedTags: tags.map(TagToString)})}
+                                    tagColors={tagColors}
                                 />
                             </div>
                         </>

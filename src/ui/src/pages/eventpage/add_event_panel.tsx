@@ -11,12 +11,10 @@ import {
     UserTimeFormat,
 } from '../../api/types';
 import {FuzzySearch} from '../../components/select_list';
-import {ChangeEvent} from 'preact/compat';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
-import {JSX} from 'preact';
 import {FormatSmartTimestamp} from '../../utils/date_utils';
 import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';

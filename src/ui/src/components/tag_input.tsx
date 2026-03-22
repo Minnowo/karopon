@@ -1,6 +1,6 @@
 import {Dispatch, StateUpdater, useCallback, useEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TblUserTag} from '../api/types';
-import {HasNamespace, TagIsValid, SplitTag, TagToString} from '../utils/tags';
+import {HasNamespace, TagIsValid, SplitTag, TagToString, FmtTagColor} from '../utils/tags';
 import {useDebouncedCallback} from '../hooks/useDebounce';
 import {ApiGetUserNamespacesTags} from '../api/api';
 import {TagChip} from './tag_chip';
@@ -14,6 +14,7 @@ type TagInputProps = {
     disabled?: boolean;
     onSearchError?: (err: unknown) => void;
     className?: string;
+    tagColors?: Map<string, string>;
 };
 
 export function TagInput({
@@ -25,6 +26,7 @@ export function TagInput({
     disabled = false,
     onSearchError = undefined,
     className = '',
+    tagColors = undefined,
 }: TagInputProps) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState<boolean>(false);
@@ -231,7 +233,12 @@ export function TagInput({
             className={`w-full flex flex-wrap items-center gap-1 text-sm ${className === undefined ? '' : className}`}
         >
             {thisTags.map((tag, i) => (
-                <TagChip key={TagToString(tag)} tag={tag} onRemove={() => removeTag(i)} />
+                <TagChip
+                    key={TagToString(tag)}
+                    tag={tag}
+                    onRemove={() => removeTag(i)}
+                    color={FmtTagColor(tagColors?.get(tag.namespace))}
+                />
             ))}
 
             <div className="relative w-full">

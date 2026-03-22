@@ -20,6 +20,13 @@ export function TimespansPage(state: BaseState) {
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
 
     const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
+    const tagColorMap = useMemo(() => {
+        const m = new Map();
+        for (const c of state.tagColors) {
+            m.set(c.namespace, c.color);
+        }
+        return m;
+    }, [state.tagColors]);
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
@@ -152,6 +159,7 @@ export function TimespansPage(state: BaseState) {
                     className="mb-4"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
+                    tagColors={tagColorMap}
                     timer={tmpTimer}
                     showTimeEditing={false}
                     saveButtonTitle={'New Timer'}
@@ -165,6 +173,7 @@ export function TimespansPage(state: BaseState) {
                     timeformat={state.user.time_format as UserTimeFormat}
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
+                    tagColors={tagColorMap}
                     timers={runningTimers}
                     updateTimespan={updateTimespan}
                     updateTags={updateTags}
@@ -185,6 +194,7 @@ export function TimespansPage(state: BaseState) {
                                 timeformat={state.user.time_format as UserTimeFormat}
                                 namespaces={state.namespaces}
                                 setNamespaces={state.setNamespaces}
+                                tagColors={tagColorMap}
                                 timer={ts}
                                 updateTimespan={updateTimespan}
                                 updateTags={updateTags}

@@ -28,6 +28,7 @@ type DashboardSettingsPanelProps = {
     confirmLabel: string;
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    tagColors?: Map<string, string>;
     onConfirm: (name: string) => void;
     onDelete?: () => void;
     onCancel: () => void;
@@ -39,6 +40,7 @@ export function AddEditDashboardPanel({
     confirmLabel,
     namespaces,
     setNamespaces,
+    tagColors,
     onCardAdded,
     onConfirm,
     onDelete,
@@ -100,7 +102,13 @@ export function AddEditDashboardPanel({
                     {addType === 'time' && (
                         <div className="container-theme">
                             <h2 className="text-lg font-bold">Tags</h2>
-                            <TagInput namespaces={namespaces} setNamespaces={setNamespaces} thisTags={tags} onChange={setTags} />
+                            <TagInput
+                                namespaces={namespaces}
+                                setNamespaces={setNamespaces}
+                                thisTags={tags}
+                                onChange={setTags}
+                                tagColors={tagColors}
+                            />
                         </div>
                     )}
                 </>

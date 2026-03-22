@@ -66,3 +66,10 @@ export const SplitTag = (tagStr: string): TblUserTag => {
         name: index === -1 ? tagStr.trim() : tagStr.substring(index + 1).trim(),
     } as TblUserTag;
 };
+
+export const FmtTagColor = (v?: string) => {
+    if (v !== undefined && v.length > 0 && v[0] === '-') {
+        return `var(${v})`;
+    }
+    return v;
+};

@@ -9,12 +9,13 @@ import {ErrorDiv} from '../../components/error_div';
 
 type DashboardProps = {
     baseState: BaseState;
+    tagColors: Map<string, string>;
     dashboard: TblUserDashboard;
     onUpdate: (dashboard: UserDashboard) => void;
     onDelete: (dashboard: UserDashboard) => void;
 };
 
-export const DashboardComponent = ({baseState, dashboard, onUpdate, onDelete}: DashboardProps) => {
+export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, onDelete}: DashboardProps) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [editing, setEditing] = useState(false);
     const [cancelUpdate, setCancelUpdate] = useState(false);
@@ -118,6 +119,7 @@ export const DashboardComponent = ({baseState, dashboard, onUpdate, onDelete}: D
                         titleLabel="Edit View"
                         namespaces={baseState.namespaces}
                         setNamespaces={baseState.setNamespaces}
+                        tagColors={tagColors}
                         onCardAdded={handleAdd}
                         initialName={dashboardRef.db.name}
                         confirmLabel="Save"
@@ -141,6 +143,7 @@ export const DashboardComponent = ({baseState, dashboard, onUpdate, onDelete}: D
                             caloricCalcMethod={baseState.user.caloric_calc_method}
                             namespaces={baseState.namespaces}
                             setNamespaces={baseState.setNamespaces}
+                            tagColors={tagColors}
                             editing={editing}
                             isFirst={index === 0}
                             isLast={index === dashboardRef.db.cards.length - 1}

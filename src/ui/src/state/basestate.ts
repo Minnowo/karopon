@@ -9,6 +9,7 @@ import {
     TblUserGoal,
     TaggedTimespan,
     TblUserDashboard,
+    TblUserTagColor,
 } from '../api/types';
 
 export type BaseState = {
@@ -38,6 +39,9 @@ export type BaseState = {
 
     dashboards: TblUserDashboard[];
     setDashboards: Dispatch<StateUpdater<TblUserDashboard[] | null>>;
+
+    tagColors: TblUserTagColor[];
+    setTagColors: Dispatch<StateUpdater<TblUserTagColor[] | null>>;
 
     dataSources: TblDataSource[] | null;
 

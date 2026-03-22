@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"karopon/src/database"
+
+	"github.com/vinovest/sqlx"
 )
 
 func (db *PGDatabase) LoadUserTagColors(ctx context.Context, userID int, out *[]database.TblUserTagColor) error {
@@ -12,7 +14,7 @@ func (db *PGDatabase) LoadUserTagColors(ctx context.Context, userID int, out *[]
 	return db.SelectContext(ctx, out, query, userID)
 }
 
-func (db *PGDatabase) SetUserTagColor(ctx context.Context, color *database.TblUserTagColor) error {
+func (db *PGDatabase) SetUserTagColors(ctx context.Context, colors []database.TblUserTagColor) error {
 
 	query := `
 		INSERT INTO PON.USER_TAG_COLOR (user_id, namespace, color)
@@ -20,16 +22,43 @@ func (db *PGDatabase) SetUserTagColor(ctx context.Context, color *database.TblUs
 		ON CONFLICT (user_id, namespace) DO UPDATE SET color = EXCLUDED.color
 	`
 
-	_, err := db.NamedExecContext(ctx, query, color)
+	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
 
-	return err
+		stmt, err := tx.PrepareNamed(query)
+
+		if err != nil {
+			return err
+		}
+
+		for i := range len(colors) {
+
+			_, err := stmt.Exec(colors[i])
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
-func (db *PGDatabase) DeleteUserTagColor(ctx context.Context, userID int, namespace string) error {
+func (db *PGDatabase) DeleteUserTagColors(ctx context.Context, userID int, namespace []string) error {
 
-	query := `DELETE FROM PON.USER_TAG_COLOR WHERE user_id = $1 AND namespace = $2`
+	if len(namespace) == 0 {
+		return nil
+	}
 
-	_, err := db.ExecContext(ctx, query, userID, namespace)
+	query, args, err := sqlx.In(`DELETE FROM PON.USER_TAG_COLOR WHERE USER_ID = ? AND NAMESPACE IN (?)`,
+		userID, namespace)
+
+	if err != nil {
+		return err
+	}
+
+	query = db.Rebind(query)
+
+	_, err = db.Exec(query, args...)
 
 	return err
 }

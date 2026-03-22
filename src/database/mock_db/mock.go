@@ -400,10 +400,10 @@ func (p *BaseMockDB) LoadUserTagColors(ctx context.Context, userID int, out *[]d
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) SetUserTagColor(ctx context.Context, color *database.TblUserTagColor) error {
+func (p *BaseMockDB) SetUserTagColors(ctx context.Context, color []database.TblUserTagColor) error {
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) DeleteUserTagColor(ctx context.Context, userID int, namespace string) error {
+func (p *BaseMockDB) DeleteUserTagColors(ctx context.Context, userID int, namespace []string) error {
 	panic("not implemented")
 }

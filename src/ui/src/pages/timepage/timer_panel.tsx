@@ -12,6 +12,7 @@ type TimerPanelProps = {
     timeformat: UserTimeFormat;
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    tagColors?: Map<string, string>;
     timer: TaggedTimespan;
     updateTimespan: (timer: TblUserTimespan) => void;
     updateTags: (timer: TaggedTimespan) => void;
@@ -25,6 +26,7 @@ export const TimerPanel = ({
     timeformat,
     namespaces,
     setNamespaces,
+    tagColors,
     timer,
     updateTimespan,
     updateTags,
@@ -75,6 +77,7 @@ export const TimerPanel = ({
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
+                        tagColors={tagColors}
                         thisTags={tags}
                         onChange={(t: TblUserTag[]) => {
                             setTags(t);

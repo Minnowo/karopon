@@ -8,6 +8,7 @@ import type {
     TblUserGoal,
     TaggedTimespan,
     TblUserDashboard,
+    TblUserTagColor,
 } from '../api/types';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
@@ -19,6 +20,7 @@ const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
 const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
 const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
 const LOCAL_STORAGE_KEY_DASHBOARDS = 'dashboards';
+const LOCAL_STORAGE_KEY_TAG_COLORS = 'tag_colors';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
@@ -55,6 +57,7 @@ export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAG
 export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAGE_KEY_NAMESPACES, JSON.stringify(namespaces));
 export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
 export const LocalStoreDashboards = (cards: TblUserDashboard[]) => store(LOCAL_STORAGE_KEY_DASHBOARDS, JSON.stringify(cards));
+export const LocalStoreTagColors = (colors: TblUserTagColor[]) => store(LOCAL_STORAGE_KEY_TAG_COLORS, JSON.stringify(colors));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
 
 export const LocalGetServerToken = () => load<string>(LOCAL_STORAGE_KEY_REMOTE_TOKEN, true);
@@ -68,6 +71,7 @@ export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_B
 export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
 export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
 export const LocalGetDashboards = () => load<TblUserDashboard[]>(LOCAL_STORAGE_KEY_DASHBOARDS);
+export const LocalGetTagColors = () => load<TblUserTagColor[]>(LOCAL_STORAGE_KEY_TAG_COLORS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
 
 export const LocalClearAll = () => {
@@ -82,6 +86,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_DASHBOARDS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_TAG_COLORS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
     } catch {}
 };

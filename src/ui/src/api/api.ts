@@ -20,6 +20,7 @@ import {
     TaggedTimespan,
     UserSession,
     TblUserDashboard,
+    TblUserTagColor,
 } from './types';
 
 export class ApiError extends Error {
@@ -468,6 +469,26 @@ export const ApiDeleteDashboard = (id: number): Promise<void> => {
         })
     );
 };
+
+export const ApiGetUserTagColors = (): Promise<TblUserTagColor[]> => fetchJson(apiFetch(`${ApiBase}/api/tag/colors`));
+
+export const ApiSetUserTagColors = (colors: TblUserTagColor[]): Promise<void> =>
+    fetchNone(
+        apiFetch(`${ApiBase}/api/tag/color/set`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify(colors),
+        })
+    );
+
+export const ApiDeleteUserTagColors = (namespace: string[]): Promise<void> =>
+    fetchNone(
+        apiFetch(`${ApiBase}/api/tag/color/delete`, {
+            headers: {'content-type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({namespace}),
+        })
+    );
 
 export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodLog> => {
     return fetchJson(

@@ -254,6 +254,12 @@ export type TblUserDashboard = {
     data: string;
 };
 
+export type TblUserTagColor = {
+    user_id: number;
+    namespace: string;
+    color: string;
+};
+
 export enum UserTimeFormat {
     Auto = '24-hour',
     Hour24 = '24-hour',

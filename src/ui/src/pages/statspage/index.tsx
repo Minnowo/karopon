@@ -1,4 +1,4 @@
-import {useState} from 'preact/hooks';
+import {useMemo, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {DEFAULT_DASHBOARD, UserDashboard} from './common';
 import {ApiDeleteDashboard, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
@@ -8,6 +8,14 @@ import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 export function StatsPage(state: BaseState) {
     const [curDashboard, setCurDashboard] = useState<number>(0);
     const [showAddPanel, setShowAddPanel] = useState(false);
+
+    const tagColorMap = useMemo(() => {
+        const m = new Map();
+        for (const c of state.tagColors) {
+            m.set(c.namespace, c.color);
+        }
+        return m;
+    }, [state.tagColors]);
 
     const onAdd = (name: string) => {
         ApiNewDashboard(name || DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards)).then((db) => {
@@ -67,6 +75,7 @@ export function StatsPage(state: BaseState) {
                     titleLabel="New View"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
+                    tagColors={tagColorMap}
                     initialName=""
                     confirmLabel="Create"
                     onConfirm={onAdd}
@@ -78,6 +87,7 @@ export function StatsPage(state: BaseState) {
                 <DashboardComponent
                     key={state.dashboards[curDashboard].id}
                     baseState={state}
+                    tagColors={tagColorMap}
                     dashboard={state.dashboards[curDashboard]}
                     onUpdate={onUpdate}
                     onDelete={onDelete}

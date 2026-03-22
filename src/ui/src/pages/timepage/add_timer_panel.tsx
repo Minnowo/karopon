@@ -8,6 +8,7 @@ import {TagChip} from '../../components/tag_chip';
 type Props = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[] | null>>;
+    tagColors?: Map<string, string>;
     timer: TaggedTimespan;
     onCreate: (timer: TaggedTimespan) => void;
     onCancel: () => void;
@@ -19,6 +20,7 @@ type Props = {
 export const AddTimerPanel = ({
     namespaces,
     setNamespaces,
+    tagColors,
     timer,
     onCreate,
     onCancel,
@@ -127,7 +129,13 @@ export const AddTimerPanel = ({
 
             <div>
                 <span className="font-semibold">Tags</span>
-                <TagInput namespaces={namespaces} setNamespaces={setNamespaces} thisTags={tags} onChange={setTags} />
+                <TagInput
+                    namespaces={namespaces}
+                    setNamespaces={setNamespaces}
+                    thisTags={tags}
+                    onChange={setTags}
+                    tagColors={tagColors}
+                />
             </div>
 
             <div>
