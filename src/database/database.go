@@ -306,6 +306,15 @@ type DB interface {
 
 	// DeleteUserDashboard removes a dashboard by ID, scoped to the owning user.
 	DeleteUserDashboard(ctx context.Context, userID, dashboardID int) error
+
+	// LoadUserTagColors loads all namespace→color mappings for the given user.
+	LoadUserTagColors(ctx context.Context, userID int, out *[]TblUserTagColor) error
+
+	// SetUserTagColor upserts a namespace→color mapping for the given user.
+	SetUserTagColor(ctx context.Context, color *TblUserTagColor) error
+
+	// DeleteUserTagColor removes the color mapping for the given namespace.
+	DeleteUserTagColor(ctx context.Context, userID int, namespace string) error
 }
 
 type SQLxDB struct {

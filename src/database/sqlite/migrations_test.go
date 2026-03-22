@@ -183,4 +183,43 @@ func TestSqliteMigrations(t *testing.T) {
 			`INSERT INTO PON_USER_DASHBOARD (USER_ID, NAME, DATA) VALUES (99999, 'Ghost', '[]')`)
 		require.Error(t, err, "FK violation should be rejected")
 	})
+
+	// 0007_tag_color: 5 → 6
+	// Creates PON_USER_TAG_COLOR(USER_ID, NAMESPACE) composite PK with COLOR column.
+	t.Run("0007_tag_color", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 5, sqliteUpMigrations[6:7])
+		require.NoError(t, err)
+
+		// Table must accept inserts.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_TAG_COLOR (USER_ID, NAMESPACE, COLOR) VALUES (?, 'food', '#ff0000')`, userID)
+		require.NoError(t, err)
+
+		// Values must round-trip correctly.
+		var namespace, color string
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT NAMESPACE, COLOR FROM PON_USER_TAG_COLOR WHERE USER_ID = ?`, userID,
+		).Scan(&namespace, &color))
+		assert.Equal(t, "food", namespace)
+		assert.Equal(t, "#ff0000", color)
+
+		// Duplicate (USER_ID, NAMESPACE) must replace the existing row (composite PK).
+		_, err = conn.ExecContext(
+			ctx,
+			`INSERT OR REPLACE INTO PON_USER_TAG_COLOR (USER_ID, NAMESPACE, COLOR) VALUES (?, 'food', '#00ff00')`,
+			userID,
+		)
+		require.NoError(t, err)
+
+		var count int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM PON_USER_TAG_COLOR WHERE USER_ID = ?`, userID,
+		).Scan(&count))
+		assert.Equal(t, 1, count, "INSERT OR REPLACE must not create a duplicate row")
+
+		// FK must prevent referencing a non-existent user.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_TAG_COLOR (USER_ID, NAMESPACE, COLOR) VALUES (99999, 'food', '#ffffff')`)
+		require.Error(t, err, "FK violation should be rejected")
+	})
 }

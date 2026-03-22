@@ -439,4 +439,47 @@ func TestPostgresMigrations(t *testing.T) {
 			`INSERT INTO pon.user_dashboard (user_id, name, data) VALUES (99999, 'Ghost', '[]')`)
 		require.Error(t, err, "FK violation should be rejected")
 	})
+
+	// 0018_tag_color: 16 → 17
+	// Creates PON.USER_TAG_COLOR with (user_id, namespace) composite PK and color column.
+	t.Run("0018_tag_color", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 16, postgresUpMigrations[17:18])
+		require.NoError(t, err)
+
+		// Table must accept inserts.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_tag_color (user_id, namespace, color) VALUES ($1, 'food', '#ff0000')`, userID)
+		require.NoError(t, err)
+
+		// Values must round-trip correctly.
+		var namespace, color string
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT namespace, color FROM pon.user_tag_color WHERE user_id = $1`, userID,
+		).Scan(&namespace, &color))
+		assert.Equal(t, "food", namespace)
+		assert.Equal(t, "#ff0000", color)
+
+		// ON CONFLICT upsert must update color without creating a duplicate row.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO pon.user_tag_color (user_id, namespace, color)
+			VALUES ($1, 'food', '#00ff00')
+			ON CONFLICT (user_id, namespace) DO UPDATE SET color = EXCLUDED.color`, userID)
+		require.NoError(t, err)
+
+		var count int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM pon.user_tag_color WHERE user_id = $1`, userID,
+		).Scan(&count))
+		assert.Equal(t, 1, count, "upsert must not create a duplicate row")
+
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT color FROM pon.user_tag_color WHERE user_id = $1 AND namespace = 'food'`, userID,
+		).Scan(&color))
+		assert.Equal(t, "#00ff00", color, "upsert must update the color")
+
+		// FK must prevent referencing a non-existent user.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_tag_color (user_id, namespace, color) VALUES (99999, 'food', '#ffffff')`)
+		require.Error(t, err, "FK violation should be rejected")
+	})
 }

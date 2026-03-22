@@ -395,3 +395,15 @@ func (p *BaseMockDB) UpdateUserDashboard(ctx context.Context, dashboard *databas
 func (p *BaseMockDB) DeleteUserDashboard(ctx context.Context, userID, dashboardID int) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) LoadUserTagColors(ctx context.Context, userID int, out *[]database.TblUserTagColor) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) SetUserTagColor(ctx context.Context, color *database.TblUserTagColor) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserTagColor(ctx context.Context, userID int, namespace string) error {
+	panic("not implemented")
+}

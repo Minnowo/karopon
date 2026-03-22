@@ -104,6 +104,7 @@ func (a *APIV1) Register(r *mux.Router) {
 	get.HandleFunc("/timespans/tagged", a.getUserTimespansTagged)
 	get.HandleFunc("/sessions", a.getUserSessions)
 	get.HandleFunc("/dashboards", a.getUserDashboards)
+	get.HandleFunc("/tag/colors", a.getUserTagColors)
 
 	post := api.Methods("POST", "OPTIONS").Subrouter()
 	post.Use(auth.RequireAuth())
@@ -131,6 +132,8 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/timespan/update/tags", a.updateUserTimespanTags)
 	post.HandleFunc("/session/delete", a.deleteUserSession)
 	post.HandleFunc("/session/update", a.updateUserSession)
+	post.HandleFunc("/tag/color/set", a.setUserTagColor)
+	post.HandleFunc("/tag/color/delete", a.deleteUserTagColor)
 	post.HandleFunc("/dashboard/new", a.newUserDashboard)
 	post.HandleFunc("/dashboard/update", a.updateUserDashboard)
 	post.HandleFunc("/dashboard/delete", a.deleteUserDashboard)
