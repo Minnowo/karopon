@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"karopon/src/database"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -95,19 +96,19 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(
 	}
 
 	query := `
-		SELECT 
+		SELECT
 			ut.ID,
 			ut.USER_ID,
 			ut.CREATED,
 			ut.START_TIME,
 			ut.STOP_TIME,
 			ut.NOTE,
-			CASE 
-		        WHEN COUNT(utag.ID) = 0 THEN NULL
-		        ELSE json_group_array(
-		            json_object('id', utag.ID, 'namespace', utag.NAMESPACE, 'name', utag.NAME)
-		        )
-		    END AS TAGS
+			CASE
+				WHEN COUNT(utag.ID) = 0 THEN NULL
+				ELSE json_group_array(
+					json_array(utag.ID, utag.NAMESPACE, utag.NAME)
+				)
+			END AS TAGS
 		FROM PON_USER_TIMESPAN ut
 		LEFT JOIN PON_USER_TIMESPAN_TAG utt
 		ON (
@@ -144,21 +145,23 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(
 			continue
 		}
 
-		// Unmarshal JSON array of tags
-		var tags []map[string]any // JSON array of objects, each object has id, namespace, and name
+		var tags [][]any
 
 		if err := json.Unmarshal(res.Tags, &tags); err != nil {
 			return err
 		}
+		tblUsrTags := make([]database.TblUserTag, len(tags))
 
-		// Convert to database.TblUserTag structure
-		data[i].Tags = make([]database.TblUserTag, len(tags))
 		for j, tag := range tags {
-			data[i].Tags[j].UserID = userID
-			data[i].Tags[j].ID = int(tag["id"].(float64))
-			data[i].Tags[j].Namespace = tag["namespace"].(string)
-			data[i].Tags[j].Name = tag["name"].(string)
+			tblUsrTags[j].UserID = userID
+			tblUsrTags[j].ID = int(tag[0].(float64))
+			tblUsrTags[j].Namespace = tag[1].(string)
+			tblUsrTags[j].Name = tag[2].(string)
 		}
+		sort.Slice(tblUsrTags, func(i int, j int) bool {
+			return tblUsrTags[i].ID < tblUsrTags[j].ID
+		})
+		data[i].Tags = tblUsrTags
 	}
 
 	*out = data

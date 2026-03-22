@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"karopon/src/database"
+	"sort"
 
 	"github.com/vinovest/sqlx"
 )
@@ -140,15 +141,18 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int,
 		if err := json.Unmarshal(res.Tags, &tags); err != nil {
 			return err
 		}
-
-		data[i].Tags = make([]database.TblUserTag, len(tags))
+		tblUsrTags := make([]database.TblUserTag, len(tags))
 
 		for j, tag := range tags {
-			data[i].Tags[j].UserID = userID
-			data[i].Tags[j].ID = int(tag[0].(float64))
-			data[i].Tags[j].Namespace = tag[1].(string)
-			data[i].Tags[j].Name = tag[2].(string)
+			tblUsrTags[j].UserID = userID
+			tblUsrTags[j].ID = int(tag[0].(float64))
+			tblUsrTags[j].Namespace = tag[1].(string)
+			tblUsrTags[j].Name = tag[2].(string)
 		}
+		sort.Slice(tblUsrTags, func(i int, j int) bool {
+			return tblUsrTags[i].ID < tblUsrTags[j].ID
+		})
+		data[i].Tags = tblUsrTags
 	}
 
 	*out = data
