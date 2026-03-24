@@ -175,10 +175,10 @@ export const ApiGetDataSourceFoods = (dataSourceID: number, search: string): Pro
     return fetchJson(`${ApiBase}/api/datasources/${dataSourceID}/${encodedSearch}`);
 };
 
-export const ApiUploadEventPhoto = (file: File): Promise<void> => {
+export const ApiUploadEventPhoto = (file: File): Promise<{id: number}> => {
     const formData = new FormData();
     formData.append('photo', file);
-    return fetchNone(`${ApiBase}/api/eventlogphoto/new`, {
+    return fetchJson(`${ApiBase}/api/eventlogphoto/new`, {
         method: 'POST',
         body: formData,
     });

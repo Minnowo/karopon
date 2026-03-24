@@ -315,6 +315,16 @@ type DB interface {
 
 	// DeleteUserTagColor removes the color mapping for the given namespace.
 	DeleteUserTagColors(ctx context.Context, userID int, namespace []string) error
+
+	///
+	/// User Photo Functions
+	///
+
+	// AddUserPhoto saves the photo blob for the given user and returns its ID.
+	AddUserPhoto(ctx context.Context, photo *TblUserPhoto) (int, error)
+
+	// AddUserEventLogPhotos creates mappings between an event log and a list of photo IDs.
+	AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error
 }
 
 type SQLxDB struct {

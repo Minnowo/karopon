@@ -109,6 +109,21 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(event.PhotoIDs) > 0 {
+
+		if err := a.Db.AddUserEventLogPhotos(r.Context(), id, event.PhotoIDs); err != nil {
+
+			api.ServerErr(w, "Unexpected error linking photos to the event log")
+			log.Error().
+				Err(err).
+				Int("eventlog_id", id).
+				Int("userid", user.ID).
+				Msg("Unexpected error linking photos to the event log")
+
+			return
+		}
+	}
+
 	var eventlogwithfoodlog database.UserEventFoodLog
 
 	if err := a.Db.LoadUserEventFoodLog(r.Context(), user.ID, id, &eventlogwithfoodlog); err != nil {

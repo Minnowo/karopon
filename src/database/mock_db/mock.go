@@ -407,3 +407,11 @@ func (p *BaseMockDB) SetUserTagColors(ctx context.Context, color []database.TblU
 func (p *BaseMockDB) DeleteUserTagColors(ctx context.Context, userID int, namespace []string) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) AddUserPhoto(ctx context.Context, photo *database.TblUserPhoto) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error {
+	panic("not implemented")
+}

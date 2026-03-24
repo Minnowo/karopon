@@ -1649,6 +1649,65 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		require.Len(t, colors1, 1, "user1's row must survive user2's delete")
 	})
 
+	t.Run("user_photo_add", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		photo := &database.TblUserPhoto{
+			UserID: userID,
+			Data:   []byte{0x89, 0x50, 0x4E, 0x47},
+		}
+
+		id, err := db.AddUserPhoto(ctx, photo)
+		require.NoError(t, err)
+		require.NotZero(t, id)
+	})
+
+	t.Run("user_eventlog_photo_mapping", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		event := &database.TblUserEvent{UserID: userID, Name: "Lunch"}
+		eventID, err := db.AddUserEvent(ctx, event)
+		require.NoError(t, err)
+		event.ID = eventID
+
+		eventlog := &database.TblUserEventLog{
+			UserID:  userID,
+			EventID: eventID,
+			Event:   event.Name,
+		}
+		logID, err := db.AddUserEventLogWith(ctx, eventlog, nil)
+		require.NoError(t, err)
+		require.NotZero(t, logID)
+
+		photo1 := &database.TblUserPhoto{UserID: userID, Data: []byte{0x01}}
+		photo2 := &database.TblUserPhoto{UserID: userID, Data: []byte{0x02}}
+
+		id1, err := db.AddUserPhoto(ctx, photo1)
+		require.NoError(t, err)
+		id2, err := db.AddUserPhoto(ctx, photo2)
+		require.NoError(t, err)
+
+		require.NoError(t, db.AddUserEventLogPhotos(ctx, logID, []int{id1, id2}))
+
+		// Duplicate insert must fail (primary key violation).
+		err = db.AddUserEventLogPhotos(ctx, logID, []int{id1})
+		require.Error(t, err)
+	})
+
 }
 
 func TestDB_Postgres(t *testing.T) {
@@ -1727,12 +1786,14 @@ func TestDB_Postgres(t *testing.T) {
 			"pon.user_dashboard",
 			"pon.user_event",
 			"pon.user_eventlog",
+			"pon.user_eventlog_photo",
 			"pon.user_food",
 			"pon.user_foodlog",
 			"pon.user_goal",
 			"pon.user_medication",
 			"pon.user_medication_schedule",
 			"pon.user_medicationlog",
+			"pon.user_photo",
 			"pon.user_session",
 			"pon.user_tag",
 			"pon.user_timespan",
@@ -1769,12 +1830,14 @@ func TestDB_Sqlite(t *testing.T) {
 			"PON_USER_DASHBOARD",
 			"PON_USER_EVENT",
 			"PON_USER_EVENTLOG",
+			"PON_USER_EVENTLOG_PHOTO",
 			"PON_USER_FOOD",
 			"PON_USER_FOODLOG",
 			"PON_USER_GOAL",
 			// "PON_USER_MEDICATION",
 			// "PON_USER_MEDICATION_SCHEDULE",
 			// "PON_USER_MEDICATIONLOG",
+			"PON_USER_PHOTO",
 			"PON_USER_SESSION",
 			"PON_USER_TAG",
 			"PON_USER_TIMESPAN",

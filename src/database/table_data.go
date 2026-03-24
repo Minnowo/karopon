@@ -285,3 +285,9 @@ type TblUserTagColor struct {
 	Namespace string `db:"namespace" json:"namespace"`
 	Color     string `db:"color"     json:"color"`
 }
+
+type TblUserPhoto struct {
+	ID     int    `db:"id"      json:"id"`
+	UserID int    `db:"user_id" json:"user_id"`
+	Data   []byte `db:"data"    json:"-"`
+}

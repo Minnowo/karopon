@@ -31,6 +31,7 @@ type CreateUserEventLog struct {
 	RecommendedInsulinAmount float64    `json:"recommended_insulin_amount"`
 	ActualInsulinTaken       float64    `json:"actual_insulin_taken"`
 	CreatedTime              TimeMillis `json:"created_time"`
+	PhotoIDs                 []int      `json:"photo_ids"`
 }
 
 type UserGoalProgress struct {

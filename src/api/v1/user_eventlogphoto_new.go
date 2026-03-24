@@ -4,6 +4,7 @@ import (
 	"io"
 	"karopon/src/api"
 	"karopon/src/api/auth"
+	"karopon/src/database"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -27,7 +28,7 @@ func (a *APIV1) createUserEventLogPhoto(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	file, header, err := r.FormFile("photo")
+	file, _, err := r.FormFile("photo")
 
 	if err != nil {
 		api.BadReq(w, "missing file")
@@ -43,9 +44,20 @@ func (a *APIV1) createUserEventLogPhoto(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	mimeType := header.Header.Get("Content-Type")
+	photo := database.TblUserPhoto{
+		UserID: user.ID,
+		Data:   data,
+	}
 
-	log.Info().Int("bytes", len(data)).Str("mime", mimeType).Msg("got photo")
+	id, err := a.Db.AddUserPhoto(r.Context(), &photo)
 
-	// api.WriteJSONObj(w, eventlogwithfoodlog)
+	if err != nil {
+		api.ServerErr(w, "failed to save photo")
+		log.Error().Err(err).Int("userid", user.ID).Msg("failed to save photo")
+		return
+	}
+
+	api.WriteJSONObj(w, struct {
+		ID int `json:"id"`
+	}{ID: id})
 }

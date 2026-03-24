@@ -52,8 +52,9 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [saving, setSaving] = useState(false);
+    type StagedPhoto = {url: string; file: File};
+    const [photos, setPhotos] = useState<StagedPhoto[]>([]);
     const photoInputRef = useRef<HTMLInputElement>(null);
     const foods = useRef<TblUserFoodLogWithKey[]>([]);
     const trailingRows = Math.max(1, p.user.event_log_trailing_rows);
@@ -86,6 +87,12 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         setBloodSugar(p.fromEvent.eventlog.blood_glucose);
         setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
         setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
+        setPhotos((prev) => {
+            for (const ph of prev) {
+                URL.revokeObjectURL(ph.url);
+            }
+            return [];
+        });
         foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + trailingRows);
         let i = 0;
         for (; i < p.fromEvent.foodlogs.length; i++) {
@@ -131,12 +138,26 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         Str2CalorieFormula(p.user.caloric_calc_method)
     ).toFixed(0);
 
-    const onCreateClick = () => {
+    const onCreateClick = async () => {
         setErrorMsg(null);
 
         if (event.trim() === '') {
             setErrorMsg('Event name should not be empty');
             return;
+        }
+
+        setSaving(true);
+
+        const photoIds: number[] = [];
+        for (const photo of photos) {
+            try {
+                const result = await ApiUploadEventPhoto(photo.file);
+                photoIds.push(result.id);
+            } catch {
+                setErrorMsg('Failed to upload photo');
+                setSaving(false);
+                return;
+            }
         }
 
         p.createEvent({
@@ -147,6 +168,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             recommended_insulin_amount: insulin,
             actual_insulin_taken: insulinTaken,
             created_time: eventTime.getTime(),
+            photo_ids: photoIds,
             event: {
                 id: 0,
                 user_id: p.user.id,
@@ -167,6 +189,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 })
                 .filter((x) => x.name.length > 0),
         });
+
+        setSaving(false);
     };
 
     const buildTableHead = () => {
@@ -255,10 +279,11 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <button
                     tabindex={-1}
                     type="button"
-                    className="w-24 items-center gap-1 text-sm"
+                    className="text-sm"
+                    disabled={saving}
                     onClick={() => photoInputRef.current?.click()}
                 >
-                    Take Photo
+                    Add Photo
                 </button>
 
                 <input
@@ -270,42 +295,34 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     onChange={(e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         if (file) {
-                            setPhotoUrl(URL.createObjectURL(file));
-                            setPhotoFile(file);
+                            setPhotos((prev) => [...prev, {url: URL.createObjectURL(file), file}]);
                         }
+                        (e.target as HTMLInputElement).value = '';
                     }}
                 />
-
-                {photoUrl && (
-                    <>
-                        <button
-                            type="button"
-                            className="cancel-btn"
-                            onClick={() => {
-                                setPhotoUrl(null);
-                                if (photoInputRef.current) {
-                                    photoInputRef.current.value = '';
-                                }
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="ok-btn"
-                            onClick={() => {
-                                if (photoFile) {
-                                    ApiUploadEventPhoto(photoFile);
-                                }
-                            }}
-                        >
-                            Upload
-                        </button>
-                    </>
-                )}
             </div>
 
-            {photoUrl && <img src={photoUrl} alt="Food photo" className="w-full max-h-64 object-contain rounded mb-2" />}
+            {photos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {photos.map((photo, i) => (
+                        <div key={i} className="relative w-20 h-20 shrink-0">
+                            <img src={photo.url} alt="Food photo" className="w-20 h-20 object-cover rounded" />
+                            <button
+                                type="button"
+                                tabindex={-1}
+                                disabled={saving}
+                                className="absolute top-0 right-0 bg-black/60 text-white rounded-bl px-1 text-xs leading-5"
+                                onClick={() => {
+                                    URL.revokeObjectURL(photo.url);
+                                    setPhotos((prev) => prev.filter((_, j) => j !== i));
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="overflow-x-scroll">
                 <table className="w-full text-sm border-collapse">
@@ -373,8 +390,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 <button className="cancel-btn" onClick={p.onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onCreateClick}>
-                    {p.saveButtonTitle}
+                <button className="save-btn" onClick={onCreateClick} disabled={saving}>
+                    {saving ? 'Saving...' : p.saveButtonTitle}
                 </button>
             </div>
         </div>

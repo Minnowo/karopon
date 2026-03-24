@@ -482,4 +482,82 @@ func TestPostgresMigrations(t *testing.T) {
 			`INSERT INTO pon.user_tag_color (user_id, namespace, color) VALUES (99999, 'food', '#ffffff')`)
 		require.Error(t, err, "FK violation should be rejected")
 	})
+
+	// 0019_user_photo: 17 → 18
+	// Creates pon.user_photo(id, user_id, data) and the
+	// pon.user_eventlog_photo(eventlog_id, photo_id) mapping table.
+	t.Run("0019_user_photo", func(t *testing.T) {
+		// Tables must not exist before the migration.
+		_, err := conn.ExecContext(ctx, `SELECT 1 FROM pon.user_photo LIMIT 1`)
+		require.Error(t, err, "pon.user_photo must not exist before migration 0019")
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM pon.user_eventlog_photo LIMIT 1`)
+		require.Error(t, err, "pon.user_eventlog_photo must not exist before migration 0019")
+
+		_, err = database.RunUpMigrations(ctx, conn, 17, postgresUpMigrations[18:19])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(18), ver)
+
+		// pon.user_photo must accept inserts and return a serial ID.
+		var photoID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`INSERT INTO pon.user_photo (user_id, data) VALUES ($1, $2) RETURNING id`,
+			userID, []byte{0x89, 0x50, 0x4e, 0x47},
+		).Scan(&photoID))
+		require.NotZero(t, photoID)
+
+		// All expected columns must be readable.
+		var gotUserID int
+		var gotData []byte
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT user_id, data FROM pon.user_photo WHERE id = $1`, photoID,
+		).Scan(&gotUserID, &gotData))
+		assert.Equal(t, userID, gotUserID)
+		assert.Equal(t, []byte{0x89, 0x50, 0x4e, 0x47}, gotData)
+
+		// FK on user_id must reject a non-existent user.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_photo (user_id, data) VALUES (99999, '\x00')`)
+		require.Error(t, err, "FK violation on user_id should be rejected")
+
+		// Insert an eventlog to use as the mapping target.
+		var eventlogID int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			INSERT INTO pon.user_eventlog
+				(user_id, event_id, user_time, event,
+				 net_carbs, blood_glucose, insulin_sensitivity_factor,
+				 insulin_to_carb_ratio, blood_glucose_target,
+				 recommended_insulin_amount, actual_insulin_taken)
+			SELECT $1, id, NOW(), name, 0, 0, 0, 0, 0, 0, 0
+			FROM pon.user_event WHERE user_id = $1 LIMIT 1
+			RETURNING id`, userID,
+		).Scan(&eventlogID))
+		require.NotZero(t, eventlogID)
+
+		// pon.user_eventlog_photo must accept a valid mapping.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_eventlog_photo (eventlog_id, photo_id) VALUES ($1, $2)`,
+			eventlogID, photoID)
+		require.NoError(t, err)
+
+		// Composite PK must reject a duplicate mapping.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_eventlog_photo (eventlog_id, photo_id) VALUES ($1, $2)`,
+			eventlogID, photoID)
+		require.Error(t, err, "duplicate (eventlog_id, photo_id) must be rejected")
+
+		// ON DELETE CASCADE from pon.user_eventlog must remove the mapping row.
+		_, err = conn.ExecContext(ctx,
+			`DELETE FROM pon.user_eventlog WHERE id = $1`, eventlogID)
+		require.NoError(t, err)
+
+		var mappingCount int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM pon.user_eventlog_photo WHERE eventlog_id = $1`, eventlogID,
+		).Scan(&mappingCount))
+		assert.Equal(t, 0, mappingCount, "mapping rows must be cascade-deleted with their eventlog")
+	})
 }
