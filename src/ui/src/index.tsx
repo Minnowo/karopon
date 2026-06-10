@@ -199,6 +199,8 @@ export const App = () => {
 
                     if (errors.length > 0) {
                         setErrorMsg(errors);
+                    } else {
+                        setErrorMsg(null);
                     }
                 });
             })
