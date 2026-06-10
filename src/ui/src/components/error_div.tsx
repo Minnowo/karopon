@@ -71,9 +71,17 @@ export function ErrorDiv({errorMsg, className}: ErrorDivProps) {
     const devMessage = getDeveloperMessage(errorMsg);
 
     return (
-        <div className={`flex flex-col text-left text-c-red ${className ?? ''}`}>
-            <h2 className="font-semibold text-sm">{userMessage}</h2>
+        <details className={`flex flex-col text-left text-c-red ${className ?? ''}`}>
+            <summary className="cursor-pointer text-sm font-semibold">
+                {userMessage}
+                {devMessage && (
+                    <>
+                        &nbsp;<span className="text-xs">(click for dev info)</span>
+                    </>
+                )}
+            </summary>
+
             {devMessage && <pre className="text-xs text-c-overlay2 mt-1 whitespace-pre-wrap">{devMessage}</pre>}
-        </div>
+        </details>
     );
 }
