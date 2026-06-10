@@ -6,6 +6,7 @@ import (
 )
 
 func (db *PGDatabase) AddUserTag(ctx context.Context, tag *database.TblUserTag) (int, error) {
+
 	query := `
 		INSERT INTO PON.USER_TAG (
 			user_id, namespace, name
@@ -18,8 +19,10 @@ func (db *PGDatabase) AddUserTag(ctx context.Context, tag *database.TblUserTag) 
 }
 
 func (db *PGDatabase) DeleteUserTag(ctx context.Context, userID int, namespace, name string) error {
+
 	query := `DELETE FROM PON.USER_TAG WHERE USER_ID = $1 AND NAMESPACE = $2 AND NAME = $3`
 	_, err := db.ExecContext(ctx, query, userID, namespace, name)
+
 	return err
 }
 
@@ -28,8 +31,10 @@ func (db *PGDatabase) UpdateUserTag(
 	userID int,
 	namespace, name, newNamespace, newName string,
 ) error {
+
 	query := `UPDATE PON.USER_TAG SET NAMESPACE = $1, NAME = $2 WHERE USER_ID = $3 AND NAMESPACE = $4 AND NAME = $5`
 	_, err := db.ExecContext(ctx, query, newNamespace, newName, userID, namespace, name)
+
 	return err
 }
 
@@ -81,7 +86,7 @@ func (db *PGDatabase) LoadUserNamespaceTagsLikeN(
 
 	query := `
 		SELECT * FROM PON.USER_TAG
-		WHERE USER_ID = $1 AND NAMESPACE = $2 AND NAME ILIKE $3
+		WHERE USER_ID = $1 AND NAMESPACE = $2 AND NAME ILIKE $3 ESCAPE '\'
 		ORDER BY NAMESPACE, NAME ASC
 		LIMIT $4
 	`

@@ -82,7 +82,7 @@ func (db *SqliteDatabase) LoadUserNamespaceTagsLikeN(
 
 	query := `
 		SELECT * FROM PON_USER_TAG
-		WHERE USER_ID = $1 AND NAMESPACE = $2 AND LOWER(NAME) LIKE $3
+		WHERE USER_ID = $1 AND NAMESPACE = $2 AND LOWER(NAME) LIKE $3 ESCAPE '\'
 		ORDER BY NAMESPACE, NAME ASC
 		LIMIT $4
 	`

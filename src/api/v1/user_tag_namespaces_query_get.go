@@ -22,7 +22,7 @@ func (a *APIV1) getUserNamespaceTagSearch(w http.ResponseWriter, r *http.Request
 	}
 
 	namespace := strings.TrimSpace(r.URL.Query().Get("namespace"))
-	queryString := strings.TrimSpace(r.URL.Query().Get("name"))
+	queryString := strings.TrimSpace(r.URL.Query().Get("s"))
 	limitString := strings.TrimSpace(r.URL.Query().Get("n"))
 
 	if len(namespace) <= 0 || len(namespace) > 128 {
