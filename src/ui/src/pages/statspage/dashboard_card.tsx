@@ -1,49 +1,21 @@
 import {Dispatch, StateUpdater, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
-import {DAY_IN_MS, StartOfRangeMs} from '../../utils/time';
-import {
-    BpPoint,
-    ChartPoint,
-    DashboardCard,
-    GraphDisplay,
-    GraphStyle,
-    MacroPoint,
-    MacroTotals,
-    MacroType,
-    MacroTypeKeys,
-    RangeType,
-} from './common';
-import {PieChart} from './pie_chart';
-import {RenderGraph} from './single_line_graph';
-import {MultiLineGraph, MultiLinePoint} from './multi_line_graph';
-import {StackedBarGraph} from './stacked_bar_graph';
+import {CommonRanges, DashboardCard, GraphDisplay, GraphStyle, TimeRange} from './common';
+import {PieChart} from './graphs/graph_pie_chart';
+import {MultiLineGraph2} from './graphs/graph_line_multi2';
+import {StackedBarGraph2} from './graphs/graph_bar_stacked2';
+import {LineSingleGraph2} from './graphs/graph_line_single2';
 import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
+import {AggregationFunc, GroupBy} from '../../api/types_stats';
+import {ChartData} from './graphs/common_props';
+import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
+import {BuildChartData, BuildBodyLogChartData, BuildBpChartData} from './data_build_other';
+import {BuildMacroChartData} from './data_build_macros';
+import {ParseRelativeTimeExpr} from './data_build';
 
-const MACRO_COLORS: Record<MacroType, string> = {
-    fat: 'var(--color-c-flamingo)',
-    carbs: 'var(--color-c-yellow)',
-    fibre: 'var(--color-c-sapphire)',
-    protein: 'var(--color-c-green)',
-};
-const MACRO_LABELS: Record<MacroType, string> = {
-    fat: 'FAT',
-    carbs: 'CARBS',
-    fibre: 'FIBRE',
-    protein: 'PROTEIN',
-};
-
-const BP_KEYS = ['systolic', 'diastolic'] as const;
-type BpKey = (typeof BP_KEYS)[number];
-const BP_COLORS: Record<BpKey, string> = {
-    systolic: 'var(--color-c-red)',
-    diastolic: 'var(--color-c-pink)',
-};
-const BP_LABELS: Record<BpKey, string> = {
-    systolic: 'Systolic',
-    diastolic: 'Diastolic',
-};
+const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
 const TAG_COLOR_PALETTE = [
     'var(--color-c-red)',
@@ -59,290 +31,13 @@ const TAG_COLOR_PALETTE = [
     'var(--color-c-flamingo)',
 ];
 
-const buildTimeChartData = (
-    dayOffsetSeconds: number,
-    spans: TaggedTimespan[],
-    selectedTags: string[],
-    display: GraphDisplay
-): Array<MultiLinePoint<string>> => {
-    if (selectedTags.length === 0) {
-        return [];
-    }
-    const selectedSet = new Set(selectedTags);
-    const buckets = new Map<number, Map<string, {n: number; total: number}>>();
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-
-    for (const {timespan, tags} of spans) {
-        if (timespan.stop_time <= timespan.start_time) {
-            continue;
-        }
-        if (timespan.start_time < startMs) {
-            continue;
-        }
-        const durationHours = (timespan.stop_time - timespan.start_time) / 3_600_000;
-
-        let bucketKey = 0;
-        switch (display.range) {
-            case '24 hours': {
-                const d = new Date(timespan.start_time);
-                bucketKey = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
-                break;
-            }
-            case '7 days':
-            case '28 days': {
-                const d = new Date(timespan.start_time - dayOffsetSeconds * 1000);
-                bucketKey = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-
-        if (!buckets.has(bucketKey)) {
-            buckets.set(bucketKey, new Map());
-        }
-        const bucket = buckets.get(bucketKey)!;
-
-        for (const t of tags) {
-            const k = TagToString(t);
-            if (!selectedSet.has(k)) {
-                continue;
-            }
-            if (!bucket.has(k)) {
-                bucket.set(k, {n: 0, total: 0});
-            }
-            const entry = bucket.get(k)!;
-            entry.n++;
-            entry.total += durationHours;
-        }
-
-        if (bucket.size === 0) {
-            buckets.delete(bucketKey);
-        }
-    }
-
-    return Array.from(buckets.entries(), ([date, tagMap]) => {
-        const point = {date} as MultiLinePoint<string>;
-        for (const t of selectedTags) {
-            const entry = tagMap.get(t);
-            point[t] = entry ? (display.group === 'average' ? entry.total / entry.n : entry.total) : 0;
-        }
-        return point;
-    }).sort((a, b) => a.date - b.date);
+const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
+    calories: 0,
+    steps: 0,
+    time: 2,
 };
 
-const buildTodayMacros = (dayOffsetSeconds: number, rows: UserEventFoodLog[], range: RangeType): MacroTotals => {
-    const totals: MacroTotals = {carbs: 0, protein: 0, fat: 0, fibre: 0};
-    const nowMs = Date.now();
-    const startMs =
-        range === '24 hours' ? nowMs - DAY_IN_MS : StartOfRangeMs(nowMs, dayOffsetSeconds, range === '7 days' ? 7 : 28);
-    for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (row.eventlog.user_time < startMs) {
-            continue;
-        }
-        totals.carbs += row.total_carb;
-        totals.protein += row.total_protein;
-        totals.fat += row.total_fat;
-        totals.fibre += row.total_fibre;
-    }
-    totals.carbs -= totals.fibre;
-    return totals;
-};
-
-const buildMacroChartData = (dayOffsetSeconds: number, rows: UserEventFoodLog[], display: GraphDisplay): MacroPoint[] => {
-    const buckets = new Map<number, {n: number; point: MacroPoint}>();
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-    for (let i = 0; i < rows.length; i++) {
-        const event = rows[i];
-        if (event.eventlog.user_time < startMs) {
-            continue;
-        }
-        let key = 0;
-        switch (display.range) {
-            case '24 hours': {
-                const d = new Date(event.eventlog.user_time);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()).getTime();
-                break;
-            }
-            case '7 days':
-            case '28 days': {
-                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-        let obj = buckets.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, point: {date: key, carbs: 0, protein: 0, fat: 0, fibre: 0}};
-            buckets.set(key, obj);
-        }
-        obj.point.carbs += event.total_carb - event.total_fibre;
-        obj.point.protein += event.total_protein;
-        obj.point.fat += event.total_fat;
-        obj.point.fibre += event.total_fibre;
-        obj.n++;
-    }
-    return Array.from(buckets.values(), (x) => {
-        if (display.group === 'average') {
-            x.point.carbs /= x.n;
-            x.point.protein /= x.n;
-            x.point.fat /= x.n;
-            x.point.fibre /= x.n;
-        }
-        return x.point;
-    }).sort((a, b) => a.date - b.date);
-};
-
-const buildChartData = (
-    dayOffsetSeconds: number,
-    events: UserEventFoodLog[],
-    keyGetter: (e: UserEventFoodLog) => number,
-    display: GraphDisplay
-): ChartPoint[] => {
-    const grouped = new Map<number, {n: number; v: number}>();
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-    for (let i = 0; i < events.length; i++) {
-        const event = events[i];
-        if (event.eventlog.user_time < startMs) {
-            continue;
-        }
-        let key = 0;
-        switch (display.range) {
-            case '24 hours': {
-                const d = new Date(event.eventlog.user_time);
-                key = d.getTime();
-                break;
-            }
-            case '7 days':
-            case '28 days': {
-                const d = new Date(event.eventlog.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-        let obj = grouped.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, v: 0};
-            grouped.set(key, obj);
-        }
-        obj.n++;
-        obj.v += keyGetter(event);
-    }
-    return Array.from(grouped.entries(), ([key, val]) => {
-        if (display.group === 'average') {
-            val.v /= val.n;
-        }
-        return {date: key, value: val.v};
-    }).sort((a, b) => a.date - b.date);
-};
-
-const buildBodyLogChartData = (
-    dayOffsetSeconds: number,
-    logs: TblUserBodyLog[],
-    keyGetter: (log: TblUserBodyLog) => number,
-    display: GraphDisplay
-): ChartPoint[] => {
-    const grouped = new Map<number, {n: number; v: number}>();
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-
-    for (const log of logs) {
-        if (log.user_time < startMs) {
-            continue;
-        }
-        const val = keyGetter(log);
-        if (val === 0) {
-            continue;
-        }
-
-        let key = 0;
-        switch (display.range) {
-            case '24 hours':
-                key = log.user_time;
-                break;
-            case '7 days':
-            case '28 days': {
-                const d = new Date(log.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-
-        let obj = grouped.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, v: 0};
-            grouped.set(key, obj);
-        }
-        obj.n++;
-        obj.v += val;
-    }
-
-    return Array.from(grouped.entries(), ([key, val]) => {
-        if (display.group === 'average') {
-            val.v /= val.n;
-        }
-        return {date: key, value: val.v};
-    }).sort((a, b) => a.date - b.date);
-};
-
-const buildBpChartData = (dayOffsetSeconds: number, logs: TblUserBodyLog[], display: GraphDisplay): BpPoint[] => {
-    const grouped = new Map<number, {n: number; sys: number; dia: number}>();
-    const nowMs = Date.now();
-    const startMs =
-        display.range === '24 hours'
-            ? nowMs - DAY_IN_MS
-            : StartOfRangeMs(nowMs, dayOffsetSeconds, display.range === '7 days' ? 7 : 28);
-
-    for (const log of logs) {
-        if (log.user_time < startMs) {
-            continue;
-        }
-        if (log.bp_systolic === 0 && log.bp_diastolic === 0) {
-            continue;
-        }
-
-        let key = 0;
-        switch (display.range) {
-            case '24 hours':
-                key = log.user_time;
-                break;
-            case '7 days':
-            case '28 days': {
-                const d = new Date(log.user_time - dayOffsetSeconds * 1000);
-                key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-                break;
-            }
-        }
-
-        let obj = grouped.get(key);
-        if (obj === undefined) {
-            obj = {n: 0, sys: 0, dia: 0};
-            grouped.set(key, obj);
-        }
-        obj.n++;
-        obj.sys += log.bp_systolic;
-        obj.dia += log.bp_diastolic;
-    }
-
-    return Array.from(grouped.entries(), ([key, val]) => {
-        const n = display.group === 'average' ? val.n : 1;
-        return {date: key, systolic: val.sys / n, diastolic: val.dia / n};
-    }).sort((a, b) => a.date - b.date);
-};
+const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bp_combined', 'time'];
 
 type DashboardCardProps = {
     card: DashboardCard;
@@ -383,109 +78,265 @@ export function DashboardCardComponent({
 }: DashboardCardProps) {
     const thisRef = useRef<HTMLDivElement>(null);
     const [display, setDisplay] = useState<GraphDisplay>(card.display);
-    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(
-        card.visibleMacros.length > 0 ? card.visibleMacros : ['fat', 'carbs', 'fibre', 'protein']
-    );
-    const [visibleBpKeys, setVisibleBpKeys] = useState<BpKey[]>(['systolic', 'diastolic']);
-    const [visibleTimeTags, setVisibleTimeTags] = useState<string[]>(card.selectedTags ?? []);
 
-    const timeData = useMemo(
-        () =>
-            card.type === 'time' && card.selectedTags?.length > 0
-                ? buildTimeChartData(dayOffsetSeconds, timespans, card.selectedTags, display)
-                : [],
-        [card.type, card.selectedTags, dayOffsetSeconds, timespans, display]
-    );
+    const [hiddenLabels, setHiddenLabels] = useState<string[]>(card.hiddenLabels ?? []);
 
-    const macros = useMemo(
-        () =>
-            card.type === 'pie'
-                ? buildTodayMacros(dayOffsetSeconds, eventlogs, display.range)
-                : {carbs: 0, protein: 0, fat: 0, fibre: 0},
-        [card.type, dayOffsetSeconds, eventlogs, display.range]
+    const [timeRanges, setTimeRanges] = useState<TimeRange[]>(() =>
+        card.timeRanges && card.timeRanges.length > 0 ? card.timeRanges : CommonRanges
+    );
+    const [curTimeRange, setTimeRange] = useState<number>(card.curTimeRange ?? 0);
+    const [groupBy, setGroupBy] = useState<GroupBy>(
+        timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange
+            ? timeRanges[curTimeRange].groupBy
+            : GroupBy.Minute
+    );
+    const [aggregationFunc, setAggregationFunc] = useState<AggregationFunc>(
+        timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange
+            ? timeRanges[curTimeRange].aggregationFunc
+            : AggregationFunc.Sum
     );
 
-    const macroData = useMemo(
-        () => (card.type === 'macros' ? buildMacroChartData(dayOffsetSeconds, eventlogs, display) : []),
-        [card.type, dayOffsetSeconds, eventlogs, display]
-    );
+    const [chartData, setChartData] = useState<ChartData>(EMPTY_CHART_DATA);
 
-    const calorieData = useMemo(
-        () =>
-            card.type === 'calories'
-                ? buildChartData(
-                      dayOffsetSeconds,
-                      eventlogs,
-                      (e) =>
-                          CalculateCalories(
-                              e.total_protein,
-                              e.total_carb - e.total_fibre,
-                              e.total_fibre,
-                              e.total_fat,
-                              Str2CalorieFormula(caloricCalcMethod)
-                          ),
-                      display
-                  )
-                : [],
-        [card.type, dayOffsetSeconds, eventlogs, caloricCalcMethod, display]
-    );
+    const {rangeStartMs, rangeEndMs} = useMemo(() => {
+        const tr =
+            timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange ? timeRanges[curTimeRange] : CommonRanges[0];
 
-    const bloodData = useMemo(
-        () =>
-            card.type === 'blood_glucose'
-                ? buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.blood_glucose, display)
-                : [],
-        [card.type, dayOffsetSeconds, eventlogs, display]
-    );
+        const offsetMs = dayOffsetSeconds / 1000;
+        const now = new Date(Date.now() - offsetMs);
+        const st = ParseRelativeTimeExpr(tr.rangeStart, now, offsetMs);
+        const et = ParseRelativeTimeExpr(tr.rangeEnd, now, offsetMs);
 
-    const insulinData = useMemo(
-        () =>
-            card.type === 'insulin'
-                ? buildChartData(dayOffsetSeconds, eventlogs, (e) => e.eventlog.actual_insulin_taken, display)
-                : [],
-        [card.type, dayOffsetSeconds, eventlogs, display]
-    );
+        return {rangeStartMs: st.getTime(), rangeEndMs: et.getTime()};
+    }, [timeRanges, curTimeRange, dayOffsetSeconds]);
 
-    const weightData = useMemo(
-        () => (card.type === 'body_weight' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.weight_kg, display) : []),
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const heightData = useMemo(
-        () => (card.type === 'body_height' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.height_cm, display) : []),
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const bodyFatData = useMemo(
-        () =>
-            card.type === 'body_fat' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.body_fat_percent, display) : [],
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const bmiData = useMemo(
-        () => (card.type === 'body_bmi' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bmi, display) : []),
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const bpSysData = useMemo(
-        () =>
-            card.type === 'bp_systolic' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_systolic, display) : [],
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const bpDiaData = useMemo(
-        () =>
-            card.type === 'bp_diastolic' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.bp_diastolic, display) : [],
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const heartRateData = useMemo(
-        () =>
-            card.type === 'heart_rate' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.heart_rate_bpm, display) : [],
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const stepsData = useMemo(
-        () => (card.type === 'steps' ? buildBodyLogChartData(dayOffsetSeconds, bodylogs, (l) => l.steps_count, display) : []),
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
-    const bpCombinedData = useMemo(
-        () => (card.type === 'bp_combined' ? buildBpChartData(dayOffsetSeconds, bodylogs, display) : []),
-        [card.type, dayOffsetSeconds, bodylogs, display]
-    );
+    useLayoutEffect(() => {
+        const tr =
+            timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange ? timeRanges[curTimeRange] : CommonRanges[0];
+
+        switch (card.type) {
+            case 'macros':
+            case 'pie': {
+                const newData = BuildMacroChartData(eventlogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc, [
+                    'var(--color-c-flamingo)',
+                    'var(--color-c-yellow)',
+                    'var(--color-c-sapphire)',
+                    'var(--color-c-green)',
+                ]);
+
+                setChartData(newData);
+
+                break;
+            }
+            case 'time': {
+                if (card.selectedTags?.length <= 0) {
+                    return;
+                }
+
+                setChartData(
+                    BuildTimeChartData(
+                        timespans,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        card.selectedTags,
+                        card.selectedTags.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length])
+                    )
+                );
+
+                // TODO: option to choose between local and network graph computation
+                // BuildTimeChartDataNetwork(
+                //     tr.rangeStart,
+                //     tr.rangeEnd,
+                //     groupBy,
+                //     aggregationFunc,
+                //     card.selectedTags,
+                //     card.selectedTags.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length])
+                // ).then(setChartData);
+
+                break;
+            }
+            case 'calories': {
+                setChartData(
+                    BuildChartData(
+                        eventlogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (e) =>
+                            CalculateCalories(
+                                e.total_protein,
+                                e.total_carb - e.total_fibre,
+                                e.total_fibre,
+                                e.total_fat,
+                                Str2CalorieFormula(caloricCalcMethod)
+                            ),
+                        'var(--color-c-yellow)'
+                    )
+                );
+                break;
+            }
+            case 'blood_glucose': {
+                setChartData(
+                    BuildChartData(
+                        eventlogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (e) => e.eventlog.blood_glucose,
+                        'var(--color-c-sky)'
+                    )
+                );
+                break;
+            }
+            case 'insulin': {
+                setChartData(
+                    BuildChartData(
+                        eventlogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (e) => e.eventlog.actual_insulin_taken,
+                        'var(--color-c-green)'
+                    )
+                );
+                break;
+            }
+            case 'body_weight': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.weight_kg,
+                        'var(--color-c-peach)'
+                    )
+                );
+                break;
+            }
+            case 'body_height': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.height_cm,
+                        'var(--color-c-lavender)'
+                    )
+                );
+                break;
+            }
+            case 'body_fat': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.body_fat_percent,
+                        'var(--color-c-flamingo)'
+                    )
+                );
+                break;
+            }
+            case 'body_bmi': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.bmi,
+                        'var(--color-c-mauve)'
+                    )
+                );
+                break;
+            }
+            case 'bp_systolic': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.bp_systolic,
+                        'var(--color-c-red)'
+                    )
+                );
+                break;
+            }
+            case 'bp_diastolic': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.bp_diastolic,
+                        'var(--color-c-pink)'
+                    )
+                );
+                break;
+            }
+            case 'bp_combined': {
+                setChartData(BuildBpChartData(bodylogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc));
+                break;
+            }
+            case 'heart_rate': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.heart_rate_bpm,
+                        'var(--color-c-red)'
+                    )
+                );
+                break;
+            }
+            case 'steps': {
+                setChartData(
+                    BuildBodyLogChartData(
+                        bodylogs,
+                        rangeStartMs,
+                        rangeEndMs,
+                        groupBy,
+                        aggregationFunc,
+                        (l) => l.steps_count,
+                        'var(--color-c-teal)'
+                    )
+                );
+                break;
+            }
+        }
+    }, [
+        card.type,
+        timeRanges,
+        curTimeRange,
+        aggregationFunc,
+        groupBy,
+        card.selectedTags,
+        eventlogs,
+        bodylogs,
+        dayOffsetSeconds,
+        rangeStartMs,
+        rangeEndMs,
+        caloricCalcMethod,
+    ]);
 
     useLayoutEffect(() => {
         // used so that charts update their size when css editing styles change it.
@@ -520,9 +371,9 @@ export function DashboardCardComponent({
         onUpdate({...card, display: d});
     };
 
-    const handleVisibleMacrosChange = (m: MacroType[]) => {
-        setVisibleMacros(m);
-        onUpdate({...card, visibleMacros: m});
+    const handleHiddenChange = (m: string[]) => {
+        setHiddenLabels(m);
+        onUpdate({...card, hiddenLabels: m});
     };
 
     const graphStyle: GraphStyle = card.graphStyle ?? 'line';
@@ -531,99 +382,46 @@ export function DashboardCardComponent({
         onUpdate({...card, graphStyle: s});
     };
 
-    const MultiSeriesGraph = graphStyle === 'bar' ? StackedBarGraph : MultiLineGraph;
+    const MultiSeriesGraph2 = graphStyle === 'bar' ? StackedBarGraph2 : MultiLineGraph2;
+
+    const baseGraphProps = {
+        curTimeRange,
+        onTimeRangeChange: setTimeRange,
+        timeRanges,
+        onTimeRangesChange: () => {
+            /* TODO */
+        },
+        groupBy,
+        onGroupByChange: setGroupBy,
+        aggregationFunc,
+        onAggregationFunc: setAggregationFunc,
+        hiddenLabels,
+        onHiddenLabelsChange: handleHiddenChange,
+    };
 
     const renderChart = () => {
         const title = editing ? '' : card.title;
-        switch (card.type) {
-            case 'pie':
-                return (
-                    <PieChart
-                        title={title}
-                        data={macros}
-                        size={250}
-                        range={display.range}
-                        setRange={(r) => handleDisplayChange({...display, range: r})}
-                    />
-                );
-            case 'macros':
-                return (
-                    <MultiSeriesGraph
-                        data={macroData}
-                        keys={MacroTypeKeys}
-                        colors={MACRO_COLORS}
-                        labels={MACRO_LABELS}
-                        display={display}
-                        title={title}
-                        visibleKeys={visibleMacros}
-                        setVisibleKeys={handleVisibleMacrosChange}
-                        setDisplay={handleDisplayChange}
-                        graphStyle={graphStyle}
-                        onGraphStyleChange={handleGraphStyleChange}
-                    />
-                );
-            case 'calories':
-                return RenderGraph(calorieData, display, 'value', title, 'var(--color-c-yellow)', handleDisplayChange, 0);
-            case 'blood_glucose':
-                return RenderGraph(bloodData, display, 'value', title, 'var(--color-c-sky)', handleDisplayChange);
-            case 'insulin':
-                return RenderGraph(insulinData, display, 'value', title, 'var(--color-c-green)', handleDisplayChange);
-            case 'body_weight':
-                return RenderGraph(weightData, display, 'value', title, 'var(--color-c-peach)', handleDisplayChange);
-            case 'body_height':
-                return RenderGraph(heightData, display, 'value', title, 'var(--color-c-lavender)', handleDisplayChange);
-            case 'body_fat':
-                return RenderGraph(bodyFatData, display, 'value', title, 'var(--color-c-flamingo)', handleDisplayChange);
-            case 'body_bmi':
-                return RenderGraph(bmiData, display, 'value', title, 'var(--color-c-mauve)', handleDisplayChange);
-            case 'bp_systolic':
-                return RenderGraph(bpSysData, display, 'value', title, 'var(--color-c-red)', handleDisplayChange);
-            case 'bp_diastolic':
-                return RenderGraph(bpDiaData, display, 'value', title, 'var(--color-c-pink)', handleDisplayChange);
-            case 'bp_combined':
-                return (
-                    <MultiSeriesGraph
-                        data={bpCombinedData}
-                        keys={BP_KEYS}
-                        colors={BP_COLORS}
-                        labels={BP_LABELS}
-                        display={display}
-                        title={title}
-                        visibleKeys={visibleBpKeys}
-                        setVisibleKeys={setVisibleBpKeys}
-                        setDisplay={handleDisplayChange}
-                        graphStyle={graphStyle}
-                        onGraphStyleChange={handleGraphStyleChange}
-                    />
-                );
-            case 'heart_rate':
-                return RenderGraph(heartRateData, display, 'value', title, 'var(--color-c-red)', handleDisplayChange);
-            case 'steps':
-                return RenderGraph(stepsData, display, 'value', title, 'var(--color-c-teal)', handleDisplayChange, 0);
-            case 'time': {
-                const selectedTags = card.selectedTags ?? [];
-                const colors: Record<string, string> = Object.fromEntries(
-                    selectedTags.map((t, i) => [t, TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]])
-                );
-                const tagLabels: Record<string, string> = Object.fromEntries(selectedTags.map((t) => [t, t]));
-                return (
-                    <MultiSeriesGraph
-                        data={timeData}
-                        keys={selectedTags}
-                        colors={colors}
-                        labels={tagLabels}
-                        display={display}
-                        title={title}
-                        visibleKeys={visibleTimeTags}
-                        setVisibleKeys={setVisibleTimeTags}
-                        setDisplay={handleDisplayChange}
-                        precision={2}
-                        graphStyle={graphStyle}
-                        onGraphStyleChange={handleGraphStyleChange}
-                    />
-                );
-            }
+
+        if (card.type === 'pie') {
+            return <PieChart title={title} data={chartData} size={250} {...baseGraphProps} />;
         }
+
+        const precision = PRECISION_BY_TYPE[card.type];
+
+        if (MULTI_SERIES_TYPES.includes(card.type)) {
+            return (
+                <MultiSeriesGraph2
+                    title={title}
+                    data={chartData}
+                    precision={precision}
+                    graphStyle={graphStyle}
+                    onGraphStyleChange={handleGraphStyleChange}
+                    {...baseGraphProps}
+                />
+            );
+        }
+
+        return <LineSingleGraph2 title={title} data={chartData} precision={precision} {...baseGraphProps} />;
     };
 
     return (

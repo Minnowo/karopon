@@ -415,3 +415,15 @@ func (p *BaseMockDB) AddUserPhoto(ctx context.Context, photo *database.TblUserPh
 func (p *BaseMockDB) AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) LoadUserTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	tags []string,
+	groupby database.GroupBy,
+	out *[]database.TimespanTagDurationPoint,
+) error {
+	panic("not implemented")
+}

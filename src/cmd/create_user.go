@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"karopon/src/database"
 	"karopon/src/database/connection"
+	"time"
 
 	"github.com/urfave/cli/v3"
 	"golang.org/x/crypto/bcrypt"
@@ -59,6 +60,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	user.InsulinSensitivityFactor = 3
 	user.TargetBloodSugar = 5.6
 	user.FillEventLogFromLast = false
+	user.SessionExpireTimeSeconds = int64(time.Duration(time.Hour * 24 * 10).Seconds())
 
 	if _, err := conn.AddUser(ctx, &user); err != nil {
 		return err

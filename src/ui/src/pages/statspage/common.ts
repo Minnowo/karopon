@@ -1,3 +1,5 @@
+import {AggregationFunc, GroupBy} from '../../api/types_stats';
+
 export const RangeTypeKeys = ['24 hours', '7 days', '28 days'] as const;
 export type RangeType = (typeof RangeTypeKeys)[number];
 
@@ -56,6 +58,14 @@ export type ChartType =
 export const GraphStyleKeys = ['line', 'bar'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
 
+export type TimeRange = {
+    name: string;
+    rangeStart: string;
+    rangeEnd: string;
+    groupBy: GroupBy;
+    aggregationFunc: AggregationFunc;
+};
+
 export type DashboardCard = {
     id: number;
     type: ChartType;
@@ -64,6 +74,10 @@ export type DashboardCard = {
     visibleMacros: MacroType[];
     selectedTags: string[];
     graphStyle?: GraphStyle;
+
+    hiddenLabels: string[];
+    timeRanges: TimeRange[];
+    curTimeRange: number;
 };
 
 export type UserDashboard = {
@@ -71,6 +85,30 @@ export type UserDashboard = {
     name: string;
     cards: DashboardCard[];
 };
+
+export const CommonRanges: TimeRange[] = [
+    {
+        name: '24 hours',
+        rangeStart: 'now-24h',
+        rangeEnd: 'now+24h',
+        groupBy: GroupBy.Minute,
+        aggregationFunc: AggregationFunc.Sum,
+    },
+    {
+        name: '7 days',
+        rangeStart: 'now-7d',
+        rangeEnd: 'now+1d',
+        groupBy: GroupBy.Day,
+        aggregationFunc: AggregationFunc.Sum,
+    },
+    {
+        name: '28 days',
+        rangeStart: 'now-28d',
+        rangeEnd: 'now+1d',
+        groupBy: GroupBy.Day,
+        aggregationFunc: AggregationFunc.Sum,
+    },
+];
 
 export const DEFAULT_DASHBOARD: UserDashboard = {
     id: -1,
@@ -83,6 +121,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: [],
             selectedTags: [],
+            timeRanges: CommonRanges,
+            curTimeRange: 0,
+            hiddenLabels: [],
         },
         {
             id: 1,
@@ -91,6 +132,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
             selectedTags: [],
+            timeRanges: CommonRanges,
+            curTimeRange: 0,
+            hiddenLabels: [],
         },
         {
             id: 2,
@@ -99,6 +143,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: [],
             selectedTags: [],
+            timeRanges: CommonRanges,
+            curTimeRange: 0,
+            hiddenLabels: [],
         },
         {
             id: 3,
@@ -107,6 +154,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: [],
             selectedTags: [],
+            timeRanges: CommonRanges,
+            curTimeRange: 0,
+            hiddenLabels: [],
         },
         {
             id: 4,
@@ -115,6 +165,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             display: {range: '24 hours', group: 'sum'},
             visibleMacros: [],
             selectedTags: [],
+            timeRanges: CommonRanges,
+            curTimeRange: 0,
+            hiddenLabels: [],
         },
     ],
 };

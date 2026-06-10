@@ -86,7 +86,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 	// must happen last
 	ui.Register(r)
 
-	log.Info().Str("address", addr).Msg("Site is running")
+	log.Info().Str("address", addr).Time("at", time.Now()).Msg("Site is running")
 
 	err = srv.ListenAndServe()
 

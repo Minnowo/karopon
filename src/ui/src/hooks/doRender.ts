@@ -1,7 +1,9 @@
-import {useState} from 'preact/hooks';
+import {useCallback, useState} from 'preact/hooks';
 
 export function DoRender(): () => void {
-    const [, setRender] = useState<number>(0);
+    const [, setTick] = useState<number>(0);
 
-    return () => setRender((x) => x + 1);
+    return useCallback(() => {
+        setTick((t) => t + 1);
+    }, []);
 }

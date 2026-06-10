@@ -38,6 +38,7 @@ import {
     ApiGetUserNamespaces,
     ApiGetDashboards,
     ApiGetUserTagColors,
+    ApiGetStatsTime,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -234,6 +235,22 @@ export const App = () => {
             </>
 
             <Header user={user} />
+
+            <button
+                onClick={() =>
+                    ApiGetStatsTime({
+                        columns: [],
+                        start: 'now-10d',
+                        end: 'now-0d',
+                        groupby: 'HOUR',
+                        aggregate: 'SUM',
+                        tags: ['jp:anime'],
+                    })
+                }
+            >
+                {' '}
+                hello{' '}
+            </button>
 
             <div className="m-auto md:max-w-[800px]">
                 {(() => {

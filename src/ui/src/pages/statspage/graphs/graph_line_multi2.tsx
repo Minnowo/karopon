@@ -1,48 +1,38 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {
-    FormatXLabel,
-    GroupTypeKeys,
-    GraphDisplay,
-    GraphStyle,
-    GraphStyleKeys,
-    NoInformationMessage,
-    RangeTypeKeys,
-} from './common';
-import {useDebouncedCallback} from '../../hooks/useDebounce';
+import {FormatXLabel, GraphStyle, GraphStyleKeys, NoInformationMessage} from '../common';
+import {useDebouncedCallback} from '../../../hooks/useDebounce';
+import {BaseGraphProps} from './common_props';
+import {GroupBy} from '../../../api/types_stats';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
 
-export type MultiLinePoint<K extends string> = {date: number} & Record<K, number>;
-
-export type MultiLineGraphProps<K extends string> = {
-    data: Array<MultiLinePoint<K>>;
-    keys: readonly K[];
-    colors: Record<K, string>;
-    labels: Record<K, string>;
-    display: GraphDisplay;
-    title: string;
-    visibleKeys: K[];
-    setVisibleKeys: (keys: K[]) => void;
-    setDisplay: (d: GraphDisplay) => void;
-    precision?: number;
+export type MultiLineGraph2Props = BaseGraphProps & {
     graphStyle?: GraphStyle;
     onGraphStyleChange?: (s: GraphStyle) => void;
 };
 
-export function MultiLineGraph<K extends string>({
+export function MultiLineGraph2({
     data,
-    keys,
-    colors,
-    labels,
-    display,
     title,
-    visibleKeys,
-    setVisibleKeys,
-    setDisplay,
+
+    timeRanges,
+    onTimeRangesChange,
+
+    curTimeRange,
+    onTimeRangeChange,
+
+    groupBy,
+    onGroupByChange,
+
+    aggregationFunc,
+    onAggregationFunc,
+
+    hiddenLabels,
+    onHiddenLabelsChange,
     precision = 1,
     graphStyle,
     onGraphStyleChange,
-}: MultiLineGraphProps<K>) {
+}: MultiLineGraph2Props) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
 
@@ -62,39 +52,52 @@ export function MultiLineGraph<K extends string>({
     const height = 300;
     const pad = 40;
 
+    const keys = data.labels;
+    const visibleCols = useMemo(
+        () =>
+            data.labels
+                .map((label, index) => ({label, index}))
+                .filter(({label}) => !hiddenLabels.includes(label))
+                .map(({index}) => index),
+        [data.labels, hiddenLabels]
+    );
+
     const maxVal = useMemo(() => {
         let max = 0;
-        for (const p of data) {
-            for (const key of keys) {
-                if (p[key] > max) {
-                    max = p[key];
+        for (const row of data.rows) {
+            for (const i of visibleCols) {
+                if (max < row.y[i]) {
+                    max = row.y[i];
                 }
             }
         }
         return max || 1;
-    }, [data, keys]);
+    }, [data.rows, visibleCols]);
 
     const lines = useMemo(() => {
-        const l = {} as Record<K, GraphPoint[]>;
-        for (const key of keys) {
-            const line = new Array(data.length);
-            for (let i = 0; i < data.length; i++) {
-                const d = data[i];
-                const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
-                const y = height - pad - (d[key] / maxVal) * (height - pad * 2);
-                line[i] = {x, y, value: d[key], date: d.date};
+        const l: GraphPoint[][] = new Array(data.labels.length);
+        const n = data.rows.length;
+        for (const key of visibleCols) {
+            const line = new Array<GraphPoint>(n);
+            for (let i = 0; i < n; i++) {
+                // this unfortunately has bad data layout
+                const v = data.rows[i].y[key];
+
+                const x = n <= 1 ? width / 2 : pad + (i / (n - 1)) * (width - pad * 2);
+                const y = height - pad - (v / maxVal) * (height - pad * 2);
+                line[i] = {x, y, value: v, date: data.rows[i].x};
             }
             l[key] = line;
         }
         return l;
-    }, [data, keys, width, maxVal]);
+    }, [data, width, maxVal, visibleCols]);
 
     const labelPositions = useMemo(() => {
-        const positions: Partial<Record<K, Map<number, number>>> = {};
-        const xBuckets = new Map<number, Array<{key: K; y: number}>>();
+        const positions: Record<string, Map<number, number>> = {};
+        const xBuckets = new Map<number, Array<{key: number; y: number}>>();
 
-        for (const key of visibleKeys) {
-            for (const p of lines[key]) {
+        for (const key of visibleCols) {
+            for (const p of lines[key] ?? []) {
                 if (!xBuckets.has(p.x)) {
                     xBuckets.set(p.x, []);
                 }
@@ -112,38 +115,43 @@ export function MultiLineGraph<K extends string>({
                 if (!positions[point.key]) {
                     positions[point.key] = new Map();
                 }
-                positions[point.key]!.set(point.y, adjustedY);
+                positions[point.key].set(point.y, adjustedY);
             }
         }
 
-        return positions as Record<K, Map<number, number>>;
-    }, [visibleKeys, lines]);
+        return positions;
+    }, [visibleCols, lines]);
 
     return (
         <div ref={containerRef} className="w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
-                    {RangeTypeKeys.map((r) => (
-                        <button
-                            key={r}
-                            className={`px-3 py-1 border rounded ${display.range === r ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
-                            onClick={() => setDisplay({...display, range: r})}
-                        >
-                            {r.toUpperCase()}
-                        </button>
-                    ))}
+                    <select
+                        className={`px-3 py-1`}
+                        value={curTimeRange}
+                        onInput={(e) => onTimeRangeChange(Number((e.target as HTMLSelectElement).value))}
+                    >
+                        {timeRanges &&
+                            timeRanges.map((x, i) => (
+                                <option key={x.name} value={i}>
+                                    {x.name}
+                                </option>
+                            ))}
+                    </select>
                 </div>
                 <div className="flex gap-2 mb-4">
-                    {GroupTypeKeys.map((g) => (
-                        <button
-                            key={g}
-                            className={`px-3 py-1 border rounded ${display.group === g ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
-                            onClick={() => setDisplay({...display, group: g})}
-                        >
-                            {g.toUpperCase()}
-                        </button>
-                    ))}
+                    <select
+                        className={`px-3 py-1`}
+                        value={groupBy}
+                        onInput={(e) => onGroupByChange((e.target as HTMLSelectElement).value as GroupBy)}
+                    >
+                        {Object.values(GroupBy).map((value) => (
+                            <option key={value} value={value}>
+                                {value}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 {onGraphStyleChange && (
                     <div className="flex gap-2 mb-4">
@@ -160,7 +168,7 @@ export function MultiLineGraph<K extends string>({
                 )}
             </div>
 
-            {data.length === 0 ? (
+            {data.rows.length === 0 ? (
                 <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>
             ) : (
                 <>
@@ -171,13 +179,13 @@ export function MultiLineGraph<K extends string>({
                         preserveAspectRatio="xMinYMin meet"
                         className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                     >
-                        {visibleKeys.map((key) => {
-                            const line = lines[key];
+                        {visibleCols.map((key) => {
+                            const line = lines[key] ?? [];
                             return (
                                 <g key={key}>
                                     <polyline
                                         fill="none"
-                                        stroke={colors[key]}
+                                        stroke={data.colors[key]}
                                         strokeWidth="2"
                                         points={line.map((p) => `${p.x},${p.y}`).join(' ')}
                                     />
@@ -185,11 +193,11 @@ export function MultiLineGraph<K extends string>({
                                         const adjustedY = labelPositions[key]?.get(p.y) ?? p.y;
                                         return (
                                             <g key={p.date + key}>
-                                                <circle cx={p.x} cy={p.y} r="5" fill={colors[key]} />
+                                                <circle cx={p.x} cy={p.y} r="5" fill={data.colors[key]} />
                                                 <text
                                                     x={p.x + 5}
                                                     y={adjustedY - 5}
-                                                    fill={colors[key]}
+                                                    fill={data.colors[key]}
                                                     fontSize="10"
                                                     textAnchor="end"
                                                 >
@@ -202,29 +210,31 @@ export function MultiLineGraph<K extends string>({
                             );
                         })}
 
-                        {data.map((d, i) => {
-                            const x = data.length <= 1 ? width / 2 : pad + (i / (data.length - 1)) * (width - pad * 2);
+                        {data.rows.map((d, i) => {
+                            const x = data.rows.length <= 1 ? width / 2 : pad + (i / (data.rows.length - 1)) * (width - pad * 2);
                             return (
-                                <text key={`${d.date}-x`} x={x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
-                                    {FormatXLabel(d.date, display.range)}
+                                <text key={`${d.x}-x`} x={x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
+                                    {FormatXLabel(d.x, '24 hours')}
                                 </text>
                             );
                         })}
                     </svg>
 
                     <div className="flex flex-wrap gap-3 mt-3">
-                        {keys.map((k) => {
-                            const isActive = visibleKeys.includes(k);
+                        {keys.map((k, i) => {
+                            const isActive = !hiddenLabels.includes(k);
                             return (
                                 <div
                                     key={k}
                                     className={`flex items-center gap-2 cursor-pointer ${isActive ? '' : 'opacity-40'}`}
                                     onClick={() =>
-                                        setVisibleKeys(isActive ? visibleKeys.filter((v) => v !== k) : [...visibleKeys, k])
+                                        onHiddenLabelsChange(
+                                            isActive ? [...hiddenLabels, k] : hiddenLabels.filter((v) => v !== k)
+                                        )
                                     }
                                 >
-                                    <div className="w-4 h-4 rounded-full" style={{backgroundColor: colors[k]}} />
-                                    <span>{labels[k]}</span>
+                                    <div className="w-4 h-4 rounded-full" style={{backgroundColor: data.colors[i]}} />
+                                    <span>{k}</span>
                                 </div>
                             );
                         })}
@@ -234,30 +244,3 @@ export function MultiLineGraph<K extends string>({
         </div>
     );
 }
-
-// Backward-compatible function wrapper for existing call sites.
-export const RenderGenericMultiLineGraph = <K extends string>(
-    data: Array<MultiLinePoint<K>>,
-    keys: readonly K[],
-    colors: Record<K, string>,
-    labels: Record<K, string>,
-    display: GraphDisplay,
-    title: string,
-    visibleKeys: K[],
-    setVisibleKeys: (keys: K[]) => void,
-    setDisplay: (d: GraphDisplay) => void,
-    precision = 1
-) => (
-    <MultiLineGraph
-        data={data}
-        keys={keys}
-        colors={colors}
-        labels={labels}
-        display={display}
-        title={title}
-        visibleKeys={visibleKeys}
-        setVisibleKeys={setVisibleKeys}
-        setDisplay={setDisplay}
-        precision={precision}
-    />
-);

@@ -45,6 +45,12 @@ type TaggedTimespan struct {
 	Tags     []TblUserTag    `json:"tags"`
 }
 
+type TimespanTagDurationPoint struct {
+	Tag           string     `json:"tag"            db:"tag"`
+	Bucket        TimeMillis `json:"bucket"         db:"bucket"`
+	DurationMilli int64      `json:"duration_milli" db:"duration_milli"`
+}
+
 func ValueToString(val any) string {
 	switch v := val.(type) {
 	case nil:

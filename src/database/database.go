@@ -325,6 +325,16 @@ type DB interface {
 
 	// AddUserEventLogPhotos creates mappings between an event log and a list of photo IDs.
 	AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error
+
+	LoadUserTimeData(
+		ctx context.Context,
+		userID int,
+		startTime time.Time,
+		endTime time.Time,
+		tags []string,
+		groupby GroupBy,
+		out *[]TimespanTagDurationPoint,
+	) error
 }
 
 type SQLxDB struct {

@@ -54,29 +54,6 @@ func (a GoalTargetColumn) IsValid() bool {
 	}
 }
 
-// GoalAggregationFunc defines what aggregation function is used to generate the current value of achieving a goal.
-type GoalAggregationFunc string
-
-const (
-	AggregationSum GoalAggregationFunc = "SUM"
-	AggregationAvg GoalAggregationFunc = "AVG"
-	AggregationMin GoalAggregationFunc = "MIN"
-	AggregationMax GoalAggregationFunc = "MAX"
-)
-
-var (
-	ErrInvalidGoalAggregation = errors.New("invalid goal aggregation")
-)
-
-func (a GoalAggregationFunc) IsValid() bool {
-	switch a {
-	case AggregationSum, AggregationAvg, AggregationMin, AggregationMax:
-		return true
-	default:
-		return false
-	}
-}
-
 // GoalValueComparison determines how the current goal value is compared to the target goal value.
 type GoalValueComparison string
 

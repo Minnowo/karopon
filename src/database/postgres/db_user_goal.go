@@ -96,7 +96,7 @@ func (db *PGDatabase) LoadUserGoalProgress(
 
 	switch userGoal.Aggregation() {
 	default:
-		return database.ErrInvalidGoalAggregation
+		return database.ErrInvalidAggregation
 	case database.AggregationSum:
 		aggSQL = "SUM"
 	case database.AggregationAvg:

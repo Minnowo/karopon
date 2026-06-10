@@ -1707,7 +1707,6 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		err = db.AddUserEventLogPhotos(ctx, logID, []int{id1})
 		require.Error(t, err)
 	})
-
 }
 
 func TestDB_Postgres(t *testing.T) {

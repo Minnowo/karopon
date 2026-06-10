@@ -22,6 +22,7 @@ import {
     TblUserDashboard,
     TblUserTagColor,
 } from './types';
+import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
 
 export class ApiError extends Error {
     public readonly status: number;
@@ -448,5 +449,15 @@ export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodL
         },
         method: 'POST',
         body: JSON.stringify(food),
+    });
+};
+
+export const ApiGetStatsTime = (query: StatsTimeRequest): Promise<TimespanTagDurationPoint[]> => {
+    return fetchJson(`${ApiBase}/api/stats/time`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(query),
     });
 };

@@ -240,9 +240,9 @@ func (u *TblUserGoal) TargetColumn() GoalTargetColumn {
 	return GoalTargetColumn(u.TargetCol)
 }
 
-func (u *TblUserGoal) Aggregation() GoalAggregationFunc {
+func (u *TblUserGoal) Aggregation() AggregationFunc {
 
-	return GoalAggregationFunc(u.AggregationType)
+	return AggregationFunc(u.AggregationType)
 }
 
 func (u *TblUserGoal) Comparison() GoalValueComparison {

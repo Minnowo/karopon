@@ -1,5 +1,7 @@
-import {useState} from 'preact/hooks';
-import {MacroTotals, Point2D, RangeTypeKeys, RangeType, NoInformationMessage} from './common';
+import {useMemo, useState} from 'preact/hooks';
+import {Point2D, NoInformationMessage, GraphStyle} from '../common';
+import {BaseGraphProps} from './common_props';
+import {GroupBy} from '../../../api/types_stats';
 
 const PolarToCartesian = (cx: number, cy: number, r: number, rad: number): Point2D => {
     return {
@@ -15,23 +17,40 @@ const DescribeArc = (x: number, y: number, r: number, startAngle: number, endAng
     return ['M', x, y, 'L', start.x, start.y, 'A', r, r, 0, largeArc, 0, end.x, end.y, 'Z'].join(' ');
 };
 
-type Props = {
-    data: MacroTotals;
+export type PieChartProps = BaseGraphProps & {
+    graphStyle?: GraphStyle;
+    onGraphStyleChange?: (s: GraphStyle) => void;
+
     size: number;
-    range: RangeType;
-    title: string;
-    setRange: (r: RangeType) => void;
 };
-export const PieChart = ({title, data, size, range, setRange}: Props) => {
+
+export const PieChart = ({
+    size,
+
+    data,
+    title,
+    timeRanges,
+    onTimeRangeChange,
+
+    curTimeRange,
+
+    precision = 1,
+}: PieChartProps) => {
     const [hoverText, setHoverText] = useState<string | null>(null);
 
-    const total = data.carbs + data.protein + data.fat + data.fibre;
-    const slices = [
-        {label: 'Fat', value: data.fat, color: 'var(--color-c-flamingo)'},
-        {label: 'NetCarbs', value: data.carbs, color: 'var(--color-c-yellow)'},
-        {label: 'Fibre', value: data.fibre, color: 'var(--color-c-sapphire)'},
-        {label: 'Protein', value: data.protein, color: 'var(--color-c-green)'},
-    ];
+    const slices = useMemo(
+        () =>
+            data.labels.map((label, i) => {
+                let value = 0;
+                for (const row of data.rows) {
+                    value += row.y[i] ?? 0;
+                }
+                return {label, value, color: data.colors[i]};
+            }),
+        [data]
+    );
+
+    const total = slices.reduce((sum, slice) => sum + slice.value, 0);
 
     let cumulative = 0;
 
@@ -48,16 +67,21 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
     return (
         <div className="flex flex-col">
             <h1 className="text-2xl mb-2">{title}</h1>
-            <div className="flex gap-4 mb-4">
-                {RangeTypeKeys.map((r) => (
-                    <button
-                        key={r}
-                        className={`px-3 py-1 border rounded ${range === r ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
-                        onClick={() => setRange(r as RangeType)}
+            <div className="flex flex-row flex-wrap justify-between">
+                <div className="flex gap-2 mb-4">
+                    <select
+                        className={`px-3 py-1`}
+                        value={curTimeRange}
+                        onInput={(e) => onTimeRangeChange(Number((e.target as HTMLSelectElement).value))}
                     >
-                        {r.toUpperCase()}
-                    </button>
-                ))}
+                        {timeRanges &&
+                            timeRanges.map((x, i) => (
+                                <option key={x.name} value={i}>
+                                    {x.name}
+                                </option>
+                            ))}
+                    </select>
+                </div>
             </div>
 
             {total === 0 ? (
@@ -90,7 +114,7 @@ export const PieChart = ({title, data, size, range, setRange}: Props) => {
                                 <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                                 <span className="text-sm">
                                     {slice.label} {((slice.value / total) * 100).toFixed(1)}
-                                    {'% '} {slice.value.toFixed(1)}g
+                                    {'% '} {slice.value.toFixed(precision)}g
                                 </span>
                             </div>
                         ))}

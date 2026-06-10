@@ -137,4 +137,5 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/dashboard/new", a.newUserDashboard)
 	post.HandleFunc("/dashboard/update", a.updateUserDashboard)
 	post.HandleFunc("/dashboard/delete", a.deleteUserDashboard)
+	post.HandleFunc("/stats/time", a.postStatsTime)
 }
