@@ -22,7 +22,7 @@ const hexContrastColor = (hex: string): string => {
         : '#ffffff';
 };
 
-export const TagChip = ({tag, color, onRemove = undefined}: Props) => {
+export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefined}: Props) => {
     const showDeleteButton = onRemove !== undefined;
     const spanRef = useRef<HTMLSpanElement>(null);
     const [cssVarTextColor, setCssVarTextColor] = useState<string | undefined>(undefined);
