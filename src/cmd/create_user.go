@@ -58,6 +58,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	user.EventHistoryFetchLimit = 50
 	user.InsulinSensitivityFactor = 3
 	user.TargetBloodSugar = 5.6
+	user.FillEventLogFromLast = false
 
 	if _, err := conn.AddUser(ctx, &user); err != nil {
 		return err

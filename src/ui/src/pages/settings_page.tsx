@@ -189,6 +189,15 @@ export function SettingsPage(state: BaseState) {
                 />
             </label>
 
+            <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-lg font-medium">Fill Events From Last Instance</span>
+                <FlipSwitch
+                    disabled={!isEditing}
+                    value={userRef.current.fill_eventlog_from_last}
+                    onValueChanged={(v) => update('fill_eventlog_from_last', v)}
+                />
+            </label>
+
             <div>
                 <div className="font-bold">Color Theme</div>
                 <select

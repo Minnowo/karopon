@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, useState} from 'preact/hooks';
+import {useCallback, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {
     CreateUserEventLog,
     InsertUserFoodLog,
@@ -29,6 +29,7 @@ type AddEventsPanelState = {
     user: TblUser;
     foods: TblUserFood[];
     events: TblUserEvent[];
+    eventlogs: UserEventFoodLog[];
     fromEvent: UserEventFoodLog;
     createEvent: (e: CreateUserEventLog) => void;
     onCancel: () => void;
@@ -81,27 +82,34 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         render();
     };
 
-    useLayoutEffect(() => {
-        setEvent(p.fromEvent.eventlog.event);
-        setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
-        setBloodSugar(p.fromEvent.eventlog.blood_glucose);
-        setInsulinToCarbRatio(p.fromEvent.eventlog.insulin_to_carb_ratio);
-        setInsulinTaken(p.fromEvent.eventlog.actual_insulin_taken);
-        setPhotos((prev) => {
-            for (const ph of prev) {
-                URL.revokeObjectURL(ph.url);
+    const setFromLastEvent = useCallback(
+        (fromEvent: UserEventFoodLog) => {
+            setEvent(fromEvent.eventlog.event);
+            setBloodSugar(fromEvent.eventlog.blood_glucose);
+            setInsulinToCarbRatio(fromEvent.eventlog.insulin_to_carb_ratio);
+            setInsulinTaken(fromEvent.eventlog.actual_insulin_taken);
+            setPhotos((prev) => {
+                for (const ph of prev) {
+                    URL.revokeObjectURL(ph.url);
+                }
+                return [];
+            });
+            foods.current = new Array<TblUserFoodLogWithKey>(fromEvent.foodlogs.length + trailingRows);
+            let i = 0;
+            for (; i < fromEvent.foodlogs.length; i++) {
+                foods.current[i] = {...fromEvent.foodlogs[i], key: --keyRef.current};
             }
-            return [];
-        });
-        foods.current = new Array<TblUserFoodLogWithKey>(p.fromEvent.foodlogs.length + trailingRows);
-        let i = 0;
-        for (; i < p.fromEvent.foodlogs.length; i++) {
-            foods.current[i] = {...p.fromEvent.foodlogs[i], key: --keyRef.current};
-        }
-        for (; i < foods.current.length; i++) {
-            foods.current[i] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
-        }
-    }, [p.fromEvent, p.copyDate, trailingRows]);
+            for (; i < foods.current.length; i++) {
+                foods.current[i] = {...TblUserFoodLogFactory.empty(), key: --keyRef.current};
+            }
+        },
+        [trailingRows]
+    );
+
+    useLayoutEffect(() => {
+        setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
+        setFromLastEvent(p.fromEvent);
+    }, [p.fromEvent, p.copyDate, setFromLastEvent]);
 
     const totals = (() => {
         const cols = [0, 0, 0, 0];
@@ -248,8 +256,18 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     placeholder="Event Name"
                     noResultsText="New Event"
                     onSelect={(evnt: TblUserEvent | null) => {
-                        if (evnt) {
-                            setEvent(evnt.name);
+                        if (!evnt) {
+                            return;
+                        }
+                        setEvent(evnt.name);
+
+                        if (p.user.fill_eventlog_from_last) {
+                            for (const lastEvt of p.eventlogs) {
+                                if (lastEvt.eventlog.event === evnt.name) {
+                                    setFromLastEvent(lastEvt);
+                                    break;
+                                }
+                            }
                         }
                     }}
                     autofocus={p.fromEvent.eventlog.event.trim() === ''}

@@ -40,6 +40,7 @@ type TblUser struct {
 	DateFormat               string            `db:"date_format"                 json:"date_format"`
 	EventLogTrailingRows     int               `db:"event_log_trailing_rows"     json:"event_log_trailing_rows"`
 	DayTimeOffsetSeconds     int               `db:"day_time_offset_seconds"     json:"day_time_offset_seconds"`
+	FillEventLogFromLast     bool              `db:"fill_eventlog_from_last"     json:"fill_eventlog_from_last"`
 }
 
 func (u *TblUser) Copy() *TblUser {
@@ -70,6 +71,7 @@ func (u *TblUser) Copy() *TblUser {
 		DateFormat:               u.DateFormat,
 		EventLogTrailingRows:     u.EventLogTrailingRows,
 		DayTimeOffsetSeconds:     u.DayTimeOffsetSeconds,
+		FillEventLogFromLast:     u.FillEventLogFromLast,
 	}
 }
 

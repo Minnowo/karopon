@@ -35,7 +35,8 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 				TIME_FORMAT,
 				DATE_FORMAT,
 				EVENT_LOG_TRAILING_ROWS,
-				DAY_TIME_OFFSET_SECONDS
+				DAY_TIME_OFFSET_SECONDS,
+				FILL_EVENTLOG_FROM_LAST
 			) VALUES (
 				:name, :password,
 				:theme, :show_diabetes, :caloric_calc_method,
@@ -44,7 +45,8 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 				:time_format,
 				:date_format,
 				:event_log_trailing_rows,
-				:day_time_offset_seconds
+				:day_time_offset_seconds,
+				:fill_eventlog_from_last
 			)
     	    RETURNING ID;
     	`
@@ -78,7 +80,8 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	TIME_FORMAT=:time_format,
 	DATE_FORMAT=:date_format,
 	EVENT_LOG_TRAILING_ROWS=:event_log_trailing_rows,
-	DAY_TIME_OFFSET_SECONDS=:day_time_offset_seconds
+	DAY_TIME_OFFSET_SECONDS=:day_time_offset_seconds,
+	FILL_EVENTLOG_FROM_LAST=:fill_eventlog_from_last
 	WHERE ID=:id
 	`
 

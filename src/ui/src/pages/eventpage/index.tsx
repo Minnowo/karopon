@@ -118,6 +118,7 @@ export const EventsPage = (state: BaseState) => {
                     user={state.user}
                     foods={state.foods}
                     events={state.events}
+                    eventlogs={state.eventlogs}
                     fromEvent={newEvent}
                     createEvent={onCreateEvent}
                     onCancel={() => setShowNewEventPanel(false)}
@@ -141,6 +142,7 @@ export const EventsPage = (state: BaseState) => {
                             user={state.user}
                             foods={state.foods}
                             events={state.events}
+                            eventlogs={state.eventlogs}
                             fromEvent={editEvent}
                             createEvent={(n: CreateUserEventLog) => onUpdateEvent(foodGroup.eventlog.id, n)}
                             onCancel={() => setEditEvent(UserEventFoodLogFactory.empty())}

@@ -51,6 +51,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		MaxHeaderBytes: 2 * constants.KB,
 	}
 
+	log.Info().Str("db", vendorStr).Str("conn", dbconn).Msg("connecting to db")
 	db, err := connection.ConnectStr(context.Background(), vendorStr, dbconn)
 
 	if err != nil {
