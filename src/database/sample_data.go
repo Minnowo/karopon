@@ -498,8 +498,8 @@ func CreateSampleData(ctx context.Context, db DB, username string) error {
 		},
 	}
 
-	for _, food := range foods {
-		food.Scale()
+	for i := range foods {
+		foods[i].Scale()
 	}
 	err := db.AddUserFoods(context.Background(), foods)
 
