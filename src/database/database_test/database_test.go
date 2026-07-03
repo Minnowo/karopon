@@ -1463,6 +1463,83 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, "food", tagged[0].Tags[0].Namespace)
 	})
 
+	t.Run("LoadUserTimeData", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		start := time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC)
+		stop := start.Add(2 * time.Hour)
+
+		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(start),
+			StopTime:  database.TimeMillis(stop),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "sleep"},
+		})
+		require.NoError(t, err)
+
+		// A second timespan, on a different day and a different tag, should not be counted
+		// towards the "activity:sleep" bucket for the day of the first timespan.
+		otherStart := start.AddDate(0, 0, 1)
+		_, err = db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(otherStart),
+			StopTime:  database.TimeMillis(otherStart.Add(time.Hour)),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "work"},
+		})
+		require.NoError(t, err)
+
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			start.Add(-time.Hour),
+			stop.Add(48*time.Hour),
+			[]string{"activity:sleep"},
+			database.GroupByDay,
+			&points,
+		))
+
+		require.Len(t, points, 1)
+		assert.Equal(t, "activity:sleep", points[0].Tag)
+		assert.Equal(t, int64(2*time.Hour/time.Millisecond), points[0].DurationMilli)
+
+		expectedBucket := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
+		assert.True(t, points[0].Bucket.Time().Equal(expectedBucket))
+	})
+
+	t.Run("LoadUserTimeData_no_tags", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			time.Now().Add(-time.Hour),
+			time.Now().Add(time.Hour),
+			nil,
+			database.GroupByDay,
+			&points,
+		))
+
+		assert.Empty(t, points)
+	})
+
 	t.Run("SetUserTimespanTags", func(t *testing.T) {
 
 		lock.Lock()
