@@ -236,22 +236,6 @@ export const App = () => {
 
             <Header user={user} />
 
-            <button
-                onClick={() =>
-                    ApiGetStatsTime({
-                        columns: [],
-                        start: 'now-10d',
-                        end: 'now-0d',
-                        groupby: 'HOUR',
-                        aggregate: 'SUM',
-                        tags: ['jp:anime'],
-                    })
-                }
-            >
-                {' '}
-                hello{' '}
-            </button>
-
             <div className="m-auto md:max-w-[800px]">
                 {(() => {
                     switch (hashRoute) {
