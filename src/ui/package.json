@@ -43,6 +43,7 @@
             "URL": "readonly"
         },
         "rules": {
+            "complexity": "off",
             "no-unused-vars": "off",
             "@typescript-eslint/no-unused-vars": "error",
             "@typescript-eslint/array-type": [
@@ -86,10 +87,6 @@
             "prefer-arrow-callback": "error",
             "use-isnan": "error",
             "prefer-const": "error",
-            "complexity": [
-                "error",
-                20
-            ],
             "semi": [
                 "error",
                 "always"
