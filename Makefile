@@ -38,7 +38,8 @@ format-go:
 	golangci-lint fmt || (gofmt -w -s . && goimports -w .)
 
 test: format-go generate
-	go test ./...
+	CGO_ENABLED=0 go test ./...
+	CGO_ENABLED=1 go test ./...
 
 test-race: format-go generate
 	go test -race ./... -v

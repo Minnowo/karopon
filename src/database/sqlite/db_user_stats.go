@@ -3,33 +3,37 @@ package sqlite
 import (
 	"context"
 	"karopon/src/database"
+	"sort"
 	"time"
 
 	"github.com/vinovest/sqlx"
 )
 
-// groupbyToSqliteBucket returns the SQLite expression (applied to the given column) that truncates a
-// datetime string to the start of its bucket, mirroring postgres' date_trunc(bucket, source) behaviour.
-func groupbyToSqliteBucket(groupby database.GroupBy, column string) string {
+// truncateToBucket truncates t (in UTC) to the start of the bucket it falls into, mirroring
+// postgres' date_trunc(bucket, source) behaviour.
+func truncateToBucket(t time.Time, groupby database.GroupBy) time.Time {
+
+	t = t.UTC()
 
 	switch groupby {
 	case database.GroupByOne:
-		return "'0000-01-01 00:00:00'"
+		return time.Time{}
 	case database.GroupBySecond:
-		return "strftime('%Y-%m-%d %H:%M:%S', " + column + ")"
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.UTC)
 	case database.GroupByMinute:
-		return "strftime('%Y-%m-%d %H:%M:00', " + column + ")"
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, time.UTC)
 	case database.GroupByHour:
-		return "strftime('%Y-%m-%d %H:00:00', " + column + ")"
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, time.UTC)
 	case database.GroupByDay:
-		return "strftime('%Y-%m-%d 00:00:00', " + column + ")"
+		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 	case database.GroupByWeek:
-		// Truncate to the Monday of the ISO week containing the column's date.
-		return "date(" + column + ", '-' || ((CAST(strftime('%w', " + column + ") AS INTEGER) + 6) % 7) || ' days') || ' 00:00:00'"
+		d := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+		offset := (int(d.Weekday()) + 6) % 7 // ISO week starts on Monday
+		return d.AddDate(0, 0, -offset)
 	case database.GroupByMonth:
-		return "strftime('%Y-%m-01 00:00:00', " + column + ")"
+		return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 	case database.GroupByYear:
-		return "strftime('%Y-01-01 00:00:00', " + column + ")"
+		return time.Date(t.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 	default:
 		panic("impossible group by")
 	}
@@ -49,13 +53,11 @@ func (db *SqliteDatabase) LoadUserTimeData(
 		return nil
 	}
 
-	bucket := groupbyToSqliteBucket(groupby, "ts.START_TIME")
-
 	sql := `
 		SELECT
-			t.NAMESPACE || ':' || t.NAME                                                AS TAG,
-			` + bucket + `                                                              AS BUCKET,
-			CAST(ROUND(SUM((julianday(ts.STOP_TIME) - julianday(ts.START_TIME)) * 86400000)) AS INTEGER) AS DURATION_MILLI
+			t.NAMESPACE || ':' || t.NAME AS TAG,
+			ts.START_TIME                AS START_TIME,
+			ts.STOP_TIME                 AS STOP_TIME
 
 		FROM PON_USER_TAG t
 
@@ -72,9 +74,6 @@ func (db *SqliteDatabase) LoadUserTimeData(
 			AND ts.USER_ID = ?
 			AND ts.START_TIME >= ?
 			AND ts.START_TIME <= ?
-
-		GROUP BY TAG, BUCKET
-		ORDER BY BUCKET ASC
 	`
 
 	query, args, err := sqlx.In(sql, tags, userID, userID, startTime.UTC(), endTime.UTC())
@@ -86,31 +85,42 @@ func (db *SqliteDatabase) LoadUserTimeData(
 	query = db.Rebind(query)
 
 	var rows []struct {
-		Tag           string `db:"tag"`
-		Bucket        string `db:"bucket"`
-		DurationMilli int64  `db:"duration_milli"`
+		Tag       string              `db:"tag"`
+		StartTime database.TimeMillis `db:"start_time"`
+		StopTime  database.TimeMillis `db:"stop_time"`
 	}
 
 	if err := db.SelectContext(ctx, &rows, query, args...); err != nil {
 		return err
 	}
 
-	points := make([]database.TimespanTagDurationPoint, len(rows))
-
-	for i, r := range rows {
-
-		bucket, err := time.ParseInLocation("2006-01-02 15:04:05", r.Bucket, time.UTC)
-
-		if err != nil {
-			return err
-		}
-
-		points[i] = database.TimespanTagDurationPoint{
-			Tag:           r.Tag,
-			Bucket:        database.TimeMillis(bucket),
-			DurationMilli: r.DurationMilli,
-		}
+	type bucketKey struct {
+		tag    string
+		bucket time.Time
 	}
+
+	sums := make(map[bucketKey]int64)
+
+	for _, r := range rows {
+
+		k := bucketKey{tag: r.Tag, bucket: truncateToBucket(r.StartTime.Time(), groupby)}
+
+		sums[k] += r.StopTime.Time().Sub(r.StartTime.Time()).Milliseconds()
+	}
+
+	points := make([]database.TimespanTagDurationPoint, 0, len(sums))
+
+	for k, durationMilli := range sums {
+		points = append(points, database.TimespanTagDurationPoint{
+			Tag:           k.tag,
+			Bucket:        database.TimeMillis(k.bucket),
+			DurationMilli: durationMilli,
+		})
+	}
+
+	sort.Slice(points, func(i, j int) bool {
+		return points[i].Bucket.Time().Before(points[j].Bucket.Time())
+	})
 
 	*out = points
 
