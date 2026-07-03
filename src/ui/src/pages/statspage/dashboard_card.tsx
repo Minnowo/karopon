@@ -84,7 +84,7 @@ export function DashboardCardComponent({
     const [timeRanges, setTimeRanges] = useState<TimeRange[]>(() =>
         card.timeRanges && card.timeRanges.length > 0 ? card.timeRanges : CommonRanges
     );
-    const [curTimeRange, setTimeRange] = useState<number>(card.curTimeRange ?? 0);
+    const [curTimeRange, setCurTimeRange] = useState<number>(card.curTimeRange ?? 0);
     const [groupBy, setGroupBy] = useState<GroupBy>(
         timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange
             ? timeRanges[curTimeRange].groupBy
@@ -111,9 +111,6 @@ export function DashboardCardComponent({
     }, [timeRanges, curTimeRange, dayOffsetSeconds]);
 
     useLayoutEffect(() => {
-        const tr =
-            timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange ? timeRanges[curTimeRange] : CommonRanges[0];
-
         switch (card.type) {
             case 'macros':
             case 'pie': {
@@ -336,6 +333,7 @@ export function DashboardCardComponent({
         rangeStartMs,
         rangeEndMs,
         caloricCalcMethod,
+        timespans,
     ]);
 
     useLayoutEffect(() => {
@@ -366,14 +364,14 @@ export function DashboardCardComponent({
         });
     };
 
-    const handleDisplayChange = (d: GraphDisplay) => {
-        setDisplay(d);
-        onUpdate({...card, display: d});
-    };
-
     const handleHiddenChange = (m: string[]) => {
         setHiddenLabels(m);
         onUpdate({...card, hiddenLabels: m});
+    };
+
+    const handleCurTimeRangeChange = (c: number) => {
+        setCurTimeRange(c);
+        onUpdate({...card, curTimeRange: c});
     };
 
     const graphStyle: GraphStyle = card.graphStyle ?? 'line';
@@ -386,7 +384,7 @@ export function DashboardCardComponent({
 
     const baseGraphProps = {
         curTimeRange,
-        onTimeRangeChange: setTimeRange,
+        onTimeRangeChange: handleCurTimeRangeChange,
         timeRanges,
         onTimeRangesChange: () => {
             /* TODO */
