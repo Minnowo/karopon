@@ -368,7 +368,25 @@ func (p *BaseMockDB) LoadUserTimespans(ctx context.Context, userID int, out *[]d
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) LoadUserTimespansN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.TblUserTimespan,
+) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]database.TaggedTimespan) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserTimespansWithTagsN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.TaggedTimespan,
+) error {
 	panic("not implemented")
 }
 

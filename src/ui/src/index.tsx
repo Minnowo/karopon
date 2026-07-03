@@ -183,7 +183,7 @@ export const App = () => {
                     ApiGetDataSources().then(setDataSources),
                     ApiGetUserGoals().then(setGoals),
                     ApiGetUserNamespaces().then(setNamespaces),
-                    ApiGetUserTimespans().then(setTimespans),
+                    ApiGetUserTimespans(me.timespan_history_fetch_limit).then(setTimespans),
                     ApiGetDashboards().then(setDashboards),
                     ApiGetUserTagColors().then(setTagColors),
                 ];

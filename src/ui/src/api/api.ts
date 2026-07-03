@@ -163,8 +163,8 @@ export const ApiGetUserNamespacesTags = (namespace: string, search: string): Pro
     return fetchJson(`${ApiBase}/api/tags/search?namespace=${encodedNamespace}&s=${encodedSearch}&limit=30`);
 };
 
-export const ApiGetUserTimespans = (): Promise<TaggedTimespan[]> => {
-    return fetchJson(`${ApiBase}/api/timespans/tagged`);
+export const ApiGetUserTimespans = (n = -1): Promise<TaggedTimespan[]> => {
+    return fetchJson(`${ApiBase}/api/timespans/tagged?n=${n}`);
 };
 
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {

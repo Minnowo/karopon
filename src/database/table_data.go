@@ -29,18 +29,19 @@ type TblUser struct {
 	Created  TimeMillis `db:"created"  json:"created"`
 
 	// settings
-	Theme                    string            `db:"theme"                       json:"theme"`
-	ShowDiabetes             bool              `db:"show_diabetes"               json:"show_diabetes"`
-	CaloricCalcMethod        CalorieCalcMethod `db:"caloric_calc_method"         json:"caloric_calc_method"`
-	InsulinSensitivityFactor float64           `db:"insulin_sensitivity_factor"  json:"insulin_sensitivity_factor"`
-	EventHistoryFetchLimit   int               `db:"event_history_fetch_limit"   json:"event_history_fetch_limit"`
-	TargetBloodSugar         float64           `db:"target_blood_sugar"          json:"target_blood_sugar"`
-	SessionExpireTimeSeconds int64             `db:"session_expire_time_seconds" json:"session_expire_time_seconds"`
-	TimeFormat               string            `db:"time_format"                 json:"time_format"`
-	DateFormat               string            `db:"date_format"                 json:"date_format"`
-	EventLogTrailingRows     int               `db:"event_log_trailing_rows"     json:"event_log_trailing_rows"`
-	DayTimeOffsetSeconds     int               `db:"day_time_offset_seconds"     json:"day_time_offset_seconds"`
-	FillEventLogFromLast     bool              `db:"fill_eventlog_from_last"     json:"fill_eventlog_from_last"`
+	Theme                     string            `db:"theme"                        json:"theme"`
+	ShowDiabetes              bool              `db:"show_diabetes"                json:"show_diabetes"`
+	CaloricCalcMethod         CalorieCalcMethod `db:"caloric_calc_method"          json:"caloric_calc_method"`
+	InsulinSensitivityFactor  float64           `db:"insulin_sensitivity_factor"   json:"insulin_sensitivity_factor"`
+	EventHistoryFetchLimit    int               `db:"event_history_fetch_limit"    json:"event_history_fetch_limit"`
+	TargetBloodSugar          float64           `db:"target_blood_sugar"           json:"target_blood_sugar"`
+	SessionExpireTimeSeconds  int64             `db:"session_expire_time_seconds"  json:"session_expire_time_seconds"`
+	TimeFormat                string            `db:"time_format"                  json:"time_format"`
+	DateFormat                string            `db:"date_format"                  json:"date_format"`
+	EventLogTrailingRows      int               `db:"event_log_trailing_rows"      json:"event_log_trailing_rows"`
+	DayTimeOffsetSeconds      int               `db:"day_time_offset_seconds"      json:"day_time_offset_seconds"`
+	FillEventLogFromLast      bool              `db:"fill_eventlog_from_last"      json:"fill_eventlog_from_last"`
+	TimespanHistoryFetchLimit int               `db:"timespan_history_fetch_limit" json:"timespan_history_fetch_limit"`
 }
 
 func (u *TblUser) Copy() *TblUser {
@@ -56,22 +57,23 @@ func (u *TblUser) Copy() *TblUser {
 	}
 
 	return &TblUser{
-		ID:                       u.ID,
-		Name:                     u.Name,
-		Password:                 pw,
-		Created:                  u.Created,
-		Theme:                    u.Theme,
-		ShowDiabetes:             u.ShowDiabetes,
-		CaloricCalcMethod:        u.CaloricCalcMethod,
-		InsulinSensitivityFactor: u.InsulinSensitivityFactor,
-		EventHistoryFetchLimit:   u.EventHistoryFetchLimit,
-		TargetBloodSugar:         u.TargetBloodSugar,
-		SessionExpireTimeSeconds: u.SessionExpireTimeSeconds,
-		TimeFormat:               u.TimeFormat,
-		DateFormat:               u.DateFormat,
-		EventLogTrailingRows:     u.EventLogTrailingRows,
-		DayTimeOffsetSeconds:     u.DayTimeOffsetSeconds,
-		FillEventLogFromLast:     u.FillEventLogFromLast,
+		ID:                        u.ID,
+		Name:                      u.Name,
+		Password:                  pw,
+		Created:                   u.Created,
+		Theme:                     u.Theme,
+		ShowDiabetes:              u.ShowDiabetes,
+		CaloricCalcMethod:         u.CaloricCalcMethod,
+		InsulinSensitivityFactor:  u.InsulinSensitivityFactor,
+		EventHistoryFetchLimit:    u.EventHistoryFetchLimit,
+		TargetBloodSugar:          u.TargetBloodSugar,
+		SessionExpireTimeSeconds:  u.SessionExpireTimeSeconds,
+		TimeFormat:                u.TimeFormat,
+		DateFormat:                u.DateFormat,
+		EventLogTrailingRows:      u.EventLogTrailingRows,
+		DayTimeOffsetSeconds:      u.DayTimeOffsetSeconds,
+		FillEventLogFromLast:      u.FillEventLogFromLast,
+		TimespanHistoryFetchLimit: u.TimespanHistoryFetchLimit,
 	}
 }
 

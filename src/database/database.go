@@ -287,7 +287,9 @@ type DB interface {
 	DeleteUserTimespan(ctx context.Context, userID int, tsID int) error
 	UpdateUserTimespan(ctx context.Context, ts *TblUserTimespan) error
 	LoadUserTimespans(ctx context.Context, userID int, out *[]TblUserTimespan) error
+	LoadUserTimespansN(ctx context.Context, userID int, n int, out *[]TblUserTimespan) error
 	LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]TaggedTimespan) error
+	LoadUserTimespansWithTagsN(ctx context.Context, userID int, n int, out *[]TaggedTimespan) error
 
 	// SetUserTimespanTags removes all tags from the timestamp and sets the given tags onto it.
 	// Any tags that do not exist are created for the given userID.

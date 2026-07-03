@@ -60,6 +60,7 @@ func CmdCreateUser(ctx context.Context, c *cli.Command) error {
 	user.InsulinSensitivityFactor = 3
 	user.TargetBloodSugar = 5.6
 	user.FillEventLogFromLast = false
+	user.TimespanHistoryFetchLimit = 50
 	user.SessionExpireTimeSeconds = int64(time.Duration(time.Hour * 24 * 10).Seconds())
 
 	if _, err := conn.AddUser(ctx, &user); err != nil {

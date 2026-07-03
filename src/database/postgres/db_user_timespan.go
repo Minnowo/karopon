@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"karopon/src/database"
+	"math"
 	"sort"
 
 	"github.com/vinovest/sqlx"
@@ -73,16 +74,35 @@ func (db *PGDatabase) UpdateUserTimespan(ctx context.Context, ts *database.TblUs
 }
 
 func (db *PGDatabase) LoadUserTimespans(ctx context.Context, userID int, out *[]database.TblUserTimespan) error {
+	return db.LoadUserTimespansN(ctx, userID, math.MaxInt, out)
+}
+
+func (db *PGDatabase) LoadUserTimespansN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.TblUserTimespan,
+) error {
 	query := `
 		SELECT * FROM PON.USER_TIMESPAN
 		WHERE USER_ID = $1
 		ORDER BY START_TIME DESC
+		LIMIT $2
 	`
 
-	return db.SelectContext(ctx, out, query, userID)
+	return db.SelectContext(ctx, out, query, userID, n)
 }
 
 func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]database.TaggedTimespan) error {
+	return db.LoadUserTimespansWithTagsN(ctx, userID, math.MaxInt, out)
+}
+
+func (db *PGDatabase) LoadUserTimespansWithTagsN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.TaggedTimespan,
+) error {
 
 	var results []struct {
 		database.TblUserTimespan
@@ -114,10 +134,11 @@ func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int,
 		)
 		WHERE ut.USER_ID = $1
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
-		ORDER BY ut.START_TIME DESC;
+		ORDER BY ut.START_TIME DESC
+		LIMIT $2;
 	`
 
-	err := db.SelectContext(ctx, &results, query, userID)
+	err := db.SelectContext(ctx, &results, query, userID, n)
 
 	if err != nil {
 		return err

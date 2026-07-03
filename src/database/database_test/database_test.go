@@ -1340,6 +1340,30 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, "updated", *timespans[0].Note)
 	})
 
+	t.Run("LoadUserTimespansN", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		for range 3 {
+			_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+				UserID:    userID,
+				StartTime: database.TimeMillis(time.Now()),
+				StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			}, nil)
+			require.NoError(t, err)
+		}
+
+		var timespans []database.TblUserTimespan
+		require.NoError(t, db.LoadUserTimespansN(ctx, userID, 2, &timespans))
+		assert.Len(t, timespans, 2)
+	})
+
 	t.Run("LoadUserTimespansWithTags", func(t *testing.T) {
 
 		lock.Lock()
@@ -1369,6 +1393,30 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, note, *tagged[0].Timespan.Note)
 		assert.Equal(t, "Egg", tagged[0].Tags[0].Name)
 		assert.Equal(t, "food", tagged[0].Tags[0].Namespace)
+	})
+
+	t.Run("LoadUserTimespansWithTagsN", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		for range 3 {
+			_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+				UserID:    userID,
+				StartTime: database.TimeMillis(time.Now()),
+				StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			}, nil)
+			require.NoError(t, err)
+		}
+
+		var tagged []database.TaggedTimespan
+		require.NoError(t, db.LoadUserTimespansWithTagsN(ctx, userID, 2, &tagged))
+		assert.Len(t, tagged, 2)
 	})
 
 	t.Run("LoadUserTimespansWithTags_permission_check", func(t *testing.T) {

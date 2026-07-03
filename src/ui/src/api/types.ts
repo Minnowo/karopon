@@ -17,6 +17,7 @@ export type TblUser = {
     event_log_trailing_rows: number;
     day_time_offset_seconds: number;
     fill_eventlog_from_last: boolean;
+    timespan_history_fetch_limit: number;
 };
 
 export type TblUpdateUser = {

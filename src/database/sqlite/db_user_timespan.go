@@ -75,18 +75,37 @@ func (db *SqliteDatabase) UpdateUserTimespan(ctx context.Context, ts *database.T
 }
 
 func (db *SqliteDatabase) LoadUserTimespans(ctx context.Context, userID int, out *[]database.TblUserTimespan) error {
+	return db.LoadUserTimespansN(ctx, userID, -1, out)
+}
+
+func (db *SqliteDatabase) LoadUserTimespansN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.TblUserTimespan,
+) error {
 	query := `
 		SELECT * FROM PON_USER_TIMESPAN
 		WHERE USER_ID = $1
 		ORDER BY START_TIME DESC
+		LIMIT $2
 	`
 
-	return db.SelectContext(ctx, out, query, userID)
+	return db.SelectContext(ctx, out, query, userID, n)
 }
 
 func (db *SqliteDatabase) LoadUserTimespansWithTags(
 	ctx context.Context,
 	userID int,
+	out *[]database.TaggedTimespan,
+) error {
+	return db.LoadUserTimespansWithTagsN(ctx, userID, -1, out)
+}
+
+func (db *SqliteDatabase) LoadUserTimespansWithTagsN(
+	ctx context.Context,
+	userID int,
+	n int,
 	out *[]database.TaggedTimespan,
 ) error {
 
@@ -122,10 +141,11 @@ func (db *SqliteDatabase) LoadUserTimespansWithTags(
 		)
 		WHERE ut.USER_ID = $1
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
-		ORDER BY ut.START_TIME DESC;
+		ORDER BY ut.START_TIME DESC
+		LIMIT $2;
 	`
 
-	err := db.SelectContext(ctx, &results, query, userID)
+	err := db.SelectContext(ctx, &results, query, userID, n)
 
 	if err != nil {
 		return err
