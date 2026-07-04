@@ -1,6 +1,5 @@
 // in go, this is database.GroupBy
 export enum GroupBy {
-    One = 'ONE',
     Second = 'SECOND',
     Minute = 'MINUTE',
     Hour = 'HOUR',
@@ -8,6 +7,7 @@ export enum GroupBy {
     Week = 'WEEK',
     Month = 'MONTH',
     Year = 'YEAR',
+    One = 'ONE',
 }
 
 // in go, this is database.AggregationFunc

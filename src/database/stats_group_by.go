@@ -9,9 +9,6 @@ var (
 type GroupBy string
 
 const (
-	// GroupByOne means to group everything into the same bucket
-	GroupByOne GroupBy = "ONE"
-
 	GroupBySecond GroupBy = "SECOND"
 	GroupByMinute GroupBy = "MINUTE"
 	GroupByHour   GroupBy = "HOUR"
@@ -19,12 +16,15 @@ const (
 	GroupByWeek   GroupBy = "WEEK"
 	GroupByMonth  GroupBy = "MONTH"
 	GroupByYear   GroupBy = "YEAR"
+
+	// GroupByOne means to group everything into the same bucket
+	GroupByOne GroupBy = "ONE"
 )
 
 func (s GroupBy) IsValid() bool {
 	switch s {
-	case GroupByOne, GroupBySecond, GroupByMinute, GroupByHour, GroupByDay,
-		GroupByWeek, GroupByMonth, GroupByYear:
+	case GroupBySecond, GroupByMinute, GroupByHour, GroupByDay,
+		GroupByWeek, GroupByMonth, GroupByYear, GroupByOne:
 		return true
 	default:
 		return false
