@@ -253,7 +253,7 @@ export function StackedBarGraph2({
                                                     }}
                                                 />
                                                 <span>
-                                                    {k}: {val.toFixed(precision)} ({pct}%)
+                                                    {data.labels[k]}: {val.toFixed(precision)} ({pct}%)
                                                 </span>
                                             </div>
                                         );
