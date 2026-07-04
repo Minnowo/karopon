@@ -1,8 +1,7 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform} from './graph';
+import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform, BaseGraphProps} from './graph';
 import {GraphStyleKeys, NoInformationMessage} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
-import {MultiLineGraph2Props} from './graph_line_multi2';
 import {GroupBy} from '../../api/types_stats';
 
 const CHART_HEIGHT = 300;
@@ -44,7 +43,7 @@ export function StackedBarGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
-}: MultiLineGraph2Props) {
+}: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(window.innerWidth);
     const [clickedIdx, setClickedIdx] = useState<number | null>(null);

@@ -1,15 +1,10 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform, BaseGraphProps} from './graph';
-import {NoInformationMessage, GraphStyle, GraphStyleKeys} from './common';
+import {NoInformationMessage, GraphStyleKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {GroupBy} from '../../api/types_stats';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
-
-export type MultiLineGraph2Props = BaseGraphProps & {
-    graphStyle?: GraphStyle;
-    onGraphStyleChange?: (s: GraphStyle) => void;
-};
 
 export function MultiLineGraph2({
     data,
@@ -32,7 +27,7 @@ export function MultiLineGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
-}: MultiLineGraph2Props) {
+}: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
 

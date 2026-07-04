@@ -6,6 +6,7 @@ import {PieChart} from './graph_pie_chart';
 import {MultiLineGraph2} from './graph_line_multi2';
 import {StackedBarGraph2} from './graph_bar_stacked2';
 import {LineSingleGraph2} from './graph_line_single2';
+import {TableGraph2} from './graph_table';
 import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
@@ -383,7 +384,7 @@ export function DashboardCardComponent({
         onUpdate({...card, graphStyle: s});
     };
 
-    const MultiSeriesGraph2 = graphStyle === 'bar' ? StackedBarGraph2 : MultiLineGraph2;
+    const MultiSeriesGraph2 = graphStyle === 'bar' ? StackedBarGraph2 : graphStyle === 'table' ? TableGraph2 : MultiLineGraph2;
 
     const baseGraphProps = {
         curTimeRange,
@@ -409,7 +410,7 @@ export function DashboardCardComponent({
 
         const precision = PRECISION_BY_TYPE[card.type];
 
-        if (MULTI_SERIES_TYPES.includes(card.type)) {
+        if (MULTI_SERIES_TYPES.includes(card.type) || graphStyle !== 'line') {
             return (
                 <MultiSeriesGraph2
                     title={title}
@@ -422,7 +423,16 @@ export function DashboardCardComponent({
             );
         }
 
-        return <LineSingleGraph2 title={title} data={chartData} precision={precision} {...baseGraphProps} />;
+        return (
+            <LineSingleGraph2
+                title={title}
+                data={chartData}
+                precision={precision}
+                graphStyle={graphStyle}
+                onGraphStyleChange={handleGraphStyleChange}
+                {...baseGraphProps}
+            />
+        );
     };
 
     return (

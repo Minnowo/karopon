@@ -1,10 +1,8 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
-import {NoInformationMessage} from './common';
+import {GraphStyleKeys, NoInformationMessage} from './common';
 import {FormatXLabel, BaseGraphProps, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform} from './graph';
 import {GroupBy} from '../../api/types_stats';
-
-export type LineSingleGraph2Props = BaseGraphProps;
 
 export function LineSingleGraph2({
     data,
@@ -22,7 +20,9 @@ export function LineSingleGraph2({
     onAggregationFunc,
 
     precision = 1,
-}: LineSingleGraph2Props) {
+    graphStyle,
+    onGraphStyleChange,
+}: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
 
@@ -119,6 +119,19 @@ export function LineSingleGraph2({
                         ))}
                     </select>
                 </div>
+                {onGraphStyleChange && (
+                    <div className="flex gap-2 mb-4">
+                        {GraphStyleKeys.map((s) => (
+                            <button
+                                key={s}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                onClick={() => onGraphStyleChange(s)}
+                            >
+                                {s.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
             {data.rows.length === 0 ? (
                 <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>

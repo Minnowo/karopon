@@ -40,7 +40,7 @@ export type ChartType =
     | 'steps'
     | 'time';
 
-export const GraphStyleKeys = ['line', 'bar'] as const;
+export const GraphStyleKeys = ['line', 'bar', 'table'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
 
 export type TimeRange = {

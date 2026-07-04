@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'preact/hooks';
-import {NoInformationMessage, GraphStyle} from './common';
+import {NoInformationMessage} from './common';
 import {BaseGraphProps} from './graph';
 
 type Point2D = {
@@ -21,9 +21,6 @@ const DescribeArc = (x: number, y: number, r: number, startAngle: number, endAng
 };
 
 export type PieChartProps = BaseGraphProps & {
-    graphStyle?: GraphStyle;
-    onGraphStyleChange?: (s: GraphStyle) => void;
-
     size: number;
 };
 

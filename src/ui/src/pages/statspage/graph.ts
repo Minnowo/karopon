@@ -1,9 +1,12 @@
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
-import {TimeRange, ChartData} from './common';
+import {TimeRange, ChartData, GraphStyle} from './common';
 import {DAY_IN_MS} from '../../utils/time';
 
 export type BaseGraphProps = {
     title: string;
+
+    graphStyle?: GraphStyle;
+    onGraphStyleChange?: (s: GraphStyle) => void;
 
     timeRanges: TimeRange[];
     onTimeRangesChange: (range: TimeRange) => void;
