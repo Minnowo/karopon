@@ -18,7 +18,7 @@ export const BuildMacroChartData = (
 
     const buckets = new Map<number, DataRow>();
 
-    for (let i = 0; i < rows.length; i++) {
+    for (let i = rows.length - 1; i >= 0; i--) {
         const row = rows[i];
 
         if (row.eventlog.user_time < rangeStartMs || row.eventlog.user_time > rangeEndMs) {

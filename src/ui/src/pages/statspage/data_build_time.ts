@@ -73,7 +73,8 @@ export const BuildTimeChartData = (
     const selectedSet = new Set(selectedTags);
     const buckets = new Map<number, Map<string, {n: number; total: number}>>();
 
-    for (const {timespan, tags} of spans) {
+    for (let i = spans.length - 1; i >= 0; i--) {
+        const {timespan, tags} = spans[i];
         if (timespan.stop_time <= timespan.start_time) {
             continue;
         }

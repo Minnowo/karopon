@@ -14,7 +14,8 @@ export const BuildChartData = (
 ): ChartData => {
     const buckets = new Map<number, {n: number; v: number}>();
 
-    for (const event of events) {
+    for (let i = events.length - 1; i >= 0; i--) {
+        const event = events[i];
         const t = event.eventlog.user_time;
 
         if (t < rangeStartMs || t > rangeEndMs) {
@@ -87,7 +88,8 @@ export const BuildBodyLogChartData = (
 ): ChartData => {
     const buckets = new Map<number, {n: number; v: number}>();
 
-    for (const log of logs) {
+    for (let i = logs.length - 1; i >= 0; i--) {
+        const log = logs[i];
         if (log.user_time < rangeStartMs || log.user_time > rangeEndMs) {
             continue;
         }
@@ -163,7 +165,8 @@ export const BuildBpChartData = (
 
     const buckets = new Map<number, {n: number; y: Float32Array}>();
 
-    for (const log of logs) {
+    for (let i = logs.length - 1; i >= 0; i--) {
+        const log = logs[i];
         if (log.user_time < rangeStartMs || log.user_time > rangeEndMs) {
             continue;
         }
