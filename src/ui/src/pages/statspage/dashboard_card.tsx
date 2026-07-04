@@ -370,6 +370,11 @@ export function DashboardCardComponent({
     };
 
     const handleCurTimeRangeChange = (c: number) => {
+        if (c >= 0 && c < timeRanges.length) {
+            const r = timeRanges[c];
+            setGroupBy(r.groupBy);
+            setAggregationFunc(r.aggregationFunc);
+        }
         setCurTimeRange(c);
         onUpdate({...card, curTimeRange: c});
     };
