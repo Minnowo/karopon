@@ -1,8 +1,9 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, GroupTypeKeys, GraphStyleKeys, NoInformationMessage, RangeTypeKeys} from '../common';
-import {useDebouncedCallback} from '../../../hooks/useDebounce';
+import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform} from './graph';
+import {GraphStyleKeys, NoInformationMessage} from './common';
+import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {MultiLineGraph2Props} from './graph_line_multi2';
-import {GroupBy} from '../../../api/types_stats';
+import {GroupBy} from '../../api/types_stats';
 
 const CHART_HEIGHT = 300;
 const PAD = 40;
@@ -95,7 +96,7 @@ export function StackedBarGraph2({
         })();
 
         const n = data.rows.length;
-        const slotW = (width - PAD * 2) / n;
+        const slotW = (width - PAD) / n;
         const barW = slotW * BAR_FILL_RATIO;
         const innerH = CHART_HEIGHT - PAD * 2;
 
@@ -123,6 +124,18 @@ export function StackedBarGraph2({
             return {x: row.x, barX, barW, segments, total: cumulative, totalLabelY, vals: row.y};
         });
     }, [data, visibleCols, width]);
+
+    const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const tiltLabels = useMemo(
+        () =>
+            ShouldTiltXLabels(
+                bars.map(({x}) => FormatXLabel(x, groupBy)),
+                data.rows.length > 0 ? (width - PAD * 2) / data.rows.length - chartFontSize / 2 : width,
+                chartFontSize
+            ),
+        [bars, groupBy, chartFontSize, data.rows.length, width]
+    );
 
     const clickedBar = clickedIdx !== null ? bars[clickedIdx] : null;
     const tooltipLeft = clickedBar
@@ -182,7 +195,7 @@ export function StackedBarGraph2({
                     <div className="relative">
                         <svg
                             width={width}
-                            height={CHART_HEIGHT}
+                            height={CHART_HEIGHT + (tiltLabels ? chartFontSize : 0)}
                             viewBox={`0 0 ${width + PAD} ${CHART_HEIGHT}`}
                             preserveAspectRatio="xMinYMin meet"
                             className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
@@ -205,19 +218,27 @@ export function StackedBarGraph2({
                                         x={barX + barW / 2}
                                         y={totalLabelY}
                                         fill="currentColor"
-                                        fontSize="9"
-                                        textAnchor="middle"
+                                        className="text-chart-sm"
+                                        text-anchor="middle"
                                     >
                                         {total.toFixed(precision)}
                                     </text>
                                     <text
-                                        x={barX + barW / 2}
-                                        y={CHART_HEIGHT - 5}
                                         fill="currentColor"
-                                        fontSize="10"
-                                        textAnchor="middle"
+                                        className="text-chart"
+                                        text-anchor={tiltLabels ? 'end' : 'middle'}
+                                        transform={
+                                            tiltLabels
+                                                ? TiltedLabelTransform(
+                                                      tiltLabels ? barX + barW : barX + barW / 2,
+                                                      CHART_HEIGHT - 20
+                                                  )
+                                                : undefined
+                                        }
+                                        x={tiltLabels ? barX + barW : barX + barW / 2}
+                                        y={tiltLabels ? CHART_HEIGHT - 20 : CHART_HEIGHT - 5}
                                     >
-                                        {FormatXLabel(x, '24 hours')}
+                                        {FormatXLabel(x, groupBy)}
                                     </text>
                                 </g>
                             ))}

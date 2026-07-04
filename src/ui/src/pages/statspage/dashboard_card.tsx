@@ -1,16 +1,15 @@
 import {Dispatch, StateUpdater, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
-import {CommonRanges, DashboardCard, GraphDisplay, GraphStyle, TimeRange} from './common';
-import {PieChart} from './graphs/graph_pie_chart';
-import {MultiLineGraph2} from './graphs/graph_line_multi2';
-import {StackedBarGraph2} from './graphs/graph_bar_stacked2';
-import {LineSingleGraph2} from './graphs/graph_line_single2';
+import {ChartData, CommonRanges, DashboardCard, GraphStyle, TimeRange} from './common';
+import {PieChart} from './graph_pie_chart';
+import {MultiLineGraph2} from './graph_line_multi2';
+import {StackedBarGraph2} from './graph_bar_stacked2';
+import {LineSingleGraph2} from './graph_line_single2';
 import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
-import {ChartData} from './graphs/common_props';
-import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
+import {BuildTimeChartData} from './data_build_time';
 import {BuildChartData, BuildBodyLogChartData, BuildBpChartData} from './data_build_other';
 import {BuildMacroChartData} from './data_build_macros';
 import {ParseRelativeTimeExpr} from './data_build';
@@ -77,7 +76,6 @@ export function DashboardCardComponent({
     onMoveDown,
 }: DashboardCardProps) {
     const thisRef = useRef<HTMLDivElement>(null);
-    const [display, setDisplay] = useState<GraphDisplay>(card.display);
 
     const [hiddenLabels, setHiddenLabels] = useState<string[]>(card.hiddenLabels ?? []);
 

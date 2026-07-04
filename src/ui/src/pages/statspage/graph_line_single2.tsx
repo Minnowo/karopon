@@ -1,8 +1,8 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {useDebouncedCallback} from '../../../hooks/useDebounce';
-import {FormatXLabel, NoInformationMessage} from '../common';
-import {BaseGraphProps} from './common_props';
-import {GroupBy} from '../../../api/types_stats';
+import {useDebouncedCallback} from '../../hooks/useDebounce';
+import {NoInformationMessage} from './common';
+import {FormatXLabel, BaseGraphProps, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform} from './graph';
+import {GroupBy} from '../../api/types_stats';
 
 export type LineSingleGraph2Props = BaseGraphProps;
 
@@ -74,6 +74,20 @@ export function LineSingleGraph2({
         });
     }, [data, values, maxVal, width]);
 
+    const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
+    console.info(chartFontSize, tickSpacing);
+    const tiltLabels = useMemo(
+        () =>
+            ShouldTiltXLabels(
+                data.rows.map((d) => FormatXLabel(d.x, groupBy)),
+                tickSpacing,
+                chartFontSize
+            ),
+        [data.rows, groupBy, tickSpacing, chartFontSize]
+    );
+
     return (
         <div ref={containerRef} className="w-full">
             <h1 className="text-2xl mb-2">{title}</h1>
@@ -111,7 +125,7 @@ export function LineSingleGraph2({
             ) : (
                 <svg
                     width={width}
-                    height={height}
+                    height={height + (tiltLabels ? chartFontSize : 0)}
                     viewBox={`0 0 ${width + pad} ${height}`}
                     preserveAspectRatio="xMinYMin meet"
                     className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
@@ -120,16 +134,29 @@ export function LineSingleGraph2({
                     {points.map((p) => (
                         <g key={p.date}>
                             <circle cx={p.x} cy={p.y} r="5" fill={color} />
-                            <text x={p.x} y={p.y - 10} fill={color} fontSize="10" textAnchor="middle">
+                            <text x={p.x + 5} y={p.y - 10} fill={color} className="text-chart-sm" text-anchor="start">
                                 {p.value.toFixed(precision)}
                             </text>
                         </g>
                     ))}
-                    {points.map((p) => (
-                        <text key={`${p.date}-x`} x={p.x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
-                            {FormatXLabel(p.date, '24 hours')}
-                        </text>
-                    ))}
+                    {points.map((p) => {
+                        const label = FormatXLabel(p.date, groupBy);
+                        return (
+                            <text
+                                key={`${p.date}-x`}
+                                fill="currentColor"
+                                className="text-chart"
+                                text-anchor={tiltLabels ? 'end' : 'start'}
+                                transform={
+                                    tiltLabels ? TiltedLabelTransform(p.x + chartFontSize, height - chartFontSize) : undefined
+                                }
+                                x={tiltLabels ? p.x + chartFontSize : p.x - chartFontSize / 2}
+                                y={tiltLabels ? height - chartFontSize : height + 5}
+                            >
+                                {label}
+                            </text>
+                        );
+                    })}
                 </svg>
             )}
         </div>

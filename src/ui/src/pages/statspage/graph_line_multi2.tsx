@@ -1,8 +1,8 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, GraphStyle, GraphStyleKeys, NoInformationMessage} from '../common';
-import {useDebouncedCallback} from '../../../hooks/useDebounce';
-import {BaseGraphProps} from './common_props';
-import {GroupBy} from '../../../api/types_stats';
+import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform, BaseGraphProps} from './graph';
+import {NoInformationMessage, GraphStyle, GraphStyleKeys} from './common';
+import {useDebouncedCallback} from '../../hooks/useDebounce';
+import {GroupBy} from '../../api/types_stats';
 
 type GraphPoint = {x: number; y: number; value: number; date: number};
 
@@ -92,6 +92,19 @@ export function MultiLineGraph2({
         return l;
     }, [data, width, maxVal, visibleCols]);
 
+    const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
+    const tiltLabels = useMemo(
+        () =>
+            ShouldTiltXLabels(
+                data.rows.map((d) => FormatXLabel(d.x, groupBy)),
+                tickSpacing,
+                chartFontSize
+            ),
+        [data.rows, groupBy, tickSpacing, chartFontSize]
+    );
+
     const labelPositions = useMemo(() => {
         const positions: Record<string, Map<number, number>> = {};
         const xBuckets = new Map<number, Array<{key: number; y: number}>>();
@@ -174,7 +187,7 @@ export function MultiLineGraph2({
                 <>
                     <svg
                         width={width}
-                        height={height}
+                        height={height + (tiltLabels ? chartFontSize : 0)}
                         viewBox={`0 0 ${width + pad} ${height}`}
                         preserveAspectRatio="xMinYMin meet"
                         className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
@@ -198,8 +211,8 @@ export function MultiLineGraph2({
                                                     x={p.x + 5}
                                                     y={adjustedY - 5}
                                                     fill={data.colors[key]}
-                                                    fontSize="10"
-                                                    textAnchor="end"
+                                                    className="text-chart-sm"
+                                                    text-anchor="start"
                                                 >
                                                     {p.value.toFixed(precision)}
                                                 </text>
@@ -212,9 +225,20 @@ export function MultiLineGraph2({
 
                         {data.rows.map((d, i) => {
                             const x = data.rows.length <= 1 ? width / 2 : pad + (i / (data.rows.length - 1)) * (width - pad * 2);
+                            const label = FormatXLabel(d.x, groupBy);
                             return (
-                                <text key={`${d.x}-x`} x={x} y={height - 5} fill="currentColor" fontSize="10" textAnchor="end">
-                                    {FormatXLabel(d.x, '24 hours')}
+                                <text
+                                    key={`${d.x}-x`}
+                                    fill="currentColor"
+                                    className="text-chart"
+                                    text-anchor={tiltLabels ? 'end' : 'start'}
+                                    transform={
+                                        tiltLabels ? TiltedLabelTransform(x + chartFontSize, height - chartFontSize) : undefined
+                                    }
+                                    x={tiltLabels ? x + chartFontSize : x - chartFontSize / 2}
+                                    y={tiltLabels ? height - chartFontSize : height + 5}
+                                >
+                                    {label}
                                 </text>
                             );
                         })}

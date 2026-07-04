@@ -1,8 +1,11 @@
 import {useMemo, useState} from 'preact/hooks';
-import {Point2D, NoInformationMessage, GraphStyle} from '../common';
-import {BaseGraphProps} from './common_props';
-import {GroupBy} from '../../../api/types_stats';
+import {NoInformationMessage, GraphStyle} from './common';
+import {BaseGraphProps} from './graph';
 
+type Point2D = {
+    x: number;
+    y: number;
+};
 const PolarToCartesian = (cx: number, cy: number, r: number, rad: number): Point2D => {
     return {
         x: cx + r * Math.cos(rad - Math.PI / 2),
