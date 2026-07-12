@@ -66,6 +66,13 @@ run: format generate
 docker-pg:
 	docker run -d --name postgres-karopon -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
 
+docker-mount-android:
+	docker run -it --rm \
+		-v "$(PWD):/workspace" \
+		-v "$(PWD)/.gradle:/root/.gradle" \
+		-v "$(PWD)/.go-mod-cache:/opt/gopath/pkg/mod" \
+		karopon-android-build bash
+
 .PHONY: release
 release:
 	docker build -t karopon:build -f docker/Dockerfile.build docker

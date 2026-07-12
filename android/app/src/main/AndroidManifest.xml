@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Required even for the Go server's loopback (127.0.0.1) socket -
+         Android denies AF_INET socket creation entirely without it. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:label="Karopon"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+        android:usesCleartextTraffic="true"
+        android:allowBackup="true">
+
+        <!-- usesCleartextTraffic is required because the WebView talks to the
+             embedded Go server over plain http://127.0.0.1, and Android
+             blocks cleartext traffic by default from API 28 onward. -->
+
+        <activity
+            android:name="cc.headpats.karopon.MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

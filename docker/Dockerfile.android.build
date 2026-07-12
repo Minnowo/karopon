@@ -1,0 +1,59 @@
+FROM eclipse-temurin:17-jdk-jammy
+
+ENV GO_VERSION=1.25.0
+ENV GRADLE_VERSION=8.9
+
+# Can be found scrolling down on this page:
+# https://developer.android.com/studio/index.html#command-tools
+ARG ANDROID_SDK_FILENAME=commandlinetools-linux-11076708_latest.zip
+WORKDIR /opt
+
+# The '--reinstall' combined with 'build-essential' is necessary for cgo
+# compilation of go std libs (and, here, sqlite3's C amalgamation) to work.
+RUN apt-get update && \
+    apt-get install --reinstall --no-install-recommends -y build-essential gcc unzip git curl nodejs npm
+
+# Install Go
+RUN curl -fsSL -o go.tar.gz https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -zxf go.tar.gz && \
+    rm go.tar.gz
+
+ENV GOROOT=/opt/go
+ENV GOPATH=/opt/gopath
+ENV PATH=${GOROOT}/bin:${GOPATH}/bin:${PATH}
+
+# Install Gradle directly (rather than relying on the project's gradlew
+# wrapper, which needs network access on first run anyway). Run
+# `gradle wrapper` inside the container if you want a portable ./gradlew
+# for building outside Docker later.
+RUN curl -fsSL -o gradle.zip https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && \
+    unzip -q gradle.zip -d /opt && \
+    rm gradle.zip && \
+    ln -s /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/local/bin/gradle
+
+# Install Android SDK manager
+RUN mkdir -p /opt/android-sdk/cmdline-tools && cd /opt/android-sdk/cmdline-tools && \
+    curl -fsSL -o sdk-tools.zip https://dl.google.com/android/repository/${ANDROID_SDK_FILENAME} && \
+    unzip -q sdk-tools.zip && \
+    mv cmdline-tools latest && \
+    rm sdk-tools.zip
+ENV ANDROID_HOME=/opt/android-sdk
+
+ARG SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME}"
+
+# Accept the SDK license, as we can't install packages otherwise
+RUN yes | $SDKMANAGER --licenses > /dev/null
+
+# NDK version - needed to cross-compile the Go/cgo JNI bridge in
+# android/golib for each target ABI. See android/scripts/build-go-lib.sh.
+ENV NDK_VERSION=27.1.12297006
+
+RUN $SDKMANAGER "platform-tools" "build-tools;34.0.0" "platforms;android-34" "ndk;${NDK_VERSION}"
+ENV ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}
+
+# Accept licenses of newly installed packages
+RUN yes | $SDKMANAGER --licenses
+
+RUN git config --global --add safe.directory /workspace
+
+WORKDIR /workspace
