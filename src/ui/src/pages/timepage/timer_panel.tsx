@@ -134,7 +134,12 @@ export const TimerPanel = ({
                                 hour12={timeformat === UserTimeFormat.Hour12}
                             />
                         )}
-                        <textarea placeholder="Note" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
+                        <textarea
+                            placeholder="Note"
+                            aria-label="Note"
+                            value={note ?? ''}
+                            onInput={(e) => setNote(e.currentTarget.value)}
+                        />
                         <div className="flex gap-2 justify-end">
                             <button className="cancel-btn" onClick={() => setShowEdit(false)}>
                                 Cancel
@@ -147,7 +152,12 @@ export const TimerPanel = ({
                 )}
 
                 {!showEdit && showNote && (
-                    <textarea placeholder="Note" value={note ?? ''} onInput={(e) => setNote(e.currentTarget.value)} />
+                    <textarea
+                        placeholder="Note"
+                        aria-label="Note"
+                        value={note ?? ''}
+                        onInput={(e) => setNote(e.currentTarget.value)}
+                    />
                 )}
                 {!showEdit && showNote && note !== timer.timespan.note && (
                     <div className="flex gap-2 justify-end">

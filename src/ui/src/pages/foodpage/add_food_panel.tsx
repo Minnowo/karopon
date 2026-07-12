@@ -150,6 +150,7 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                         value={tmpFood.name}
                         onInput={(e) => (tmpFood.name = e.currentTarget.value)}
                         placeholder="Food Name"
+                        aria-label="Food Name"
                     />
                     <input
                         className="flex-auto max-w-32"
@@ -157,6 +158,7 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                         value={tmpFood.unit}
                         onInput={(e) => (tmpFood.unit = e.currentTarget.value)}
                         placeholder="Portion Unit"
+                        aria-label="Portion Unit"
                     />
                 </div>
                 <NumberInput

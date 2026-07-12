@@ -81,6 +81,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                                 onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
                                 value={tmpFood.current.name}
                                 placeholder="Food Name"
+                                aria-label="Food Name"
                             />
                             <input
                                 class="mb-2 wsnw w-full"
@@ -88,6 +89,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                                 onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
                                 value={tmpFood.current.unit}
                                 placeholder="Portion Unit"
+                                aria-label="Portion Unit"
                             />
                             <NumberInput
                                 className={'wsnw'}

@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {useEffect, useId, useMemo, useRef, useState} from 'preact/hooks';
 import {RefObject} from 'preact';
 import {BarrelPicker} from './barrel_picker';
 import {DoRender} from '../hooks/doRender';
@@ -277,6 +277,7 @@ export const TimeInput = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasFocus, setHasFocus] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const labelId = useId();
 
     const childTabIndex = skipTabIndex && !hasFocus ? -1 : undefined;
 
@@ -374,6 +375,8 @@ export const TimeInput = ({
         <>
             <div
                 ref={containerRef}
+                role="group"
+                aria-labelledby={label ? labelId : undefined}
                 className={`flex flex-row items-center input-like pl-1 ${className}`}
                 onClick={focusFirst}
                 onFocusIn={() => setHasFocus(true)}
@@ -383,7 +386,11 @@ export const TimeInput = ({
                     }
                 }}
             >
-                {label && <div className="flex flex-1 items-center wsnw select-none px-1">{label}</div>}
+                {label && (
+                    <div id={labelId} className="flex flex-1 items-center wsnw select-none px-1">
+                        {label}
+                    </div>
+                )}
                 {showDate && (
                     <Segment
                         inputRef={yearRef}

@@ -59,6 +59,7 @@ export function StatsPage(state: BaseState) {
                     <select
                         className="px-2 max-w-32 sm:max-w-4/6"
                         value={curDashboard}
+                        aria-label="Select dashboard"
                         onChange={(e) => setCurDashboard(Number((e.target as HTMLSelectElement).value))}
                     >
                         {state.dashboards.map((db, i) => (

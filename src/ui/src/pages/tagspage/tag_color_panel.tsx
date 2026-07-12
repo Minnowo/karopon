@@ -29,6 +29,7 @@ const TagColorRow = ({namespace, currentColor, value, onChange}: TagColorRowProp
                     type="text"
                     className={`flex-1 w-64 px-2 py-1 text-sm font-mono ${invalid ? 'border-c-red' : ''}`}
                     placeholder="#rrggbb or --name"
+                    aria-label={`Color for ${namespace}`}
                     value={value}
                     onInput={(e) => onChange(e.currentTarget.value)}
                 />

@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'preact/hooks';
+import {useCallback, useEffect, useId, useRef, useState} from 'preact/hooks';
 import {HoldButton} from './hold_button';
 import {DownArrow, UpArrow} from './svg';
 
@@ -7,6 +7,7 @@ type FloatInputProps = {
     innerClassName?: string;
     buttonClassName?: string;
     innerTabIndex?: number;
+    id?: string;
     label?: string;
     value: number;
     onValueChange: (value: number) => void;
@@ -24,6 +25,7 @@ const NUMBER_REGEX = /^-?\d*(?:\.\d*)?$/;
 export function NumberInput({
     value,
     onValueChange,
+    id = undefined,
     label = undefined,
     step = 1,
     precision = 3,
@@ -37,6 +39,8 @@ export function NumberInput({
     innerTabIndex = undefined,
 }: FloatInputProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
     const round = useCallback(
         (v: number) => {
             const factor = 10 ** precision;
@@ -88,17 +92,16 @@ export function NumberInput({
         commitValue(current + step * dir);
     };
 
-    const onLabelClick = () => inputRef.current?.focus();
-
     return (
         <div aria-disabled={disabled} className={`flex flex-row relative input-like p-0 ${className}`}>
             {labelOnLeftSide && label && (
-                <div className="flex items-center wsnw select-none px-1" onClick={onLabelClick}>
+                <label className="flex items-center wsnw select-none px-1" htmlFor={inputId}>
                     {label}
-                </div>
+                </label>
             )}
             <input
                 ref={inputRef}
+                id={inputId}
                 tabindex={innerTabIndex}
                 className={`${innerClassName} pl-1 border-none focus:outline-none`}
                 type="text"
@@ -121,9 +124,9 @@ export function NumberInput({
                 onBlur={handleBlur}
             />
             {!labelOnLeftSide && label && (
-                <div className="flex items-center wsnw select-none pl-1 pr-0.5" onClick={onLabelClick}>
+                <label className="flex items-center wsnw select-none pl-1 pr-0.5" htmlFor={inputId}>
                     {label}
-                </div>
+                </label>
             )}
 
             <div className={`flex flex-col justify-between ${buttonClassName}`}>

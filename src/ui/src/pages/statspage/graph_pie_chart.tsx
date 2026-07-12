@@ -72,6 +72,7 @@ export const PieChart = ({
                     <select
                         className={`px-3 py-1`}
                         value={curTimeRange}
+                        aria-label="Time range"
                         onInput={(e) => onTimeRangeChange(Number((e.target as HTMLSelectElement).value))}
                     >
                         {timeRanges &&

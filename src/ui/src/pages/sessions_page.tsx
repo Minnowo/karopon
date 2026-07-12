@@ -51,6 +51,7 @@ function SessionRow({
                     <input
                         className="border px-2 py-1 text-sm w-full"
                         value={editName}
+                        aria-label="Session name"
                         onInput={(e) => setEditName((e.target as HTMLInputElement).value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {

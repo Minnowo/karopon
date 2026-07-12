@@ -120,7 +120,7 @@ export const FoodPage = (state: BaseState) => {
                 />
             )}
             <div className="flex justify-evenly mb-4">
-                <input onInput={searchChange} className="w-full" type="text" placeholder="search" />
+                <input onInput={searchChange} className="w-full" type="text" placeholder="search" aria-label="Search foods" />
             </div>
 
             <div className="flex flex-col items-center justify-center space-y-4">

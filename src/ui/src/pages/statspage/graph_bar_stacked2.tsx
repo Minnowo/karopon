@@ -149,6 +149,7 @@ export function StackedBarGraph2({
                     <select
                         className={`px-3 py-1`}
                         value={curTimeRange}
+                        aria-label="Time range"
                         onInput={(e) => onTimeRangeChange(Number((e.target as HTMLSelectElement).value))}
                     >
                         {timeRanges &&
@@ -163,6 +164,7 @@ export function StackedBarGraph2({
                     <select
                         className={`px-3 py-1`}
                         value={groupBy}
+                        aria-label="Group by"
                         onInput={(e) => onGroupByChange((e.target as HTMLSelectElement).value as GroupBy)}
                     >
                         {Object.values(GroupBy).map((value) => (

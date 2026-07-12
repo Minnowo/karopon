@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {useEffect, useId, useRef, useState} from 'preact/hooks';
 import {BaseState} from '../state/basestate';
 import {DoRender} from '../hooks/doRender';
 import {TblUpdateUser, TblUser, UserTimeFormat} from '../api/types';
@@ -13,6 +13,12 @@ export function SettingsPage(state: BaseState) {
     const [newPassword, setNewPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
     const userRef = useRef({...state.user});
+
+    const usernameId = useId();
+    const newPasswordId = useId();
+    const confirmPasswordId = useId();
+    const themeId = useId();
+    const calorieMethodId = useId();
 
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const render = DoRender();
@@ -78,8 +84,11 @@ export function SettingsPage(state: BaseState) {
             <ErrorDiv errorMsg={errorMsg} />
 
             <div>
-                <div className="font-bold">Username:</div>
+                <label className="font-bold" htmlFor={usernameId}>
+                    Username:
+                </label>
                 <input
+                    id={usernameId}
                     className="w-full"
                     type="text"
                     value={userRef.current.name}
@@ -91,8 +100,11 @@ export function SettingsPage(state: BaseState) {
             {isEditing && (
                 <>
                     <div>
-                        <div className="font-bold">Change Password:</div>
+                        <label className="font-bold" htmlFor={newPasswordId}>
+                            Change Password:
+                        </label>
                         <input
+                            id={newPasswordId}
                             className="w-full"
                             type="password"
                             maxlength={72}
@@ -101,8 +113,11 @@ export function SettingsPage(state: BaseState) {
                         />
                     </div>
                     <div>
-                        <div className="font-bold">Confirm Password:</div>
+                        <label className="font-bold" htmlFor={confirmPasswordId}>
+                            Confirm Password:
+                        </label>
                         <input
+                            id={confirmPasswordId}
                             className="w-full"
                             type="password"
                             maxlength={72}
@@ -207,8 +222,11 @@ export function SettingsPage(state: BaseState) {
             </label>
 
             <div>
-                <div className="font-bold">Color Theme</div>
+                <label className="font-bold" htmlFor={themeId}>
+                    Color Theme
+                </label>
                 <select
+                    id={themeId}
                     className="w-full"
                     disabled={!isEditing}
                     value={userRef.current.theme}
@@ -223,8 +241,11 @@ export function SettingsPage(state: BaseState) {
             </div>
 
             <div>
-                <div className="font-bold">Caloric Calculation Method</div>
+                <label className="font-bold" htmlFor={calorieMethodId}>
+                    Caloric Calculation Method
+                </label>
                 <select
+                    id={calorieMethodId}
                     className="w-full"
                     disabled={!isEditing}
                     value={userRef.current.caloric_calc_method}

@@ -184,6 +184,7 @@ export const TagsPage = (state: BaseState) => {
                     type="text"
                     className="flex-1 px-2 py-1"
                     placeholder="Search tags..."
+                    aria-label="Search tags"
                     value={search}
                     onInput={(e) => setSearch(e.currentTarget.value)}
                 />

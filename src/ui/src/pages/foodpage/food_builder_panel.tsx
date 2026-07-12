@@ -232,6 +232,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                         value={food.current.name}
                         onInput={(e) => (food.current.name = e.currentTarget.value)}
                         placeholder="Food Name"
+                        aria-label="Food Name"
                     />
                     <input
                         className="flex-auto max-w-32"
@@ -239,6 +240,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                         value={food.current.unit}
                         onInput={(e) => (food.current.unit = e.currentTarget.value)}
                         placeholder="Portion Unit"
+                        aria-label="Portion Unit"
                     />
                 </div>
                 <NumberInput

@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useLayoutEffect, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useId, useLayoutEffect, useState} from 'preact/hooks';
 import {FormatDateForInput} from '../../utils/date_utils';
 import {ChangeEvent} from 'preact/compat';
 import {TaggedTimespan, TblUserTag} from '../../api/types';
@@ -32,6 +32,8 @@ export const AddTimerPanel = ({
     const [stopTime, setStopTime] = useState<Date>(new Date(timer.timespan.stop_time));
     const [note, setNote] = useState<string | null>(timer.timespan.note);
     const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
+
+    const tagsId = useId();
 
     useLayoutEffect(() => {
         setStartTime(new Date(timer.timespan.start_time));
@@ -103,7 +105,7 @@ export const AddTimerPanel = ({
             </details>
 
             {showTimeEditing && (
-                <div>
+                <label className="block">
                     <span className="font-semibold">Start Time</span>
                     <input
                         class="w-full my-1 sm:mx-1"
@@ -112,10 +114,10 @@ export const AddTimerPanel = ({
                         onChange={(e: ChangeEvent<HTMLInputElement>) => e.target && setStartTime(new Date(e.currentTarget.value))}
                         value={FormatDateForInput(startTime)}
                     />
-                </div>
+                </label>
             )}
             {showTimeEditing && (
-                <div>
+                <label className="block">
                     <span className="font-semibold">Stop Time</span>
                     <input
                         class="w-full my-1 sm:mx-1"
@@ -124,12 +126,15 @@ export const AddTimerPanel = ({
                         onChange={(e: ChangeEvent<HTMLInputElement>) => e.target && setStopTime(new Date(e.currentTarget.value))}
                         value={FormatDateForInput(stopTime)}
                     />
-                </div>
+                </label>
             )}
 
             <div>
-                <span className="font-semibold">Tags</span>
+                <label className="font-semibold" htmlFor={tagsId}>
+                    Tags
+                </label>
                 <TagInput
+                    id={tagsId}
                     namespaces={namespaces}
                     setNamespaces={setNamespaces}
                     thisTags={tags}
@@ -138,7 +143,7 @@ export const AddTimerPanel = ({
                 />
             </div>
 
-            <div>
+            <label className="block">
                 <span className="font-semibold">Note</span>
                 <textarea
                     className="w-full"
@@ -147,7 +152,7 @@ export const AddTimerPanel = ({
                     placeholder={'Note'}
                     onInput={(e) => setNote(e.currentTarget.value)}
                 />
-            </div>
+            </label>
 
             <div className="flex justify-end gap-2">
                 <button className="cancel-btn" onClick={onCancel}>

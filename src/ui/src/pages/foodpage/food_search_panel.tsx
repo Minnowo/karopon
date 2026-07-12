@@ -50,6 +50,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
             <select
                 className="border rounded mb-2"
                 value={selectedDataSource ?? ''}
+                aria-label="Data source"
                 onChange={(e) => setSelectedDataSource(Number(e.currentTarget.value))}
             >
                 <option value="" disabled>
@@ -70,6 +71,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                     onKeyPress={handleKeyPress}
                     className="w-full mr-1"
                     placeholder="Type food name..."
+                    aria-label="Search food name"
                 />
 
                 <button

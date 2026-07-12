@@ -76,6 +76,7 @@ export function AddEditDashboardPanel({
                     value={name}
                     onInput={(e) => setName((e.target as HTMLInputElement).value)}
                     placeholder="View name"
+                    aria-label="View name"
                 />
             </div>
 
@@ -86,6 +87,7 @@ export function AddEditDashboardPanel({
                         <select
                             className="w-full px-2 py-1"
                             value={addType}
+                            aria-label="Chart type"
                             onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
                         >
                             {(Object.keys(CHART_LABELS) as Array<DashboardCard['type']>).map((t) => (

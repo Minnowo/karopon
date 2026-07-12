@@ -309,6 +309,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     type="file"
                     accept="image/*"
                     capture="environment"
+                    aria-label="Upload food photo"
                     className="hidden"
                     onChange={(e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
@@ -329,6 +330,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                 type="button"
                                 tabindex={-1}
                                 disabled={saving}
+                                aria-label="Remove photo"
                                 className="absolute top-0 right-0 bg-black/60 text-white rounded-bl px-1 text-xs leading-5"
                                 onClick={() => {
                                     URL.revokeObjectURL(photo.url);

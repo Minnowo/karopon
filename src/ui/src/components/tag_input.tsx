@@ -15,6 +15,7 @@ type TagInputProps = {
     onSearchError?: (err: unknown) => void;
     className?: string;
     tagColors?: Map<string, string>;
+    id?: string;
 };
 
 export function TagInput({
@@ -27,6 +28,7 @@ export function TagInput({
     onSearchError = undefined,
     className = '',
     tagColors = undefined,
+    id = undefined,
 }: TagInputProps) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState<boolean>(false);
@@ -250,10 +252,12 @@ export function TagInput({
             <div className="relative w-full">
                 <input
                     ref={inputRef}
+                    id={id}
                     className="flex-1 w-full min-w-[6ch]"
                     value={input}
                     disabled={disabled}
                     placeholder={placeholder}
+                    aria-label={placeholder}
                     role="combobox"
                     aria-expanded={listOpen}
                     aria-controls={listboxId}

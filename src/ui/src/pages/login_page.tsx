@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useRef} from 'preact/hooks';
+import {Dispatch, StateUpdater, useId, useRef} from 'preact/hooks';
 import {GetApiBase, IsCrossOrigin, SetApiBase, SetAuthToken} from '../api/api';
 import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
 
@@ -9,6 +9,8 @@ type Props = {
 };
 export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
     const serverInputRef = useRef<HTMLInputElement>(null);
+    const usernameId = useId();
+    const passwordId = useId();
 
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
@@ -57,16 +59,20 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                 <table className="table-auto table-padded mb-2">
                     <tbody className="text-right">
                         <tr title="Your username">
-                            <td className="px-2">Username</td>
+                            <td className="px-2">
+                                <label htmlFor={usernameId}>Username</label>
+                            </td>
                             <td>
-                                <input type="text" name="pon_username" required autofocus />
+                                <input id={usernameId} type="text" name="pon_username" required autofocus />
                             </td>
                         </tr>
 
                         <tr title="Your password">
-                            <td className="px-2">Password</td>
+                            <td className="px-2">
+                                <label htmlFor={passwordId}>Password</label>
+                            </td>
                             <td>
-                                <input type="password" name="pon_password" required />
+                                <input id={passwordId} type="password" name="pon_password" required />
                             </td>
                         </tr>
 
@@ -82,7 +88,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                                     <summary className="cursor-pointer text-sm font-semibold">Advanced Options</summary>
 
                                     <div className="flex flex-col mt-2">
-                                        <div className="flex flex-row  items-center">
+                                        <label className="flex flex-row  items-center">
                                             <span className="mr-2"> Server </span>
                                             <input
                                                 className="w-full"
@@ -91,7 +97,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                                                 placeholder="Server URL (empty=default)"
                                                 value={GetApiBase()}
                                             />
-                                        </div>
+                                        </label>
                                     </div>
                                 </details>
                             </td>

@@ -172,6 +172,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
+                aria-label={placeholder}
                 value={query}
                 role="combobox"
                 aria-expanded={open}

@@ -41,6 +41,7 @@ export const AddTagPanel = ({
                     type="text"
                     className="flex-1 px-2 py-1"
                     placeholder="Namespace"
+                    aria-label="Namespace"
                     value={namespace}
                     onInput={(e) => {
                         setNamespace(e.currentTarget.value);
@@ -52,6 +53,7 @@ export const AddTagPanel = ({
                     type="text"
                     className="flex-1 px-2 py-1"
                     placeholder="Name"
+                    aria-label="Name"
                     value={name}
                     onInput={(e) => {
                         setName(e.currentTarget.value);

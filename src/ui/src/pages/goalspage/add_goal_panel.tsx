@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'preact/hooks';
+import {useId, useMemo, useState} from 'preact/hooks';
 import {
     GoalAggregationType,
     GoalAggregationTypeValues,
@@ -29,6 +29,12 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
     const goal = useMemo(() => ({...userGoal}), [userGoal]);
     const render = DoRender();
     const isEditing = onUpdated !== undefined;
+
+    const timeRangeId = useId();
+    const aggregationId = useId();
+    const targetId = useId();
+    const comparisonId = useId();
+    const targetValueId = useId();
 
     const doCreateOrUpdate = () => {
         setError(null);
@@ -64,14 +70,18 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                     value={goal.name}
                     placeholder="Your goal name"
                     title="Enter the name of your goal here"
+                    aria-label="Goal name"
                     onInput={(e) => (goal.name = (e.target as HTMLInputElement).value)}
                     required
                 />
 
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1" title="Time Range is the interval for the goal to start, finish, and repeat.">
-                        <label className="block text-sm font-medium">Time Range</label>
+                        <label className="block text-sm font-medium" htmlFor={timeRangeId}>
+                            Time Range
+                        </label>
                         <select
+                            id={timeRangeId}
                             className="border rounded px-2 py-1 w-full"
                             value={goal.time_expr}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -88,8 +98,11 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                     </div>
 
                     <div className="flex-1" title="Aggregation is how your current progress should be counted and grouped.">
-                        <label className="block text-sm font-medium">Aggregation</label>
+                        <label className="block text-sm font-medium" htmlFor={aggregationId}>
+                            Aggregation
+                        </label>
                         <select
+                            id={aggregationId}
                             className="border rounded px-2 py-1 w-full"
                             value={goal.aggregation_type}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -109,8 +122,11 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
 
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1" title="Target defines what kind of data is your goal for.">
-                        <label className="block text-sm font-medium">Target</label>
+                        <label className="block text-sm font-medium" htmlFor={targetId}>
+                            Target
+                        </label>
                         <select
+                            id={targetId}
                             className="border rounded px-2 py-1 w-full"
                             value={goal.target_col}
                             onChange={(e) => {
@@ -131,8 +147,11 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                         className="flex-1"
                         title="Comparison is how your currently progress value should be compared to your target value."
                     >
-                        <label className="block text-sm font-medium">Comparison</label>
+                        <label className="block text-sm font-medium" htmlFor={comparisonId}>
+                            Comparison
+                        </label>
                         <select
+                            id={comparisonId}
                             className="border rounded px-2 py-1 w-full"
                             value={goal.value_comparison}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -150,8 +169,11 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                 </div>
 
                 <div title="Target value is the target number you want to reach.">
-                    <label className="block text-sm font-medium">Target Value</label>
+                    <label className="block text-sm font-medium" htmlFor={targetValueId}>
+                        Target Value
+                    </label>
                     <NumberInput
+                        id={targetValueId}
                         innerClassName="w-full"
                         value={goal.target_value}
                         onValueChange={(value: number) => {

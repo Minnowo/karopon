@@ -446,6 +446,7 @@ export function DashboardCardComponent({
                         <input
                             className="min-w-0 flex-1 px-2 py-1"
                             value={card.title}
+                            aria-label="Card title"
                             onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
                         />
                         <div className="flex gap-1 shrink-0">

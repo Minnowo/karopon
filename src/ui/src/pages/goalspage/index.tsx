@@ -75,7 +75,12 @@ export function GoalsPage(state: BaseState) {
                 >
                     New Goal
                 </button>
-                <input type="date" value={selectedDate} onInput={(e) => setSelectedDate((e.target as HTMLInputElement).value)} />
+                <input
+                    type="date"
+                    value={selectedDate}
+                    aria-label="Select date"
+                    onInput={(e) => setSelectedDate((e.target as HTMLInputElement).value)}
+                />
                 {selectedDate && <button onClick={() => setSelectedDate('')}>Today</button>}
             </div>
 
