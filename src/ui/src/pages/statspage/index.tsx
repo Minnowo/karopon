@@ -51,7 +51,7 @@ export function StatsPage(state: BaseState) {
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
+            <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
                 <button disabled={showAddPanel} className="wsnw px-3" onClick={() => setShowAddPanel(true)} title="New Dashboard">
                     New View
                 </button>
