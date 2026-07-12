@@ -90,7 +90,7 @@ export function LineSingleGraph2({
 
     return (
         <div ref={containerRef} className="w-full">
-            <h1 className="text-2xl mb-2">{title}</h1>
+            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
