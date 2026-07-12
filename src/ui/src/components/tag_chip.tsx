@@ -61,6 +61,7 @@ export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefine
                 <button
                     className="px-2 mr-1 font-bold bg-transparent border-none rounded-2xl text-inherit focus:bg-c-surface2 hover:bg-c-surface2"
                     type="button"
+                    aria-label={`Remove tag ${tag.namespace}:${tag.name}`}
                     onClick={() => onRemove()}
                 >
                     ×

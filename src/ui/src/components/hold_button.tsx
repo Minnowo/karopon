@@ -6,10 +6,11 @@ type HoldButtonProps = {
     disabled?: boolean;
     tabIndex?: number;
     className?: string;
+    ariaLabel?: string;
     children: ComponentChildren;
 };
 
-export const HoldButton = ({onStep, disabled, tabIndex, className, children}: HoldButtonProps) => {
+export const HoldButton = ({onStep, disabled, tabIndex, className, ariaLabel, children}: HoldButtonProps) => {
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
     const onStepRef = useRef(onStep);
@@ -47,6 +48,7 @@ export const HoldButton = ({onStep, disabled, tabIndex, className, children}: Ho
             type="button"
             disabled={disabled}
             className={className}
+            aria-label={ariaLabel}
             onPointerDown={handleMouseDown}
             onPointerUp={clear}
             onPointerLeave={clear}

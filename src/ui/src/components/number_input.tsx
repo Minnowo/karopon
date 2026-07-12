@@ -132,6 +132,7 @@ export function NumberInput({
                     disabled={disabled}
                     onStep={() => stepBy(1)}
                     className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    ariaLabel={label ? `Increase ${label}` : 'Increase value'}
                 >
                     {UpArrow}
                 </HoldButton>
@@ -140,6 +141,7 @@ export function NumberInput({
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
                     className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    ariaLabel={label ? `Decrease ${label}` : 'Decrease value'}
                 >
                     {DownArrow}
                 </HoldButton>

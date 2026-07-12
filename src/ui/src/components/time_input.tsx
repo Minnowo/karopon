@@ -479,6 +479,7 @@ export const TimeInput = ({
 
                 <button
                     tabIndex={-1}
+                    aria-label="Open time picker"
                     className="h-full select-none px-2 p-0 leading-none border-none bg-transparent hover:bg-c-overlay1"
                     onClick={(e) => {
                         e.stopPropagation();

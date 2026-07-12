@@ -38,7 +38,12 @@ export function DropdownButton({
     return (
         <div className={`relative h-fit w-fit ${className !== undefined ? className : ''}`} ref={menuRef}>
             <div className="flex items-center">
-                <button tabindex={-1} onClick={() => setOpen(!open)} className={buttonClassName}>
+                <button
+                    tabindex={-1}
+                    onClick={() => setOpen(!open)}
+                    className={buttonClassName}
+                    aria-label={label === '[:]' ? 'More actions' : undefined}
+                >
                     {label === '[:]' ? ThreeVertDots : label}
                 </button>
             </div>

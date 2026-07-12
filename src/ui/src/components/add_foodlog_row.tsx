@@ -121,7 +121,12 @@ export function AddFoodlogPanelRow({
                     </td>
                 )}
                 <td>
-                    <button tabindex={-1} className="bg-c-red hover:bg-c-red px-1" onClick={() => deleteSelf()}>
+                    <button
+                        tabindex={-1}
+                        className="bg-c-red hover:bg-c-red px-1"
+                        aria-label={food.name ? `Remove ${food.name}` : 'Remove food row'}
+                        onClick={() => deleteSelf()}
+                    >
                         X
                     </button>
                 </td>
