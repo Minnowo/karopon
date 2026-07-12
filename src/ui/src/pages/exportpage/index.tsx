@@ -5,7 +5,7 @@ import {TblUserFood} from '../../api/types';
 
 export function DataExportPage(state: BaseState) {
     return (
-        <main className="flex flex-col space-y-4 sm:px-16 lg:px-32 py-4">
+        <div className="flex flex-col space-y-4">
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold text-c-peach">Event Export</h2>
                 <div className="flex space-x-4">
@@ -63,6 +63,6 @@ export function DataExportPage(state: BaseState) {
                     </button>
                 </div>
             </section>
-        </main>
+        </div>
     );
 }
