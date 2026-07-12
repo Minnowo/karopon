@@ -69,7 +69,7 @@ export function SettingsPage(state: BaseState) {
     }
 
     return (
-        <main className="flex flex-col space-y-4 sm:px-16 lg:px-32">
+        <div className="flex flex-col space-y-4">
             <div className="w-full flex justify-evenly my-4">
                 <button
                     className={`w-48 ${isEditing && 'bg-c-red font-bold'}`}
@@ -267,6 +267,6 @@ export function SettingsPage(state: BaseState) {
                     onClick={save}
                 />
             )}
-        </main>
+        </div>
     );
 }
