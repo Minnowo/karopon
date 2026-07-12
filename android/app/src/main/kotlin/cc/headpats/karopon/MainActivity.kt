@@ -1,9 +1,12 @@
 package cc.headpats.karopon
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -84,8 +87,34 @@ private fun ServerWebView(urlState: MutableState<String?>) {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 webViewClient = WebViewClient()
+                // Plain WebView drops JS alert()/confirm() dialogs silently
+                // unless a WebChromeClient handles them - the frontend uses
+                // confirm() for delete confirmations throughout.
+                webChromeClient = KaroponWebChromeClient(context)
             }
         },
         update = { webView -> url?.let { webView.loadUrl(it) } },
     )
+}
+
+private class KaroponWebChromeClient(private val context: Context) : WebChromeClient() {
+
+    override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult): Boolean {
+        AlertDialog.Builder(context)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
+            .setOnCancelListener { result.cancel() }
+            .show()
+        return true
+    }
+
+    override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult): Boolean {
+        AlertDialog.Builder(context)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> result.cancel() }
+            .setOnCancelListener { result.cancel() }
+            .show()
+        return true
+    }
 }
