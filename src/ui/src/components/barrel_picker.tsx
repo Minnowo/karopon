@@ -43,6 +43,8 @@ type BarrelPickerWithRange = BarrelPickerBase & {
 
 type BarrelPickerProps = BarrelPickerWithValues | BarrelPickerWithRange;
 
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export const BarrelPicker = ({
     label,
     values,
@@ -107,6 +109,14 @@ export const BarrelPicker = ({
     // Smoothly ease scrollPx to the nearest snap position, then commit.
     const snapToSmooth = () => {
         const target = Math.round(scrollRef.current / ITEM_HEIGHT_PX) * ITEM_HEIGHT_PX;
+
+        if (prefersReducedMotion()) {
+            const delta = -Math.round(target / ITEM_HEIGHT_PX);
+            onChange(valueAt(delta));
+            scrollRef.current = 0;
+            setScrollPx(0);
+            return;
+        }
 
         const animateSnap = (prevT: number) => {
             const now = performance.now();
@@ -199,7 +209,7 @@ export const BarrelPicker = ({
         // If the pointer was stationary before release, ignore accumulated velocity.
         const vel = performance.now() - p.lastT > STATIONARY_MS ? 0 : p.vel;
 
-        if (Math.abs(vel) < MOMENTUM_MIN_VEL) {
+        if (prefersReducedMotion() || Math.abs(vel) < MOMENTUM_MIN_VEL) {
             snapToSmooth();
             return;
         }
