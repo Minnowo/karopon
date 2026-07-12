@@ -72,6 +72,9 @@ type DB interface {
 	// Returns an error otherwise.
 	UsernameTaken(ctx context.Context, userID int, username string) (bool, error)
 
+	// Returns true if at least one user exists in the database, regardless of name.
+	HasAnyUser(ctx context.Context) (bool, error)
+
 	// Read a user with the given ID into the given struct or returning an error.
 	LoadUser(ctx context.Context, username string, user *TblUser) error
 	LoadUserByID(ctx context.Context, id int, user *TblUser) error

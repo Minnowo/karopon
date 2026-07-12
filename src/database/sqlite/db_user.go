@@ -19,6 +19,19 @@ func (db *SqliteDatabase) UsernameTaken(ctx context.Context, userID int, usernam
 	return result.Count != 0, err
 }
 
+func (db *SqliteDatabase) HasAnyUser(ctx context.Context) (bool, error) {
+
+	var result struct {
+		Count int `db:"count"`
+	}
+
+	query := `SELECT COUNT(*) AS COUNT FROM PON_USER`
+
+	err := db.GetContext(ctx, &result, query)
+
+	return result.Count != 0, err
+}
+
 func (db *SqliteDatabase) AddUser(ctx context.Context, user *database.TblUser) (int, error) {
 
 	query := `

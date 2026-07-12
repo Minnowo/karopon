@@ -34,6 +34,12 @@ type ServerOptions struct {
 	DatabaseConn   string
 	SessionSecret  string //nolint:gosec // not a hardcoded credential, it's a config value supplied by the caller
 	FakeAuthUser   string
+
+	// DefaultUsername/DefaultPassword, if both set, seed a login via
+	// EnsureUser (no-op if that user already exists). Used by the Android
+	// build, which has no CLI to run `db create-user` on-device.
+	DefaultUsername string
+	DefaultPassword string //nolint:gosec // not a hardcoded credential, it's a config value supplied by the caller
 }
 
 // StartServer connects to the database, runs migrations, and starts serving
@@ -64,6 +70,13 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 	if err = db.Migrate(ctx); err != nil {
 		_ = listener.Close()
 		return nil, err
+	}
+
+	if opts.DefaultUsername != "" && opts.DefaultPassword != "" {
+		if err = EnsureUser(ctx, db, opts.DefaultUsername, opts.DefaultPassword); err != nil {
+			_ = listener.Close()
+			return nil, err
+		}
 	}
 
 	sessionSecret := []byte(opts.SessionSecret)

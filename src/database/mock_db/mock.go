@@ -85,6 +85,10 @@ func (p *BaseMockDB) UsernameTaken(ctx context.Context, userID int, username str
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) HasAnyUser(ctx context.Context) (bool, error) {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) LoadUser(ctx context.Context, username string, user *database.TblUser) error {
 	panic("not implemented")
 }

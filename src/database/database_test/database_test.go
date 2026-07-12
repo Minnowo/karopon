@@ -141,6 +141,25 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		assert.Equal(t, &loaded, user)
 	})
 
+	t.Run("has_any_user", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		has, err := db.HasAnyUser(ctx)
+		require.NoError(t, err)
+		assert.False(t, has)
+
+		getTestUser(t, db)
+
+		has, err = db.HasAnyUser(ctx)
+		require.NoError(t, err)
+		assert.True(t, has)
+	})
+
 	t.Run("user_session_lifecycle", func(t *testing.T) {
 
 		lock.Lock()

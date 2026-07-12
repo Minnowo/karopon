@@ -88,6 +88,10 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 		DatabaseVendor: "sqlite",
 		DatabaseConn:   filepath.Join(dataDir, "karopon.db"),
 		SessionSecret:  sessionSecret,
+		// Only seeded into a brand new (empty) database - see EnsureUser.
+		// Change the password from the app's Settings page after logging in.
+		DefaultUsername: "admin",
+		DefaultPassword: "admin",
 	}
 
 	fn, err := cmd.StartServer(context.Background(), opts)

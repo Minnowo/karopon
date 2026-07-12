@@ -44,6 +44,24 @@ type TblUser struct {
 	TimespanHistoryFetchLimit int               `db:"timespan_history_fetch_limit" json:"timespan_history_fetch_limit"`
 }
 
+// NewDefaultTblUser builds a TblUser with the default settings assigned to
+// newly created users. password must already be hashed (see bcrypt).
+func NewDefaultTblUser(username string, password []byte) TblUser {
+	return TblUser{
+		Name:                      username,
+		Password:                  password,
+		Theme:                     "auto",
+		ShowDiabetes:              true,
+		CaloricCalcMethod:         "auto",
+		EventHistoryFetchLimit:    50,
+		InsulinSensitivityFactor:  3,
+		TargetBloodSugar:          5.6,
+		FillEventLogFromLast:      false,
+		TimespanHistoryFetchLimit: 50,
+		SessionExpireTimeSeconds:  int64(time.Duration(time.Hour * 24 * 10).Seconds()),
+	}
+}
+
 func (u *TblUser) Copy() *TblUser {
 
 	if u == nil {

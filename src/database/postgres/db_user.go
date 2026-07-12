@@ -21,6 +21,19 @@ func (db *PGDatabase) UsernameTaken(ctx context.Context, userID int, username st
 	return result.Count != 0, err
 }
 
+func (db *PGDatabase) HasAnyUser(ctx context.Context) (bool, error) {
+
+	var result struct {
+		Count int `db:"count"`
+	}
+
+	query := `SELECT COUNT(*) AS count FROM PON.USER`
+
+	err := db.GetContext(ctx, &result, query)
+
+	return result.Count != 0, err
+}
+
 func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int, error) {
 
 	var retUserID int = -1
