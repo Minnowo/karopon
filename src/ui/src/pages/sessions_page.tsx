@@ -39,11 +39,11 @@ function SessionRow({
 
     return (
         <div
-            className={`rounded-sm p-2 border container-theme flex flex-col gap-1 ${session.is_current ? 'border-c-l-green' : ''}`}
+            className={`rounded-sm p-2 border container-theme flex flex-col gap-1 ${session.is_current ? 'border-c-green' : ''}`}
         >
             <div className="flex items-start justify-between gap-2">
                 <span className="break-all text-sm font-semibold">{label}</span>
-                {session.is_current && <span className="text-c-l-green font-bold text-xs wsnw">current</span>}
+                {session.is_current && <span className="text-c-green font-bold text-xs wsnw">current</span>}
             </div>
 
             {editing ? (

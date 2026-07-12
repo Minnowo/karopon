@@ -21,7 +21,7 @@ const Metric = ({label, value}: {label: string; value: ComponentChildren}) => (
 const Section = ({title, children}: {title: string; children: ComponentChildren}) => (
     <div className="mb-3">
         <div className="text-xs font-semibold uppercase mb-1">{title}</div>
-        <div className="rounded border border-c-l-black p-2 divide-y divide-c-l-black">{children}</div>
+        <div className="rounded border p-2 divide-y">{children}</div>
     </div>
 );
 

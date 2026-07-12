@@ -55,7 +55,7 @@ export function Header(state: HeaderState) {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
-    const css = 'font-bold text-c-l-green';
+    const css = 'font-bold';
     return (
         <header>
             <div className="w-full flex flex-wrap">
