@@ -53,7 +53,7 @@ export const GoalPanel = ({goal, asOf, editGoal, deleteGoal}: GoalPanelProps) =>
                         {
                             label: 'Delete',
                             dangerous: true,
-                            onClick: () => confirm('Delete this goal?') && deleteGoal(goal),
+                            onClick: () => deleteGoal(goal),
                         },
                     ]}
                 />
@@ -68,7 +68,7 @@ export const GoalPanel = ({goal, asOf, editGoal, deleteGoal}: GoalPanelProps) =>
                         Current: {progress.current_value.toFixed(1)} / {progress.target_value.toFixed(1)}
                     </p>
                     <p className="text-xs">Time remaining: {FormatDuration(progress.time_remaining)}</p>
-                    <div className="w-full h-2 rounded mt-2">
+                    <div className="w-full h-2 rounded mt-2 bg-c-surface2">
                         <div
                             className={`${barColor} h-2 rounded`}
                             style={{

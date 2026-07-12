@@ -6,12 +6,14 @@ import {GoalCreationPanel} from './add_goal_panel';
 import {NewTblUserGoal} from '../../api/factories';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {GoalPanel} from './goal_panel';
+import {NumberInput} from '../../components/number_input';
 
 export function GoalsPage(state: BaseState) {
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
     const [editingGoal, setEditingGoal] = useState<TblUserGoal | null>(null);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
     const [selectedDate, setSelectedDate] = useState<string>('');
+    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const asOf = selectedDate
         ? (() => {
@@ -57,14 +59,16 @@ export function GoalsPage(state: BaseState) {
     };
 
     const deleteGoal = (goal: TblUserGoal) => {
-        ApiDeleteUserGoal(goal)
-            .then(() => state.setGoals((oldGoals) => oldGoals.filter((g) => g.id !== goal.id)))
-            .catch(handleErr);
+        if (confirm('Delete this goal?')) {
+            ApiDeleteUserGoal(goal)
+                .then(() => state.setGoals((oldGoals) => oldGoals.filter((g) => g.id !== goal.id)))
+                .catch(handleErr);
+        }
     };
 
     return (
         <>
-            <div className="flex justify-evenly my-4 gap-2">
+            <div className="flex flex-wrap justify-evenly my-4 gap-2">
                 <button
                     disabled={showNewGoalPanel}
                     className="w-24"
@@ -82,6 +86,7 @@ export function GoalsPage(state: BaseState) {
                     onInput={(e) => setSelectedDate((e.target as HTMLInputElement).value)}
                 />
                 {selectedDate && <button onClick={() => setSelectedDate('')}>Today</button>}
+                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -97,27 +102,29 @@ export function GoalsPage(state: BaseState) {
 
             <div className="grid gap-4">
                 {state.goals.length === 0 ? (
-                    <p>No goals found.</p>
+                    <div className="text-center font-bold py-32">No goals found.</div>
                 ) : (
-                    state.goals.map((g: TblUserGoal) =>
-                        editingGoal?.id === g.id ? (
-                            <GoalCreationPanel
-                                key={g.id}
-                                userGoal={editingGoal}
-                                onCreated={createGoal}
-                                onUpdated={updateGoal}
-                                onCancel={() => setEditingGoal(null)}
-                            />
-                        ) : (
-                            <GoalPanel
-                                key={g.id}
-                                goal={g}
-                                asOf={asOf}
-                                editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
-                                deleteGoal={deleteGoal}
-                            />
+                    state.goals
+                        .slice(0, numberToShow)
+                        .map((g: TblUserGoal) =>
+                            editingGoal?.id === g.id ? (
+                                <GoalCreationPanel
+                                    key={g.id}
+                                    userGoal={editingGoal}
+                                    onCreated={createGoal}
+                                    onUpdated={updateGoal}
+                                    onCancel={() => setEditingGoal(null)}
+                                />
+                            ) : (
+                                <GoalPanel
+                                    key={g.id}
+                                    goal={g}
+                                    asOf={asOf}
+                                    editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
+                                    deleteGoal={deleteGoal}
+                                />
+                            )
                         )
-                    )
                 )}
             </div>
         </>
