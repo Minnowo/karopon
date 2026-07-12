@@ -76,9 +76,22 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 	dataDir := jstringToString(env, jDataDir)
 	sessionSecret := jstringToString(env, jSessionSecret)
 
-	// Falls back to a default stdout logger (redirected to logcat, see
-	// logcat_android.go) if this file doesn't exist on the device.
-	logConfigErr := log4zero.InitOnce(filepath.Join(dataDir, "log.config.json"))
+	// There's no log.config.json on the device for log4zero.InitOnce to
+	// read, and its color:true fallback is unreadable in logcat (raw ANSI
+	// escapes), so configure it directly instead. Every log4zero.Get(name)
+	// call in the codebase must be listed here - anything missing keeps the
+	// color:true default.
+	logCfg := log4zero.Config{
+		Loggers: map[string]log4zero.LoggerConfig{
+			"main":                {Level: "info"},
+			"api-responses":       {Level: "info"},
+			"auth-middleware":     {Level: "info"},
+			"user-registry":       {Level: "info"},
+			"database-migrations": {Level: "info"},
+		},
+	}
+
+	logConfigErr := log4zero.InitWith(logCfg, log4zero.GetNew)
 	log.Logger = *log4zero.Get("main")
 	log.Info().Err(logConfigErr).Msg("logging initialized")
 
