@@ -1,4 +1,4 @@
-import {Dispatch, StateUpdater, useCallback, useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useCallback, useEffect, useId, useMemo, useRef, useState} from 'preact/hooks';
 import {TblUserTag} from '../api/types';
 import {HasNamespace, TagIsValid, SplitTag, TagToString, FmtTagColor} from '../utils/tags';
 import {useDebouncedCallback} from '../hooks/useDebounce';
@@ -37,12 +37,18 @@ export function TagInput({
     const listRef = useRef<HTMLUListElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const baseId = useId();
+    const listboxId = `${baseId}-listbox`;
+    const optionId = (i: number) => `${baseId}-option-${i}`;
+
     const [hasNamespace, showCreateButton] = useMemo((): [boolean, boolean] => {
         const a = HasNamespace(input);
         const b = input.trim().length > 0 && (TagIsValid(input) || (!a && !namespaces.includes(input)));
 
         return [a, b];
     }, [input, namespaces]);
+
+    const listOpen = open && (showCreateButton || (tagSearch && tagSearch.length > 0));
 
     useEffect(() => {
         if (listRef.current && (tagSearch.length > 0 || showCreateButton)) {
@@ -248,6 +254,11 @@ export function TagInput({
                     value={input}
                     disabled={disabled}
                     placeholder={placeholder}
+                    role="combobox"
+                    aria-expanded={listOpen}
+                    aria-controls={listboxId}
+                    aria-autocomplete="list"
+                    aria-activedescendant={listOpen ? optionId(selectedIndex) : undefined}
                     onInput={(e) => {
                         const newVal = (e.target as HTMLInputElement).value;
                         setInput(newVal);
@@ -257,14 +268,19 @@ export function TagInput({
                     onFocusIn={openOnFocusIn}
                 />
 
-                {open && (showCreateButton || (tagSearch && tagSearch.length > 0)) && (
+                {listOpen && (
                     <ul
                         ref={listRef}
+                        id={listboxId}
+                        role="listbox"
                         class={`absolute z-10 b-0 border border-c-accent2 mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll wsnw`}
                     >
                         {showCreateButton && (
                             <li
                                 tabindex={-1}
+                                id={optionId(0)}
+                                role="option"
+                                aria-selected={selectedIndex === 0}
                                 class={`${selectedIndex === 0 ? 'bg-c-surface2' : 'bg-c-surface0'} p-2 hover:bg-c-surface2 cursor-pointer`}
                                 onClick={() => {
                                     createButtonClick();
@@ -281,10 +297,15 @@ export function TagInput({
                             tagSearch.map((item, i) => {
                                 const tagStr = `${item.namespace}:${item.name}`;
                                 const thisIndex = (showCreateButton ? -1 : 0) + selectedIndex;
-                                const color = thisIndex === i ? 'bg-c-surface2' : 'bg-c-surface0';
+                                const isSelected = thisIndex === i;
+                                const color = isSelected ? 'bg-c-surface2' : 'bg-c-surface0';
+                                const flatIndex = i + (showCreateButton ? 1 : 0);
                                 return (
                                     <li
                                         tabindex={-1}
+                                        id={optionId(flatIndex)}
+                                        role="option"
+                                        aria-selected={isSelected}
                                         key={tagStr}
                                         class={`${color} p-2 hover:bg-c-surface2 cursor-pointer`}
                                         onClick={() => {

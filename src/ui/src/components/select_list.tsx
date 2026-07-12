@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, useCallback} from 'preact/hooks';
+import {useEffect, useRef, useState, useCallback, useId} from 'preact/hooks';
 import {useDebouncedCallback} from '../hooks/useDebounce';
 
 type FuzzySearchProps<T> = {
@@ -31,6 +31,10 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const listRef = useRef<HTMLUListElement | null>(null);
+
+    const baseId = useId();
+    const listboxId = `${baseId}-listbox`;
+    const optionId = (i: number) => `${baseId}-option-${i}`;
 
     const [open, setOpen] = useState<boolean>(false);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -169,6 +173,11 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                 type="text"
                 placeholder={placeholder}
                 value={query}
+                role="combobox"
+                aria-expanded={open}
+                aria-controls={listboxId}
+                aria-autocomplete="list"
+                aria-activedescendant={open && selectedIndex !== null ? optionId(selectedIndex) : undefined}
                 onInput={(e) => {
                     const val = (e.target as HTMLInputElement).value;
                     debounceSearch(val);
@@ -182,6 +191,8 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
             {open && (
                 <ul
                     ref={listRef}
+                    id={listboxId}
+                    role="listbox"
                     class={`absolute z-10 border border-c-accent2 mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
                 >
                     {matches && matches.length > 0 ? (
@@ -190,6 +201,9 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                             return (
                                 <li
                                     tabindex={-1}
+                                    id={optionId(i)}
+                                    role="option"
+                                    aria-selected={selectedIndex === i}
                                     key={key}
                                     class={`${selectedIndex === i ? 'bg-c-surface2' : 'bg-c-surface0'}  p-2 hover:bg-c-surface2 cursor-pointer`}
                                     onClick={() => doSelect(item)}
@@ -199,7 +213,10 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                             );
                         })
                     ) : (
-                        <li class="bg-c-surface0 p-2 hover:bg-c-surface1 cursor-pointer"> {noResultsText} </li>
+                        <li role="presentation" class="bg-c-surface0 p-2 hover:bg-c-surface1 cursor-pointer">
+                            {' '}
+                            {noResultsText}{' '}
+                        </li>
                     )}
                 </ul>
             )}
