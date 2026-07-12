@@ -31,7 +31,7 @@ export const UpArrow = (
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         stroke="currentColor"
-        stroke-width="1.5"
+        stroke-width="2"
     >
         <path d="M6 14l9-9 9 9" />
     </svg>
@@ -45,7 +45,7 @@ export const DownArrow = (
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         stroke="currentColor"
-        stroke-width="1.5"
+        stroke-width="2"
     >
         <path d="M6 10l9 9 9-9" />
     </svg>
