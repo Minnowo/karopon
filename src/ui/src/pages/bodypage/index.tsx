@@ -5,11 +5,13 @@ import {TblUserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
 import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog, ApiUpdateUserBodyLog} from '../../api/api';
 import {BodyLogPanel} from './bodylog_panel';
+import {NumberInput} from '../../components/number_input';
 
 export function BodyPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
     const [editLog, setEditLog] = useState<TblUserBodyLog | null>(null);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const [tmpLog, setTmpLog] = useState<TblUserBodyLog>({
         id: 0,
@@ -80,20 +82,24 @@ export function BodyPage(state: BaseState) {
     };
 
     const deleteBodyLog = (bodylog: TblUserBodyLog) => {
-        ApiDeleteUserBodyLog(bodylog)
-            .then(() => {
-                state.setBodyLogs((e) => e.filter((x) => x.id !== bodylog.id));
-                setErrorMsg(null);
-            })
-            .catch(handleErr);
+        if (confirm('Delete this body log?')) {
+            ApiDeleteUserBodyLog(bodylog)
+                .then(() => {
+                    state.setBodyLogs((e) => e.filter((x) => x.id !== bodylog.id));
+                    setErrorMsg(null);
+                })
+                .catch(handleErr);
+        }
     };
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
+            <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
                 <button disabled={showNewEventPanel} className={`w-24`} onClick={() => setShowNewEventPanel(true)}>
                     New Event
                 </button>
+
+                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -113,32 +119,34 @@ export function BodyPage(state: BaseState) {
                 <div className="text-center font-bold py-32">
                     No entries found!
                     <br />
-                    Try adding a new event!
+                    Try adding a new body log!
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {state.bodylogs.map((log: TblUserBodyLog) =>
-                        editLog?.id === log.id ? (
-                            <AddBodyPanel
-                                key={log.id}
-                                title="Edit Body Log"
-                                saveButtonTitle={'Update'}
-                                preserveTime={true}
-                                bodylog={editLog}
-                                onCreate={updateBodyLog}
-                                onCancel={() => setEditLog(null)}
-                                className="mb-4"
-                            />
-                        ) : (
-                            <BodyLogPanel
-                                key={log.id}
-                                bodyLog={log}
-                                onCopy={copyBodyLog}
-                                onEdit={(l) => setEditLog(l)}
-                                onDelete={deleteBodyLog}
-                            />
-                        )
-                    )}
+                    {state.bodylogs
+                        .slice(0, numberToShow)
+                        .map((log: TblUserBodyLog) =>
+                            editLog?.id === log.id ? (
+                                <AddBodyPanel
+                                    key={log.id}
+                                    title="Edit Body Log"
+                                    saveButtonTitle={'Update'}
+                                    preserveTime={true}
+                                    bodylog={editLog}
+                                    onCreate={updateBodyLog}
+                                    onCancel={() => setEditLog(null)}
+                                    className="mb-4"
+                                />
+                            ) : (
+                                <BodyLogPanel
+                                    key={log.id}
+                                    bodyLog={log}
+                                    onCopy={copyBodyLog}
+                                    onEdit={(l) => setEditLog(l)}
+                                    onDelete={deleteBodyLog}
+                                />
+                            )
+                        )}
                 </div>
             )}
         </>
