@@ -177,7 +177,7 @@ export function MultiLineGraph2({
             </div>
 
             {data.rows.length === 0 ? (
-                <div className="p-4 text-center text-yellow-400">{NoInformationMessage}</div>
+                <div className="p-4 text-center text-c-yellow">{NoInformationMessage}</div>
             ) : (
                 <>
                     <svg
