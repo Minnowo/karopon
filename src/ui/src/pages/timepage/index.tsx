@@ -13,11 +13,13 @@ import {TimerPanel} from './timer_panel';
 import {ActiveTimerPanel} from './active_timers_panel';
 import {AddTimerPanel} from './add_timer_panel';
 import {NewTaggedTimespan} from '../../api/factories';
+import {NumberInput} from '../../components/number_input';
 
 export function TimespansPage(state: BaseState) {
     const [showNewTimespan, setShowNewTimespan] = useState(false);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
+    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
     const tagColorMap = useMemo(() => {
@@ -129,9 +131,9 @@ export function TimespansPage(state: BaseState) {
 
     return (
         <>
-            <div className="w-full flex justify-evenly my-4">
+            <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
                 <button className="w-24" onClick={() => startTimerNow()}>
-                    Quick Timer
+                    Start Timer
                 </button>
 
                 <button
@@ -144,6 +146,8 @@ export function TimespansPage(state: BaseState) {
                 >
                     New Timer
                 </button>
+
+                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -178,10 +182,11 @@ export function TimespansPage(state: BaseState) {
                 />
 
                 {state.timespans.length === 0 ? (
-                    <p>No timespans found.</p>
+                    <div className="text-center font-bold py-32">No timespans found.</div>
                 ) : (
                     state.timespans
                         .filter((ts) => ts.timespan.stop_time !== 0)
+                        .slice(0, numberToShow)
                         .map((ts: TaggedTimespan) => (
                             <TimerPanel
                                 key={ts.timespan.id}
