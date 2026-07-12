@@ -71,7 +71,7 @@ export function ErrorDiv({errorMsg, className}: ErrorDivProps) {
     const devMessage = getDeveloperMessage(errorMsg);
 
     return (
-        <details className={`flex flex-col text-left text-c-red ${className ?? ''}`}>
+        <details role="alert" className={`flex flex-col text-left text-c-red ${className ?? ''}`}>
             <summary className="cursor-pointer text-sm font-semibold">
                 {userMessage}
                 {devMessage && (
