@@ -215,10 +215,12 @@
     a {
         color: var(--color-c-yellow);
         text-decoration: none;
+        @apply std-focus;
     }
 
     a:hover {
         color: var(--color-c-yellow);
+        @apply std-focus;
     }
 
     img {
@@ -245,6 +247,13 @@
     button {
         @apply hover:cursor-pointer;
     }
+}
+
+@utility std-focus {
+    @apply focus-visible:outline-solid
+        focus-visible:outline-2
+        focus-visible:outline-white
+        focus-visible:outline-offset-2;
 }
 
 @utility input-like {
