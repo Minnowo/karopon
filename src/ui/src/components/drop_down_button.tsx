@@ -22,6 +22,7 @@ export function DropdownButton({
 }: DropdownProps) {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -36,13 +37,24 @@ export function DropdownButton({
     }, []);
 
     return (
-        <div className={`relative h-fit w-fit ${className !== undefined ? className : ''}`} ref={menuRef}>
+        <div
+            className={`relative h-fit w-fit ${className !== undefined ? className : ''}`}
+            ref={menuRef}
+            onKeyDown={(e) => {
+                if (e.key === 'Escape' && open) {
+                    setOpen(false);
+                    triggerRef.current?.focus();
+                }
+            }}
+        >
             <div className="flex items-center">
                 <button
-                    tabindex={-1}
+                    ref={triggerRef}
                     onClick={() => setOpen(!open)}
-                    className={buttonClassName}
+                    className={`std-focus ${buttonClassName}`}
                     aria-label={label === '[:]' ? 'More actions' : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={open}
                 >
                     {label === '[:]' ? ThreeVertDots : label}
                 </button>
