@@ -4,6 +4,20 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Populated from env vars so the keystore/passwords never need to be
+// committed. Left false when RELEASE_STORE_FILE isn't set OR doesn't point
+// to a real file (CI can set the env var whether or not the keystore secret
+// was actually provided, e.g. on PRs from forks) - the release buildType
+// below falls back to debug signing in that case, so `gradle assembleRelease`
+// still works with no signing setup at all.
+val releaseStoreFilePath: String? = System.getenv("RELEASE_STORE_FILE")
+val hasReleaseKeystore = !releaseStoreFilePath.isNullOrBlank() && file(releaseStoreFilePath).exists()
+
+logger.lifecycle(
+    "karopon: release build type will be signed with " +
+        if (hasReleaseKeystore) "the release keystore ($releaseStoreFilePath)" else "the debug key",
+)
+
 android {
     namespace = "cc.headpats.karopon"
     compileSdk = 34
@@ -20,9 +34,25 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseKeystore) {
+                storeFile = file(releaseStoreFilePath!!)
+                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
