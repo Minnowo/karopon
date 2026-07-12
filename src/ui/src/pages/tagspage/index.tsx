@@ -149,19 +149,17 @@ export const TagsPage = (state: BaseState) => {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`px-3 py-1 ${showNewTag ? 'font-bold bg-c-red' : ''}`}
+                    disabled={showNewTag}
+                    className="px-3 py-1"
                     onClick={() => {
-                        setShowNewTag((x) => !x);
+                        setShowNewTag(true);
                         setErrorMsg(null);
                     }}
                 >
-                    {showNewTag ? 'x New Tag' : '+ New Tag'}
+                    New Tag
                 </button>
-                <button
-                    className={`px-3 py-1 ${showColorPanel ? 'font-bold bg-c-red' : ''}`}
-                    onClick={() => setShowColorPanel((x) => !x)}
-                >
-                    {showColorPanel ? 'x Tag Colors' : 'Tag Colors'}
+                <button disabled={showColorPanel} className="px-3 py-1" onClick={() => setShowColorPanel(true)}>
+                    Tag Colors
                 </button>
                 <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
