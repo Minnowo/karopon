@@ -62,6 +62,7 @@ export type DashboardCard = {
     hiddenLabels: string[];
     timeRanges: TimeRange[];
     curTimeRange: number;
+    useNetwork: boolean;
 };
 
 export type UserDashboard = {

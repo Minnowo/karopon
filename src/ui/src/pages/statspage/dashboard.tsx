@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useMemo, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {DashboardCard, UserDashboard} from './common';
 import {DashboardCardComponent} from './dashboard_card';
@@ -11,13 +11,22 @@ type DashboardProps = {
     baseState: BaseState;
     tagColors: Map<string, string>;
     dashboard: TblUserDashboard;
+    editing: boolean;
+    setEditing: Dispatch<StateUpdater<boolean>>;
     onUpdate: (dashboard: UserDashboard) => void;
     onDelete: (dashboard: UserDashboard) => void;
 };
 
-export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, onDelete}: DashboardProps) => {
+export const DashboardComponent = ({
+    baseState,
+    tagColors,
+    dashboard,
+    editing,
+    setEditing,
+    onUpdate,
+    onDelete,
+}: DashboardProps) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [editing, setEditing] = useState(false);
     const [cancelUpdate, setCancelUpdate] = useState(false);
 
     const dashboardRef = useMemo(() => {
@@ -105,29 +114,20 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
         <>
             <ErrorDiv errorMsg={errorMsg} />
 
-            {!editing && (
-                <div className="w-full flex justify-evenly my-4">
-                    <button className="wsnw px-2" onClick={() => setEditing(true)}>
-                        Edit View
-                    </button>
-                </div>
-            )}
-
             {editing && (
-                <>
-                    <AddEditDashboardPanel
-                        titleLabel="Edit View"
-                        namespaces={baseState.namespaces}
-                        setNamespaces={baseState.setNamespaces}
-                        tagColors={tagColors}
-                        onCardAdded={handleAdd}
-                        initialName={dashboardRef.db.name}
-                        confirmLabel="Save"
-                        onConfirm={doSave}
-                        onDelete={() => onDelete(dashboardRef.db)}
-                        onCancel={cancelEdit}
-                    />
-                </>
+                <AddEditDashboardPanel
+                    className="mt-4 mb-8"
+                    titleLabel="Edit View"
+                    namespaces={baseState.namespaces}
+                    setNamespaces={baseState.setNamespaces}
+                    tagColors={tagColors}
+                    onCardAdded={handleAdd}
+                    initialName={dashboardRef.db.name}
+                    confirmLabel="Save"
+                    onConfirm={doSave}
+                    onDelete={() => onDelete(dashboardRef.db)}
+                    onCancel={cancelEdit}
+                />
             )}
 
             <div class="flex flex-col gap-16">

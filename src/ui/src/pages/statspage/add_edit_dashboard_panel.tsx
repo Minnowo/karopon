@@ -23,6 +23,7 @@ const CHART_LABELS: Record<DashboardCard['type'], string> = {
 };
 
 type DashboardSettingsPanelProps = {
+    className?: string;
     titleLabel: string;
     initialName: string;
     confirmLabel: string;
@@ -35,6 +36,7 @@ type DashboardSettingsPanelProps = {
     onCardAdded?: (c: DashboardCard) => void;
 };
 export function AddEditDashboardPanel({
+    className = 'mt-4 mb-4',
     titleLabel,
     initialName,
     confirmLabel,
@@ -67,7 +69,7 @@ export function AddEditDashboardPanel({
     };
 
     return (
-        <div className="flex flex-col gap-2 p-2 mt-4 mb-4 container-theme">
+        <div className={`flex flex-col gap-2 p-2 container-theme ${className}`}>
             <h2 className="text-lg font-bold">{titleLabel}</h2>
             <div className="flex gap-2 items-center">
                 <input
@@ -81,11 +83,11 @@ export function AddEditDashboardPanel({
             </div>
 
             {onCardAdded && (
-                <>
+                <div className="container-theme flex flex-col gap-2">
                     <h2 className="text-lg font-bold">Add Chart</h2>
-                    <div class="flex gap-2 items-center ">
+                    <div class="flex flex-row flex-wrap gap-2 items-center">
                         <select
-                            className="w-full px-2 py-1"
+                            className="px-2 py-1"
                             value={addType}
                             aria-label="Chart type"
                             onChange={(e) => setAddType((e.target as HTMLSelectElement).value as DashboardCard['type'])}
@@ -113,10 +115,10 @@ export function AddEditDashboardPanel({
                             />
                         </div>
                     )}
-                </>
+                </div>
             )}
 
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
                 {onDelete ? (
                     <button className="delete-btn" onClick={onDelete}>
                         Delete

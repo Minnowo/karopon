@@ -8,6 +8,7 @@ import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 export function StatsPage(state: BaseState) {
     const [curDashboard, setCurDashboard] = useState<number>(0);
     const [showAddPanel, setShowAddPanel] = useState(false);
+    const [editingDashboard, setEditingDashboard] = useState(false);
 
     const tagColorMap = useMemo(() => {
         const m = new Map();
@@ -22,6 +23,7 @@ export function StatsPage(state: BaseState) {
             const newIndex = state.dashboards.length;
             state.setDashboards([...state.dashboards, db]);
             setCurDashboard(newIndex);
+            setEditingDashboard(false);
             setShowAddPanel(false);
         });
     };
@@ -45,6 +47,7 @@ export function StatsPage(state: BaseState) {
                 const next = state.dashboards.filter((db) => db.id !== dashboard.id);
                 state.setDashboards(next);
                 setCurDashboard((i) => Math.min(i, Math.max(0, next.length - 1)));
+                setEditingDashboard(false);
             });
         }
     };
@@ -56,18 +59,31 @@ export function StatsPage(state: BaseState) {
                     New View
                 </button>
                 {state.dashboards.length > 0 && (
-                    <select
-                        className="px-2 max-w-32 sm:max-w-4/6"
-                        value={curDashboard}
-                        aria-label="Select dashboard"
-                        onChange={(e) => setCurDashboard(Number((e.target as HTMLSelectElement).value))}
-                    >
-                        {state.dashboards.map((db, i) => (
-                            <option key={db.id} value={i}>
-                                {db.name}
-                            </option>
-                        ))}
-                    </select>
+                    <>
+                        <select
+                            className="px-2 max-w-32 sm:max-w-4/6"
+                            value={curDashboard}
+                            aria-label="Select dashboard"
+                            onChange={(e) => {
+                                setCurDashboard(Number((e.target as HTMLSelectElement).value));
+                                setEditingDashboard(false);
+                            }}
+                        >
+                            {state.dashboards.map((db, i) => (
+                                <option key={db.id} value={i}>
+                                    {db.name}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            disabled={editingDashboard}
+                            className="wsnw px-3"
+                            onClick={() => setEditingDashboard(true)}
+                            title="Edit Dashboard"
+                        >
+                            Edit View
+                        </button>
+                    </>
                 )}
             </div>
 
@@ -90,6 +106,8 @@ export function StatsPage(state: BaseState) {
                     baseState={state}
                     tagColors={tagColorMap}
                     dashboard={state.dashboards[curDashboard]}
+                    editing={editingDashboard}
+                    setEditing={setEditingDashboard}
                     onUpdate={onUpdate}
                     onDelete={onDelete}
                 />
