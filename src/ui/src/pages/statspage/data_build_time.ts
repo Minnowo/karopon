@@ -1,9 +1,9 @@
 import {TaggedTimespan} from '../../api/types';
 import {TagToString} from '../../utils/tags';
-import {ChartData, DataRow} from './graphs/common_props';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {ApiGetStatsTime} from '../../api/api';
 import {DateToGroupByBucket} from './data_build';
+import {ChartData, DataRow} from './common';
 
 export const BuildTimeChartDataNetwork = async (
     rangeStart: string,
@@ -13,6 +13,8 @@ export const BuildTimeChartDataNetwork = async (
     selectedTags: string[],
     colors: string[]
 ): Promise<ChartData> => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     return ApiGetStatsTime({
         columns: [],
         start: rangeStart,
@@ -20,6 +22,7 @@ export const BuildTimeChartDataNetwork = async (
         groupby: groupBy,
         aggregate: aggregationFunc,
         tags: selectedTags,
+        timezone,
     }).then((points) => {
         const labelIdx = new Map<string, number>();
         const byBucket = new Map<number, Float32Array>();

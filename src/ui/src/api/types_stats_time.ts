@@ -7,6 +7,7 @@ export type StatsTimeRequest = {
     groupby: GroupBy;
     aggregate: AggregationFunc;
     tags: string[];
+    timezone: string;
 };
 
 export type TimespanTagDurationPoint = {

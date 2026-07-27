@@ -12,12 +12,13 @@ import (
 )
 
 type StatsTimeRequest struct {
-	Cols          []string `json:"columns"`
-	Start         string   `json:"start"`
-	End           string   `json:"end"`
-	GroupBy       string   `json:"groupby"`
-	AggregateFunc string   `json:"aggregate"`
-	Tags          []string `json:"tags"`
+	Cols          []string          `json:"columns"`
+	Start         string            `json:"start"`
+	End           string            `json:"end"`
+	GroupBy       string            `json:"groupby"`
+	AggregateFunc string            `json:"aggregate"`
+	Tags          []string          `json:"tags"`
+	Timezone      database.Timezone `json:"timezone"`
 }
 
 func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +43,7 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 	// day, then shift is added back inside the function.
 	// DayTimeOffsetSeconds is NOT a UTC offset — it marks when the user's day starts.
 	shift := time.Duration(user.DayTimeOffsetSeconds) * time.Second
-	adjustedNow := time.Now().Add(-shift)
+	adjustedNow := time.Now().Add(-shift).In(req.Timezone.Loc())
 
 	startTime, err := database.ParseRelativeTimeExpr(req.Start, adjustedNow, shift)
 	if err != nil {
