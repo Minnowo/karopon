@@ -118,7 +118,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                             <li>Cook the food.</li>
                             <li>
                                 Weigh the final result
-                                <span className="font-semibold"> (important!)</span> — this should be the total cooked weight of
+                                <span className="font-semibold"> (important!)</span> - this should be the total cooked weight of
                                 everything.
                             </li>
                             <li>Give the food a name, then enter the final weight and unit of measure.</li>

@@ -207,7 +207,7 @@ func TestPostgresMigrations(t *testing.T) {
 
 	// 0008_goals_table: 6 → 7
 	// Creates pon.user_goal.
-	// NOTE: uses the pre-rename value 'MORE_THAN' — 0009 will verify it gets renamed.
+	// NOTE: uses the pre-rename value 'MORE_THAN' - 0009 will verify it gets renamed.
 	t.Run("0008_goals_table", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 6, postgresUpMigrations[7:8])
 		require.NoError(t, err)
@@ -345,7 +345,7 @@ func TestPostgresMigrations(t *testing.T) {
 			RETURNING id`, userID, eventID,
 		).Scan(&eventlogID))
 
-		// Foodlog with valid eventlog_id — must survive the migration.
+		// Foodlog with valid eventlog_id - must survive the migration.
 		_, err := conn.ExecContext(ctx, `
 			INSERT INTO pon.user_foodlog
 				(user_id, eventlog_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)
@@ -353,7 +353,7 @@ func TestPostgresMigrations(t *testing.T) {
 			userID, eventlogID)
 		require.NoError(t, err)
 
-		// Foodlog with NULL eventlog_id — must be deleted by the migration.
+		// Foodlog with NULL eventlog_id - must be deleted by the migration.
 		_, err = conn.ExecContext(ctx, `
 			INSERT INTO pon.user_foodlog
 				(user_id, eventlog_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)

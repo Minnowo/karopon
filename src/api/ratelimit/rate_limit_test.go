@@ -58,7 +58,7 @@ func TestRateLimit_IndependentKeys(t *testing.T) {
 
 // TestRateLimit_TokenRefill verifies that tokens are replenished over time.
 func TestRateLimit_TokenRefill(t *testing.T) {
-	// 1 burst, 100 tokens/second — refills in ~10 ms.
+	// 1 burst, 100 tokens/second - refills in ~10 ms.
 	rl := NewRateLimiter(rate.Limit(100), 1)
 	handler := rl.Middleware(ByIPAddressFromTrustedProxy)(okHandler)
 

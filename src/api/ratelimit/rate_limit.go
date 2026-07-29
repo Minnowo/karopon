@@ -27,7 +27,7 @@ type RateLimiter struct {
 //   - r: sustained request rate (tokens replenished per second).
 //   - burst: maximum burst size (tokens a bucket can hold).
 //
-// Example — allow 5 requests per second with a burst of 20:
+// Example - allow 5 requests per second with a burst of 20:
 //
 //	NewRateLimiter(5, 20)
 func NewRateLimiter(r rate.Limit, burst int) *RateLimiter {

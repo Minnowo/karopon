@@ -12,13 +12,13 @@ const STATIONARY_MS = 80; // if pointer hasn't moved for this long, treat releas
 
 // Momentum animation
 const MAX_FRAME_MS = 32; // dt cap to avoid jumps after tab switches
-const MOMENTUM_MIN_VEL = 0.15; // px/ms — below this, skip momentum and snap directly
-const MOMENTUM_STOP_VEL = 0.03; // px/ms — friction has decayed enough to snap
+const MOMENTUM_MIN_VEL = 0.15; // px/ms - below this, skip momentum and snap directly
+const MOMENTUM_STOP_VEL = 0.03; // px/ms - friction has decayed enough to snap
 const MOMENTUM_FRICTION = 0.94; // velocity multiplier per 16ms
 
 // Snap-to animation
 const SNAP_DECAY = 0.75; // remaining-distance multiplier per 16ms
-const SNAP_ARRIVE_PX = 0.5; // px — close enough to the target to commit
+const SNAP_ARRIVE_PX = 0.5; // px - close enough to the target to commit
 
 type BarrelPickerBase = {
     label: string;

@@ -41,7 +41,7 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 	// Mirror getUserGoalProgress: subtract the day offset so that date-component
 	// operations inside ParseRelativeTimeExpr reflect the user's perceived current
 	// day, then shift is added back inside the function.
-	// DayTimeOffsetSeconds is NOT a UTC offset — it marks when the user's day starts.
+	// DayTimeOffsetSeconds is NOT a UTC offset - it marks when the user's day starts.
 	shift := time.Duration(user.DayTimeOffsetSeconds) * time.Second
 	adjustedNow := time.Now().Add(-shift).In(req.Timezone.Loc())
 

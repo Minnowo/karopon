@@ -83,7 +83,7 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 
 	if len(sessionSecret) == 0 {
 		log.Warn().
-			Msg("no session-secret set; generating a random one — existing sessions will be invalidated on restart")
+			Msg("no session-secret set; generating a random one - existing sessions will be invalidated on restart")
 		sessionSecret = make([]byte, 32)
 		_, _ = rand.Read(sessionSecret)
 	}

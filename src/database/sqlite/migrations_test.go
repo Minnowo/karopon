@@ -50,7 +50,7 @@ func TestSqliteMigrations(t *testing.T) {
 	// 0002_session_user_agent: 0 → 1
 	// Adds USER_AGENT TEXT NOT NULL DEFAULT '' to PON_USER_SESSION.
 	t.Run("0002_session_user_agent", func(t *testing.T) {
-		// Insert a session before migration — the USER_AGENT column does not exist yet.
+		// Insert a session before migration - the USER_AGENT column does not exist yet.
 		token := make([]byte, 32)
 		_, err := conn.ExecContext(ctx,
 			`INSERT INTO PON_USER_SESSION (USER_ID, EXPIRES, TOKEN) VALUES (?, datetime('now','+1 hour'), ?)`,
@@ -90,7 +90,7 @@ func TestSqliteMigrations(t *testing.T) {
 		eventlogIDInt64, _ := res.LastInsertId()
 		eventlogID := int(eventlogIDInt64)
 
-		// Foodlog with valid EVENTLOG_ID — must survive the migration.
+		// Foodlog with valid EVENTLOG_ID - must survive the migration.
 		_, err = conn.ExecContext(ctx, `
 			INSERT INTO PON_USER_FOODLOG
 				(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
@@ -98,7 +98,7 @@ func TestSqliteMigrations(t *testing.T) {
 			userID, eventlogID)
 		require.NoError(t, err)
 
-		// Foodlog with NULL EVENTLOG_ID — must be deleted by the migration.
+		// Foodlog with NULL EVENTLOG_ID - must be deleted by the migration.
 		_, err = conn.ExecContext(ctx, `
 			INSERT INTO PON_USER_FOODLOG
 				(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)

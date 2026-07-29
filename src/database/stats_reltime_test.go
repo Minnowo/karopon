@@ -53,7 +53,7 @@ func TestParseRelativeTimeExpr_Days(t *testing.T) {
 
 func TestParseRelativeTimeExpr_Weeks(t *testing.T) {
 	// Week follows the same pattern as ParseGoalTimeExpression baseWeek: shift is
-	// added to now first, then the result walks back to Monday — the sub-day time
+	// added to now first, then the result walks back to Monday - the sub-day time
 	// component is preserved (unlike day/month/year which snap to midnight).
 	// With zero shift, refTime=18:05, so the Monday boundary retains 18:05.
 	//
@@ -93,7 +93,7 @@ func TestParseRelativeTimeExpr_Years(t *testing.T) {
 func TestParseRelativeTimeExpr_DayOffset(t *testing.T) {
 	shift := 2 * time.Hour // DayTimeOffsetSeconds = 7200
 
-	// Real time is 2026-04-17 01:30 UTC — still the user's "previous day"
+	// Real time is 2026-04-17 01:30 UTC - still the user's "previous day"
 	// because 01:30 < 02:00 (the user's day start).
 	realNow := time.Date(2026, 4, 17, 1, 30, 0, 0, time.UTC)
 	adjustedNow := realNow.Add(-shift) // 2026-04-16 23:30 UTC
@@ -108,7 +108,7 @@ func TestParseRelativeTimeExpr_DayOffset(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, time.Date(2026, 4, 15, 2, 0, 0, 0, time.UTC), got)
 
-	// Real time is 2026-04-17 03:00 UTC — the user is now in their "new day" (Apr 17).
+	// Real time is 2026-04-17 03:00 UTC - the user is now in their "new day" (Apr 17).
 	realNow2 := time.Date(2026, 4, 17, 3, 0, 0, 0, time.UTC)
 	adjustedNow2 := realNow2.Add(-shift) // 2026-04-17 01:00 UTC
 
