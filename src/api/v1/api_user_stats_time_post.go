@@ -62,6 +62,8 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		Str("stop", req.End).
 		Time("startt", startTime).
 		Time("stopt", endTime).
+		Int("shift", int(shift)).
+		Time("nowAdj", adjustedNow).
 		Msg("running user stats")
 
 	var data []database.TimespanTagDurationPoint
@@ -72,6 +74,8 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		endTime,
 		req.Tags,
 		database.GroupBy(req.GroupBy),
+		req.Timezone,
+		shift,
 		&data,
 	)
 

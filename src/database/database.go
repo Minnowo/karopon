@@ -331,6 +331,9 @@ type DB interface {
 	// AddUserEventLogPhotos creates mappings between an event log and a list of photo IDs.
 	AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error
 
+	// dayOffset is the user's DayTimeOffsetSeconds (see ParseRelativeTimeExpr) marking when
+	// their day starts; bucket boundaries for day/week/month/year groupings are shifted by
+	// this amount so they align with the user's perceived day rather than local midnight.
 	LoadUserTimeData(
 		ctx context.Context,
 		userID int,
@@ -338,6 +341,8 @@ type DB interface {
 		endTime time.Time,
 		tags []string,
 		groupby GroupBy,
+		timezone Timezone,
+		dayOffset time.Duration,
 		out *[]TimespanTagDurationPoint,
 	) error
 }

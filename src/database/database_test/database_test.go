@@ -1524,6 +1524,8 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 			stop.Add(48*time.Hour),
 			[]string{"activity:sleep"},
 			database.GroupByDay,
+			database.Timezone{},
+			0,
 			&points,
 		))
 
@@ -1533,6 +1535,147 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
 		expectedBucket := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
 		assert.True(t, points[0].Bucket.Time().Equal(expectedBucket))
+	})
+
+	t.Run("LoadUserTimeData_timezone", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		tz, err := database.NewTimezone("America/New_York")
+		require.NoError(t, err)
+
+		// 2024-07-01 02:00 UTC is 2024-06-30 22:00 in America/New_York (UTC-4 during DST).
+		// Grouping by month should bucket this into June in the user's local timezone, not
+		// July as a naive UTC date_trunc would.
+		start := time.Date(2024, 7, 1, 2, 0, 0, 0, time.UTC)
+		stop := start.Add(time.Hour)
+
+		_, err = db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(start),
+			StopTime:  database.TimeMillis(stop),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "sleep"},
+		})
+		require.NoError(t, err)
+
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			start.Add(-24*time.Hour),
+			stop.Add(24*time.Hour),
+			[]string{"activity:sleep"},
+			database.GroupByMonth,
+			tz,
+			0,
+			&points,
+		))
+
+		require.Len(t, points, 1)
+
+		expectedBucket := time.Date(2024, 6, 1, 0, 0, 0, 0, tz.Loc())
+		assert.True(t, points[0].Bucket.Time().Equal(expectedBucket),
+			"expected bucket %s (local June 1st), got %s", expectedBucket, points[0].Bucket.Time())
+	})
+
+	t.Run("LoadUserTimeData_timezone_year", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		tz, err := database.NewTimezone("America/Los_Angeles")
+		require.NoError(t, err)
+
+		// 2024-01-01 03:00 UTC is 2023-12-31 19:00 in America/Los_Angeles (UTC-8 in winter).
+		// Grouping by year should bucket this into 2023 in the user's local timezone, not
+		// 2024 as a naive UTC date_trunc would.
+		start := time.Date(2024, 1, 1, 3, 0, 0, 0, time.UTC)
+		stop := start.Add(time.Hour)
+
+		_, err = db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(start),
+			StopTime:  database.TimeMillis(stop),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "sleep"},
+		})
+		require.NoError(t, err)
+
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			start.Add(-24*time.Hour),
+			stop.Add(24*time.Hour),
+			[]string{"activity:sleep"},
+			database.GroupByYear,
+			tz,
+			0,
+			&points,
+		))
+
+		require.Len(t, points, 1)
+
+		expectedBucket := time.Date(2023, 1, 1, 0, 0, 0, 0, tz.Loc())
+		assert.True(t, points[0].Bucket.Time().Equal(expectedBucket),
+			"expected bucket %s (local year 2023), got %s", expectedBucket, points[0].Bucket.Time())
+	})
+
+	t.Run("LoadUserTimeData_dayOffset", func(t *testing.T) {
+
+		lock.Lock()
+		t.Cleanup(lock.Unlock)
+
+		ctx := t.Context()
+		db := newTestDB(t)
+
+		userID := getTestUser(t, db)
+
+		// User's day starts at 04:00 UTC. A timespan at 02:00 UTC on Jan 16th belongs to the
+		// "day" that started at 04:00 UTC on Jan 15th.
+		dayOffset := 4 * time.Hour
+		start := time.Date(2024, 1, 16, 2, 0, 0, 0, time.UTC)
+		stop := start.Add(time.Hour)
+
+		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(start),
+			StopTime:  database.TimeMillis(stop),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "sleep"},
+		})
+		require.NoError(t, err)
+
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			start.Add(-24*time.Hour),
+			stop.Add(24*time.Hour),
+			[]string{"activity:sleep"},
+			database.GroupByDay,
+			database.Timezone{},
+			dayOffset,
+			&points,
+		))
+
+		require.Len(t, points, 1)
+
+		expectedBucket := time.Date(2024, 1, 15, 4, 0, 0, 0, time.UTC)
+		assert.True(t, points[0].Bucket.Time().Equal(expectedBucket),
+			"expected bucket %s (Jan 15 day start), got %s", expectedBucket, points[0].Bucket.Time())
 	})
 
 	t.Run("LoadUserTimeData_no_tags", func(t *testing.T) {
@@ -1553,6 +1696,8 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 			time.Now().Add(time.Hour),
 			nil,
 			database.GroupByDay,
+			database.Timezone{},
+			0,
 			&points,
 		))
 

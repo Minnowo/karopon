@@ -445,6 +445,8 @@ func (p *BaseMockDB) LoadUserTimeData(
 	endTime time.Time,
 	tags []string,
 	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
 	out *[]database.TimespanTagDurationPoint,
 ) error {
 	panic("not implemented")

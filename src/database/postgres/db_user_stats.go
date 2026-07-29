@@ -6,6 +6,7 @@ import (
 
 	"karopon/src/database"
 
+	"github.com/rs/zerolog/log"
 	"github.com/vinovest/sqlx"
 )
 
@@ -58,6 +59,8 @@ func (db *PGDatabase) LoadUserTimeData(
 	endTime time.Time,
 	tags []string,
 	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
 	out *[]database.TimespanTagDurationPoint,
 ) error {
 
@@ -65,10 +68,24 @@ func (db *PGDatabase) LoadUserTimeData(
 		return nil
 	}
 
+	tzName := timezone.Name
+	if tzName == "" {
+		tzName = "UTC"
+	}
+
+	// START_TIME/STOP_TIME are stored as naive UTC timestamps. To bucket by the user's local
+	// calendar day/week/month/year (rather than the UTC one), reinterpret them as timestamptz
+	// via "AT TIME ZONE 'UTC'" and truncate using the 3-arg date_trunc(field, ts, zone) form.
+	// dayOffsetSeconds is subtracted before truncation and added back after, so day-aligned
+	// buckets start at the user's perceived day boundary instead of local midnight.
 	sql := `
 		SELECT
 			t.NAMESPACE || ':' || t.NAME                                           AS TAG,
-			date_trunc(?, ts.START_TIME)                                           AS BUCKET,
+			date_trunc(
+				?,
+				(ts.START_TIME AT TIME ZONE 'UTC') - (? * INTERVAL '1 second'),
+				?
+			) + (? * INTERVAL '1 second')                                          AS BUCKET,
 			EXTRACT(EPOCH FROM (SUM(ts.STOP_TIME - ts.START_TIME) * 1000))::bigint AS DURATION_MILLI
 
 		FROM PON.USER_TAG t
@@ -79,19 +96,30 @@ func (db *PGDatabase) LoadUserTimeData(
 		JOIN PON.USER_TIMESPAN ts
 		ON ts.ID = tt.TIMESPAN_ID
 
-		WHERE 
+		WHERE
 			ts.STOP_TIME > ts.START_TIME
 			AND (t.NAMESPACE || ':' || t.NAME) IN (?)
 			AND t.USER_ID = ?
 			AND ts.USER_ID = ?
-			AND ts.START_TIME >= ? 
+			AND ts.START_TIME >= ?
 			AND ts.START_TIME <= ?
 
 		GROUP BY t.NAMESPACE, t.NAME, BUCKET
 		ORDER BY BUCKET ASC
 	`
 
-	query, args, err := sqlx.In(sql, groupbyToPG(groupby), tags, userID, userID, startTime.UTC(), endTime.UTC())
+	dayOffsetSeconds := int(dayOffset.Seconds())
+
+	log.Debug().
+		Str("groupby", groupbyToPG(groupby)).
+		Str("timezone", tzName).
+		Int("dayOffsetSeconds", dayOffsetSeconds).
+		Msg("running time stats agg")
+
+	query, args, err := sqlx.In(sql,
+		groupbyToPG(groupby), dayOffsetSeconds, tzName, dayOffsetSeconds,
+		tags, userID, userID, startTime.UTC(), endTime.UTC(),
+	)
 
 	if err != nil {
 		return err

@@ -9,31 +9,34 @@ import (
 	"github.com/vinovest/sqlx"
 )
 
-// truncateToBucket truncates t (in UTC) to the start of the bucket it falls into, mirroring
-// postgres' date_trunc(bucket, source) behaviour.
-func truncateToBucket(t time.Time, groupby database.GroupBy) time.Time {
+// truncateToBucket truncates t to the start of the bucket it falls into, mirroring postgres'
+// date_trunc(bucket, source, zone) behaviour: truncation happens on the wall-clock time in loc,
+// not in UTC, so day/week/month/year buckets align with the user's local calendar. dayOffset
+// (the user's DayTimeOffsetSeconds) is subtracted before truncating and added back after, so
+// bucket boundaries land on the user's perceived day start rather than local midnight.
+func truncateToBucket(t time.Time, groupby database.GroupBy, loc *time.Location, dayOffset time.Duration) time.Time {
 
-	t = t.UTC()
+	t = t.In(loc).Add(-dayOffset)
 
 	switch groupby {
 	case database.GroupByOne:
 		return time.Time{}
 	case database.GroupBySecond:
-		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.UTC)
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, loc).Add(dayOffset)
 	case database.GroupByMinute:
-		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, time.UTC)
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc).Add(dayOffset)
 	case database.GroupByHour:
-		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, time.UTC)
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, loc).Add(dayOffset)
 	case database.GroupByDay:
-		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc).Add(dayOffset)
 	case database.GroupByWeek:
-		d := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+		d := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
 		offset := (int(d.Weekday()) + 6) % 7 // ISO week starts on Monday
-		return d.AddDate(0, 0, -offset)
+		return d.AddDate(0, 0, -offset).Add(dayOffset)
 	case database.GroupByMonth:
-		return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+		return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, loc).Add(dayOffset)
 	case database.GroupByYear:
-		return time.Date(t.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+		return time.Date(t.Year(), 1, 1, 0, 0, 0, 0, loc).Add(dayOffset)
 	default:
 		panic("impossible group by")
 	}
@@ -46,6 +49,8 @@ func (db *SqliteDatabase) LoadUserTimeData(
 	endTime time.Time,
 	tags []string,
 	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
 	out *[]database.TimespanTagDurationPoint,
 ) error {
 
@@ -103,7 +108,7 @@ func (db *SqliteDatabase) LoadUserTimeData(
 
 	for _, r := range rows {
 
-		k := bucketKey{tag: r.Tag, bucket: truncateToBucket(r.StartTime.Time(), groupby)}
+		k := bucketKey{tag: r.Tag, bucket: truncateToBucket(r.StartTime.Time(), groupby, timezone.Loc(), dayOffset)}
 
 		sums[k] += r.StopTime.Time().Sub(r.StartTime.Time()).Milliseconds()
 	}
