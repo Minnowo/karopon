@@ -19,7 +19,7 @@ func openSqliteDatabase(ctx context.Context, driver, connString string) (db *Sql
 		return nil, errors.WithStack(err)
 	}
 
-	conn.Mapper = reflectx.NewMapperTagFunc("db", strings.ToUpper, strings.ToUpper)
+	conn.Mapper = reflectx.NewMapperTagColFunc("db", strings.ToUpper, strings.ToUpper, strings.ToUpper)
 	conn.SetMaxOpenConns(5)
 	conn.SetConnMaxLifetime(time.Minute * 10)
 
