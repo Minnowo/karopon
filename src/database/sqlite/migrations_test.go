@@ -28,7 +28,7 @@ func TestSqliteMigrations(t *testing.T) {
 
 	var userID int
 
-	// 0001_system: VERSION_NONE → 0
+	// 0001_system: VERSION_NONE -> 0
 	// Creates all core tables (PON_USER, PON_USER_EVENT, PON_USER_EVENTLOG, etc.).
 	t.Run("0001_system", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, database.VERSION_NONE, sqliteUpMigrations[0:1])
@@ -47,7 +47,7 @@ func TestSqliteMigrations(t *testing.T) {
 		require.NotZero(t, userID)
 	})
 
-	// 0002_session_user_agent: 0 → 1
+	// 0002_session_user_agent: 0 -> 1
 	// Adds USER_AGENT TEXT NOT NULL DEFAULT '' to PON_USER_SESSION.
 	t.Run("0002_session_user_agent", func(t *testing.T) {
 		// Insert a session before migration - the USER_AGENT column does not exist yet.
@@ -68,7 +68,7 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.Equal(t, "", userAgent)
 	})
 
-	// 0003_foodlog_eventlog_delete_cascade: 1 → 2
+	// 0003_foodlog_eventlog_delete_cascade: 1 -> 2
 	// Deletes PON_USER_FOODLOG rows with NULL EVENTLOG_ID and adds ON DELETE CASCADE on that FK.
 	t.Run("0003_foodlog_eventlog_delete_cascade", func(t *testing.T) {
 		// Insert event and eventlog to anchor a valid foodlog.
@@ -127,7 +127,7 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.Equal(t, 0, afterCascade, "foodlog should be cascade-deleted with its eventlog")
 	})
 
-	// 0004_event_log_trailing_rows: 2 → 3
+	// 0004_event_log_trailing_rows: 2 -> 3
 	// Adds EVENT_LOG_TRAILING_ROWS INTEGER NOT NULL DEFAULT 3 to PON_USER.
 	t.Run("0004_event_log_trailing_rows", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 2, sqliteUpMigrations[3:4])
@@ -141,7 +141,7 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.Equal(t, 3, trailing)
 	})
 
-	// 0005_day_time_offset: 3 → 4
+	// 0005_day_time_offset: 3 -> 4
 	// Adds DAY_TIME_OFFSET_SECONDS INTEGER NOT NULL DEFAULT 0 to PON_USER.
 	t.Run("0005_day_time_offset", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 3, sqliteUpMigrations[4:5])
@@ -155,7 +155,7 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.Equal(t, 0, offset)
 	})
 
-	// 0006_dashboard: 4 → 5
+	// 0006_dashboard: 4 -> 5
 	// Creates PON_USER_DASHBOARD(ID PK, USER_ID FK, NAME, DATA).
 	t.Run("0006_dashboard", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 4, sqliteUpMigrations[5:6])
@@ -184,7 +184,7 @@ func TestSqliteMigrations(t *testing.T) {
 		require.Error(t, err, "FK violation should be rejected")
 	})
 
-	// 0007_tag_color: 5 → 6
+	// 0007_tag_color: 5 -> 6
 	// Creates PON_USER_TAG_COLOR(USER_ID, NAMESPACE) composite PK with COLOR column.
 	t.Run("0007_tag_color", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 5, sqliteUpMigrations[6:7])
@@ -223,7 +223,7 @@ func TestSqliteMigrations(t *testing.T) {
 		require.Error(t, err, "FK violation should be rejected")
 	})
 
-	// 0008_user_photo: 6 → 7
+	// 0008_user_photo: 6 -> 7
 	// Creates PON_USER_PHOTO(ID, USER_ID, DATA) and the
 	// PON_USER_EVENTLOG_PHOTO(EVENTLOG_ID, PHOTO_ID) mapping table.
 	t.Run("0008_user_photo", func(t *testing.T) {
@@ -300,5 +300,83 @@ func TestSqliteMigrations(t *testing.T) {
 			`SELECT COUNT(*) FROM PON_USER_EVENTLOG_PHOTO WHERE EVENTLOG_ID = ?`, eventlogID,
 		).Scan(&mappingCount))
 		assert.Equal(t, 0, mappingCount, "mapping rows must be cascade-deleted with their eventlog")
+	})
+
+	// 0009_user_settings: 7 -> 8, 0010_user_settings: 8 -> 9
+	// Add FILL_EVENTLOG_FROM_LAST columns to PON_USER.
+	// Not individually asserted on; run here so state reaches version 9 for the 0011 test below.
+	t.Run("0009_and_0010_user_settings", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 7, sqliteUpMigrations[8:10])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(9), ver)
+	})
+
+	// 0011_fix_goal_unique_index: 9 -> 10
+	// Replaces the global UNIQUE(NAME) constraint on PON_USER_GOAL with UNIQUE(USER_ID, NAME),
+	// so different users can have goals with the same name.
+	t.Run("0011_fix_goal_unique_index", func(t *testing.T) {
+		// userID is alice, created in the 0001_system test.
+		// Second user to verify per-user uniqueness after the migration.
+		res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER (NAME, PASSWORD) VALUES ('bob', X'040506')`)
+		require.NoError(t, err)
+		bobIDInt64, err := res.LastInsertId()
+		require.NoError(t, err)
+		bobID := int(bobIDInt64)
+
+		// Seed a goal for alice, and its data must survive the table rebuild.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_GOAL
+				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
+			VALUES (?, 'Daily Weight', 70, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			userID)
+		require.NoError(t, err)
+
+		// Before migration, NAME is globally unique - bob must not be able to reuse alice's goal name.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_GOAL
+				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
+			VALUES (?, 'Daily Weight', 80, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			bobID)
+		require.Error(t, err, "before migration, NAME must still be globally unique")
+
+		_, err = database.RunUpMigrations(ctx, conn, 9, sqliteUpMigrations[10:11])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(10), ver)
+
+		// Alice's pre-existing goal must have survived the table rebuild.
+		var targetValue float64
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT TARGET_VALUE FROM PON_USER_GOAL WHERE USER_ID = ? AND NAME = 'Daily Weight'`, userID,
+		).Scan(&targetValue))
+		assert.Equal(t, 70.0, targetValue)
+
+		// After migration, bob must be able to reuse alice's goal name.
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_GOAL
+				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
+			VALUES (?, 'Daily Weight', 80, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			bobID)
+		require.NoError(t, err, "after migration, NAME must only be unique per user")
+
+		// A duplicate name for the same user must still be rejected.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_GOAL
+				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
+			VALUES (?, 'Daily Weight', 90, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			bobID)
+		require.Error(t, err, "duplicate (USER_ID, NAME) must still be rejected")
+
+		// FK on USER_ID must still be enforced after the table rebuild.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_GOAL
+				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
+			VALUES (99999, 'Ghost Goal', 1, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`)
+		require.Error(t, err, "FK violation on USER_ID should be rejected")
 	})
 }

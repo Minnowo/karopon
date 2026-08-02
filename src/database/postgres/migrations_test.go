@@ -83,12 +83,12 @@ func TestPostgresMigrations(t *testing.T) {
 	})
 
 	var (
-		userID       int
-		lightUserID  int
+		aliceUserID  int
+		bobUserID    int
 		sessionToken []byte
 	)
 
-	// 0001_system: VERSION_NONE → 0
+	// 0001_system: VERSION_NONE -> 0
 	// Creates the pon schema and all core tables (user, user_event, user_eventlog, user_food, user_foodlog).
 	t.Run("0001_system", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, database.VERSION_NONE, postgresUpMigrations[0:1])
@@ -101,11 +101,11 @@ func TestPostgresMigrations(t *testing.T) {
 		// Insert a minimal user (v0 schema: only id, name, password, created).
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user (name, password) VALUES ('alice', '\x010203') RETURNING id`,
-		).Scan(&userID))
-		require.NotZero(t, userID)
+		).Scan(&aliceUserID))
+		require.NotZero(t, aliceUserID)
 	})
 
-	// 0002_allow_null_user_food_food_id: 0 → 1
+	// 0002_allow_null_user_food_food_id: 0 -> 1
 	// Drops the NOT NULL constraint on user_foodlog.food_id and adds ON DELETE SET NULL.
 	t.Run("0002_allow_null_user_food_food_id", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 0, postgresUpMigrations[1:2])
@@ -117,7 +117,7 @@ func TestPostgresMigrations(t *testing.T) {
 			INSERT INTO pon.user_foodlog
 				(user_id, food_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)
 			VALUES ($1, NULL, NOW(), 'NullFoodTest', 'Breakfast', 'g', 100, 10, 5, 2, 3)
-			RETURNING id`, userID,
+			RETURNING id`, aliceUserID,
 		).Scan(&foodlogID), "null food_id should be allowed after migration")
 
 		// Clean up so this orphan row doesn't interfere with later migration tests.
@@ -125,7 +125,7 @@ func TestPostgresMigrations(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	// 0003_settings_table: 1 → 2
+	// 0003_settings_table: 1 -> 2
 	// Creates pon.user_settings and inserts default rows for all existing users.
 	t.Run("0003_settings_table", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 1, postgresUpMigrations[2:3])
@@ -134,12 +134,12 @@ func TestPostgresMigrations(t *testing.T) {
 		// alice must have a row in user_settings (inserted by the migration).
 		var count int
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT COUNT(*) FROM pon.user_settings WHERE user_id = $1`, userID,
+			`SELECT COUNT(*) FROM pon.user_settings WHERE user_id = $1`, aliceUserID,
 		).Scan(&count))
 		assert.Equal(t, 1, count, "migration should have inserted a settings row for alice")
 	})
 
-	// 0004_settings_add_cols: 2 → 3
+	// 0004_settings_add_cols: 2 -> 3
 	// Adds settings columns directly to pon.user (dark_mode, show_diabetes, etc.) and drops user_settings.
 	t.Run("0004_settings_add_cols", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 2, postgresUpMigrations[3:4])
@@ -148,7 +148,7 @@ func TestPostgresMigrations(t *testing.T) {
 		// Settings columns must exist on the user table with their defaults.
 		var darkMode bool
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT dark_mode FROM pon.user WHERE id = $1`, userID,
+			`SELECT dark_mode FROM pon.user WHERE id = $1`, aliceUserID,
 		).Scan(&darkMode))
 		assert.True(t, darkMode, "dark_mode should default to TRUE")
 
@@ -162,7 +162,7 @@ func TestPostgresMigrations(t *testing.T) {
 		assert.False(t, tableExists, "user_settings table should be dropped")
 	})
 
-	// 0005_more_settings: 3 → 4
+	// 0005_more_settings: 3 -> 4
 	// Adds session_expire_time_seconds, time_format, date_format to pon.user.
 	t.Run("0005_more_settings", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 3, postgresUpMigrations[4:5])
@@ -171,12 +171,12 @@ func TestPostgresMigrations(t *testing.T) {
 		// Pre-existing user row must have the default value for session_expire_time_seconds.
 		var sessionExpire int64
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT session_expire_time_seconds FROM pon.user WHERE id = $1`, userID,
+			`SELECT session_expire_time_seconds FROM pon.user WHERE id = $1`, aliceUserID,
 		).Scan(&sessionExpire))
 		assert.Equal(t, int64(60*60*24), sessionExpire)
 	})
 
-	// 0006_add_more_tables: 4 → 5
+	// 0006_add_more_tables: 4 -> 5
 	// Creates user_bodylog, user_medication, user_medication_schedule, user_medicationlog.
 	t.Run("0006_add_more_tables", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 4, postgresUpMigrations[5:6])
@@ -186,12 +186,12 @@ func TestPostgresMigrations(t *testing.T) {
 		var bodylogID int
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user_bodylog (user_id, user_time, weight_kg) VALUES ($1, NOW(), 75.5) RETURNING id`,
-			userID,
+			aliceUserID,
 		).Scan(&bodylogID))
 		require.NotZero(t, bodylogID)
 	})
 
-	// 0007_3rd_party_database: 5 → 6
+	// 0007_3rd_party_database: 5 -> 6
 	// Creates data_source and data_source_food tables with trigram index.
 	t.Run("0007_3rd_party_database", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 5, postgresUpMigrations[6:7])
@@ -205,7 +205,7 @@ func TestPostgresMigrations(t *testing.T) {
 		require.NotZero(t, dsID)
 	})
 
-	// 0008_goals_table: 6 → 7
+	// 0008_goals_table: 6 -> 7
 	// Creates pon.user_goal.
 	// NOTE: uses the pre-rename value 'MORE_THAN' - 0009 will verify it gets renamed.
 	t.Run("0008_goals_table", func(t *testing.T) {
@@ -218,13 +218,13 @@ func TestPostgresMigrations(t *testing.T) {
 			INSERT INTO pon.user_goal
 				(user_id, name, target_value, target_col, aggregation_type, value_comparison, time_expr)
 			VALUES ($1, 'Daily Weight', 70, 'weight_kg', 'AVG', 'MORE_THAN', 'DAILY')
-			RETURNING id`, userID,
+			RETURNING id`, aliceUserID,
 		).Scan(&goalID))
 		require.NotZero(t, goalID)
 	})
 
-	// 0009_goals_rename_comparison: 7 → 8
-	// Renames MORE_THAN → GREATER_THAN and MORE_THAN_OR_EQUAL_TO → GREATER_THAN_OR_EQUAL_TO
+	// 0009_goals_rename_comparison: 7 -> 8
+	// Renames MORE_THAN -> GREATER_THAN and MORE_THAN_OR_EQUAL_TO -> GREATER_THAN_OR_EQUAL_TO
 	// in all existing user_goal rows.
 	t.Run("0009_goals_rename_comparison", func(t *testing.T) {
 		// Insert a second goal with 'MORE_THAN_OR_EQUAL_TO' before migration.
@@ -233,20 +233,20 @@ func TestPostgresMigrations(t *testing.T) {
 			INSERT INTO pon.user_goal
 				(user_id, name, target_value, target_col, aggregation_type, value_comparison, time_expr)
 			VALUES ($1, 'Weekly Protein', 150, 'protein', 'SUM', 'MORE_THAN_OR_EQUAL_TO', 'WEEKLY')
-			RETURNING id`, userID,
+			RETURNING id`, aliceUserID,
 		).Scan(&goalGteID))
 
 		_, err := database.RunUpMigrations(ctx, conn, 7, postgresUpMigrations[8:9])
 		require.NoError(t, err)
 
-		// 'Daily Weight' had MORE_THAN → must be GREATER_THAN.
+		// 'Daily Weight' had MORE_THAN -> must be GREATER_THAN.
 		var comp1 string
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`SELECT value_comparison FROM pon.user_goal WHERE name = 'Daily Weight'`,
 		).Scan(&comp1))
 		assert.Equal(t, "GREATER_THAN", comp1)
 
-		// 'Weekly Protein' had MORE_THAN_OR_EQUAL_TO → must be GREATER_THAN_OR_EQUAL_TO.
+		// 'Weekly Protein' had MORE_THAN_OR_EQUAL_TO -> must be GREATER_THAN_OR_EQUAL_TO.
 		var comp2 string
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`SELECT value_comparison FROM pon.user_goal WHERE id = $1`, goalGteID,
@@ -254,7 +254,7 @@ func TestPostgresMigrations(t *testing.T) {
 		assert.Equal(t, "GREATER_THAN_OR_EQUAL_TO", comp2)
 	})
 
-	// 0010_timespans: 8 → 9
+	// 0010_timespans: 8 -> 9
 	// Creates user_tag, user_timespan, and user_timespan_tag tables.
 	t.Run("0010_timespans", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 8, postgresUpMigrations[9:10])
@@ -264,12 +264,12 @@ func TestPostgresMigrations(t *testing.T) {
 		var tagID int
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user_tag (user_id, namespace, name) VALUES ($1, 'food', 'Egg') RETURNING id`,
-			userID,
+			aliceUserID,
 		).Scan(&tagID))
 		require.NotZero(t, tagID)
 	})
 
-	// 0011_user_session: 9 → 10
+	// 0011_user_session: 9 -> 10
 	// Creates pon.user_session.
 	// NOTE: session inserted here (no USER_AGENT column yet) is used in 0013 to verify the default.
 	t.Run("0011_user_session", func(t *testing.T) {
@@ -280,37 +280,37 @@ func TestPostgresMigrations(t *testing.T) {
 		sessionToken = make([]byte, 32)
 		_, err = conn.ExecContext(ctx,
 			`INSERT INTO pon.user_session (user_id, expires, token) VALUES ($1, NOW() + INTERVAL '1 hour', $2)`,
-			userID, sessionToken)
+			aliceUserID, sessionToken)
 		require.NoError(t, err)
 	})
 
-	// 0012_user_theme_change: 10 → 11
-	// Converts dark_mode BOOLEAN → theme VARCHAR, mapping TRUE → 'dark-1' and FALSE → 'light-1'.
+	// 0012_user_theme_change: 10 -> 11
+	// Converts dark_mode BOOLEAN -> theme VARCHAR, mapping TRUE -> 'dark-1' and FALSE -> 'light-1'.
 	t.Run("0012_user_theme_change", func(t *testing.T) {
 		// Insert a second user with DARK_MODE = FALSE before migration to verify 'light-1' mapping.
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user (name, password, dark_mode) VALUES ('bob', '\x040506', FALSE) RETURNING id`,
-		).Scan(&lightUserID))
+		).Scan(&bobUserID))
 
 		_, err := database.RunUpMigrations(ctx, conn, 10, postgresUpMigrations[11:12])
 		require.NoError(t, err)
 
-		// alice (DARK_MODE = TRUE) → theme must be 'dark-1'.
+		// alice (DARK_MODE = TRUE) -> theme must be 'dark-1'.
 		var aliceTheme string
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT theme FROM pon.user WHERE id = $1`, userID,
+			`SELECT theme FROM pon.user WHERE id = $1`, aliceUserID,
 		).Scan(&aliceTheme))
 		assert.Equal(t, "dark-1", aliceTheme)
 
-		// bob (DARK_MODE = FALSE) → theme must be 'light-1'.
+		// bob (DARK_MODE = FALSE) -> theme must be 'light-1'.
 		var bobTheme string
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT theme FROM pon.user WHERE id = $1`, lightUserID,
+			`SELECT theme FROM pon.user WHERE id = $1`, bobUserID,
 		).Scan(&bobTheme))
 		assert.Equal(t, "light-1", bobTheme)
 	})
 
-	// 0013_session_user_agent: 11 → 12
+	// 0013_session_user_agent: 11 -> 12
 	// Adds user_agent VARCHAR(512) NOT NULL DEFAULT '' to pon.user_session.
 	t.Run("0013_session_user_agent", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 11, postgresUpMigrations[12:13])
@@ -320,18 +320,18 @@ func TestPostgresMigrations(t *testing.T) {
 		var userAgent string
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`SELECT user_agent FROM pon.user_session WHERE user_id = $1 AND token = $2`,
-			userID, sessionToken,
+			aliceUserID, sessionToken,
 		).Scan(&userAgent))
 		assert.Equal(t, "", userAgent)
 	})
 
-	// 0014_foodlog_eventlog_delete_cascade: 12 → 13
+	// 0014_foodlog_eventlog_delete_cascade: 12 -> 13
 	// Deletes user_foodlog rows with NULL eventlog_id and adds ON DELETE CASCADE on that FK.
 	t.Run("0014_foodlog_eventlog_delete_cascade", func(t *testing.T) {
 		// Insert event and eventlog to anchor a valid foodlog.
 		var eventID int
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`INSERT INTO pon.user_event (user_id, name) VALUES ($1, 'Dinner') RETURNING id`, userID,
+			`INSERT INTO pon.user_event (user_id, name) VALUES ($1, 'Dinner') RETURNING id`, aliceUserID,
 		).Scan(&eventID))
 
 		var eventlogID int
@@ -342,7 +342,7 @@ func TestPostgresMigrations(t *testing.T) {
 				 insulin_to_carb_ratio, blood_glucose_target,
 				 recommended_insulin_amount, actual_insulin_taken)
 			VALUES ($1, $2, NOW(), 'Dinner', 0, 0, 0, 0, 0, 0, 0)
-			RETURNING id`, userID, eventID,
+			RETURNING id`, aliceUserID, eventID,
 		).Scan(&eventlogID))
 
 		// Foodlog with valid eventlog_id - must survive the migration.
@@ -350,7 +350,7 @@ func TestPostgresMigrations(t *testing.T) {
 			INSERT INTO pon.user_foodlog
 				(user_id, eventlog_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)
 			VALUES ($1, $2, NOW(), 'Egg', 'Dinner', 'g', 100, 13, 1, 0, 11)`,
-			userID, eventlogID)
+			aliceUserID, eventlogID)
 		require.NoError(t, err)
 
 		// Foodlog with NULL eventlog_id - must be deleted by the migration.
@@ -358,7 +358,7 @@ func TestPostgresMigrations(t *testing.T) {
 			INSERT INTO pon.user_foodlog
 				(user_id, eventlog_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)
 			VALUES ($1, NULL, NOW(), 'Toast', 'Dinner', 'g', 50, 4, 15, 2, 1)`,
-			userID)
+			aliceUserID)
 		require.NoError(t, err)
 
 		_, err = database.RunUpMigrations(ctx, conn, 12, postgresUpMigrations[13:14])
@@ -375,7 +375,7 @@ func TestPostgresMigrations(t *testing.T) {
 		assert.Equal(t, "Egg", name)
 
 		// Verify ON DELETE CASCADE: deleting the eventlog must also delete its foodlog.
-		require.NoError(t, conn.DeleteUserEventLog(ctx, userID, eventlogID))
+		require.NoError(t, conn.DeleteUserEventLog(ctx, aliceUserID, eventlogID))
 
 		var afterCascade int
 		require.NoError(t, conn.QueryRowContext(ctx,
@@ -384,7 +384,7 @@ func TestPostgresMigrations(t *testing.T) {
 		assert.Equal(t, 0, afterCascade, "foodlog should be cascade-deleted with its eventlog")
 	})
 
-	// 0015_event_log_trailing_rows: 13 → 14
+	// 0015_event_log_trailing_rows: 13 -> 14
 	// Adds event_log_trailing_rows INTEGER NOT NULL DEFAULT 3 to pon.user.
 	t.Run("0015_event_log_trailing_rows", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 13, postgresUpMigrations[14:15])
@@ -393,12 +393,12 @@ func TestPostgresMigrations(t *testing.T) {
 		// Pre-existing user rows must have the column default value of 3.
 		var trailing int
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT event_log_trailing_rows FROM pon.user WHERE id = $1`, userID,
+			`SELECT event_log_trailing_rows FROM pon.user WHERE id = $1`, aliceUserID,
 		).Scan(&trailing))
 		assert.Equal(t, 3, trailing)
 	})
 
-	// 0016_day_time_offset: 14 → 15
+	// 0016_day_time_offset: 14 -> 15
 	// Adds day_time_offset_seconds INTEGER NOT NULL DEFAULT 0 to pon.user.
 	t.Run("0016_day_time_offset", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 14, postgresUpMigrations[15:16])
@@ -407,12 +407,12 @@ func TestPostgresMigrations(t *testing.T) {
 		// Pre-existing user row must have the default of 0.
 		var offset int
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT day_time_offset_seconds FROM pon.user WHERE id = $1`, userID,
+			`SELECT day_time_offset_seconds FROM pon.user WHERE id = $1`, aliceUserID,
 		).Scan(&offset))
 		assert.Equal(t, 0, offset)
 	})
 
-	// 0017_dashboard: 15 → 16
+	// 0017_dashboard: 15 -> 16
 	// Creates PON.USER_DASHBOARD(id PK SERIAL, user_id FK, name, data).
 	t.Run("0017_dashboard", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 15, postgresUpMigrations[16:17])
@@ -422,7 +422,7 @@ func TestPostgresMigrations(t *testing.T) {
 		var dashID int
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user_dashboard (user_id, name, data) VALUES ($1, 'My Board', '[]') RETURNING id`,
-			userID,
+			aliceUserID,
 		).Scan(&dashID))
 		require.NotZero(t, dashID)
 
@@ -440,7 +440,7 @@ func TestPostgresMigrations(t *testing.T) {
 		require.Error(t, err, "FK violation should be rejected")
 	})
 
-	// 0018_tag_color: 16 → 17
+	// 0018_tag_color: 16 -> 17
 	// Creates PON.USER_TAG_COLOR with (user_id, namespace) composite PK and color column.
 	t.Run("0018_tag_color", func(t *testing.T) {
 		_, err := database.RunUpMigrations(ctx, conn, 16, postgresUpMigrations[17:18])
@@ -448,13 +448,13 @@ func TestPostgresMigrations(t *testing.T) {
 
 		// Table must accept inserts.
 		_, err = conn.ExecContext(ctx,
-			`INSERT INTO pon.user_tag_color (user_id, namespace, color) VALUES ($1, 'food', '#ff0000')`, userID)
+			`INSERT INTO pon.user_tag_color (user_id, namespace, color) VALUES ($1, 'food', '#ff0000')`, aliceUserID)
 		require.NoError(t, err)
 
 		// Values must round-trip correctly.
 		var namespace, color string
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT namespace, color FROM pon.user_tag_color WHERE user_id = $1`, userID,
+			`SELECT namespace, color FROM pon.user_tag_color WHERE user_id = $1`, aliceUserID,
 		).Scan(&namespace, &color))
 		assert.Equal(t, "food", namespace)
 		assert.Equal(t, "#ff0000", color)
@@ -463,17 +463,17 @@ func TestPostgresMigrations(t *testing.T) {
 		_, err = conn.ExecContext(ctx, `
 			INSERT INTO pon.user_tag_color (user_id, namespace, color)
 			VALUES ($1, 'food', '#00ff00')
-			ON CONFLICT (user_id, namespace) DO UPDATE SET color = EXCLUDED.color`, userID)
+			ON CONFLICT (user_id, namespace) DO UPDATE SET color = EXCLUDED.color`, aliceUserID)
 		require.NoError(t, err)
 
 		var count int
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT COUNT(*) FROM pon.user_tag_color WHERE user_id = $1`, userID,
+			`SELECT COUNT(*) FROM pon.user_tag_color WHERE user_id = $1`, aliceUserID,
 		).Scan(&count))
 		assert.Equal(t, 1, count, "upsert must not create a duplicate row")
 
 		require.NoError(t, conn.QueryRowContext(ctx,
-			`SELECT color FROM pon.user_tag_color WHERE user_id = $1 AND namespace = 'food'`, userID,
+			`SELECT color FROM pon.user_tag_color WHERE user_id = $1 AND namespace = 'food'`, aliceUserID,
 		).Scan(&color))
 		assert.Equal(t, "#00ff00", color, "upsert must update the color")
 
@@ -483,7 +483,7 @@ func TestPostgresMigrations(t *testing.T) {
 		require.Error(t, err, "FK violation should be rejected")
 	})
 
-	// 0019_user_photo: 17 → 18
+	// 0019_user_photo: 17 -> 18
 	// Creates pon.user_photo(id, user_id, data) and the
 	// pon.user_eventlog_photo(eventlog_id, photo_id) mapping table.
 	t.Run("0019_user_photo", func(t *testing.T) {
@@ -505,7 +505,7 @@ func TestPostgresMigrations(t *testing.T) {
 		var photoID int
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`INSERT INTO pon.user_photo (user_id, data) VALUES ($1, $2) RETURNING id`,
-			userID, []byte{0x89, 0x50, 0x4e, 0x47},
+			aliceUserID, []byte{0x89, 0x50, 0x4e, 0x47},
 		).Scan(&photoID))
 		require.NotZero(t, photoID)
 
@@ -515,7 +515,7 @@ func TestPostgresMigrations(t *testing.T) {
 		require.NoError(t, conn.QueryRowContext(ctx,
 			`SELECT user_id, data FROM pon.user_photo WHERE id = $1`, photoID,
 		).Scan(&gotUserID, &gotData))
-		assert.Equal(t, userID, gotUserID)
+		assert.Equal(t, aliceUserID, gotUserID)
 		assert.Equal(t, []byte{0x89, 0x50, 0x4e, 0x47}, gotData)
 
 		// FK on user_id must reject a non-existent user.
@@ -533,7 +533,7 @@ func TestPostgresMigrations(t *testing.T) {
 				 recommended_insulin_amount, actual_insulin_taken)
 			SELECT $1, id, NOW(), name, 0, 0, 0, 0, 0, 0, 0
 			FROM pon.user_event WHERE user_id = $1 LIMIT 1
-			RETURNING id`, userID,
+			RETURNING id`, aliceUserID,
 		).Scan(&eventlogID))
 		require.NotZero(t, eventlogID)
 
@@ -559,5 +559,57 @@ func TestPostgresMigrations(t *testing.T) {
 			`SELECT COUNT(*) FROM pon.user_eventlog_photo WHERE eventlog_id = $1`, eventlogID,
 		).Scan(&mappingCount))
 		assert.Equal(t, 0, mappingCount, "mapping rows must be cascade-deleted with their eventlog")
+	})
+
+	// 0020_user_setting: 18 -> 19, 0021_user_setting: 19 -> 20
+	// Add fill_eventlog_from_last and timespan_history_fetch_limit columns to pon.user.
+	// Not individually asserted on; run here so state reaches version 20 for the 0022 test below.
+	t.Run("0020_and_0021_user_setting", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 18, postgresUpMigrations[19:21])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(20), ver)
+	})
+
+	// 0022_fix_goal_unique_index: 20 -> 21
+	// Replaces the global UNIQUE(name) constraint on pon.user_goal with UNIQUE(user_id, name),
+	// so different users can have goals with the same name.
+	t.Run("0022_fix_goal_unique_index", func(t *testing.T) {
+		// lightUserID is bob, created in the 0012_user_theme_change test.
+		// alice (userID) already owns a goal named 'Daily Weight', created in the 0008_goals_table test.
+		// Before migration, name is globally unique - bob must not be able to reuse alice's goal name.
+		_, err := conn.ExecContext(ctx, `
+			INSERT INTO pon.user_goal
+				(user_id, name, target_value, target_col, aggregation_type, value_comparison, time_expr)
+			VALUES ($1, 'Daily Weight', 80, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			bobUserID)
+		require.Error(t, err, "before migration, name must still be globally unique")
+
+		_, err = database.RunUpMigrations(ctx, conn, 20, postgresUpMigrations[21:22])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(21), ver)
+
+		// After migration, bob must be able to reuse alice's goal name.
+		var bobGoalID int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			INSERT INTO pon.user_goal
+				(user_id, name, target_value, target_col, aggregation_type, value_comparison, time_expr)
+			VALUES ($1, 'Daily Weight', 80, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')
+			RETURNING id`, bobUserID,
+		).Scan(&bobGoalID))
+		require.NotZero(t, bobGoalID)
+
+		// A duplicate name for the same user must still be rejected.
+		_, err = conn.ExecContext(ctx, `
+			INSERT INTO pon.user_goal
+				(user_id, name, target_value, target_col, aggregation_type, value_comparison, time_expr)
+			VALUES ($1, 'Daily Weight', 90, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,
+			bobUserID)
+		require.Error(t, err, "duplicate (user_id, name) must still be rejected")
 	})
 }

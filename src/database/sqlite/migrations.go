@@ -17,6 +17,7 @@ var sqliteUpMigrations = []database.Migration{
 	database.NewFileMigration(6, 7, "sqlite/0008_user_photo"),
 	database.NewFileMigration(7, 8, "sqlite/0009_user_settings"),
 	database.NewFileMigration(8, 9, "sqlite/0010_user_settings"),
+	database.NewFileMigration(9, 10, "sqlite/0011_fix_goal_unique_index"),
 }
 
 func (db *SqliteDatabase) GetMigrationMaxVersion() database.Version {
