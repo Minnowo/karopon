@@ -138,6 +138,7 @@ export const DashboardComponent = ({
                             card={card}
                             eventlogs={baseState.eventlogs}
                             bodylogs={baseState.bodylogs}
+                            bodyMetrics={baseState.bodyMetrics}
                             timespans={baseState.timespans}
                             dayOffsetSeconds={baseState.user.day_time_offset_seconds}
                             caloricCalcMethod={baseState.user.caloric_calc_method}

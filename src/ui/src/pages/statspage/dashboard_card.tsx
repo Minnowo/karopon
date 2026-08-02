@@ -1,5 +1,5 @@
 import {Dispatch, StateUpdater, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {TaggedTimespan, TblUserBodyLog, UserEventFoodLog} from '../../api/types';
+import {TaggedTimespan, TblUserBodyMetric, UserBodyLog, UserEventFoodLog} from '../../api/types';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {ChartData, CommonRanges, DashboardCard, GraphStyle, TimeRange} from './common';
 import {PieChart} from './graph_pie_chart';
@@ -41,6 +41,18 @@ const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
 };
 
 const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bp_combined', 'time'];
+
+const BODY_METRIC_CARD_TYPES = new Set<DashboardCard['type']>([
+    'body_weight',
+    'body_height',
+    'body_fat',
+    'body_bmi',
+    'bp_systolic',
+    'bp_diastolic',
+    'bp_combined',
+    'heart_rate',
+    'steps',
+]);
 
 type TimeRangePanelProps = {
     range: TimeRange;
@@ -169,7 +181,8 @@ function TimeRangePanel({
 type DashboardCardProps = {
     card: DashboardCard;
     eventlogs: UserEventFoodLog[];
-    bodylogs: TblUserBodyLog[];
+    bodylogs: UserBodyLog[];
+    bodyMetrics: TblUserBodyMetric[];
     timespans: TaggedTimespan[];
     dayOffsetSeconds: number;
     caloricCalcMethod: string;
@@ -189,6 +202,7 @@ export function DashboardCardComponent({
     card,
     eventlogs,
     bodylogs,
+    bodyMetrics,
     timespans,
     dayOffsetSeconds,
     caloricCalcMethod,
@@ -237,6 +251,8 @@ export function DashboardCardComponent({
     }, [timeRanges, curTimeRange, dayOffsetSeconds]);
 
     useLayoutEffect(() => {
+        const metricNamesByID = BODY_METRIC_CARD_TYPES.has(card.type) ? new Map(bodyMetrics.map((m) => [m.id, m.name])) : null;
+
         switch (card.type) {
             case 'macros':
             case 'pie': {
@@ -338,7 +354,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.weight_kg,
+                        metricNamesByID!,
+                        'Weight',
                         'var(--color-c-peach)'
                     )
                 );
@@ -352,7 +369,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.height_cm,
+                        metricNamesByID!,
+                        'Height',
                         'var(--color-c-lavender)'
                     )
                 );
@@ -366,7 +384,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.body_fat_percent,
+                        metricNamesByID!,
+                        'Body Fat',
                         'var(--color-c-flamingo)'
                     )
                 );
@@ -380,7 +399,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.bmi,
+                        metricNamesByID!,
+                        'BMI',
                         'var(--color-c-mauve)'
                     )
                 );
@@ -394,7 +414,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.bp_systolic,
+                        metricNamesByID!,
+                        'Blood Pressure Systolic',
                         'var(--color-c-red)'
                     )
                 );
@@ -408,14 +429,15 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.bp_diastolic,
+                        metricNamesByID!,
+                        'Blood Pressure Diastolic',
                         'var(--color-c-pink)'
                     )
                 );
                 break;
             }
             case 'bp_combined': {
-                setChartData(BuildBpChartData(bodylogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc));
+                setChartData(BuildBpChartData(bodylogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc, metricNamesByID!));
                 break;
             }
             case 'heart_rate': {
@@ -426,7 +448,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.heart_rate_bpm,
+                        metricNamesByID!,
+                        'Heart Rate',
                         'var(--color-c-red)'
                     )
                 );
@@ -440,7 +463,8 @@ export function DashboardCardComponent({
                         rangeEndMs,
                         groupBy,
                         aggregationFunc,
-                        (l) => l.steps_count,
+                        metricNamesByID!,
+                        'Steps',
                         'var(--color-c-teal)'
                     )
                 );
@@ -457,6 +481,7 @@ export function DashboardCardComponent({
         card.selectedTags,
         eventlogs,
         bodylogs,
+        bodyMetrics,
         dayOffsetSeconds,
         rangeStartMs,
         rangeEndMs,

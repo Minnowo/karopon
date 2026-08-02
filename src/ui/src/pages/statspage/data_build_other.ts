@@ -1,4 +1,4 @@
-import {TblUserBodyLog, UserEventFoodLog} from '../../api/types';
+import {UserBodyLog, UserEventFoodLog} from '../../api/types';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {DateToGroupByBucket} from './data_build';
 import {ChartData, DataRow} from './graphs/common_props';
@@ -77,29 +77,38 @@ export const BuildChartData = (
     };
 };
 
+// valueForMetricName looks up a body log's value for the metric with the given name,
+// resolved through metricNamesByID (body_metric_id -> name). Returns 0 if the log has no
+// value for that metric (e.g. the user never defined it, or didn't record it that time).
+const valueForMetricName = (log: UserBodyLog, metricNamesByID: Map<number, string>, name: string): number => {
+    const match = log.metrics.find((m) => metricNamesByID.get(m.body_metric_id) === name);
+    return match ? match.value : 0;
+};
+
 export const BuildBodyLogChartData = (
-    logs: TblUserBodyLog[],
+    logs: UserBodyLog[],
     rangeStartMs: number,
     rangeEndMs: number,
     groupBy: GroupBy,
     aggregationFunc: AggregationFunc,
-    keyGetter: (log: TblUserBodyLog) => number,
+    metricNamesByID: Map<number, string>,
+    metricName: string,
     color: string
 ): ChartData => {
     const buckets = new Map<number, {n: number; v: number}>();
 
     for (let i = logs.length - 1; i >= 0; i--) {
         const log = logs[i];
-        if (log.user_time < rangeStartMs || log.user_time > rangeEndMs) {
+        if (log.bodylog.user_time < rangeStartMs || log.bodylog.user_time > rangeEndMs) {
             continue;
         }
 
-        const val = keyGetter(log);
+        const val = valueForMetricName(log, metricNamesByID, metricName);
         if (val === 0) {
             continue;
         }
 
-        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.user_time));
+        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.bodylog.user_time));
 
         let entry = buckets.get(bucketKey);
         if (!entry) {
@@ -154,11 +163,12 @@ export const BuildBodyLogChartData = (
 };
 
 export const BuildBpChartData = (
-    logs: TblUserBodyLog[],
+    logs: UserBodyLog[],
     rangeStartMs: number,
     rangeEndMs: number,
     groupBy: GroupBy,
-    aggregationFunc: AggregationFunc
+    aggregationFunc: AggregationFunc,
+    metricNamesByID: Map<number, string>
 ): ChartData => {
     const sys = 0;
     const dia = 1;
@@ -167,14 +177,17 @@ export const BuildBpChartData = (
 
     for (let i = logs.length - 1; i >= 0; i--) {
         const log = logs[i];
-        if (log.user_time < rangeStartMs || log.user_time > rangeEndMs) {
-            continue;
-        }
-        if (log.bp_systolic === 0 && log.bp_diastolic === 0) {
+        if (log.bodylog.user_time < rangeStartMs || log.bodylog.user_time > rangeEndMs) {
             continue;
         }
 
-        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.user_time));
+        const bpSys = valueForMetricName(log, metricNamesByID, 'Blood Pressure Systolic');
+        const bpDia = valueForMetricName(log, metricNamesByID, 'Blood Pressure Diastolic');
+        if (bpSys === 0 && bpDia === 0) {
+            continue;
+        }
+
+        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.bodylog.user_time));
 
         let entry = buckets.get(bucketKey);
         if (!entry) {
@@ -185,41 +198,41 @@ export const BuildBpChartData = (
         switch (aggregationFunc) {
             case AggregationFunc.Sum: {
                 entry.n = 1;
-                entry.y[sys] += log.bp_systolic;
-                entry.y[dia] += log.bp_diastolic;
+                entry.y[sys] += bpSys;
+                entry.y[dia] += bpDia;
                 break;
             }
             case AggregationFunc.Avg: {
                 entry.n++;
-                entry.y[sys] += log.bp_systolic;
-                entry.y[dia] += log.bp_diastolic;
+                entry.y[sys] += bpSys;
+                entry.y[dia] += bpDia;
                 break;
             }
             case AggregationFunc.Min: {
                 if (entry.n === 0) {
                     entry.n = 1;
-                    entry.y[sys] = log.bp_systolic;
-                    entry.y[dia] = log.bp_diastolic;
+                    entry.y[sys] = bpSys;
+                    entry.y[dia] = bpDia;
                 }
-                if (entry.y[sys] > log.bp_systolic) {
-                    entry.y[sys] = log.bp_systolic;
+                if (entry.y[sys] > bpSys) {
+                    entry.y[sys] = bpSys;
                 }
-                if (entry.y[dia] > log.bp_diastolic) {
-                    entry.y[dia] = log.bp_diastolic;
+                if (entry.y[dia] > bpDia) {
+                    entry.y[dia] = bpDia;
                 }
                 break;
             }
             case AggregationFunc.Max: {
                 if (entry.n === 0) {
                     entry.n = 1;
-                    entry.y[sys] = log.bp_systolic;
-                    entry.y[dia] = log.bp_diastolic;
+                    entry.y[sys] = bpSys;
+                    entry.y[dia] = bpDia;
                 }
-                if (entry.y[sys] < log.bp_systolic) {
-                    entry.y[sys] = log.bp_systolic;
+                if (entry.y[sys] < bpSys) {
+                    entry.y[sys] = bpSys;
                 }
-                if (entry.y[dia] < log.bp_diastolic) {
-                    entry.y[dia] = log.bp_diastolic;
+                if (entry.y[dia] < bpDia) {
+                    entry.y[dia] = bpDia;
                 }
                 break;
             }

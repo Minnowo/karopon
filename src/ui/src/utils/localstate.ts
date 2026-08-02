@@ -3,7 +3,8 @@ import type {
     TblUserFood,
     TblUserEvent,
     UserEventFoodLog,
-    TblUserBodyLog,
+    UserBodyLog,
+    TblUserBodyMetric,
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
@@ -17,6 +18,7 @@ const LOCAL_STORAGE_KEY_FOODS = 'foods';
 const LOCAL_STORAGE_KEY_EVENTLOGS = 'eventlogs';
 const LOCAL_STORAGE_KEY_GOALS = 'goals';
 const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
+const LOCAL_STORAGE_KEY_BODY_METRICS = 'body_metrics';
 const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
 const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
 const LOCAL_STORAGE_KEY_DASHBOARDS = 'dashboards';
@@ -53,7 +55,9 @@ export const LocalStoreEvents = (events: TblUserEvent[]) => store(LOCAL_STORAGE_
 export const LocalStoreFoods = (foods: TblUserFood[]) => store(LOCAL_STORAGE_KEY_FOODS, JSON.stringify(foods));
 export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
 export const LocalStoreGoals = (goals: TblUserGoal[]) => store(LOCAL_STORAGE_KEY_GOALS, JSON.stringify(goals));
-export const LocalStoreBodyLogs = (logs: TblUserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
+export const LocalStoreBodyLogs = (logs: UserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
+export const LocalStoreBodyMetrics = (metrics: TblUserBodyMetric[]) =>
+    store(LOCAL_STORAGE_KEY_BODY_METRICS, JSON.stringify(metrics));
 export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAGE_KEY_NAMESPACES, JSON.stringify(namespaces));
 export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
 export const LocalStoreDashboards = (cards: TblUserDashboard[]) => store(LOCAL_STORAGE_KEY_DASHBOARDS, JSON.stringify(cards));
@@ -67,7 +71,8 @@ export const LocalGetEvents = () => load<TblUserEvent[]>(LOCAL_STORAGE_KEY_EVENT
 export const LocalGetFoods = () => load<TblUserFood[]>(LOCAL_STORAGE_KEY_FOODS);
 export const LocalGetEventLogs = () => load<UserEventFoodLog[]>(LOCAL_STORAGE_KEY_EVENTLOGS);
 export const LocalGetGoals = () => load<TblUserGoal[]>(LOCAL_STORAGE_KEY_GOALS);
-export const LocalGetBodyLogs = () => load<TblUserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
+export const LocalGetBodyLogs = () => load<UserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
+export const LocalGetBodyMetrics = () => load<TblUserBodyMetric[]>(LOCAL_STORAGE_KEY_BODY_METRICS);
 export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
 export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
 export const LocalGetDashboards = () => load<TblUserDashboard[]>(LOCAL_STORAGE_KEY_DASHBOARDS);
@@ -83,6 +88,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTLOGS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_GOALS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_BODY_METRICS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_DASHBOARDS);

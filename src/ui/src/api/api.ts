@@ -9,7 +9,9 @@ import {
     UserEventFoodLog,
     TblUpdateUser,
     UpdateUserEventLog,
+    UserBodyLog,
     TblUserBodyLog,
+    TblUserBodyMetric,
     TblDataSource,
     TblDataSourceFood,
     TblUserGoal,
@@ -131,8 +133,12 @@ export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
     return fetchJson(`${ApiBase}/api/eventfoodlogs?n=${n}`);
 };
 
-export const ApiGetUserBodyLog = (): Promise<TblUserBodyLog[]> => {
+export const ApiGetUserBodyLog = (): Promise<UserBodyLog[]> => {
     return fetchJson(`${ApiBase}/api/bodylog`);
+};
+
+export const ApiGetUserBodyMetrics = (): Promise<TblUserBodyMetric[]> => {
+    return fetchJson(`${ApiBase}/api/bodymetrics`);
 };
 
 export const ApiGetUserGoals = (): Promise<TblUserGoal[]> => {
@@ -225,13 +231,33 @@ export const ApiNewUserFood = (food: TblUserFood): Promise<TblUserFood> => {
     });
 };
 
-export const ApiNewUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> => {
+export const ApiNewUserBodyLog = (log: UserBodyLog): Promise<UserBodyLog> => {
     return fetchJson(`${ApiBase}/api/bodylog/new`, {
         headers: {
             'content-type': 'application/json',
         },
         method: 'POST',
         body: JSON.stringify(log),
+    });
+};
+
+export const ApiNewUserBodyMetric = (metric: TblUserBodyMetric): Promise<TblUserBodyMetric> => {
+    return fetchJson(`${ApiBase}/api/bodymetric/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(metric),
+    });
+};
+
+export const ApiDeleteUserBodyMetric = (metric: TblUserBodyMetric): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/bodymetric/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(metric),
     });
 };
 
@@ -324,7 +350,7 @@ export const ApiDeleteUserGoal = (goal: TblUserGoal): Promise<void> => {
     });
 };
 
-export const ApiUpdateUserBodyLog = (log: TblUserBodyLog): Promise<TblUserBodyLog> => {
+export const ApiUpdateUserBodyLog = (log: UserBodyLog): Promise<UserBodyLog> => {
     return fetchJson(`${ApiBase}/api/bodylog/update`, {
         headers: {
             'content-type': 'application/json',

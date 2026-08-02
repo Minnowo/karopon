@@ -1,32 +1,29 @@
 import {BaseState} from '../../state/basestate';
 import {useState} from 'preact/hooks';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
-import {TblUserBodyLog} from '../../api/types';
+import {UserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
 import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog, ApiUpdateUserBodyLog} from '../../api/api';
 import {BodyLogPanel} from './bodylog_panel';
 import {NumberInput} from '../../components/number_input';
 
-export function BodyPage(state: BaseState) {
-    const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
-    const [editLog, setEditLog] = useState<TblUserBodyLog | null>(null);
-    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
-    const [numberToShow, setNumberToShow] = useState<number>(15);
-
-    const [tmpLog, setTmpLog] = useState<TblUserBodyLog>({
+const EMPTY_LOG: UserBodyLog = {
+    bodylog: {
         id: 0,
         user_id: 0,
         created: 0,
         user_time: 0,
-        weight_kg: 0,
-        height_cm: 0,
-        body_fat_percent: 0,
-        bmi: 0,
-        bp_systolic: 0,
-        bp_diastolic: 0,
-        heart_rate_bpm: 0,
-        steps_count: 0,
-    });
+    },
+    metrics: [],
+};
+
+export function BodyPage(state: BaseState) {
+    const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
+    const [editLog, setEditLog] = useState<UserBodyLog | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [numberToShow, setNumberToShow] = useState<number>(15);
+
+    const [tmpLog, setTmpLog] = useState<UserBodyLog>(EMPTY_LOG);
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
@@ -41,51 +38,38 @@ export function BodyPage(state: BaseState) {
         }
     };
 
-    const addBodyLog = (bodylog: TblUserBodyLog) => {
+    const addBodyLog = (bodylog: UserBodyLog) => {
         ApiNewUserBodyLog(bodylog)
-            .then((log: TblUserBodyLog) => {
+            .then((log: UserBodyLog) => {
                 state.setBodyLogs((e) => [log, ...(e === null ? [] : e)]);
 
-                setTmpLog({
-                    id: 0,
-                    user_id: 0,
-                    created: 0,
-                    user_time: 0,
-                    weight_kg: 0,
-                    height_cm: 0,
-                    body_fat_percent: 0,
-                    bmi: 0,
-                    bp_systolic: 0,
-                    bp_diastolic: 0,
-                    heart_rate_bpm: 0,
-                    steps_count: 0,
-                });
+                setTmpLog(EMPTY_LOG);
                 setShowNewEventPanel(false);
                 setErrorMsg(null);
             })
             .catch(handleErr);
     };
 
-    const updateBodyLog = (bodylog: TblUserBodyLog) => {
+    const updateBodyLog = (bodylog: UserBodyLog) => {
         ApiUpdateUserBodyLog(bodylog)
-            .then((updated: TblUserBodyLog) => {
-                state.setBodyLogs((e) => e.map((x) => (x.id === updated.id ? updated : x)));
+            .then((updated: UserBodyLog) => {
+                state.setBodyLogs((e) => e.map((x) => (x.bodylog.id === updated.bodylog.id ? updated : x)));
                 setEditLog(null);
                 setErrorMsg(null);
             })
             .catch(handleErr);
     };
 
-    const copyBodyLog = (bodylog: TblUserBodyLog) => {
+    const copyBodyLog = (bodylog: UserBodyLog) => {
         setTmpLog(bodylog);
         setShowNewEventPanel(true);
     };
 
-    const deleteBodyLog = (bodylog: TblUserBodyLog) => {
+    const deleteBodyLog = (bodylog: UserBodyLog) => {
         if (confirm('Delete this body log?')) {
-            ApiDeleteUserBodyLog(bodylog)
+            ApiDeleteUserBodyLog(bodylog.bodylog)
                 .then(() => {
-                    state.setBodyLogs((e) => e.filter((x) => x.id !== bodylog.id));
+                    state.setBodyLogs((e) => e.filter((x) => x.bodylog.id !== bodylog.bodylog.id));
                     setErrorMsg(null);
                 })
                 .catch(handleErr);
@@ -110,6 +94,7 @@ export function BodyPage(state: BaseState) {
                     title="New Bodylog"
                     saveButtonTitle="Create"
                     bodylog={tmpLog}
+                    bodyMetrics={state.bodyMetrics}
                     onCreate={addBodyLog}
                     onCancel={() => setShowNewEventPanel(false)}
                 />
@@ -125,22 +110,24 @@ export function BodyPage(state: BaseState) {
                 <div className="space-y-4">
                     {state.bodylogs
                         .slice(0, numberToShow)
-                        .map((log: TblUserBodyLog) =>
-                            editLog?.id === log.id ? (
+                        .map((log: UserBodyLog) =>
+                            editLog?.bodylog.id === log.bodylog.id ? (
                                 <AddBodyPanel
-                                    key={log.id}
+                                    key={log.bodylog.id}
                                     title="Edit Body Log"
                                     saveButtonTitle={'Update'}
                                     preserveTime={true}
                                     bodylog={editLog}
+                                    bodyMetrics={state.bodyMetrics}
                                     onCreate={updateBodyLog}
                                     onCancel={() => setEditLog(null)}
                                     className="mb-4"
                                 />
                             ) : (
                                 <BodyLogPanel
-                                    key={log.id}
+                                    key={log.bodylog.id}
                                     bodyLog={log}
+                                    bodyMetrics={state.bodyMetrics}
                                     onCopy={copyBodyLog}
                                     onEdit={(l) => setEditLog(l)}
                                     onDelete={deleteBodyLog}

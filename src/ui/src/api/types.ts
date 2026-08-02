@@ -133,14 +133,24 @@ export type TblUserBodyLog = {
     user_id: number;
     created: number;
     user_time: number;
-    weight_kg: number;
-    height_cm: number;
-    body_fat_percent: number;
-    bmi: number;
-    bp_systolic: number;
-    bp_diastolic: number;
-    heart_rate_bpm: number;
-    steps_count: number;
+};
+
+export type TblUserBodyMetric = {
+    id: number;
+    user_id: number;
+    name: string;
+    unit: string;
+};
+
+export type TblUserBodyLogMetric = {
+    bodylog_id: number;
+    body_metric_id: number;
+    value: number;
+};
+
+export type UserBodyLog = {
+    bodylog: TblUserBodyLog;
+    metrics: TblUserBodyLogMetric[];
 };
 
 export type TblDataSource = {

@@ -4,7 +4,8 @@ import {
     TblUserFood,
     TblUserEvent,
     UserEventFoodLog,
-    TblUserBodyLog,
+    UserBodyLog,
+    TblUserBodyMetric,
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
@@ -29,8 +30,11 @@ export type BaseState = {
     goals: TblUserGoal[];
     setGoals: Dispatch<StateUpdater<TblUserGoal[]>>;
 
-    bodylogs: TblUserBodyLog[];
-    setBodyLogs: Dispatch<StateUpdater<TblUserBodyLog[]>>;
+    bodylogs: UserBodyLog[];
+    setBodyLogs: Dispatch<StateUpdater<UserBodyLog[]>>;
+
+    bodyMetrics: TblUserBodyMetric[];
+    setBodyMetrics: Dispatch<StateUpdater<TblUserBodyMetric[]>>;
 
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[]>>;

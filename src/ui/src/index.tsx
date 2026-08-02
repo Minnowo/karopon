@@ -18,7 +18,8 @@ import {
     TblUserFood,
     TblUserEvent,
     UserEventFoodLog,
-    TblUserBodyLog,
+    UserBodyLog,
+    TblUserBodyMetric,
     TblDataSource,
     TblUserGoal,
     TaggedTimespan,
@@ -32,6 +33,7 @@ import {
     ApiWhoAmI,
     HasAuth,
     ApiGetUserBodyLog,
+    ApiGetUserBodyMetrics,
     ApiGetDataSources,
     ApiGetUserGoals,
     ApiGetUserTimespans,
@@ -45,6 +47,7 @@ import {EventsPage} from './pages/eventpage';
 import {SettingsPage} from './pages/settings_page.js';
 import {
     LocalGetBodyLogs,
+    LocalGetBodyMetrics,
     LocalGetDashboards,
     LocalGetDataSources,
     LocalGetEventLogs,
@@ -55,6 +58,7 @@ import {
     LocalGetTimespans,
     LocalGetUser,
     LocalStoreBodyLogs,
+    LocalStoreBodyMetrics,
     LocalStoreDashboards,
     LocalStoreTagColors,
     LocalGetTagColors,
@@ -71,6 +75,7 @@ import {ErrorDiv, ErrorDivMsg} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
 import {TagsPage} from './pages/tagspage';
+import {BodyMetricsPage} from './pages/bodymetricspage';
 import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
@@ -85,7 +90,8 @@ export const App = () => {
     const [events, setEvents] = useState<TblUserEvent[]>(LocalGetEvents() ?? []);
     const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[]>(LocalGetEventLogs() ?? []);
     const [goals, setGoals] = useState<TblUserGoal[]>(LocalGetGoals() ?? []);
-    const [bodylogs, setBodyLogs] = useState<TblUserBodyLog[]>(LocalGetBodyLogs() ?? []);
+    const [bodylogs, setBodyLogs] = useState<UserBodyLog[]>(LocalGetBodyLogs() ?? []);
+    const [bodyMetrics, setBodyMetrics] = useState<TblUserBodyMetric[]>(LocalGetBodyMetrics() ?? []);
     const [namespaces, setNamespaces] = useState<string[]>(LocalGetNamespaces() ?? []);
     const [timespans, setTimespans] = useState<TaggedTimespan[]>(LocalGetTimespans() ?? []);
     const [dashboards, setDashboards] = useState<TblUserDashboard[]>(LocalGetDashboards() ?? []);
@@ -141,6 +147,12 @@ export const App = () => {
     }, [bodylogs]);
 
     useLayoutEffect(() => {
+        if (bodyMetrics !== null) {
+            LocalStoreBodyMetrics(bodyMetrics);
+        }
+    }, [bodyMetrics]);
+
+    useLayoutEffect(() => {
         if (namespaces !== null) {
             LocalStoreNamespaces(namespaces);
         }
@@ -180,6 +192,7 @@ export const App = () => {
                     ApiGetUserEvents().then(setEvents),
                     ApiGetUserEventFoodLog(me.event_history_fetch_limit).then(setEventLogsWithFoodlogs),
                     ApiGetUserBodyLog().then(setBodyLogs),
+                    ApiGetUserBodyMetrics().then(setBodyMetrics),
                     ApiGetDataSources().then(setDataSources),
                     ApiGetUserGoals().then(setGoals),
                     ApiGetUserNamespaces().then(setNamespaces),
@@ -254,7 +267,9 @@ export const App = () => {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     goals={goals}
                                     setGoals={setGoals}
                                     namespaces={namespaces}
@@ -284,7 +299,9 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -312,8 +329,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -340,8 +359,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -368,8 +389,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -396,8 +419,40 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#body-metrics':
+                            return (
+                                <BodyMetricsPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -424,8 +479,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -450,7 +507,9 @@ export const App = () => {
                                     eventlogs={eventlogs}
                                     setEventLogs={setEventLogsWithFoodlogs}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     goals={goals}
                                     setGoals={setGoals}
                                     namespaces={namespaces}
@@ -480,8 +539,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -508,8 +569,10 @@ export const App = () => {
                                     goals={goals}
                                     setGoals={setGoals}
                                     bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
                                     dataSources={dataSources}
                                     setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}

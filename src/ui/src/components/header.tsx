@@ -39,6 +39,9 @@ export function UserHeader({user}: UserHeaderProps) {
                     <a href="#tags" onClick={() => setShowDropDown(false)}>
                         Tags
                     </a>
+                    <a href="#body-metrics" className="wsnw" onClick={() => setShowDropDown(false)}>
+                        Body Metrics
+                    </a>
                     <a href="#data-export" className="wsnw" onClick={() => setShowDropDown(false)}>
                         Data Export
                     </a>
