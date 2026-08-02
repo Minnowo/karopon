@@ -18,6 +18,7 @@ var (
 	ErrUserDoesNotHaveThisID     = errors.New("ID does not exist")
 	ErrFoodPortionIsZero         = errors.New("food portion cannot be zero")
 	ErrTagAlreadyExists          = errors.New("a tag with the new namespace and name already exists")
+	ErrInvalidBodyMetric         = errors.New("body metric does not exist for this user")
 )
 
 // DB is interface for accessing and manipulating data in database.
@@ -201,17 +202,34 @@ type DB interface {
 	/// Bodylog Functions
 	///
 
-	// Loads all the users bodylogs inot the given array.
-	LoadUserBodyLogs(ctx context.Context, userID int, out *[]TblUserBodyLog) error
+	// Loads all the users bodylogs, along with their metric values, into the given array.
+	LoadUserBodyLogs(ctx context.Context, userID int, out *[]UserBodyLog) error
 
-	// Add the given bodylog to the db.
-	AddUserBodyLogs(ctx context.Context, log *TblUserBodyLog) (int, error)
+	// Add the given bodylog, along with its metric values, to the db.
+	// Every metric referenced must already exist for the log's user, otherwise
+	// ErrInvalidBodyMetric is returned.
+	AddUserBodyLogs(ctx context.Context, log *UserBodyLog) (int, error)
 
-	// Update the given bodylog in the db.
-	UpdateUserBodyLog(ctx context.Context, log *TblUserBodyLog) error
+	// Update the given bodylog and replace its metric values in the db.
+	// Every metric referenced must already exist for the log's user, otherwise
+	// ErrInvalidBodyMetric is returned.
+	UpdateUserBodyLog(ctx context.Context, log *UserBodyLog) error
 
 	// Delete the given bodylog with the user ID and row ID.
 	DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error
+
+	///
+	/// Body Metric Functions
+	///
+
+	// Loads all the body metrics the user has defined into the given array.
+	LoadUserBodyMetrics(ctx context.Context, userID int, out *[]TblUserBodyMetric) error
+
+	// Add the given body metric definition to the db.
+	AddUserBodyMetric(ctx context.Context, metric *TblUserBodyMetric) (int, error)
+
+	// Delete the given body metric definition with the user ID and row ID.
+	DeleteUserBodyMetric(ctx context.Context, userID int, bodyMetricID int) error
 
 	///
 	/// Data Source Functions

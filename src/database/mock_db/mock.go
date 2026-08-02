@@ -233,19 +233,31 @@ func (p *BaseMockDB) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLog
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) LoadUserBodyLogs(ctx context.Context, userID int, out *[]database.TblUserBodyLog) error {
+func (p *BaseMockDB) LoadUserBodyLogs(ctx context.Context, userID int, out *[]database.UserBodyLog) error {
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) AddUserBodyLogs(ctx context.Context, log *database.TblUserBodyLog) (int, error) {
+func (p *BaseMockDB) AddUserBodyLogs(ctx context.Context, log *database.UserBodyLog) (int, error) {
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) UpdateUserBodyLog(ctx context.Context, log *database.TblUserBodyLog) error {
+func (p *BaseMockDB) UpdateUserBodyLog(ctx context.Context, log *database.UserBodyLog) error {
 	panic("not implemented")
 }
 
 func (p *BaseMockDB) DeleteUserBodyLog(ctx context.Context, userID int, bodyLogID int) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserBodyMetrics(ctx context.Context, userID int, out *[]database.TblUserBodyMetric) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserBodyMetric(ctx context.Context, metric *database.TblUserBodyMetric) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserBodyMetric(ctx context.Context, userID int, bodyMetricID int) error {
 	panic("not implemented")
 }
 

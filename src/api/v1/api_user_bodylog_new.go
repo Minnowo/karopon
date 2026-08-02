@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -20,9 +21,9 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event database.TblUserBodyLog
+	var entry database.UserBodyLog
 
-	err := json.NewDecoder(r.Body).Decode(&event)
+	err := json.NewDecoder(r.Body).Decode(&entry)
 
 	if err != nil {
 
@@ -32,46 +33,19 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if event.WeightKg < 0 {
-		api.BadReq(w, "Weight should be >= 0")
-		return
+	entry.BodyLog.UserID = user.ID
+
+	if time.Time(entry.BodyLog.UserTime).IsZero() {
+		entry.BodyLog.UserTime = database.TimeMillis(time.Now().UTC())
 	}
-	if event.HeightCm < 0 {
-		api.BadReq(w, "Height CM should be >= 0")
-		return
-	}
-	if event.BodyFatPercent < 0 {
-		api.BadReq(w, "Body Fat Percent should be >= 0")
-		return
-	}
-	if event.BMI < 0 {
-		api.BadReq(w, "BMI should be >= 0")
-		return
-	}
-	if event.BPSystolic < 0 {
-		api.BadReq(w, "BP Systolic should be >= 0")
-		return
-	}
-	if event.BPDiastolic < 0 {
-		api.BadReq(w, "BP Diastolic should be >= 0")
-		return
-	}
-	if event.HeartRateBPM < 0 {
-		api.BadReq(w, "BMP should be >= 0")
-		return
-	}
-	if event.StepsCount < 0 {
-		api.BadReq(w, "Steps should be >= 0")
+
+	id, err := a.Db.AddUserBodyLogs(r.Context(), &entry)
+
+	if errors.Is(err, database.ErrInvalidBodyMetric) {
+		api.BadReq(w, "One or more of the given body metrics do not exist for this user")
 		return
 	}
 
-	event.UserID = user.ID
-
-	if event.UserTime.Time().IsZero() {
-		event.UserTime = database.TimeMillis(time.Now().UTC())
-	}
-
-	id, err := a.Db.AddUserBodyLogs(r.Context(), &event)
 	if err != nil {
 
 		api.ServerErr(w, "Unexpected error finalizing the event to the database")
@@ -83,7 +57,7 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event.ID = id
+	entry.BodyLog.ID = id
 
-	api.WriteJSONObj(w, event)
+	api.WriteJSONObj(w, entry)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (a *APIV1) getUserBodyLogs(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) getUserBodyMetrics(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -18,17 +18,17 @@ func (a *APIV1) getUserBodyLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var bodylogs []database.UserBodyLog
+	var metrics []database.TblUserBodyMetric
 
-	err := a.Db.LoadUserBodyLogs(r.Context(), user.ID, &bodylogs)
+	err := a.Db.LoadUserBodyMetrics(r.Context(), user.ID, &metrics)
 
 	if err != nil {
 
-		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user body log")
+		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user body metrics")
 		api.ServerErr(w, "failed while reading from the database")
 
 		return
 	}
 
-	api.WriteJSONArr(w, bodylogs)
+	api.WriteJSONArr(w, metrics)
 }

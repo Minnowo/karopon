@@ -379,4 +379,146 @@ func TestSqliteMigrations(t *testing.T) {
 			VALUES (99999, 'Ghost Goal', 1, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`)
 		require.Error(t, err, "FK violation on USER_ID should be rejected")
 	})
+
+	// 0012_bodylog_dynamic_shape: 10 -> 11
+	// Splits PON_USER_BODYLOG's fixed metric columns (WEIGHT_KG, HEIGHT_CM, etc.) into
+	// user-defined PON_USER_BODY_METRIC definitions plus PON_USER_BODYLOG_METRIC values,
+	// migrating any existing legacy data across.
+	t.Run("0012_bodylog_dynamic_shape", func(t *testing.T) {
+
+		// A second user to exercise per-user metric backfill.
+		res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER (NAME, PASSWORD) VALUES ('carol', X'070809')`)
+		require.NoError(t, err)
+		carolIDInt64, err := res.LastInsertId()
+		require.NoError(t, err)
+		carolID := int(carolIDInt64)
+
+		// Legacy bodylog rows before the migration.
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_BODYLOG (USER_ID, USER_TIME, WEIGHT_KG)
+			VALUES (?, datetime('now'), 75.5)`, userID)
+		require.NoError(t, err)
+		aliceBodylogID1Int64, err := res.LastInsertId()
+		require.NoError(t, err)
+		aliceBodylogID1 := int(aliceBodylogID1Int64)
+
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_BODYLOG (USER_ID, USER_TIME, HEIGHT_CM, STEPS_COUNT)
+			VALUES (?, datetime('now'), 180.0, 5000)`, userID)
+		require.NoError(t, err)
+		aliceBodylogID2Int64, err := res.LastInsertId()
+		require.NoError(t, err)
+		aliceBodylogID2 := int(aliceBodylogID2Int64)
+
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_BODYLOG (USER_ID, USER_TIME, WEIGHT_KG, BP_SYSTOLIC, BP_DIASTOLIC)
+			VALUES (?, datetime('now'), 90.0, 120, 80)`, carolID)
+		require.NoError(t, err)
+		carolBodylogIDInt64, err := res.LastInsertId()
+		require.NoError(t, err)
+		carolBodylogID := int(carolBodylogIDInt64)
+
+		var totalBefore int
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM PON_USER_BODYLOG`).Scan(&totalBefore))
+
+		_, err = database.RunUpMigrations(ctx, conn, 10, sqliteUpMigrations[11:12])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(11), ver)
+
+		// The old table must be gone.
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM PON_USER_BODYLOG_OLD LIMIT 1`)
+		require.Error(t, err, "PON_USER_BODYLOG_OLD should have been dropped")
+
+		// Row count (and IDs) must survive the rebuild.
+		var totalAfter int
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM PON_USER_BODYLOG`).Scan(&totalAfter))
+		assert.Equal(t, totalBefore, totalAfter)
+
+		// alice's first row (WEIGHT_KG = 75.5) must now be a 'Weight' metric value.
+		var aliceWeightValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.VALUE FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'Weight'`, aliceBodylogID1,
+		).Scan(&aliceWeightValue))
+		assert.InDelta(t, 75.5, aliceWeightValue, 0.001)
+
+		// alice's second row (HEIGHT_CM, STEPS_COUNT) must have both metric values.
+		var aliceHeightValue, aliceStepsValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.VALUE FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'Height'`, aliceBodylogID2,
+		).Scan(&aliceHeightValue))
+		assert.InDelta(t, 180.0, aliceHeightValue, 0.001)
+
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.VALUE FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'Steps'`, aliceBodylogID2,
+		).Scan(&aliceStepsValue))
+		assert.InDelta(t, 5000, aliceStepsValue, 0.001)
+
+		// alice's second row must not have gained a BMI value it never had.
+		var bmiCount int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT COUNT(*) FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'BMI'`, aliceBodylogID2,
+		).Scan(&bmiCount))
+		assert.Equal(t, 0, bmiCount)
+
+		// Metric definitions are scoped per user - alice and carol must each get their own
+		// 'Weight' metric row, not a shared one.
+		var aliceWeightMetricID, carolWeightMetricID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT ID FROM PON_USER_BODY_METRIC WHERE USER_ID = ? AND NAME = 'Weight'`, userID,
+		).Scan(&aliceWeightMetricID))
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT ID FROM PON_USER_BODY_METRIC WHERE USER_ID = ? AND NAME = 'Weight'`, carolID,
+		).Scan(&carolWeightMetricID))
+		assert.NotEqual(t, aliceWeightMetricID, carolWeightMetricID)
+
+		var carolSysValue, carolDiaValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.VALUE FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'Blood Pressure Systolic'`, carolBodylogID,
+		).Scan(&carolSysValue))
+		assert.InDelta(t, 120, carolSysValue, 0.001)
+
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.VALUE FROM PON_USER_BODYLOG_METRIC bm
+			JOIN PON_USER_BODY_METRIC m ON m.ID = bm.BODY_METRIC_ID
+			WHERE bm.BODYLOG_ID = ? AND m.NAME = 'Blood Pressure Diastolic'`, carolBodylogID,
+		).Scan(&carolDiaValue))
+		assert.InDelta(t, 80, carolDiaValue, 0.001)
+
+		// UNIQUE(USER_ID, NAME) must be enforced on the new metric definition table.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_BODY_METRIC (USER_ID, NAME, UNIT) VALUES (?, 'Weight', 'kg')`, userID)
+		require.Error(t, err, "duplicate (USER_ID, NAME) body metric should be rejected")
+
+		// The AUTOINCREMENT sequence must be back in sync after the explicit-ID copy - a
+		// fresh insert must not collide with a migrated row.
+		res, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_BODYLOG (USER_ID, USER_TIME) VALUES (?, datetime('now'))`, userID)
+		require.NoError(t, err)
+		newBodylogIDInt64, err := res.LastInsertId()
+		require.NoError(t, err)
+		assert.Greater(t, int(newBodylogIDInt64), carolBodylogID, "sequence should continue past migrated ids")
+
+		// ON DELETE CASCADE from PON_USER_BODYLOG must remove its metric value rows.
+		_, err = conn.ExecContext(ctx, `DELETE FROM PON_USER_BODYLOG WHERE ID = ?`, aliceBodylogID2)
+		require.NoError(t, err)
+
+		var remaining int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM PON_USER_BODYLOG_METRIC WHERE BODYLOG_ID = ?`, aliceBodylogID2,
+		).Scan(&remaining))
+		assert.Equal(t, 0, remaining, "metric values should cascade-delete with their bodylog")
+	})
 }

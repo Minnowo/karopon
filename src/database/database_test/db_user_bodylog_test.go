@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"errors"
 	"karopon/src/database"
 	"sync"
 	"testing"
@@ -20,21 +21,61 @@ func testBodylogCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 
 	userID := getTestUser(t, db)
 
-	bodylog := &database.TblUserBodyLog{
-		UserID:         userID,
-		UserTime:       database.TimeMillis(time.Now()),
-		WeightKg:       75.5,
-		HeightCm:       180.0,
-		BodyFatPercent: 20.0,
+	weightMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Weight", Unit: "kg"}
+	weightMetricID, err := db.AddUserBodyMetric(ctx, weightMetric)
+	require.NoError(t, err)
+	require.NotZero(t, weightMetricID)
+
+	heightMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Height", Unit: "cm"}
+	heightMetricID, err := db.AddUserBodyMetric(ctx, heightMetric)
+	require.NoError(t, err)
+	require.NotZero(t, heightMetricID)
+
+	var metrics []database.TblUserBodyMetric
+	require.NoError(t, db.LoadUserBodyMetrics(ctx, userID, &metrics))
+	require.Len(t, metrics, 2)
+
+	entry := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{
+			UserID:   userID,
+			UserTime: database.TimeMillis(time.Now()),
+		},
+		Metrics: []database.TblUserBodyLogMetric{
+			{BodyMetricID: weightMetricID, Value: 75.5},
+			{BodyMetricID: heightMetricID, Value: 180.0},
+		},
 	}
-	id, err := db.AddUserBodyLogs(ctx, bodylog)
+	id, err := db.AddUserBodyLogs(ctx, entry)
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
-	var logs []database.TblUserBodyLog
+	var logs []database.UserBodyLog
 	require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
 	require.Len(t, logs, 1)
-	assert.InDelta(t, 75.5, logs[0].WeightKg, 0.001)
+	require.Len(t, logs[0].Metrics, 2)
+
+	// Referencing a body metric that doesn't exist for this user should fail.
+	badEntry := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{UserID: userID, UserTime: database.TimeMillis(time.Now())},
+		Metrics: []database.TblUserBodyLogMetric{{BodyMetricID: weightMetricID + heightMetricID + 999, Value: 1}},
+	}
+	_, err = db.AddUserBodyLogs(ctx, badEntry)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, database.ErrInvalidBodyMetric))
+
+	// Referencing a body metric that belongs to a different user should also fail.
+	otherUserID := getTestUser2(t, db)
+	otherUserMetric := &database.TblUserBodyMetric{UserID: otherUserID, Name: "Weight", Unit: "kg"}
+	otherUserMetricID, err := db.AddUserBodyMetric(ctx, otherUserMetric)
+	require.NoError(t, err)
+
+	crossUserEntry := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{UserID: userID, UserTime: database.TimeMillis(time.Now())},
+		Metrics: []database.TblUserBodyLogMetric{{BodyMetricID: otherUserMetricID, Value: 1}},
+	}
+	_, err = db.AddUserBodyLogs(ctx, crossUserEntry)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, database.ErrInvalidBodyMetric))
 
 	require.NoError(t, db.DeleteUserBodyLog(ctx, userID, id))
 
@@ -53,41 +94,73 @@ func testUpdateUserBodyLog(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 
 	userID := getTestUser(t, db)
 
-	bodylog := &database.TblUserBodyLog{
-		UserID:         userID,
-		UserTime:       database.TimeMillis(time.Now()),
-		WeightKg:       70.0,
-		HeightCm:       175.0,
-		BodyFatPercent: 18.0,
-		HeartRateBPM:   65,
-		BPSystolic:     120,
-		BPDiastolic:    80,
-		StepsCount:     5000,
+	weightMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Weight", Unit: "kg"}
+	weightMetricID, err := db.AddUserBodyMetric(ctx, weightMetric)
+	require.NoError(t, err)
+
+	stepsMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Steps", Unit: "steps"}
+	stepsMetricID, err := db.AddUserBodyMetric(ctx, stepsMetric)
+	require.NoError(t, err)
+
+	entry := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{UserID: userID, UserTime: database.TimeMillis(time.Now())},
+		Metrics: []database.TblUserBodyLogMetric{
+			{BodyMetricID: weightMetricID, Value: 70.0},
+			{BodyMetricID: stepsMetricID, Value: 5000},
+		},
 	}
-	id, err := db.AddUserBodyLogs(ctx, bodylog)
+	id, err := db.AddUserBodyLogs(ctx, entry)
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
-	bodylog.ID = id
-	bodylog.WeightKg = 68.5
-	bodylog.HeartRateBPM = 70
-	bodylog.StepsCount = 10000
+	entry.BodyLog.ID = id
+	entry.Metrics = []database.TblUserBodyLogMetric{
+		{BodyMetricID: weightMetricID, Value: 68.5},
+		{BodyMetricID: stepsMetricID, Value: 10000},
+	}
 
-	require.NoError(t, db.UpdateUserBodyLog(ctx, bodylog))
+	require.NoError(t, db.UpdateUserBodyLog(ctx, entry))
 
-	var logs []database.TblUserBodyLog
+	var logs []database.UserBodyLog
 	require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
 	require.Len(t, logs, 1)
-	assert.InDelta(t, 68.5, logs[0].WeightKg, 0.001)
-	assert.Equal(t, int16(70), logs[0].HeartRateBPM)
-	assert.Equal(t, 10000, logs[0].StepsCount)
+	require.Len(t, logs[0].Metrics, 2)
+
+	valueByMetric := make(map[int]float64)
+	for _, m := range logs[0].Metrics {
+		valueByMetric[m.BodyMetricID] = m.Value
+	}
+	assert.InDelta(t, 68.5, valueByMetric[weightMetricID], 0.001)
+	assert.InDelta(t, 10000, valueByMetric[stepsMetricID], 0.001)
+
+	// Updating with a body metric that belongs to a different user should fail,
+	// and must not touch the existing metric values.
+	otherUserID := getTestUser2(t, db)
+	otherUserMetric := &database.TblUserBodyMetric{UserID: otherUserID, Name: "Weight", Unit: "kg"}
+	otherUserMetricID, err := db.AddUserBodyMetric(ctx, otherUserMetric)
+	require.NoError(t, err)
+
+	crossUserUpdate := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{ID: id, UserID: userID, UserTime: entry.BodyLog.UserTime},
+		Metrics: []database.TblUserBodyLogMetric{{BodyMetricID: otherUserMetricID, Value: 1}},
+	}
+	err = db.UpdateUserBodyLog(ctx, crossUserUpdate)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, database.ErrInvalidBodyMetric))
+
+	logs = logs[:0]
+	require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
+	require.Len(t, logs, 1)
+	require.Len(t, logs[0].Metrics, 2, "metrics should be unchanged after a rejected cross-user update")
 
 	// Updating with a different user_id should not affect this user's row.
-	other := &database.TblUserBodyLog{ID: id, UserID: userID + 99, WeightKg: 999.0}
+	other := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{ID: id, UserID: userID + 99},
+	}
 	require.NoError(t, db.UpdateUserBodyLog(ctx, other))
 
 	logs = logs[:0]
 	require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
 	require.Len(t, logs, 1)
-	assert.InDelta(t, 68.5, logs[0].WeightKg, 0.001, "row should be unchanged after wrong-user update")
+	require.Len(t, logs[0].Metrics, 2, "metrics should be unchanged after wrong-user update")
 }

@@ -612,4 +612,131 @@ func TestPostgresMigrations(t *testing.T) {
 			bobUserID)
 		require.Error(t, err, "duplicate (user_id, name) must still be rejected")
 	})
+
+	// 0023_bodylog_dynamic_shape: 21 -> 22
+	// Splits pon.user_bodylog's fixed metric columns (weight_kg, height_cm, etc.) into
+	// user-defined pon.user_body_metric definitions plus pon.user_bodylog_metric values,
+	// migrating any existing legacy data across.
+	t.Run("0023_bodylog_dynamic_shape", func(t *testing.T) {
+
+		// aliceUserID already has one legacy bodylog row (weight_kg = 75.5) from the
+		// 0006_add_more_tables test above. Add a second row for alice covering more legacy
+		// columns, plus one for bob, to exercise the per-user metric backfill.
+		var aliceBodylogID2 int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			INSERT INTO pon.user_bodylog (user_id, user_time, height_cm, steps_count)
+			VALUES ($1, NOW(), 180.0, 5000)
+			RETURNING id`, aliceUserID,
+		).Scan(&aliceBodylogID2))
+
+		var bobBodylogID int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			INSERT INTO pon.user_bodylog (user_id, user_time, weight_kg, bp_systolic, bp_diastolic)
+			VALUES ($1, NOW(), 90.0, 120, 80)
+			RETURNING id`, bobUserID,
+		).Scan(&bobBodylogID))
+
+		var totalBefore int
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM pon.user_bodylog`).Scan(&totalBefore))
+
+		_, err := database.RunUpMigrations(ctx, conn, 21, postgresUpMigrations[22:23])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(22), ver)
+
+		// The old table must be gone.
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM pon.user_bodylog_old LIMIT 1`)
+		require.Error(t, err, "pon.user_bodylog_old should have been dropped")
+
+		// Row count (and IDs) must survive the rebuild.
+		var totalAfter int
+		require.NoError(t, conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM pon.user_bodylog`).Scan(&totalAfter))
+		assert.Equal(t, totalBefore, totalAfter)
+
+		// alice's original weight_kg = 75.5 entry must now be a 'Weight' metric value.
+		var aliceWeightValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.value FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			JOIN pon.user_bodylog b ON b.id = bm.bodylog_id
+			WHERE b.user_id = $1 AND m.name = 'Weight'`, aliceUserID,
+		).Scan(&aliceWeightValue))
+		assert.InDelta(t, 75.5, aliceWeightValue, 0.001)
+
+		// alice's second row (height_cm, steps_count) must have both metric values.
+		var aliceHeightValue, aliceStepsValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.value FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			WHERE bm.bodylog_id = $1 AND m.name = 'Height'`, aliceBodylogID2,
+		).Scan(&aliceHeightValue))
+		assert.InDelta(t, 180.0, aliceHeightValue, 0.001)
+
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.value FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			WHERE bm.bodylog_id = $1 AND m.name = 'Steps'`, aliceBodylogID2,
+		).Scan(&aliceStepsValue))
+		assert.InDelta(t, 5000, aliceStepsValue, 0.001)
+
+		// alice's second row must not have gained a BMI value it never had.
+		var bmiCount int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT COUNT(*) FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			WHERE bm.bodylog_id = $1 AND m.name = 'BMI'`, aliceBodylogID2,
+		).Scan(&bmiCount))
+		assert.Equal(t, 0, bmiCount)
+
+		// Metric definitions are scoped per user - alice and bob must each get their own
+		// 'Weight' metric row, not a shared one.
+		var aliceWeightMetricID, bobWeightMetricID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT id FROM pon.user_body_metric WHERE user_id = $1 AND name = 'Weight'`, aliceUserID,
+		).Scan(&aliceWeightMetricID))
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT id FROM pon.user_body_metric WHERE user_id = $1 AND name = 'Weight'`, bobUserID,
+		).Scan(&bobWeightMetricID))
+		assert.NotEqual(t, aliceWeightMetricID, bobWeightMetricID)
+
+		var bobSysValue, bobDiaValue float64
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.value FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			WHERE bm.bodylog_id = $1 AND m.name = 'Blood Pressure Systolic'`, bobBodylogID,
+		).Scan(&bobSysValue))
+		assert.InDelta(t, 120, bobSysValue, 0.001)
+
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			SELECT bm.value FROM pon.user_bodylog_metric bm
+			JOIN pon.user_body_metric m ON m.id = bm.body_metric_id
+			WHERE bm.bodylog_id = $1 AND m.name = 'Blood Pressure Diastolic'`, bobBodylogID,
+		).Scan(&bobDiaValue))
+		assert.InDelta(t, 80, bobDiaValue, 0.001)
+
+		// UNIQUE(user_id, name) must be enforced on the new metric definition table.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_body_metric (user_id, name, unit) VALUES ($1, 'Weight', 'kg')`, aliceUserID)
+		require.Error(t, err, "duplicate (user_id, name) body metric should be rejected")
+
+		// The ID sequence must be back in sync after the explicit-ID copy - a fresh insert
+		// must not collide with a migrated row.
+		var newBodylogID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`INSERT INTO pon.user_bodylog (user_id, user_time) VALUES ($1, NOW()) RETURNING id`, aliceUserID,
+		).Scan(&newBodylogID))
+		assert.Greater(t, newBodylogID, bobBodylogID, "sequence should continue past migrated ids")
+
+		// ON DELETE CASCADE from pon.user_bodylog must remove its metric value rows.
+		_, err = conn.ExecContext(ctx, `DELETE FROM pon.user_bodylog WHERE id = $1`, aliceBodylogID2)
+		require.NoError(t, err)
+
+		var remaining int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM pon.user_bodylog_metric WHERE bodylog_id = $1`, aliceBodylogID2,
+		).Scan(&remaining))
+		assert.Equal(t, 0, remaining, "metric values should cascade-delete with their bodylog")
+	})
 }

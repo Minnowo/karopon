@@ -40,6 +40,11 @@ type UserGoalProgress struct {
 	TimeRemaining DurationMillis `json:"time_remaining"`
 }
 
+type UserBodyLog struct {
+	BodyLog TblUserBodyLog         `json:"bodylog"`
+	Metrics []TblUserBodyLogMetric `json:"metrics"`
+}
+
 type TaggedTimespan struct {
 	Timespan TblUserTimespan `json:"timespan"`
 	Tags     []TblUserTag    `json:"tags"`

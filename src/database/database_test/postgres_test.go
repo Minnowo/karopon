@@ -87,6 +87,8 @@ func TestDB_Postgres(t *testing.T) {
 			"pon.data_source_food",
 			"pon.user",
 			"pon.user_bodylog",
+			"pon.user_bodylog_metric",
+			"pon.user_body_metric",
 			"pon.user_dashboard",
 			"pon.user_event",
 			"pon.user_eventlog",

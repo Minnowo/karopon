@@ -165,20 +165,22 @@ type TblUserBodyLog struct {
 	UserID   int        `db:"user_id"   json:"user_id"`
 	Created  TimeMillis `db:"created"   json:"created"`
 	UserTime TimeMillis `db:"user_time" json:"user_time"`
+}
 
-	// Core metrics
-	WeightKg       float64 `db:"weight_kg"        json:"weight_kg"`
-	HeightCm       float64 `db:"height_cm"        json:"height_cm"`
-	BodyFatPercent float64 `db:"body_fat_percent" json:"body_fat_percent"`
-	BMI            float64 `db:"bmi"              json:"bmi"`
+// TblUserBodyMetric is a user-defined body metric they wish to track,
+// e.g. "Weight" ("kg"), "Waist" ("cm"). Holds no values itself.
+type TblUserBodyMetric struct {
+	ID     int    `db:"id"      json:"id"`
+	UserID int    `db:"user_id" json:"user_id"`
+	Name   string `db:"name"    json:"name"`
+	Unit   string `db:"unit"    json:"unit"`
+}
 
-	// Blood pressure & heart
-	BPSystolic   int16 `db:"bp_systolic"    json:"bp_systolic"`
-	BPDiastolic  int16 `db:"bp_diastolic"   json:"bp_diastolic"`
-	HeartRateBPM int16 `db:"heart_rate_bpm" json:"heart_rate_bpm"`
-
-	// Lifestyle data
-	StepsCount int `db:"steps_count" json:"steps_count"`
+// TblUserBodyLogMetric is a single metric value recorded against a TblUserBodyLog.
+type TblUserBodyLogMetric struct {
+	BodyLogID    int     `db:"bodylog_id"     json:"bodylog_id"`
+	BodyMetricID int     `db:"body_metric_id" json:"body_metric_id"`
+	Value        float64 `db:"value"          json:"value"`
 }
 
 type TblUserMedication struct {
