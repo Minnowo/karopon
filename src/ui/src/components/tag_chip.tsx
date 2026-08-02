@@ -53,13 +53,13 @@ export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefine
     const style = color ? {backgroundColor: color, ...(cssVarTextColor ? {color: cssVarTextColor} : {})} : undefined;
 
     return (
-        <span ref={spanRef} className="flex items-center min-h-8 rounded-2xl w-fit" style={style}>
+        <span ref={spanRef} className="flex items-center min-h-8 rounded w-fit" style={style}>
             <span className={`pl-3 ${showDeleteButton ? 'mr-2' : 'pr-3'} break-words`}>
                 {tag.namespace}:{tag.name}
             </span>
             {showDeleteButton && (
                 <button
-                    className="px-2 mr-1 font-bold bg-transparent border-none rounded-2xl text-inherit focus:bg-c-surface2 hover:bg-c-surface2"
+                    className="px-2 mr-1 font-bold bg-transparent border-none rounded text-inherit focus:bg-c-surface2 hover:bg-c-surface2"
                     type="button"
                     aria-label={`Remove tag ${tag.namespace}:${tag.name}`}
                     onClick={() => onRemove()}
