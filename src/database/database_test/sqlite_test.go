@@ -11,6 +11,7 @@ import (
 )
 
 func TestDB_Sqlite(t *testing.T) {
+
 	runDbTests(t, func(t *testing.T) database.DB {
 
 		dir := t.TempDir()

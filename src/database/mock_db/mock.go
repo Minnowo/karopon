@@ -322,6 +322,7 @@ func (p *BaseMockDB) UpdateUserTag(
 	ctx context.Context,
 	userID int,
 	namespace, name, newNamespace, newName string,
+	merge bool,
 ) error {
 	panic("not implemented")
 }

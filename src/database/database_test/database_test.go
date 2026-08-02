@@ -54,6 +54,12 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("LoadUserTagNamespaces", func(t *testing.T) { testLoadUserTagNamespaces(t, newTestDB, &lock) })
 	t.Run("LoadUserNamespaceTags", func(t *testing.T) { testLoadUserNamespaceTags(t, newTestDB, &lock) })
 	t.Run("LoadUserNamespaceTagsLikeN", func(t *testing.T) { testLoadUserNamespaceTagsLikeN(t, newTestDB, &lock) })
+	t.Run("UpdateUserTag", func(t *testing.T) { testUpdateUserTag(t, newTestDB, &lock) })
+	t.Run(
+		"UpdateUserTagCollisionWithoutMerge",
+		func(t *testing.T) { testUpdateUserTagCollisionWithoutMerge(t, newTestDB, &lock) },
+	)
+	t.Run("UpdateUserTagMerge", func(t *testing.T) { testUpdateUserTagMerge(t, newTestDB, &lock) })
 	t.Run("AddUserTimespan", func(t *testing.T) { testAddUserTimespan(t, newTestDB, &lock) })
 	t.Run("DBx_and_Base", func(t *testing.T) { testDBxAndBase(t, newTestDB, &lock) })
 	t.Run("LoadUser", func(t *testing.T) { testLoadUser(t, newTestDB, &lock) })

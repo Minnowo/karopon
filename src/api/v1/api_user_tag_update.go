@@ -2,8 +2,10 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
+	"karopon/src/database"
 	"net/http"
 	"strings"
 
@@ -15,6 +17,11 @@ type updateUserTagRequest struct {
 	Name         string `json:"name"`
 	NewNamespace string `json:"new_namespace"`
 	NewName      string `json:"new_name"`
+
+	// Merge, if true and a tag already exists at (NewNamespace, NewName),
+	// reassigns all usages of the renamed tag onto the existing tag and deletes it,
+	// instead of failing with a conflict.
+	Merge bool `json:"merge"`
 }
 
 func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +62,12 @@ func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.Db.UpdateUserTag(r.Context(), user.ID, req.Namespace, req.Name, req.NewNamespace, req.NewName)
+	err = a.Db.UpdateUserTag(r.Context(), user.ID, req.Namespace, req.Name, req.NewNamespace, req.NewName, req.Merge)
+
+	if errors.Is(err, database.ErrTagAlreadyExists) {
+		api.BadReq(w, "A tag with the new namespace and name already exists.")
+		return
+	}
 
 	if err != nil {
 

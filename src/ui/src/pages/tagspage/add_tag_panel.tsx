@@ -1,12 +1,14 @@
 import {useState} from 'preact/hooks';
 import {ErrorDiv} from '../../components/error_div';
+import {FlipSwitch} from '../../components/flip_switch';
 
 type AddTagPanelProps = {
     initialNamespace?: string;
     initialName?: string;
     title?: string;
     submitLabel?: string;
-    onCreate: (namespace: string, name: string) => void;
+    showMergeOption?: boolean;
+    onCreate: (namespace: string, name: string, merge: boolean) => void;
     onCancel: () => void;
 };
 
@@ -15,11 +17,13 @@ export const AddTagPanel = ({
     initialName = '',
     title = 'New Tag',
     submitLabel = 'Create',
+    showMergeOption = false,
     onCreate,
     onCancel,
 }: AddTagPanelProps) => {
     const [namespace, setNamespace] = useState(initialNamespace);
     const [name, setName] = useState(initialName);
+    const [merge, setMerge] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
 
     const handleSubmit = () => {
@@ -29,7 +33,7 @@ export const AddTagPanel = ({
             setLocalError('Namespace and name are required');
             return;
         }
-        onCreate(ns, nm);
+        onCreate(ns, nm, merge);
     };
 
     return (
@@ -61,6 +65,12 @@ export const AddTagPanel = ({
                     }}
                 />
             </div>
+            {showMergeOption && (
+                <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm">Merge if tag with same name exists</span>
+                    <FlipSwitch value={merge} onValueChanged={setMerge} />
+                </label>
+            )}
             <div className="flex gap-2 justify-end">
                 <button className="cancel-btn" onClick={onCancel}>
                     Cancel

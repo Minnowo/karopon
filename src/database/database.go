@@ -17,6 +17,7 @@ var (
 	ErrInvalidSessionTokenLength = errors.New("user session token must be 32 length")
 	ErrUserDoesNotHaveThisID     = errors.New("ID does not exist")
 	ErrFoodPortionIsZero         = errors.New("food portion cannot be zero")
+	ErrTagAlreadyExists          = errors.New("a tag with the new namespace and name already exists")
 )
 
 // DB is interface for accessing and manipulating data in database.
@@ -263,7 +264,13 @@ type DB interface {
 
 	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
 	DeleteUserTag(ctx context.Context, userID int, namespace, name string) error
-	UpdateUserTag(ctx context.Context, userID int, namespace, name, newNamespace, newName string) error
+
+	// UpdateUserTag renames the tag (userID, namespace, name) to (newNamespace, newName).
+	// If a tag already exists at (newNamespace, newName):
+	//   - if merge is false, ErrTagAlreadyExists is returned and nothing is changed.
+	//   - if merge is true, all usages of the renamed tag are reassigned to the existing tag
+	//     (de-duplicating any usages that already reference both), and the renamed tag is deleted.
+	UpdateUserTag(ctx context.Context, userID int, namespace, name, newNamespace, newName string, merge bool) error
 	LoadUserTags(ctx context.Context, userID int, out *[]TblUserTag) error
 	LoadUserTagNamespaces(ctx context.Context, userID int, out *[]string) error
 	LoadUserNamespaceTags(ctx context.Context, userID int, namespace string, out *[]TblUserTag) error

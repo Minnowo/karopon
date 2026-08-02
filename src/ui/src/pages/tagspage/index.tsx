@@ -79,18 +79,36 @@ export const TagsPage = (state: BaseState) => {
             .catch(handleErr);
     };
 
-    const saveEdit = (tag: TblUserTag, ns: string, nm: string) => {
-        ApiUpdateUserTag(tag, ns, nm)
+    const saveEdit = (tag: TblUserTag, ns: string, nm: string, merge: boolean) => {
+        if (tag.namespace === ns && tag.name === nm) {
+            // no actual update to perform
+            setEditingTag(null);
+            setErrorMsg(null);
+            return;
+        }
+        ApiUpdateUserTag(tag, ns, nm, merge)
             .then(() => {
-                setAllTags((old) =>
-                    old
-                        .map((t) => (t.namespace === tag.namespace && t.name === tag.name ? {namespace: ns, name: nm} : t))
-                        .sort((a, b) => TagToString(a).localeCompare(TagToString(b)))
-                );
+                if (merge) {
+                    // The old tag is deleted server-side; its usages moved onto the existing tag at (ns, nm).
+                    setAllTags((old) => old.filter((t) => !(t.namespace === tag.namespace && t.name === tag.name)));
+                } else {
+                    setAllTags((old) =>
+                        old
+                            .map((t) => (t.namespace === tag.namespace && t.name === tag.name ? {namespace: ns, name: nm} : t))
+                            .sort((a, b) => TagToString(a).localeCompare(TagToString(b)))
+                    );
+                }
+
                 state.setTimespans((old) =>
                     old.map((ts) => {
-                        for (let i = 0; i < ts.tags.length; i++) {
-                            const t = ts.tags[i];
+                        if (merge) {
+                            const hasNewTag = ts.tags.some((t) => t.namespace === ns && t.name === nm);
+                            if (hasNewTag) {
+                                ts.tags = ts.tags.filter((t) => !(t.namespace === tag.namespace && t.name === tag.name));
+                                return ts;
+                            }
+                        }
+                        for (const t of ts.tags) {
                             if (t.namespace === tag.namespace && t.name === tag.name) {
                                 t.namespace = ns;
                                 t.name = nm;
@@ -99,6 +117,7 @@ export const TagsPage = (state: BaseState) => {
                         return ts;
                     })
                 );
+
                 setEditingTag(null);
                 setErrorMsg(null);
             })
@@ -202,7 +221,8 @@ export const TagsPage = (state: BaseState) => {
                                 initialName={t.name}
                                 title="Edit Tag"
                                 submitLabel="Save"
-                                onCreate={(ns, nm) => saveEdit(t, ns, nm)}
+                                showMergeOption
+                                onCreate={(ns, nm, merge) => saveEdit(t, ns, nm, merge)}
                                 onCancel={() => {
                                     setEditingTag(null);
                                     setErrorMsg(null);
