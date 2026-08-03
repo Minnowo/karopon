@@ -31,6 +31,10 @@ func NewTimezone(name string) (Timezone, error) {
 	}, nil
 }
 
+func (t Timezone) TimeNowDayOffsetShifted(dayOffset time.Duration) time.Time {
+	return time.Now().Add(-dayOffset).In(t.Loc())
+}
+
 func (t Timezone) Loc() *time.Location {
 	if t.loc == nil {
 		return time.UTC

@@ -17,9 +17,9 @@ type TblUserEvent struct {
 type CalorieCalcMethod string
 
 var (
-	CALORIE_AUTO           = "auto"
-	CALORIE_ATWATER        = "atwater"
-	CALORIE_ATWATERNOFIBRE = "atwater_no_fibre"
+	CALORIE_AUTO           CalorieCalcMethod = "auto"
+	CALORIE_ATWATER        CalorieCalcMethod = "atwater"
+	CALORIE_ATWATERNOFIBRE CalorieCalcMethod = "atwater_no_fibre"
 )
 
 type TblUser struct {

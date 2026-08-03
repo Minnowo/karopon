@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'preact/hooks';
-import {NoInformationMessage} from './common';
+import {GraphStyleKeys, NoInformationMessage} from './common';
 import {BaseGraphProps} from './graph';
 
 type Point2D = {
@@ -21,11 +21,11 @@ const DescribeArc = (x: number, y: number, r: number, startAngle: number, endAng
 };
 
 export type PieChartProps = BaseGraphProps & {
-    size: number;
+    size?: number;
 };
 
 export const PieChart = ({
-    size,
+    size = 250,
 
     data,
     title,
@@ -33,6 +33,9 @@ export const PieChart = ({
     onTimeRangeChange,
 
     curTimeRange,
+
+    graphStyle,
+    onGraphStyleChange,
 
     precision = 1,
 }: PieChartProps) => {
@@ -83,6 +86,19 @@ export const PieChart = ({
                             ))}
                     </select>
                 </div>
+                {onGraphStyleChange && (
+                    <div className="flex gap-2 mb-4">
+                        {GraphStyleKeys.map((s) => (
+                            <button
+                                key={s}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                onClick={() => onGraphStyleChange(s)}
+                            >
+                                {s.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {total === 0 ? (

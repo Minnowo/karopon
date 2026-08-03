@@ -1,7 +1,6 @@
 import {Dispatch, StateUpdater, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyMetric, UserBodyLog, UserEventFoodLog} from '../../api/types';
-import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
-import {ChartData, CommonRanges, DashboardCard, GraphStyle, TimeRange} from './common';
+import {ChartData, CommonRanges, DashboardCard, GraphStyle, MacroType, TimeRange} from './common';
 import {PieChart} from './graph_pie_chart';
 import {MultiLineGraph2} from './graph_line_multi2';
 import {StackedBarGraph2} from './graph_bar_stacked2';
@@ -12,12 +11,13 @@ import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
 import {BuildChartData, BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
-import {BuildMacroChartData} from './data_build_macros';
+import {BuildMacroChartData, BuildMacroChartDataNetwork} from './data_build_macros';
 import {FlipSwitch} from '../../components/flip_switch';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
 import {TimeRangeInput} from '../../components/timerange_input';
 import {FormatSmartTimestamp2} from '../../utils/date_utils';
 import {BodyMetricMultiSelect} from './body_metric_multiselect';
+import {MacroMultiSelect} from './macro_multiselect';
 
 const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
@@ -36,8 +36,16 @@ const TAG_COLOR_PALETTE = [
 ];
 
 const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
-    calories: 0,
     time: 2,
+};
+
+const MACRO_COLORS: Record<MacroType, string> = {
+    fat: 'var(--color-c-flamingo)',
+    carbs: 'var(--color-c-yellow)',
+    net_carbs: 'var(--color-c-yellow)',
+    fibre: 'var(--color-c-sapphire)',
+    protein: 'var(--color-c-green)',
+    calorie: 'var(--color-c-peach)',
 };
 
 const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bodylog', 'time'];
@@ -240,16 +248,37 @@ export function DashboardCardComponent({
 
     useLayoutEffect(() => {
         switch (card.type) {
-            case 'macros':
-            case 'pie': {
-                const newData = BuildMacroChartData(eventlogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc, [
-                    'var(--color-c-flamingo)',
-                    'var(--color-c-yellow)',
-                    'var(--color-c-sapphire)',
-                    'var(--color-c-green)',
-                ]);
+            case 'macros': {
+                const selectedMacros = card.visibleMacros ?? [];
+                if (selectedMacros.length === 0) {
+                    return;
+                }
 
-                setChartData(newData);
+                const macroColors = selectedMacros.map((m) => MACRO_COLORS[m]);
+
+                if (card.useNetwork) {
+                    BuildMacroChartDataNetwork(
+                        rangeStartStr,
+                        rangeEndStr,
+                        groupBy,
+                        aggregationFunc,
+                        selectedMacros,
+                        macroColors
+                    ).then(setChartData);
+                } else {
+                    setChartData(
+                        BuildMacroChartData(
+                            eventlogs,
+                            rangeStartMs,
+                            rangeEndMs,
+                            groupBy,
+                            aggregationFunc,
+                            caloricCalcMethod,
+                            selectedMacros,
+                            macroColors
+                        )
+                    );
+                }
 
                 break;
             }
@@ -281,27 +310,6 @@ export function DashboardCardComponent({
                     );
                 }
 
-                break;
-            }
-            case 'calories': {
-                setChartData(
-                    BuildChartData(
-                        eventlogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        (e) =>
-                            CalculateCalories(
-                                e.total_protein,
-                                e.total_carb - e.total_fibre,
-                                e.total_fibre,
-                                e.total_fat,
-                                Str2CalorieFormula(caloricCalcMethod)
-                            ),
-                        'var(--color-c-yellow)'
-                    )
-                );
                 break;
             }
             case 'blood_glucose': {
@@ -378,6 +386,7 @@ export function DashboardCardComponent({
         groupBy,
         card.selectedTags,
         card.selectedMetrics,
+        card.visibleMacros,
         eventlogs,
         bodylogs,
         bodyMetrics,
@@ -495,7 +504,14 @@ export function DashboardCardComponent({
         onUpdate({...card, graphStyle: s});
     };
 
-    const MultiSeriesGraph2 = graphStyle === 'bar' ? StackedBarGraph2 : graphStyle === 'table' ? TableGraph2 : MultiLineGraph2;
+    const MultiSeriesGraph2 =
+        graphStyle === 'bar'
+            ? StackedBarGraph2
+            : graphStyle === 'table'
+              ? TableGraph2
+              : graphStyle === 'pie'
+                ? PieChart
+                : MultiLineGraph2;
 
     const baseGraphProps = {
         curTimeRange,
@@ -514,10 +530,6 @@ export function DashboardCardComponent({
 
     const renderChart = () => {
         const title = editing ? '' : card.title;
-
-        if (card.type === 'pie') {
-            return <PieChart title={title} data={chartData} size={250} {...baseGraphProps} />;
-        }
 
         const precision = PRECISION_BY_TYPE[card.type];
 
@@ -654,6 +666,18 @@ export function DashboardCardComponent({
                                     bodyMetrics={bodyMetrics}
                                     selected={card.selectedMetrics ?? []}
                                     onChange={(selectedMetrics) => onUpdate({...card, selectedMetrics})}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {card.type === 'macros' && (
+                        <div className="flex flex-col gap-1">
+                            <label class="font-semibold">Macros / Calories</label>
+                            <div className="flex flex-col p-2 gap-2">
+                                <MacroMultiSelect
+                                    selected={card.visibleMacros ?? []}
+                                    onChange={(visibleMacros) => onUpdate({...card, visibleMacros})}
                                 />
                             </div>
                         </div>

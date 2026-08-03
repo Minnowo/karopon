@@ -11,8 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type BodyLogStatsTimeRequest struct {
-	Metrics       []string          `json:"metrics"`
+type MacroStatsRequest struct {
 	Start         string            `json:"start"`
 	End           string            `json:"end"`
 	GroupBy       string            `json:"groupby"`
@@ -20,7 +19,7 @@ type BodyLogStatsTimeRequest struct {
 	Timezone      database.Timezone `json:"timezone"`
 }
 
-func (a *APIV1) postBodyLogStatsTime(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) postMacroStats(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -29,7 +28,7 @@ func (a *APIV1) postBodyLogStatsTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req BodyLogStatsTimeRequest
+	var req MacroStatsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Debug().Err(err).Msg("Invalid json.")
@@ -54,7 +53,7 @@ func (a *APIV1) postBodyLogStatsTime(w http.ResponseWriter, r *http.Request) {
 	// shift is added back inside the function.
 	// DayTimeOffsetSeconds is NOT a UTC offset - it marks when the user's day starts.
 	shift := time.Duration(user.DayTimeOffsetSeconds) * time.Second
-	adjustedNow := time.Now().Add(-shift).In(req.Timezone.Loc())
+	adjustedNow := req.Timezone.TimeNowDayOffsetShifted(shift)
 
 	startTime, err := database.ParseRelativeTimeExpr(req.Start, adjustedNow, shift)
 	if err != nil {
@@ -75,15 +74,15 @@ func (a *APIV1) postBodyLogStatsTime(w http.ResponseWriter, r *http.Request) {
 		Time("stopt", endTime).
 		Int("shift", int(shift)).
 		Time("nowAdj", adjustedNow).
-		Msg("running user bodylog stats")
+		Msg("running user macro stats")
 
-	var data []database.BodyLogMetricPoint
-	err = a.Db.LoadUserBodyLogTimeData(
+	var data []database.MacronutrientPoint
+	err = a.Db.LoadUserMacrosTimeData(
 		r.Context(),
 		user.ID,
 		startTime,
 		endTime,
-		req.Metrics,
+		user.CaloricCalcMethod,
 		aggregation,
 		groupBy,
 		req.Timezone,

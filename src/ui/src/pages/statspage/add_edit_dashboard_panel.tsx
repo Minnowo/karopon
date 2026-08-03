@@ -1,14 +1,13 @@
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
-import {DashboardCard} from './common';
+import {DashboardCard, MacroType} from './common';
 import {TblUserBodyMetric, TblUserTag} from '../../api/types';
 import {TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {BodyMetricMultiSelect} from './body_metric_multiselect';
+import {MacroMultiSelect} from './macro_multiselect';
 
 const CHART_LABELS: Record<DashboardCard['type'], string> = {
-    pie: 'Pie Chart',
-    macros: 'Macronutrients',
-    calories: 'Calories',
+    macros: 'Macros / Calories',
     blood_glucose: 'Blood Glucose',
     insulin: 'Insulin',
     bodylog: 'Body Metrics',
@@ -44,9 +43,10 @@ export function AddEditDashboardPanel({
     onCancel,
 }: DashboardSettingsPanelProps) {
     const [name, setName] = useState(initialName);
-    const [addType, setAddType] = useState<DashboardCard['type']>('calories');
+    const [addType, setAddType] = useState<DashboardCard['type']>('macros');
     const [tags, setTags] = useState<TblUserTag[]>([]);
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+    const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['fat', 'net_carbs', 'fibre', 'protein']);
 
     const addCard = () => {
         if (!onCardAdded) {
@@ -56,7 +56,7 @@ export function AddEditDashboardPanel({
             id: 0,
             type: addType,
             title: CHART_LABELS[addType],
-            visibleMacros: addType === 'macros' ? ['fat', 'carbs', 'fibre', 'protein'] : [],
+            visibleMacros: addType === 'macros' ? visibleMacros : [],
             selectedTags: tags.map(TagToString),
             selectedMetrics,
         };
@@ -109,6 +109,13 @@ export function AddEditDashboardPanel({
                                 onChange={setTags}
                                 tagColors={tagColors}
                             />
+                        </div>
+                    )}
+
+                    {addType === 'macros' && (
+                        <div className="container-theme">
+                            <h2 className="text-lg font-bold">Macros / Calories</h2>
+                            <MacroMultiSelect selected={visibleMacros} onChange={setVisibleMacros} />
                         </div>
                     )}
 

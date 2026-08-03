@@ -26,6 +26,7 @@ import {
 } from './types';
 import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
 import {BodyLogStatsTimeRequest, BodyLogMetricPoint} from './types_stats_bodylog';
+import {MacronutrientPoint, MacroStatsRequest} from './types_stats_macros';
 
 export class ApiError extends Error {
     public readonly status: number;
@@ -497,6 +498,15 @@ export const ApiGetStatsTime = (query: StatsTimeRequest): Promise<TimespanTagDur
 
 export const ApiGetBodyLogStatsTime = (query: BodyLogStatsTimeRequest): Promise<BodyLogMetricPoint[]> => {
     return fetchJson(`${ApiBase}/api/stats/bodylog`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(query),
+    });
+};
+export const ApiGetStatsMacro = (query: MacroStatsRequest): Promise<MacronutrientPoint[]> => {
+    return fetchJson(`${ApiBase}/api/stats/macros`, {
         headers: {
             'content-type': 'application/json',
         },

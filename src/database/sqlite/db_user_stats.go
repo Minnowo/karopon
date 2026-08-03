@@ -303,3 +303,140 @@ func (db *SqliteDatabase) LoadUserBodyLogTimeData(
 
 	return nil
 }
+
+func (db *SqliteDatabase) LoadUserMacrosTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	calorieCalc database.CalorieCalcMethod,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.MacronutrientPoint,
+) error {
+
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
+
+	sql := `
+		SELECT
+			USER_TIME AS USER_TIME,
+			PROTEIN   AS PROTEIN,
+			CARB      AS CARB,
+			FIBRE     AS FIBRE,
+			FAT       AS FAT
+
+		FROM PON_USER_FOODLOG
+
+		WHERE
+			USER_ID = ?
+			AND USER_TIME >= ?
+			AND USER_TIME <= ?
+	`
+
+	var rows []struct {
+		UserTime database.TimeMillis `db:"user_time"`
+		Protein  float64             `db:"protein"`
+		Carb     float64             `db:"carb"`
+		Fibre    float64             `db:"fibre"`
+		Fat      float64             `db:"fat"`
+	}
+
+	if err := db.SelectContext(ctx, &rows, sql, userID, startTime.UTC(), endTime.UTC()); err != nil {
+		return err
+	}
+
+	// carb, netCarb, fat, fibre, protein, calorie
+	const (
+		idxCarb = iota
+		idxNetCarb
+		idxFat
+		idxFibre
+		idxProtein
+		idxCalorie
+		numSeries
+	)
+
+	type acc struct {
+		n   int
+		sum [numSeries]float64
+		min [numSeries]float64
+		max [numSeries]float64
+	}
+
+	accs := make(map[time.Time]*acc)
+
+	for _, r := range rows {
+
+		netCarb := r.Carb - r.Fibre
+
+		var calorie float64
+		if calorieCalc == database.CALORIE_ATWATERNOFIBRE {
+			calorie = r.Protein*4 + netCarb*4 + r.Fat*9
+		} else {
+			calorie = r.Protein*4 + netCarb*4 + r.Fibre*2 + r.Fat*9
+		}
+
+		values := [numSeries]float64{r.Carb, netCarb, r.Fat, r.Fibre, r.Protein, calorie}
+
+		bucket := truncateToBucket(r.UserTime.Time(), groupby, timezone.Loc(), dayOffset)
+
+		a, ok := accs[bucket]
+		if !ok {
+			a = &acc{min: values, max: values}
+			accs[bucket] = a
+		}
+
+		a.n++
+		for i, v := range values {
+			a.sum[i] += v
+			if v < a.min[i] {
+				a.min[i] = v
+			}
+			if v > a.max[i] {
+				a.max[i] = v
+			}
+		}
+	}
+
+	points := make([]database.MacronutrientPoint, 0, len(accs))
+
+	for bucket, a := range accs {
+
+		var values [numSeries]float64
+
+		switch aggregation {
+		case database.AggregationSum:
+			values = a.sum
+		case database.AggregationAvg:
+			for i := range values {
+				values[i] = a.sum[i] / float64(a.n)
+			}
+		case database.AggregationMin:
+			values = a.min
+		case database.AggregationMax:
+			values = a.max
+		}
+
+		points = append(points, database.MacronutrientPoint{
+			Bucket:  database.TimeMillis(bucket),
+			Carb:    values[idxCarb],
+			NetCarb: values[idxNetCarb],
+			Fat:     values[idxFat],
+			Fibre:   values[idxFibre],
+			Protein: values[idxProtein],
+			Calorie: values[idxCalorie],
+		})
+	}
+
+	sort.Slice(points, func(i, j int) bool {
+		return points[i].Bucket.Time().Before(points[j].Bucket.Time())
+	})
+
+	*out = points
+
+	return nil
+}

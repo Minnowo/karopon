@@ -1,7 +1,44 @@
 import {UserEventFoodLog} from '../../api/types';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
+import {MacronutrientPoint} from '../../api/types_stats_macros';
+import {ApiGetStatsMacro} from '../../api/api';
+import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {DateToGroupByBucket} from './data_build';
-import {ChartData, DataRow} from './graphs/common_props';
+import {ChartData, DataRow, MacroType} from './common';
+
+const NETWORK_SERIES_KEY: Record<MacroType, keyof MacronutrientPoint> = {
+    fat: 'fat',
+    carbs: 'carb',
+    net_carbs: 'net_carb',
+    fibre: 'fibre',
+    protein: 'protein',
+    calorie: 'calorie',
+};
+
+const seriesValue = (
+    series: MacroType,
+    protein: number,
+    carb: number,
+    netCarb: number,
+    fibre: number,
+    fat: number,
+    calorieCalcMethod: string
+): number => {
+    switch (series) {
+        case 'fat':
+            return fat;
+        case 'carbs':
+            return carb;
+        case 'net_carbs':
+            return netCarb;
+        case 'fibre':
+            return fibre;
+        case 'protein':
+            return protein;
+        case 'calorie':
+            return CalculateCalories(protein, netCarb, fibre, fat, Str2CalorieFormula(calorieCalcMethod));
+    }
+};
 
 export const BuildMacroChartData = (
     rows: UserEventFoodLog[],
@@ -9,14 +46,11 @@ export const BuildMacroChartData = (
     rangeEndMs: number,
     groupBy: GroupBy,
     aggregationFunc: AggregationFunc,
-    colors: string[] = ['var(--color-c-flamingo)', 'var(--color-c-yellow)', 'var(--color-c-sapphire)', 'var(--color-c-green)']
+    calorieCalcMethod: string,
+    selectedSeries: MacroType[],
+    colors: string[]
 ): ChartData => {
-    const fat = 0;
-    const car = 1;
-    const fib = 2;
-    const pro = 3;
-
-    const buckets = new Map<number, DataRow>();
+    const buckets = new Map<number, {n: number; v: Float32Array}>();
 
     for (let i = rows.length - 1; i >= 0; i--) {
         const row = rows[i];
@@ -26,107 +60,98 @@ export const BuildMacroChartData = (
         }
 
         const bucketKey = DateToGroupByBucket(groupBy, new Date(row.eventlog.user_time));
+        const netCarb = row.total_carb - row.total_fibre;
+        const values = selectedSeries.map((s) =>
+            seriesValue(s, row.total_protein, row.total_carb, netCarb, row.total_fibre, row.total_fat, calorieCalcMethod)
+        );
 
-        if (!buckets.has(bucketKey)) {
-            buckets.set(bucketKey, {
-                x: 0, // we use this to count stuff for average, and then set it as the actual x later
-                y: new Float32Array(4),
-            });
+        let entry = buckets.get(bucketKey);
+        if (!entry) {
+            entry = {n: 0, v: new Float32Array(selectedSeries.length)};
+            buckets.set(bucketKey, entry);
         }
-
-        const bucket = buckets.get(bucketKey)!;
-
-        // use net carbs
-        const total_net_carb = row.total_carb - row.total_fibre;
 
         switch (aggregationFunc) {
             case AggregationFunc.Sum: {
-                bucket.x = 1;
-                bucket.y[fat] += row.total_fat;
-                bucket.y[car] += total_net_carb;
-                bucket.y[fib] += row.total_fibre;
-                bucket.y[pro] += row.total_protein;
+                entry.n = 1;
+                values.forEach((v, i) => (entry!.v[i] += v));
                 break;
             }
             case AggregationFunc.Avg: {
-                bucket.x++;
-                bucket.y[fat] += row.total_fat;
-                bucket.y[car] += total_net_carb;
-                bucket.y[fib] += row.total_fibre;
-                bucket.y[pro] += row.total_protein;
+                entry.n++;
+                values.forEach((v, i) => (entry!.v[i] += v));
                 break;
             }
             case AggregationFunc.Min: {
-                if (bucket.x === 0) {
-                    bucket.x = 1;
-                    bucket.y[fat] = row.total_fat;
-                    bucket.y[car] = total_net_carb;
-                    bucket.y[fib] = row.total_fibre;
-                    bucket.y[pro] = row.total_protein;
+                if (entry.n === 0) {
+                    entry.n = 1;
+                    values.forEach((v, i) => (entry!.v[i] = v));
                 }
-                if (bucket.y[fat] > row.total_fat) {
-                    bucket.y[fat] = row.total_fat;
-                }
-                if (bucket.y[car] > total_net_carb) {
-                    bucket.y[car] = total_net_carb;
-                }
-                if (bucket.y[fib] > row.total_fibre) {
-                    bucket.y[fib] = row.total_fibre;
-                }
-                if (bucket.y[pro] > row.total_protein) {
-                    bucket.y[pro] = row.total_protein;
-                }
+                values.forEach((v, i) => {
+                    if (entry!.v[i] > v) {
+                        entry!.v[i] = v;
+                    }
+                });
                 break;
             }
             case AggregationFunc.Max: {
-                if (bucket.x === 0) {
-                    bucket.x = 1;
-                    bucket.y[fat] = row.total_fat;
-                    bucket.y[car] = total_net_carb;
-                    bucket.y[fib] = row.total_fibre;
-                    bucket.y[pro] = row.total_protein;
+                if (entry.n === 0) {
+                    entry.n = 1;
+                    values.forEach((v, i) => (entry!.v[i] = v));
                 }
-                if (bucket.y[fat] < row.total_fat) {
-                    bucket.y[fat] = row.total_fat;
-                }
-                if (bucket.y[car] < total_net_carb) {
-                    bucket.y[car] = total_net_carb;
-                }
-                if (bucket.y[fib] < row.total_fibre) {
-                    bucket.y[fib] = row.total_fibre;
-                }
-                if (bucket.y[pro] < row.total_protein) {
-                    bucket.y[pro] = row.total_protein;
-                }
+                values.forEach((v, i) => {
+                    if (entry!.v[i] < v) {
+                        entry!.v[i] = v;
+                    }
+                });
                 break;
             }
         }
     }
 
-    const newData: ChartData = {
-        rows: new Array(buckets.size),
-        labels: new Array(4),
-        colors,
-    };
-    newData.labels[fat] = 'fat';
-    newData.labels[car] = 'carbs';
-    newData.labels[fib] = 'fibre';
-    newData.labels[pro] = 'protein';
-
-    let row = 0;
-    for (const [date, ys] of buckets.entries()) {
+    const dataRows: DataRow[] = Array.from(buckets.entries(), ([x, entry]) => {
         if (aggregationFunc === AggregationFunc.Avg) {
-            for (let i = 0; i < 4; i++) {
-                // ys.y is the sum
-                // ys.x is the count
-                ys.y[i] /= ys.x;
+            for (let i = 0; i < entry.v.length; i++) {
+                entry.v[i] = entry.v[i] / entry.n;
             }
         }
 
-        ys.x = date;
-        newData.rows[row] = ys;
-        row++;
-    }
+        return {x, y: entry.v};
+    }).sort((a, b) => a.x - b.x);
 
-    return newData;
+    return {
+        labels: selectedSeries,
+        colors,
+        rows: dataRows,
+    };
+};
+
+export const BuildMacroChartDataNetwork = (
+    rangeStart: string,
+    rangeEnd: string,
+    groupBy: GroupBy,
+    aggregationFunc: AggregationFunc,
+    selectedSeries: MacroType[],
+    colors: string[]
+): Promise<ChartData> => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    return ApiGetStatsMacro({
+        start: rangeStart,
+        end: rangeEnd,
+        groupby: groupBy,
+        aggregate: aggregationFunc,
+        timezone,
+    }).then((points) => {
+        const dataRows: DataRow[] = points.map((p) => ({
+            x: p.bucket,
+            y: Float32Array.from(selectedSeries, (s) => p[NETWORK_SERIES_KEY[s]]),
+        }));
+
+        return {
+            labels: selectedSeries,
+            colors,
+            rows: dataRows,
+        };
+    });
 };

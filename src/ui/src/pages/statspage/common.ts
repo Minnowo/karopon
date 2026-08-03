@@ -20,12 +20,12 @@ export type ChartData = {
     rows: DataRow[];
 };
 
-export const MacroTypeKeys = ['fat', 'carbs', 'fibre', 'protein'] as const;
+export const MacroTypeKeys = ['fat', 'carbs', 'net_carbs', 'fibre', 'protein', 'calorie'] as const;
 export type MacroType = (typeof MacroTypeKeys)[number];
 
-export type ChartType = 'pie' | 'macros' | 'calories' | 'blood_glucose' | 'insulin' | 'bodylog' | 'time';
+export type ChartType = 'macros' | 'blood_glucose' | 'insulin' | 'bodylog' | 'time';
 
-export const GraphStyleKeys = ['line', 'bar', 'table'] as const;
+export const GraphStyleKeys = ['line', 'bar', 'table', 'pie'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
 
 export type TimeRange = {
@@ -87,9 +87,9 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
     cards: [
         {
             id: 0,
-            type: 'pie',
-            title: 'Macronutrient Totals',
-            visibleMacros: [],
+            type: 'macros',
+            title: 'Macronutrients Consumed (g)',
+            visibleMacros: ['fat', 'net_carbs', 'fibre', 'protein'],
             selectedTags: [],
             timeRanges: CommonRanges,
             curTimeRange: 0,
@@ -97,26 +97,6 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
         },
         {
             id: 1,
-            type: 'macros',
-            title: 'Macronutrients Consumed (g)',
-            visibleMacros: ['fat', 'carbs', 'fibre', 'protein'],
-            selectedTags: [],
-            timeRanges: CommonRanges,
-            curTimeRange: 0,
-            hiddenLabels: [],
-        },
-        {
-            id: 2,
-            type: 'calories',
-            title: 'Calories (kcal)',
-            visibleMacros: [],
-            selectedTags: [],
-            timeRanges: CommonRanges,
-            curTimeRange: 0,
-            hiddenLabels: [],
-        },
-        {
-            id: 3,
             type: 'blood_glucose',
             title: 'Blood Glucose (mmol/L)',
             visibleMacros: [],
@@ -126,7 +106,7 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             hiddenLabels: [],
         },
         {
-            id: 4,
+            id: 2,
             type: 'insulin',
             title: 'Insulin Taken (mL)',
             visibleMacros: [],

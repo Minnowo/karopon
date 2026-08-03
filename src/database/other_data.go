@@ -62,6 +62,16 @@ type TimespanTagDurationPoint struct {
 	DurationMilli int64      `json:"duration_milli" db:"duration_milli"`
 }
 
+type MacronutrientPoint struct {
+	Bucket  TimeMillis `json:"bucket"   db:"bucket"`
+	Carb    float64    `json:"carb"     db:"carb"`
+	NetCarb float64    `json:"net_carb" db:"net_carb"`
+	Fat     float64    `json:"fat"      db:"fat"`
+	Fibre   float64    `json:"fibre"    db:"fibre"`
+	Protein float64    `json:"protein"  db:"protein"`
+	Calorie float64    `json:"calorie"  db:"calorie"`
+}
+
 func ValueToString(val any) string {
 	switch v := val.(type) {
 	case nil:

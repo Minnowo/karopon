@@ -219,22 +219,83 @@ func (db *PGDatabase) LoadUserBodyLogTimeData(
 	return db.SelectContext(ctx, out, query, args...)
 }
 
-func (db *PGDatabase) LoadUserChartData(
+func (db *PGDatabase) LoadUserMacrosTimeData(
 	ctx context.Context,
-	cols []string,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	calorieCalc database.CalorieCalcMethod,
 	aggregation database.AggregationFunc,
 	groupby database.GroupBy,
-	startTime, stopTime time.Time,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.MacronutrientPoint,
 ) error {
 
-	// aggFunc := aggregateToPG(aggregation)
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
 
-	// sql := `
-	// SELECT
-	//
+	tzName := timezone.Name
+	if tzName == "" {
+		tzName = "UTC"
+	}
 
-	// `
+	aggFunc := aggregateToPG(aggregation)
+	dayOffsetSeconds := int(dayOffset.Seconds())
 
-	return nil
+	// with or without fibre
+	var calorieCol string
 
+	if calorieCalc == database.CALORIE_ATWATERNOFIBRE {
+		calorieCol = "fl.PROTEIN * 4 + (fl.CARB - fl.FIBRE) * 4 + fl.FAT * 9"
+	} else {
+		calorieCol = "fl.PROTEIN * 4 + (fl.CARB - fl.FIBRE) * 4 + fl.FAT * 9 + fl.FIBRE * 2"
+	}
+
+	// USER_TIME is stored as a naive UTC timestamp; see LoadUserTimeData above for why we
+	// reinterpret it via "AT TIME ZONE 'UTC'" and shift by dayOffsetSeconds before truncating.
+	sql := `
+		SELECT
+			date_trunc(
+				?,
+				(fl.USER_TIME AT TIME ZONE 'UTC') - (? * INTERVAL '1 second'),
+				?
+			) + (? * INTERVAL '1 second')         AS BUCKET,
+			` + aggFunc + `(fl.CARB)              AS CARB,
+			` + aggFunc + `(fl.CARB - fl.FIBRE)   AS NET_CARB,
+			` + aggFunc + `(fl.FAT)               AS FAT,
+			` + aggFunc + `(fl.FIBRE)             AS FIBRE,
+			` + aggFunc + `(fl.PROTEIN)           AS PROTEIN,
+			` + aggFunc + `(` + calorieCol + `)   AS CALORIE
+
+		FROM PON.USER_FOODLOG fl
+		WHERE
+				fl.USER_ID = ?
+			AND fl.USER_TIME >= ?
+			AND fl.USER_TIME <= ?
+
+		GROUP BY BUCKET
+		ORDER BY BUCKET ASC
+	`
+
+	log.Debug().
+		Str("groupby", groupbyToPG(groupby)).
+		Str("aggregation", aggFunc).
+		Str("timezone", tzName).
+		Int("dayOffsetSeconds", dayOffsetSeconds).
+		Msg("running bodylog time stats agg")
+
+	query, args, err := sqlx.In(sql,
+		groupbyToPG(groupby), dayOffsetSeconds, tzName, dayOffsetSeconds,
+		userID, startTime.UTC(), endTime.UTC(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	query = db.Rebind(query)
+
+	return db.SelectContext(ctx, out, query, args...)
 }

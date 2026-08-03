@@ -11,17 +11,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type StatsTimeRequest struct {
-	Cols          []string          `json:"columns"`
+type BodyLogStatsRequest struct {
+	Metrics       []string          `json:"metrics"`
 	Start         string            `json:"start"`
 	End           string            `json:"end"`
 	GroupBy       string            `json:"groupby"`
 	AggregateFunc string            `json:"aggregate"`
-	Tags          []string          `json:"tags"`
 	Timezone      database.Timezone `json:"timezone"`
 }
 
-func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
+func (a *APIV1) postBodyLogStats(w http.ResponseWriter, r *http.Request) {
 
 	user := auth.GetUser(r)
 
@@ -30,7 +29,7 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req StatsTimeRequest
+	var req BodyLogStatsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Debug().Err(err).Msg("Invalid json.")
@@ -50,9 +49,9 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Mirror getUserGoalProgress: subtract the day offset so that date-component
-	// operations inside ParseRelativeTimeExpr reflect the user's perceived current
-	// day, then shift is added back inside the function.
+	// Mirror postStatsTime: subtract the day offset so that date-component operations
+	// inside ParseRelativeTimeExpr reflect the user's perceived current day, then the
+	// shift is added back inside the function.
 	// DayTimeOffsetSeconds is NOT a UTC offset - it marks when the user's day starts.
 	shift := time.Duration(user.DayTimeOffsetSeconds) * time.Second
 	adjustedNow := req.Timezone.TimeNowDayOffsetShifted(shift)
@@ -76,15 +75,15 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		Time("stopt", endTime).
 		Int("shift", int(shift)).
 		Time("nowAdj", adjustedNow).
-		Msg("running user stats")
+		Msg("running user bodylog stats")
 
-	var data []database.TimespanTagDurationPoint
-	err = a.Db.LoadUserTimeData(
+	var data []database.BodyLogMetricPoint
+	err = a.Db.LoadUserBodyLogTimeData(
 		r.Context(),
 		user.ID,
 		startTime,
 		endTime,
-		req.Tags,
+		req.Metrics,
 		aggregation,
 		groupBy,
 		req.Timezone,

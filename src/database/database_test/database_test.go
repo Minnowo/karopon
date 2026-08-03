@@ -122,6 +122,11 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		"LoadUserBodyLogTimeData_no_metrics",
 		func(t *testing.T) { testLoadUserBodyLogTimeDataNoMetrics(t, newTestDB, &lock) },
 	)
+	t.Run("LoadUserMacrosTimeData", func(t *testing.T) { testLoadUserMacrosTimeData(t, newTestDB, &lock) })
+	t.Run(
+		"LoadUserMacrosTimeData_atwater_no_fibre",
+		func(t *testing.T) { testLoadUserMacrosTimeDataAtwaterNoFibre(t, newTestDB, &lock) },
+	)
 	t.Run("SetUserTimespanTags", func(t *testing.T) { testSetUserTimespanTags(t, newTestDB, &lock) })
 	t.Run("dashboard_crud", func(t *testing.T) { testDashboardCRUD(t, newTestDB, &lock) })
 	t.Run("dashboard_multiple_per_user", func(t *testing.T) { testDashboardMultiplePerUser(t, newTestDB, &lock) })
