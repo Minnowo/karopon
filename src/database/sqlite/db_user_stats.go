@@ -48,6 +48,7 @@ func (db *SqliteDatabase) LoadUserTimeData(
 	startTime time.Time,
 	endTime time.Time,
 	tags []string,
+	aggregation database.AggregationFunc,
 	groupby database.GroupBy,
 	timezone database.Timezone,
 	dayOffset time.Duration,
@@ -56,6 +57,10 @@ func (db *SqliteDatabase) LoadUserTimeData(
 
 	if len(tags) == 0 {
 		return nil
+	}
+
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
 	}
 
 	sql := `
@@ -104,18 +109,54 @@ func (db *SqliteDatabase) LoadUserTimeData(
 		bucket time.Time
 	}
 
-	sums := make(map[bucketKey]int64)
+	type acc struct {
+		n   int64
+		sum int64
+		min int64
+		max int64
+	}
+
+	accs := make(map[bucketKey]*acc)
 
 	for _, r := range rows {
 
 		k := bucketKey{tag: r.Tag, bucket: truncateToBucket(r.StartTime.Time(), groupby, timezone.Loc(), dayOffset)}
 
-		sums[k] += r.StopTime.Time().Sub(r.StartTime.Time()).Milliseconds()
+		durationMilli := r.StopTime.Time().Sub(r.StartTime.Time()).Milliseconds()
+
+		a, ok := accs[k]
+		if !ok {
+			a = &acc{min: durationMilli, max: durationMilli}
+			accs[k] = a
+		}
+
+		a.n++
+		a.sum += durationMilli
+		if durationMilli < a.min {
+			a.min = durationMilli
+		}
+		if durationMilli > a.max {
+			a.max = durationMilli
+		}
 	}
 
-	points := make([]database.TimespanTagDurationPoint, 0, len(sums))
+	points := make([]database.TimespanTagDurationPoint, 0, len(accs))
 
-	for k, durationMilli := range sums {
+	for k, a := range accs {
+
+		var durationMilli int64
+
+		switch aggregation {
+		case database.AggregationSum:
+			durationMilli = a.sum
+		case database.AggregationAvg:
+			durationMilli = a.sum / a.n
+		case database.AggregationMin:
+			durationMilli = a.min
+		case database.AggregationMax:
+			durationMilli = a.max
+		}
+
 		points = append(points, database.TimespanTagDurationPoint{
 			Tag:           k.tag,
 			Bucket:        database.TimeMillis(k.bucket),

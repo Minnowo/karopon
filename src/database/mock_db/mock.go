@@ -457,6 +457,7 @@ func (p *BaseMockDB) LoadUserTimeData(
 	startTime time.Time,
 	endTime time.Time,
 	tags []string,
+	aggregation database.AggregationFunc,
 	groupby database.GroupBy,
 	timezone database.Timezone,
 	dayOffset time.Duration,

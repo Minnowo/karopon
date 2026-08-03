@@ -51,6 +51,7 @@ func testLoadUserTimeData(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 		start.Add(-time.Hour),
 		stop.Add(48*time.Hour),
 		[]string{"activity:sleep"},
+		database.AggregationSum,
 		database.GroupByDay,
 		database.Timezone{},
 		0,
@@ -100,6 +101,7 @@ func testLoadUserTimeDataTimezone(t *testing.T, newTestDB NewTestDB, lock *sync.
 		start.Add(-24*time.Hour),
 		stop.Add(24*time.Hour),
 		[]string{"activity:sleep"},
+		database.AggregationSum,
 		database.GroupByMonth,
 		tz,
 		0,
@@ -148,6 +150,7 @@ func testLoadUserTimeDataTimezoneYear(t *testing.T, newTestDB NewTestDB, lock *s
 		start.Add(-24*time.Hour),
 		stop.Add(24*time.Hour),
 		[]string{"activity:sleep"},
+		database.AggregationSum,
 		database.GroupByYear,
 		tz,
 		0,
@@ -193,6 +196,7 @@ func testLoadUserTimeDataDayOffset(t *testing.T, newTestDB NewTestDB, lock *sync
 		start.Add(-24*time.Hour),
 		stop.Add(24*time.Hour),
 		[]string{"activity:sleep"},
+		database.AggregationSum,
 		database.GroupByDay,
 		database.Timezone{},
 		dayOffset,
@@ -223,6 +227,7 @@ func testLoadUserTimeDataNoTags(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 		time.Now().Add(-time.Hour),
 		time.Now().Add(time.Hour),
 		nil,
+		database.AggregationSum,
 		database.GroupByDay,
 		database.Timezone{},
 		0,
@@ -230,4 +235,54 @@ func testLoadUserTimeDataNoTags(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 	))
 
 	assert.Empty(t, points)
+}
+
+// testLoadUserTimeDataAggregations exercises AVG/MIN/MAX, not just the SUM default, on three
+// same-day timespans of different durations. Regression test for both LoadUserTimeData
+// implementations previously hardcoding SUM regardless of the requested aggregation.
+func testLoadUserTimeDataAggregations(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
+
+	lock.Lock()
+	t.Cleanup(lock.Unlock)
+
+	ctx := t.Context()
+	db := newTestDB(t)
+
+	userID := getTestUser(t, db)
+
+	day := time.Date(2024, 1, 15, 8, 0, 0, 0, time.UTC)
+
+	for _, durationMinutes := range []int{10, 20, 30} {
+		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+			UserID:    userID,
+			StartTime: database.TimeMillis(day),
+			StopTime:  database.TimeMillis(day.Add(time.Duration(durationMinutes) * time.Minute)),
+		}, []database.TblUserTag{
+			{UserID: userID, Namespace: "activity", Name: "sleep"},
+		})
+		require.NoError(t, err)
+	}
+
+	loadWith := func(agg database.AggregationFunc) int64 {
+		var points []database.TimespanTagDurationPoint
+		require.NoError(t, db.LoadUserTimeData(
+			ctx,
+			userID,
+			day.Add(-time.Hour),
+			day.Add(time.Hour),
+			[]string{"activity:sleep"},
+			agg,
+			database.GroupByDay,
+			database.Timezone{},
+			0,
+			&points,
+		))
+		require.Len(t, points, 1)
+		return points[0].DurationMilli
+	}
+
+	assert.Equal(t, int64(60*time.Minute/time.Millisecond), loadWith(database.AggregationSum))
+	assert.Equal(t, int64(20*time.Minute/time.Millisecond), loadWith(database.AggregationAvg))
+	assert.Equal(t, int64(10*time.Minute/time.Millisecond), loadWith(database.AggregationMin))
+	assert.Equal(t, int64(30*time.Minute/time.Millisecond), loadWith(database.AggregationMax))
 }

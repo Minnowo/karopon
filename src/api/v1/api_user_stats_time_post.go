@@ -38,6 +38,18 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	groupBy := database.GroupBy(req.GroupBy)
+	if !groupBy.IsValid() {
+		api.BadReq(w, "invalid groupby")
+		return
+	}
+
+	aggregation := database.AggregationFunc(req.AggregateFunc)
+	if !aggregation.IsValid() {
+		api.BadReq(w, "invalid aggregate")
+		return
+	}
+
 	// Mirror getUserGoalProgress: subtract the day offset so that date-component
 	// operations inside ParseRelativeTimeExpr reflect the user's perceived current
 	// day, then shift is added back inside the function.
@@ -73,7 +85,8 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 		startTime,
 		endTime,
 		req.Tags,
-		database.GroupBy(req.GroupBy),
+		aggregation,
+		groupBy,
 		req.Timezone,
 		shift,
 		&data,
@@ -81,6 +94,7 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Error().Err(err).Msg("")
+		api.ServerErr(w, "failed while reading from the database")
 	} else {
 		api.WriteJSONArr(w, data)
 	}

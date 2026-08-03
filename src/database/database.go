@@ -365,6 +365,7 @@ type DB interface {
 		startTime time.Time,
 		endTime time.Time,
 		tags []string,
+		aggregation AggregationFunc,
 		groupby GroupBy,
 		timezone Timezone,
 		dayOffset time.Duration,

@@ -58,6 +58,7 @@ func (db *PGDatabase) LoadUserTimeData(
 	startTime time.Time,
 	endTime time.Time,
 	tags []string,
+	aggregation database.AggregationFunc,
 	groupby database.GroupBy,
 	timezone database.Timezone,
 	dayOffset time.Duration,
@@ -68,10 +69,16 @@ func (db *PGDatabase) LoadUserTimeData(
 		return nil
 	}
 
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
+
 	tzName := timezone.Name
 	if tzName == "" {
 		tzName = "UTC"
 	}
+
+	aggFunc := aggregateToPG(aggregation)
 
 	// START_TIME/STOP_TIME are stored as naive UTC timestamps. To bucket by the user's local
 	// calendar day/week/month/year (rather than the UTC one), reinterpret them as timestamptz
@@ -80,13 +87,13 @@ func (db *PGDatabase) LoadUserTimeData(
 	// buckets start at the user's perceived day boundary instead of local midnight.
 	sql := `
 		SELECT
-			t.NAMESPACE || ':' || t.NAME                                           AS TAG,
+			t.NAMESPACE || ':' || t.NAME                                               AS TAG,
 			date_trunc(
 				?,
 				(ts.START_TIME AT TIME ZONE 'UTC') - (? * INTERVAL '1 second'),
 				?
-			) + (? * INTERVAL '1 second')                                          AS BUCKET,
-			EXTRACT(EPOCH FROM (SUM(ts.STOP_TIME - ts.START_TIME) * 1000))::bigint AS DURATION_MILLI
+			) + (? * INTERVAL '1 second')                                              AS BUCKET,
+			EXTRACT(EPOCH FROM (` + aggFunc + `(ts.STOP_TIME - ts.START_TIME) * 1000))::bigint AS DURATION_MILLI
 
 		FROM PON.USER_TAG t
 
@@ -112,6 +119,7 @@ func (db *PGDatabase) LoadUserTimeData(
 
 	log.Debug().
 		Str("groupby", groupbyToPG(groupby)).
+		Str("aggregation", aggFunc).
 		Str("timezone", tzName).
 		Int("dayOffsetSeconds", dayOffsetSeconds).
 		Msg("running time stats agg")

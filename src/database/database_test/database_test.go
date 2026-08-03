@@ -101,6 +101,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		func(t *testing.T) { testLoadUserTimespansWithTagsPermissionCheck(t, newTestDB, &lock) },
 	)
 	t.Run("LoadUserTimeData", func(t *testing.T) { testLoadUserTimeData(t, newTestDB, &lock) })
+	t.Run("LoadUserTimeData_aggregations", func(t *testing.T) { testLoadUserTimeDataAggregations(t, newTestDB, &lock) })
 	t.Run("LoadUserTimeData_timezone", func(t *testing.T) { testLoadUserTimeDataTimezone(t, newTestDB, &lock) })
 	t.Run(
 		"LoadUserTimeData_timezone_year",
