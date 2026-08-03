@@ -25,6 +25,7 @@ import {
     TblUserTagColor,
 } from './types';
 import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
+import {BodyLogStatsTimeRequest, BodyLogMetricPoint} from './types_stats_bodylog';
 
 export class ApiError extends Error {
     public readonly status: number;
@@ -486,6 +487,16 @@ export const ApiNewEventLog = (food: CreateUserEventLog): Promise<UserEventFoodL
 
 export const ApiGetStatsTime = (query: StatsTimeRequest): Promise<TimespanTagDurationPoint[]> => {
     return fetchJson(`${ApiBase}/api/stats/time`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(query),
+    });
+};
+
+export const ApiGetBodyLogStatsTime = (query: BodyLogStatsTimeRequest): Promise<BodyLogMetricPoint[]> => {
+    return fetchJson(`${ApiBase}/api/stats/bodylog`, {
         headers: {
             'content-type': 'application/json',
         },

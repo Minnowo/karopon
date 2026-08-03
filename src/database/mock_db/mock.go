@@ -464,3 +464,18 @@ func (p *BaseMockDB) LoadUserTimeData(
 ) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) LoadUserBodyLogTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	metricNames []string,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.BodyLogMetricPoint,
+) error {
+	panic("not implemented")
+}

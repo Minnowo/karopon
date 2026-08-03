@@ -121,6 +121,7 @@ export const DashboardComponent = ({
                     namespaces={baseState.namespaces}
                     setNamespaces={baseState.setNamespaces}
                     tagColors={tagColors}
+                    bodyMetrics={baseState.bodyMetrics}
                     onCardAdded={handleAdd}
                     initialName={dashboardRef.db.name}
                     confirmLabel="Save"

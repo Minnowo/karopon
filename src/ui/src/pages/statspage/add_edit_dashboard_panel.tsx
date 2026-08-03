@@ -1,8 +1,9 @@
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 import {DashboardCard} from './common';
-import {TblUserTag} from '../../api/types';
+import {TblUserBodyMetric, TblUserTag} from '../../api/types';
 import {TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
+import {BodyMetricMultiSelect} from './body_metric_multiselect';
 
 const CHART_LABELS: Record<DashboardCard['type'], string> = {
     pie: 'Pie Chart',
@@ -10,15 +11,7 @@ const CHART_LABELS: Record<DashboardCard['type'], string> = {
     calories: 'Calories',
     blood_glucose: 'Blood Glucose',
     insulin: 'Insulin',
-    body_weight: 'Body Weight (kg)',
-    body_height: 'Height (cm)',
-    body_fat: 'Body Fat (%)',
-    body_bmi: 'BMI',
-    bp_systolic: 'Blood Pressure - Systolic',
-    bp_diastolic: 'Blood Pressure - Diastolic',
-    bp_combined: 'Blood Pressure (Sys + Dia)',
-    heart_rate: 'Heart Rate (bpm)',
-    steps: 'Steps',
+    bodylog: 'Body Metrics',
     time: 'Time Spent by Tag',
 };
 
@@ -30,6 +23,7 @@ type DashboardSettingsPanelProps = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
+    bodyMetrics?: TblUserBodyMetric[];
     onConfirm: (name: string) => void;
     onDelete?: () => void;
     onCancel: () => void;
@@ -43,6 +37,7 @@ export function AddEditDashboardPanel({
     namespaces,
     setNamespaces,
     tagColors,
+    bodyMetrics = [],
     onCardAdded,
     onConfirm,
     onDelete,
@@ -51,6 +46,7 @@ export function AddEditDashboardPanel({
     const [name, setName] = useState(initialName);
     const [addType, setAddType] = useState<DashboardCard['type']>('calories');
     const [tags, setTags] = useState<TblUserTag[]>([]);
+    const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
 
     const addCard = () => {
         if (!onCardAdded) {
@@ -60,9 +56,9 @@ export function AddEditDashboardPanel({
             id: 0,
             type: addType,
             title: CHART_LABELS[addType],
-            display: {range: '24 hours', group: 'sum'},
             visibleMacros: addType === 'macros' ? ['fat', 'carbs', 'fibre', 'protein'] : [],
             selectedTags: tags.map(TagToString),
+            selectedMetrics,
         };
 
         onCardAdded(card);
@@ -112,6 +108,17 @@ export function AddEditDashboardPanel({
                                 thisTags={tags}
                                 onChange={setTags}
                                 tagColors={tagColors}
+                            />
+                        </div>
+                    )}
+
+                    {addType === 'bodylog' && (
+                        <div className="container-theme">
+                            <h2 className="text-lg font-bold">Body Metrics</h2>
+                            <BodyMetricMultiSelect
+                                bodyMetrics={bodyMetrics}
+                                selected={selectedMetrics}
+                                onChange={setSelectedMetrics}
                             />
                         </div>
                     )}

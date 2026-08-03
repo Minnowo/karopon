@@ -370,6 +370,23 @@ type DB interface {
 		dayOffset time.Duration,
 		out *[]TimespanTagDurationPoint,
 	) error
+
+	// LoadUserBodyLogTimeData buckets and aggregates a user's recorded body metric values
+	// over time, analogous to LoadUserTimeData for timespans. metricNames filters to the
+	// named body metrics (see TblUserBodyMetric.Name); dayOffset has the same meaning as in
+	// LoadUserTimeData.
+	LoadUserBodyLogTimeData(
+		ctx context.Context,
+		userID int,
+		startTime time.Time,
+		endTime time.Time,
+		metricNames []string,
+		aggregation AggregationFunc,
+		groupby GroupBy,
+		timezone Timezone,
+		dayOffset time.Duration,
+		out *[]BodyLogMetricPoint,
+	) error
 }
 
 type SQLxDB struct {

@@ -50,6 +50,12 @@ type TaggedTimespan struct {
 	Tags     []TblUserTag    `json:"tags"`
 }
 
+type BodyLogMetricPoint struct {
+	Metric string     `json:"metric" db:"metric"`
+	Bucket TimeMillis `json:"bucket" db:"bucket"`
+	Value  float64    `json:"value"  db:"value"`
+}
+
 type TimespanTagDurationPoint struct {
 	Tag           string     `json:"tag"            db:"tag"`
 	Bucket        TimeMillis `json:"bucket"         db:"bucket"`

@@ -1,7 +1,8 @@
 import {UserBodyLog, UserEventFoodLog} from '../../api/types';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
+import {ApiGetBodyLogStatsTime} from '../../api/api';
 import {DateToGroupByBucket} from './data_build';
-import {ChartData, DataRow} from './graphs/common_props';
+import {ChartData, DataRow} from './common';
 
 export const BuildChartData = (
     events: UserEventFoodLog[],
@@ -77,14 +78,10 @@ export const BuildChartData = (
     };
 };
 
-// valueForMetricName looks up a body log's value for the metric with the given name,
-// resolved through metricNamesByID (body_metric_id -> name). Returns 0 if the log has no
-// value for that metric (e.g. the user never defined it, or didn't record it that time).
-const valueForMetricName = (log: UserBodyLog, metricNamesByID: Map<number, string>, name: string): number => {
-    const match = log.metrics.find((m) => metricNamesByID.get(m.body_metric_id) === name);
-    return match ? match.value : 0;
-};
-
+// BuildBodyLogChartData buckets and aggregates the given body logs into one series per
+// selected metric name, resolved through metricNamesByID (body_metric_id -> name). Mirrors
+// BuildTimeChartData's per-label bucketing, but over recorded metric values instead of tag
+// durations.
 export const BuildBodyLogChartData = (
     logs: UserBodyLog[],
     rangeStartMs: number,
@@ -92,10 +89,15 @@ export const BuildBodyLogChartData = (
     groupBy: GroupBy,
     aggregationFunc: AggregationFunc,
     metricNamesByID: Map<number, string>,
-    metricName: string,
-    color: string
+    selectedMetrics: string[],
+    colors: string[]
 ): ChartData => {
-    const buckets = new Map<number, {n: number; v: number}>();
+    if (selectedMetrics.length === 0) {
+        return {rows: [], labels: [], colors: []};
+    }
+
+    const selectedSet = new Set(selectedMetrics);
+    const buckets = new Map<number, Map<string, {n: number; v: number}>>();
 
     for (let i = logs.length - 1; i >= 0; i--) {
         const log = logs[i];
@@ -103,151 +105,135 @@ export const BuildBodyLogChartData = (
             continue;
         }
 
-        const val = valueForMetricName(log, metricNamesByID, metricName);
-        if (val === 0) {
-            continue;
-        }
-
-        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.bodylog.user_time));
-
-        let entry = buckets.get(bucketKey);
-        if (!entry) {
-            entry = {n: 0, v: 0};
-            buckets.set(bucketKey, entry);
-        }
-
-        switch (aggregationFunc) {
-            case AggregationFunc.Sum: {
-                entry.n = 1;
-                entry.v += val;
-                break;
+        for (const m of log.metrics) {
+            const name = metricNamesByID.get(m.body_metric_id);
+            if (!name || !selectedSet.has(name)) {
+                continue;
             }
-            case AggregationFunc.Avg: {
-                entry.n++;
-                entry.v += val;
-                break;
+
+            const bucketKey = DateToGroupByBucket(groupBy, new Date(log.bodylog.user_time));
+
+            if (!buckets.has(bucketKey)) {
+                buckets.set(bucketKey, new Map());
             }
-            case AggregationFunc.Min: {
-                if (entry.n === 0) {
+            const bucket = buckets.get(bucketKey)!;
+
+            if (!bucket.has(name)) {
+                bucket.set(name, {n: 0, v: 0});
+            }
+            const entry = bucket.get(name)!;
+
+            switch (aggregationFunc) {
+                case AggregationFunc.Sum: {
                     entry.n = 1;
-                    entry.v = val;
+                    entry.v += m.value;
+                    break;
                 }
-                if (entry.v > val) {
-                    entry.v = val;
+                case AggregationFunc.Avg: {
+                    entry.n++;
+                    entry.v += m.value;
+                    break;
                 }
-                break;
-            }
-            case AggregationFunc.Max: {
-                if (entry.n === 0) {
-                    entry.n = 1;
-                    entry.v = val;
+                case AggregationFunc.Min: {
+                    if (entry.n === 0) {
+                        entry.n = 1;
+                        entry.v = m.value;
+                    }
+                    if (entry.v > m.value) {
+                        entry.v = m.value;
+                    }
+                    break;
                 }
-                if (entry.v < val) {
-                    entry.v = val;
+                case AggregationFunc.Max: {
+                    if (entry.n === 0) {
+                        entry.n = 1;
+                        entry.v = m.value;
+                    }
+                    if (entry.v < m.value) {
+                        entry.v = m.value;
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
 
-    const rows: DataRow[] = Array.from(buckets.entries(), ([x, entry]) => ({
-        x,
-        y: Float32Array.of(aggregationFunc === AggregationFunc.Avg ? entry.v / entry.n : entry.v),
-    })).sort((a, b) => a.x - b.x);
-
-    return {
-        labels: ['value'],
-        colors: [color],
-        rows,
+    const newData: ChartData = {
+        rows: [],
+        labels: selectedMetrics,
+        colors: selectedMetrics.map((_, i) => colors[i % colors.length]),
     };
+
+    const labelIdx = new Map<string, number>();
+    newData.labels.forEach((l, i) => labelIdx.set(l, i));
+
+    for (const [bucketKey, metricEntries] of buckets.entries()) {
+        const row: DataRow = {x: bucketKey, y: new Float32Array(selectedMetrics.length)};
+
+        for (const [name, agg] of metricEntries.entries()) {
+            const i = labelIdx.get(name)!;
+            row.y[i] = aggregationFunc === AggregationFunc.Avg ? agg.v / agg.n : agg.v;
+        }
+
+        newData.rows.push(row);
+    }
+
+    newData.rows.sort((a, b) => a.x - b.x);
+
+    return newData;
 };
 
-export const BuildBpChartData = (
-    logs: UserBodyLog[],
-    rangeStartMs: number,
-    rangeEndMs: number,
+export const BuildBodyLogChartDataNetwork = (
+    rangeStart: string,
+    rangeEnd: string,
     groupBy: GroupBy,
     aggregationFunc: AggregationFunc,
-    metricNamesByID: Map<number, string>
-): ChartData => {
-    const sys = 0;
-    const dia = 1;
+    metricNames: string[],
+    colors: string[]
+): Promise<ChartData> => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const buckets = new Map<number, {n: number; y: Float32Array}>();
+    return ApiGetBodyLogStatsTime({
+        metrics: metricNames,
+        start: rangeStart,
+        end: rangeEnd,
+        groupby: groupBy,
+        aggregate: aggregationFunc,
+        timezone,
+    }).then((points) => {
+        const labelIdx = new Map<string, number>();
+        const byBucket = new Map<number, Float32Array>();
 
-    for (let i = logs.length - 1; i >= 0; i--) {
-        const log = logs[i];
-        if (log.bodylog.user_time < rangeStartMs || log.bodylog.user_time > rangeEndMs) {
-            continue;
-        }
+        const newData: ChartData = {
+            rows: [],
+            labels: metricNames,
+            colors: metricNames.map((_, i) => colors[i % colors.length]),
+        };
 
-        const bpSys = valueForMetricName(log, metricNamesByID, 'Blood Pressure Systolic');
-        const bpDia = valueForMetricName(log, metricNamesByID, 'Blood Pressure Diastolic');
-        if (bpSys === 0 && bpDia === 0) {
-            continue;
-        }
+        newData.labels.forEach((l, i) => labelIdx.set(l, i));
 
-        const bucketKey = DateToGroupByBucket(groupBy, new Date(log.bodylog.user_time));
+        for (const point of points) {
+            let row = byBucket.get(point.bucket);
 
-        let entry = buckets.get(bucketKey);
-        if (!entry) {
-            entry = {n: 0, y: new Float32Array(2)};
-            buckets.set(bucketKey, entry);
-        }
+            if (!row) {
+                row = new Float32Array(newData.labels.length);
 
-        switch (aggregationFunc) {
-            case AggregationFunc.Sum: {
-                entry.n = 1;
-                entry.y[sys] += bpSys;
-                entry.y[dia] += bpDia;
-                break;
+                byBucket.set(point.bucket, row);
+                newData.rows.push({
+                    x: point.bucket,
+                    y: row,
+                });
             }
-            case AggregationFunc.Avg: {
-                entry.n++;
-                entry.y[sys] += bpSys;
-                entry.y[dia] += bpDia;
-                break;
-            }
-            case AggregationFunc.Min: {
-                if (entry.n === 0) {
-                    entry.n = 1;
-                    entry.y[sys] = bpSys;
-                    entry.y[dia] = bpDia;
-                }
-                if (entry.y[sys] > bpSys) {
-                    entry.y[sys] = bpSys;
-                }
-                if (entry.y[dia] > bpDia) {
-                    entry.y[dia] = bpDia;
-                }
-                break;
-            }
-            case AggregationFunc.Max: {
-                if (entry.n === 0) {
-                    entry.n = 1;
-                    entry.y[sys] = bpSys;
-                    entry.y[dia] = bpDia;
-                }
-                if (entry.y[sys] < bpSys) {
-                    entry.y[sys] = bpSys;
-                }
-                if (entry.y[dia] < bpDia) {
-                    entry.y[dia] = bpDia;
-                }
-                break;
+
+            const i = labelIdx.get(point.metric);
+
+            if (i !== undefined) {
+                row[i] = point.value;
             }
         }
-    }
 
-    const rows: DataRow[] = Array.from(buckets.entries(), ([x, entry]) => {
-        const y =
-            aggregationFunc === AggregationFunc.Avg ? Float32Array.of(entry.y[sys] / entry.n, entry.y[dia] / entry.n) : entry.y;
-        return {x, y};
-    }).sort((a, b) => a.x - b.x);
+        newData.rows.sort((a, b) => a.x - b.x);
 
-    return {
-        labels: ['systolic', 'diastolic'],
-        colors: ['var(--color-c-red)', 'var(--color-c-pink)'],
-        rows,
-    };
+        return newData;
+    });
 };

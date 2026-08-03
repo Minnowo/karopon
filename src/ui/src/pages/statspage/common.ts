@@ -23,22 +23,7 @@ export type ChartData = {
 export const MacroTypeKeys = ['fat', 'carbs', 'fibre', 'protein'] as const;
 export type MacroType = (typeof MacroTypeKeys)[number];
 
-export type ChartType =
-    | 'pie'
-    | 'macros'
-    | 'calories'
-    | 'blood_glucose'
-    | 'insulin'
-    | 'body_weight'
-    | 'body_height'
-    | 'body_fat'
-    | 'body_bmi'
-    | 'bp_systolic'
-    | 'bp_diastolic'
-    | 'bp_combined'
-    | 'heart_rate'
-    | 'steps'
-    | 'time';
+export type ChartType = 'pie' | 'macros' | 'calories' | 'blood_glucose' | 'insulin' | 'bodylog' | 'time';
 
 export const GraphStyleKeys = ['line', 'bar', 'table'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
@@ -57,6 +42,7 @@ export type DashboardCard = {
     title: string;
     visibleMacros: MacroType[];
     selectedTags: string[];
+    selectedMetrics?: string[];
     graphStyle?: GraphStyle;
 
     hiddenLabels: string[];

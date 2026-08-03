@@ -131,3 +131,134 @@ func (db *SqliteDatabase) LoadUserTimeData(
 
 	return nil
 }
+
+func (db *SqliteDatabase) LoadUserBodyLogTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	metricNames []string,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.BodyLogMetricPoint,
+) error {
+
+	if len(metricNames) == 0 {
+		return nil
+	}
+
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
+
+	sql := `
+		SELECT
+			bm.NAME      AS METRIC,
+			bl.USER_TIME AS USER_TIME,
+			blm.VALUE    AS VALUE
+
+		FROM PON_USER_BODY_METRIC bm
+
+		JOIN PON_USER_BODYLOG_METRIC blm
+		ON blm.BODY_METRIC_ID = bm.ID
+
+		JOIN PON_USER_BODYLOG bl
+		ON bl.ID = blm.BODYLOG_ID
+
+		WHERE
+			bm.NAME IN (?)
+			AND bm.USER_ID = ?
+			AND bl.USER_ID = ?
+			AND bl.USER_TIME >= ?
+			AND bl.USER_TIME <= ?
+	`
+
+	query, args, err := sqlx.In(sql, metricNames, userID, userID, startTime.UTC(), endTime.UTC())
+
+	if err != nil {
+		return err
+	}
+
+	query = db.Rebind(query)
+
+	var rows []struct {
+		Metric   string              `db:"metric"`
+		UserTime database.TimeMillis `db:"user_time"`
+		Value    float64             `db:"value"`
+	}
+
+	if err := db.SelectContext(ctx, &rows, query, args...); err != nil {
+		return err
+	}
+
+	type bucketKey struct {
+		metric string
+		bucket time.Time
+	}
+
+	type acc struct {
+		n   int
+		sum float64
+		min float64
+		max float64
+	}
+
+	accs := make(map[bucketKey]*acc)
+
+	for _, r := range rows {
+
+		k := bucketKey{
+			metric: r.Metric,
+			bucket: truncateToBucket(r.UserTime.Time(), groupby, timezone.Loc(), dayOffset),
+		}
+
+		a, ok := accs[k]
+		if !ok {
+			a = &acc{min: r.Value, max: r.Value}
+			accs[k] = a
+		}
+
+		a.n++
+		a.sum += r.Value
+		if r.Value < a.min {
+			a.min = r.Value
+		}
+		if r.Value > a.max {
+			a.max = r.Value
+		}
+	}
+
+	points := make([]database.BodyLogMetricPoint, 0, len(accs))
+
+	for k, a := range accs {
+
+		var value float64
+
+		switch aggregation {
+		case database.AggregationSum:
+			value = a.sum
+		case database.AggregationAvg:
+			value = a.sum / float64(a.n)
+		case database.AggregationMin:
+			value = a.min
+		case database.AggregationMax:
+			value = a.max
+		}
+
+		points = append(points, database.BodyLogMetricPoint{
+			Metric: k.metric,
+			Bucket: database.TimeMillis(k.bucket),
+			Value:  value,
+		})
+	}
+
+	sort.Slice(points, func(i, j int) bool {
+		return points[i].Bucket.Time().Before(points[j].Bucket.Time())
+	})
+
+	*out = points
+
+	return nil
+}

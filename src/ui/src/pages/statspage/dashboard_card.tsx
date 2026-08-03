@@ -11,12 +11,13 @@ import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
-import {BuildChartData, BuildBodyLogChartData, BuildBpChartData} from './data_build_other';
+import {BuildChartData, BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
 import {BuildMacroChartData} from './data_build_macros';
 import {FlipSwitch} from '../../components/flip_switch';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
 import {TimeRangeInput} from '../../components/timerange_input';
 import {FormatSmartTimestamp2} from '../../utils/date_utils';
+import {BodyMetricMultiSelect} from './body_metric_multiselect';
 
 const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
@@ -36,23 +37,10 @@ const TAG_COLOR_PALETTE = [
 
 const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
     calories: 0,
-    steps: 0,
     time: 2,
 };
 
-const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bp_combined', 'time'];
-
-const BODY_METRIC_CARD_TYPES = new Set<DashboardCard['type']>([
-    'body_weight',
-    'body_height',
-    'body_fat',
-    'body_bmi',
-    'bp_systolic',
-    'bp_diastolic',
-    'bp_combined',
-    'heart_rate',
-    'steps',
-]);
+const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bodylog', 'time'];
 
 type TimeRangePanelProps = {
     range: TimeRange;
@@ -251,8 +239,6 @@ export function DashboardCardComponent({
     }, [timeRanges, curTimeRange, dayOffsetSeconds]);
 
     useLayoutEffect(() => {
-        const metricNamesByID = BODY_METRIC_CARD_TYPES.has(card.type) ? new Map(bodyMetrics.map((m) => [m.id, m.name])) : null;
-
         switch (card.type) {
             case 'macros':
             case 'pie': {
@@ -346,128 +332,40 @@ export function DashboardCardComponent({
                 );
                 break;
             }
-            case 'body_weight': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
+            case 'bodylog': {
+                const selectedMetrics = card.selectedMetrics ?? [];
+                if (selectedMetrics.length === 0) {
+                    return;
+                }
+
+                const colors = selectedMetrics.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]);
+
+                if (card.useNetwork) {
+                    BuildBodyLogChartDataNetwork(
+                        rangeStartStr,
+                        rangeEndStr,
                         groupBy,
                         aggregationFunc,
-                        metricNamesByID!,
-                        'Weight',
-                        'var(--color-c-peach)'
-                    )
-                );
-                break;
-            }
-            case 'body_height': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Height',
-                        'var(--color-c-lavender)'
-                    )
-                );
-                break;
-            }
-            case 'body_fat': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Body Fat',
-                        'var(--color-c-flamingo)'
-                    )
-                );
-                break;
-            }
-            case 'body_bmi': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'BMI',
-                        'var(--color-c-mauve)'
-                    )
-                );
-                break;
-            }
-            case 'bp_systolic': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Blood Pressure Systolic',
-                        'var(--color-c-red)'
-                    )
-                );
-                break;
-            }
-            case 'bp_diastolic': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Blood Pressure Diastolic',
-                        'var(--color-c-pink)'
-                    )
-                );
-                break;
-            }
-            case 'bp_combined': {
-                setChartData(BuildBpChartData(bodylogs, rangeStartMs, rangeEndMs, groupBy, aggregationFunc, metricNamesByID!));
-                break;
-            }
-            case 'heart_rate': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Heart Rate',
-                        'var(--color-c-red)'
-                    )
-                );
-                break;
-            }
-            case 'steps': {
-                setChartData(
-                    BuildBodyLogChartData(
-                        bodylogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        metricNamesByID!,
-                        'Steps',
-                        'var(--color-c-teal)'
-                    )
-                );
+                        selectedMetrics,
+                        colors
+                    ).then(setChartData);
+                } else {
+                    const metricNamesByID = new Map(bodyMetrics.map((m) => [m.id, m.name]));
+
+                    setChartData(
+                        BuildBodyLogChartData(
+                            bodylogs,
+                            rangeStartMs,
+                            rangeEndMs,
+                            groupBy,
+                            aggregationFunc,
+                            metricNamesByID,
+                            selectedMetrics,
+                            colors
+                        )
+                    );
+                }
+
                 break;
             }
         }
@@ -479,6 +377,7 @@ export function DashboardCardComponent({
         aggregationFunc,
         groupBy,
         card.selectedTags,
+        card.selectedMetrics,
         eventlogs,
         bodylogs,
         bodyMetrics,
@@ -742,6 +641,19 @@ export function DashboardCardComponent({
                                     thisTags={card.selectedTags.map(SplitTag)}
                                     onChange={(tags) => onUpdate({...card, selectedTags: tags.map(TagToString)})}
                                     tagColors={tagColors}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {card.type === 'bodylog' && (
+                        <div className="flex flex-col gap-1">
+                            <label class="font-semibold">Body Metrics</label>
+                            <div className="flex flex-col p-2 gap-2">
+                                <BodyMetricMultiSelect
+                                    bodyMetrics={bodyMetrics}
+                                    selected={card.selectedMetrics ?? []}
+                                    onChange={(selectedMetrics) => onUpdate({...card, selectedMetrics})}
                                 />
                             </div>
                         </div>
