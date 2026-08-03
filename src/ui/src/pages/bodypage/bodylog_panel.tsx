@@ -32,7 +32,7 @@ export function BodyLogPanel({bodyLog, bodyMetrics, onCopy, onEdit, onDelete}: B
 
     return (
         <div className="w-full p-3 border rounded container-theme">
-            <div className="flex flex-row flex-wrap w-full justify-between align-middle">
+            <div className="flex flex-row flex-wrap w-full justify-between align-middle mb-2">
                 <span />
                 <div className="text-center font-semibold">{FormatSmartTimestamp(bodyLog.bodylog.user_time)}</div>
                 <DropdownButton
