@@ -27,6 +27,8 @@ export function MultiLineGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
+    hideZeroValues = false,
+    hideValueLabels = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -201,18 +203,21 @@ export function MultiLineGraph2({
                                     />
                                     {line.map((p) => {
                                         const adjustedY = labelPositions[key]?.get(p.y) ?? p.y;
+                                        const showValue = !hideValueLabels && !(hideZeroValues && p.value === 0);
                                         return (
                                             <g key={p.date + key}>
                                                 <circle cx={p.x} cy={p.y} r="5" fill={data.colors[key]} />
-                                                <text
-                                                    x={p.x + 5}
-                                                    y={adjustedY - 5}
-                                                    fill={data.colors[key]}
-                                                    className="text-chart-sm"
-                                                    text-anchor="start"
-                                                >
-                                                    {p.value.toFixed(precision)}
-                                                </text>
+                                                {showValue && (
+                                                    <text
+                                                        x={p.x + 5}
+                                                        y={adjustedY - 5}
+                                                        fill={data.colors[key]}
+                                                        className="text-chart-sm"
+                                                        text-anchor="start"
+                                                    >
+                                                        {p.value.toFixed(precision)}
+                                                    </text>
+                                                )}
                                             </g>
                                         );
                                     })}

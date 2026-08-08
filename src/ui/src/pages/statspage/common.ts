@@ -53,6 +53,8 @@ export type DashboardCard = {
     timeRanges: TimeRange[];
     curTimeRange: number;
     useNetwork: boolean;
+    hideZeroValues?: boolean;
+    hideValueLabels?: boolean;
 };
 
 export type UserDashboard = {

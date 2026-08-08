@@ -43,6 +43,8 @@ export function StackedBarGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
+    hideZeroValues = false,
+    hideValueLabels = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(window.innerWidth);
@@ -215,15 +217,17 @@ export function StackedBarGraph2({
                                     {segments.map(({key, segY, segH}) => (
                                         <rect key={key} x={barX} y={segY} width={barW} height={segH} fill={data.colors[key]} />
                                     ))}
-                                    <text
-                                        x={barX + barW / 2}
-                                        y={totalLabelY}
-                                        fill="currentColor"
-                                        className="text-chart-sm"
-                                        text-anchor="middle"
-                                    >
-                                        {total.toFixed(precision)}
-                                    </text>
+                                    {!hideValueLabels && !(hideZeroValues && total === 0) && (
+                                        <text
+                                            x={barX + barW / 2}
+                                            y={totalLabelY}
+                                            fill="currentColor"
+                                            className="text-chart-sm"
+                                            text-anchor="middle"
+                                        >
+                                            {total.toFixed(precision)}
+                                        </text>
+                                    )}
                                     <text
                                         fill="currentColor"
                                         className="text-chart"

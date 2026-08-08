@@ -26,7 +26,12 @@ export function TableGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
+    hideZeroValues = false,
+    hideValueLabels = false,
 }: BaseGraphProps) {
+    const formatCell = (value: number): string =>
+        hideValueLabels || (hideZeroValues && value === 0) ? '-' : value.toFixed(precision);
+
     const visibleCols = data.labels
         .map((label, index) => ({label, index}))
         .filter(({label}) => !hiddenLabels.includes(label))
@@ -111,7 +116,7 @@ export function TableGraph2({
                                             const sum = visibleCols.reduce((acc, key) => acc + (row.y[key] ?? 0), 0);
                                             return (
                                                 <td key={row.x} className="px-3 py-1 text-right whitespace-nowrap">
-                                                    {sum.toFixed(precision)}
+                                                    {formatCell(sum)}
                                                 </td>
                                             );
                                         })}
@@ -127,7 +132,7 @@ export function TableGraph2({
                                         </th>
                                         {data.rows.map((row) => (
                                             <td key={row.x} className="px-3 py-1 text-right whitespace-nowrap">
-                                                {(row.y[key] ?? 0).toFixed(precision)}
+                                                {formatCell(row.y[key] ?? 0)}
                                             </td>
                                         ))}
                                     </tr>

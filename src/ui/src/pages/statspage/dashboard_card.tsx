@@ -540,6 +540,8 @@ export function DashboardCardComponent({
         onAggregationFunc: setAggregationFunc,
         hiddenLabels,
         onHiddenLabelsChange: handleHiddenChange,
+        hideZeroValues: card.hideZeroValues,
+        hideValueLabels: card.hideValueLabels,
     };
 
     const renderChart = () => {
@@ -653,6 +655,26 @@ export function DashboardCardComponent({
                             >
                                 <span className="text-sm">Use Network Data</span>
                                 <FlipSwitch value={card.useNetwork} onValueChanged={(v) => onUpdate({...card, useNetwork: v})} />
+                            </label>
+                            <label
+                                className="flex items-center justify-between cursor-pointer"
+                                title="Don't show the numeric value text for data points that are 0."
+                            >
+                                <span className="text-sm">Hide Zero Values</span>
+                                <FlipSwitch
+                                    value={card.hideZeroValues ?? false}
+                                    onValueChanged={(v) => onUpdate({...card, hideZeroValues: v})}
+                                />
+                            </label>
+                            <label
+                                className="flex items-center justify-between cursor-pointer"
+                                title="Don't show any numeric value text on the chart."
+                            >
+                                <span className="text-sm">Hide Value Labels</span>
+                                <FlipSwitch
+                                    value={card.hideValueLabels ?? false}
+                                    onValueChanged={(v) => onUpdate({...card, hideValueLabels: v})}
+                                />
                             </label>
                         </div>
                     </div>

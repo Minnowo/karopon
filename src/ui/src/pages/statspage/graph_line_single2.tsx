@@ -22,6 +22,8 @@ export function LineSingleGraph2({
     precision = 1,
     graphStyle,
     onGraphStyleChange,
+    hideZeroValues = false,
+    hideValueLabels = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -149,9 +151,11 @@ export function LineSingleGraph2({
                     {points.map((p) => (
                         <g key={p.date}>
                             <circle cx={p.x} cy={p.y} r="5" fill={color} />
-                            <text x={p.x + 5} y={p.y - 10} fill={color} className="text-chart-sm" text-anchor="start">
-                                {p.value.toFixed(precision)}
-                            </text>
+                            {!hideValueLabels && !(hideZeroValues && p.value === 0) && (
+                                <text x={p.x + 5} y={p.y - 10} fill={color} className="text-chart-sm" text-anchor="start">
+                                    {p.value.toFixed(precision)}
+                                </text>
+                            )}
                         </g>
                     ))}
                     {points.map((p) => {

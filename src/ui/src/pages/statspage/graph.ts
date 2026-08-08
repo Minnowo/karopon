@@ -26,6 +26,9 @@ export type BaseGraphProps = {
     data: ChartData;
 
     precision?: number;
+
+    hideZeroValues?: boolean;
+    hideValueLabels?: boolean;
 };
 
 export const FormatXLabel = (key: number, groupBy: GroupBy): string => {
