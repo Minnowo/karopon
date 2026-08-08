@@ -1,5 +1,12 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform, BaseGraphProps} from './graph';
+import {
+    FormatXLabel,
+    ReadChartFontSize,
+    ShouldTiltXLabels,
+    TiltedLabelTransform,
+    BaseGraphProps,
+    ComputeYAxisTicks,
+} from './graph';
 import {GraphStyleKeys, NoInformationMessage} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {GroupBy} from '../../api/types_stats';
@@ -45,6 +52,7 @@ export function StackedBarGraph2({
     onGraphStyleChange,
     hideZeroValues = false,
     hideValueLabels = false,
+    showYAxis = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(window.innerWidth);
@@ -75,26 +83,26 @@ export function StackedBarGraph2({
         [data.labels, hiddenLabels]
     );
 
+    const maxTotal = useMemo(() => {
+        let max = 0;
+        for (const row of data.rows) {
+            let sum = 0;
+
+            for (const i of visibleCols) {
+                sum += row.y[i];
+            }
+
+            if (max < sum) {
+                max = sum;
+            }
+        }
+        return max || 1;
+    }, [data.rows, visibleCols]);
+
     const bars = useMemo((): BarData[] => {
         if (data.rows.length === 0) {
             return [];
         }
-
-        const maxTotal = (() => {
-            let max = 0;
-            for (const row of data.rows) {
-                let sum = 0;
-
-                for (const i of visibleCols) {
-                    sum += row.y[i];
-                }
-
-                if (max < sum) {
-                    max = sum;
-                }
-            }
-            return max || 1;
-        })();
 
         const n = data.rows.length;
         const slotW = (width - PAD) / n;
@@ -124,9 +132,14 @@ export function StackedBarGraph2({
 
             return {x: row.x, barX, barW, segments, total: cumulative, totalLabelY, vals: row.y};
         });
-    }, [data, visibleCols, width]);
+    }, [data, visibleCols, width, maxTotal]);
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const yAxisTicks = useMemo(
+        () => (showYAxis ? ComputeYAxisTicks(maxTotal, CHART_HEIGHT, PAD, precision) : []),
+        [showYAxis, maxTotal, precision]
+    );
 
     const tiltLabels = useMemo(
         () =>
@@ -204,6 +217,39 @@ export function StackedBarGraph2({
                             className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                             onClick={() => setClickedIdx(null)}
                         >
+                            {showYAxis && (
+                                <g>
+                                    <line
+                                        x1={PAD}
+                                        y1={PAD}
+                                        x2={PAD}
+                                        y2={CHART_HEIGHT - PAD}
+                                        stroke="currentColor"
+                                        strokeOpacity="0.4"
+                                    />
+                                    {yAxisTicks.map((t) => (
+                                        <g key={t.label + t.y}>
+                                            <line
+                                                x1={PAD - 4}
+                                                y1={t.y}
+                                                x2={PAD}
+                                                y2={t.y}
+                                                stroke="currentColor"
+                                                strokeOpacity="0.4"
+                                            />
+                                            <text
+                                                x={PAD - 6}
+                                                y={t.y + 3}
+                                                fill="currentColor"
+                                                className="text-chart-sm"
+                                                text-anchor="end"
+                                            >
+                                                {t.label}
+                                            </text>
+                                        </g>
+                                    ))}
+                                </g>
+                            )}
                             {bars.map(({x, barX, barW, segments, total, totalLabelY}, i) => (
                                 <g
                                     key={x}

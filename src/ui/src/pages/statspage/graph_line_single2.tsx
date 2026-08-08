@@ -1,7 +1,14 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {GraphStyleKeys, NoInformationMessage} from './common';
-import {FormatXLabel, BaseGraphProps, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform} from './graph';
+import {
+    FormatXLabel,
+    BaseGraphProps,
+    ComputeYAxisTicks,
+    ReadChartFontSize,
+    ShouldTiltXLabels,
+    TiltedLabelTransform,
+} from './graph';
 import {GroupBy} from '../../api/types_stats';
 
 export function LineSingleGraph2({
@@ -24,6 +31,7 @@ export function LineSingleGraph2({
     onGraphStyleChange,
     hideZeroValues = false,
     hideValueLabels = false,
+    showYAxis = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -77,6 +85,11 @@ export function LineSingleGraph2({
     }, [data, values, maxVal, width]);
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const yAxisTicks = useMemo(
+        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, precision) : []),
+        [showYAxis, maxVal, precision]
+    );
 
     const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
     console.info(chartFontSize, tickSpacing);
@@ -147,6 +160,19 @@ export function LineSingleGraph2({
                     preserveAspectRatio="xMinYMin meet"
                     className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                 >
+                    {showYAxis && (
+                        <g>
+                            <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="currentColor" strokeOpacity="0.4" />
+                            {yAxisTicks.map((t) => (
+                                <g key={t.label + t.y}>
+                                    <line x1={pad - 4} y1={t.y} x2={pad} y2={t.y} stroke="currentColor" strokeOpacity="0.4" />
+                                    <text x={pad - 6} y={t.y + 3} fill="currentColor" className="text-chart-sm" text-anchor="end">
+                                        {t.label}
+                                    </text>
+                                </g>
+                            ))}
+                        </g>
+                    )}
                     <polyline fill="none" stroke={color} strokeWidth="2" points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
                     {points.map((p) => (
                         <g key={p.date}>

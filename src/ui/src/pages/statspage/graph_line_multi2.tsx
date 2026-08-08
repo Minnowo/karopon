@@ -1,5 +1,12 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
-import {FormatXLabel, ReadChartFontSize, ShouldTiltXLabels, TiltedLabelTransform, BaseGraphProps} from './graph';
+import {
+    FormatXLabel,
+    ReadChartFontSize,
+    ShouldTiltXLabels,
+    TiltedLabelTransform,
+    BaseGraphProps,
+    ComputeYAxisTicks,
+} from './graph';
 import {NoInformationMessage, GraphStyleKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
 import {GroupBy} from '../../api/types_stats';
@@ -29,6 +36,7 @@ export function MultiLineGraph2({
     onGraphStyleChange,
     hideZeroValues = false,
     hideValueLabels = false,
+    showYAxis = false,
 }: BaseGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
@@ -90,6 +98,11 @@ export function MultiLineGraph2({
     }, [data, width, maxVal, visibleCols]);
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
+
+    const yAxisTicks = useMemo(
+        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, precision) : []),
+        [showYAxis, maxVal, precision]
+    );
 
     const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
     const tiltLabels = useMemo(
@@ -191,6 +204,25 @@ export function MultiLineGraph2({
                         preserveAspectRatio="xMinYMin meet"
                         className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
                     >
+                        {showYAxis && (
+                            <g>
+                                <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="currentColor" strokeOpacity="0.4" />
+                                {yAxisTicks.map((t) => (
+                                    <g key={t.label + t.y}>
+                                        <line x1={pad - 4} y1={t.y} x2={pad} y2={t.y} stroke="currentColor" strokeOpacity="0.4" />
+                                        <text
+                                            x={pad - 6}
+                                            y={t.y + 3}
+                                            fill="currentColor"
+                                            className="text-chart-sm"
+                                            text-anchor="end"
+                                        >
+                                            {t.label}
+                                        </text>
+                                    </g>
+                                ))}
+                            </g>
+                        )}
                         {visibleCols.map((key) => {
                             const line = lines[key] ?? [];
                             return (

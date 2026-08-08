@@ -542,6 +542,7 @@ export function DashboardCardComponent({
         onHiddenLabelsChange: handleHiddenChange,
         hideZeroValues: card.hideZeroValues,
         hideValueLabels: card.hideValueLabels,
+        showYAxis: card.showYAxis,
     };
 
     const renderChart = () => {
@@ -674,6 +675,16 @@ export function DashboardCardComponent({
                                 <FlipSwitch
                                     value={card.hideValueLabels ?? false}
                                     onValueChanged={(v) => onUpdate({...card, hideValueLabels: v})}
+                                />
+                            </label>
+                            <label
+                                className="flex items-center justify-between cursor-pointer"
+                                title="Show a Y-axis with approximate values."
+                            >
+                                <span className="text-sm">Show Y-Axis</span>
+                                <FlipSwitch
+                                    value={card.showYAxis ?? false}
+                                    onValueChanged={(v) => onUpdate({...card, showYAxis: v})}
                                 />
                             </label>
                         </div>

@@ -55,6 +55,7 @@ export type DashboardCard = {
     useNetwork: boolean;
     hideZeroValues?: boolean;
     hideValueLabels?: boolean;
+    showYAxis?: boolean;
 };
 
 export type UserDashboard = {

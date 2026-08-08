@@ -29,6 +29,21 @@ export type BaseGraphProps = {
 
     hideZeroValues?: boolean;
     hideValueLabels?: boolean;
+    showYAxis?: boolean;
+};
+
+export type YAxisTick = {y: number; label: string};
+
+// ComputeYAxisTicks returns evenly spaced tick positions (in SVG y coordinates) and their
+// approximate values, spanning [0, maxVal] over the plot area [pad, height - pad].
+export const ComputeYAxisTicks = (maxVal: number, height: number, pad: number, precision: number, tickCount = 4): YAxisTick[] => {
+    const ticks: YAxisTick[] = [];
+    for (let i = 0; i <= tickCount; i++) {
+        const value = (maxVal * i) / tickCount;
+        const y = height - pad - (value / maxVal) * (height - pad * 2);
+        ticks.push({y, label: value.toFixed(precision)});
+    }
+    return ticks;
 };
 
 export const FormatXLabel = (key: number, groupBy: GroupBy): string => {
