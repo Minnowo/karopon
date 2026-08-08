@@ -94,6 +94,7 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             timeRanges: CommonRanges,
             curTimeRange: 0,
             hiddenLabels: [],
+            useNetwork: false,
         },
         {
             id: 1,
@@ -104,6 +105,7 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             timeRanges: CommonRanges,
             curTimeRange: 0,
             hiddenLabels: [],
+            useNetwork: false,
         },
         {
             id: 2,
@@ -114,6 +116,7 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             timeRanges: CommonRanges,
             curTimeRange: 0,
             hiddenLabels: [],
+            useNetwork: false,
         },
     ],
 };
