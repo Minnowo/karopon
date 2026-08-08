@@ -405,6 +405,21 @@ type DB interface {
 		dayOffset time.Duration,
 		out *[]MacronutrientPoint,
 	) error
+
+	// LoadUserEventLogTimeData buckets and aggregates a user's recorded eventlog values
+	// (net carbs, blood glucose, and insulin dosing fields) over time, analogous to
+	// LoadUserTimeData for timespans. dayOffset has the same meaning as in LoadUserTimeData.
+	LoadUserEventLogTimeData(
+		ctx context.Context,
+		userID int,
+		startTime time.Time,
+		endTime time.Time,
+		aggregation AggregationFunc,
+		groupby GroupBy,
+		timezone Timezone,
+		dayOffset time.Duration,
+		out *[]EventLogPoint,
+	) error
 }
 
 type SQLxDB struct {

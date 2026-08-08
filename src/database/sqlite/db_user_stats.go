@@ -304,6 +304,128 @@ func (db *SqliteDatabase) LoadUserBodyLogTimeData(
 	return nil
 }
 
+func (db *SqliteDatabase) LoadUserEventLogTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.EventLogPoint,
+) error {
+
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
+
+	sql := `
+		SELECT
+			USER_TIME                   AS USER_TIME,
+			BLOOD_GLUCOSE                AS BLOOD_GLUCOSE,
+			RECOMMENDED_INSULIN_AMOUNT   AS RECOMMENDED_INSULIN_AMOUNT,
+			ACTUAL_INSULIN_TAKEN         AS ACTUAL_INSULIN_TAKEN
+
+		FROM PON_USER_EVENTLOG
+
+		WHERE
+			USER_ID = ?
+			AND USER_TIME >= ?
+			AND USER_TIME <= ?
+	`
+
+	var rows []struct {
+		UserTime                 database.TimeMillis `db:"user_time"`
+		BloodGlucose             float64             `db:"blood_glucose"`
+		RecommendedInsulinAmount float64             `db:"recommended_insulin_amount"`
+		ActualInsulinTaken       float64             `db:"actual_insulin_taken"`
+	}
+
+	if err := db.SelectContext(ctx, &rows, sql, userID, startTime.UTC(), endTime.UTC()); err != nil {
+		return err
+	}
+
+	const (
+		idxBloodGlucose = iota
+		idxRecommendedInsulinAmount
+		idxActualInsulinTaken
+		numSeries
+	)
+
+	type acc struct {
+		n   int
+		sum [numSeries]float64
+		min [numSeries]float64
+		max [numSeries]float64
+	}
+
+	accs := make(map[time.Time]*acc)
+
+	for _, r := range rows {
+
+		values := [numSeries]float64{
+			r.BloodGlucose,
+			r.RecommendedInsulinAmount,
+			r.ActualInsulinTaken,
+		}
+
+		bucket := truncateToBucket(r.UserTime.Time(), groupby, timezone.Loc(), dayOffset)
+
+		a, ok := accs[bucket]
+		if !ok {
+			a = &acc{min: values, max: values}
+			accs[bucket] = a
+		}
+
+		a.n++
+		for i, v := range values {
+			a.sum[i] += v
+			if v < a.min[i] {
+				a.min[i] = v
+			}
+			if v > a.max[i] {
+				a.max[i] = v
+			}
+		}
+	}
+
+	points := make([]database.EventLogPoint, 0, len(accs))
+
+	for bucket, a := range accs {
+
+		var values [numSeries]float64
+
+		switch aggregation {
+		case database.AggregationSum:
+			values = a.sum
+		case database.AggregationAvg:
+			for i := range values {
+				values[i] = a.sum[i] / float64(a.n)
+			}
+		case database.AggregationMin:
+			values = a.min
+		case database.AggregationMax:
+			values = a.max
+		}
+
+		points = append(points, database.EventLogPoint{
+			Bucket:                   database.TimeMillis(bucket),
+			BloodGlucose:             values[idxBloodGlucose],
+			RecommendedInsulinAmount: values[idxRecommendedInsulinAmount],
+			ActualInsulinTaken:       values[idxActualInsulinTaken],
+		})
+	}
+
+	sort.Slice(points, func(i, j int) bool {
+		return points[i].Bucket.Time().Before(points[j].Bucket.Time())
+	})
+
+	*out = points
+
+	return nil
+}
+
 func (db *SqliteDatabase) LoadUserMacrosTimeData(
 	ctx context.Context,
 	userID int,

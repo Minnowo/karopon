@@ -1,6 +1,6 @@
 import {Dispatch, StateUpdater, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyMetric, UserBodyLog, UserEventFoodLog} from '../../api/types';
-import {ChartData, CommonRanges, DashboardCard, GraphStyle, MacroType, TimeRange} from './common';
+import {ChartData, CommonRanges, DashboardCard, EventLogType, GraphStyle, MacroType, TimeRange} from './common';
 import {PieChart} from './graph_pie_chart';
 import {MultiLineGraph2} from './graph_line_multi2';
 import {StackedBarGraph2} from './graph_bar_stacked2';
@@ -10,14 +10,16 @@ import {SplitTag, TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
-import {BuildChartData, BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
+import {BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
 import {BuildMacroChartData, BuildMacroChartDataNetwork} from './data_build_macros';
+import {BuildEventLogChartData, BuildEventLogChartDataNetwork} from './data_build_eventlogs';
 import {FlipSwitch} from '../../components/flip_switch';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
 import {TimeRangeInput} from '../../components/timerange_input';
 import {FormatSmartTimestamp2} from '../../utils/date_utils';
 import {BodyMetricMultiSelect} from './body_metric_multiselect';
 import {MacroMultiSelect} from './macro_multiselect';
+import {EventLogMultiSelect} from './eventlog_multiselect';
 
 const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
@@ -48,7 +50,13 @@ const MACRO_COLORS: Record<MacroType, string> = {
     calorie: 'var(--color-c-peach)',
 };
 
-const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'bodylog', 'time'];
+const EVENTLOG_COLORS: Record<EventLogType, string> = {
+    blood_glucose: 'var(--color-c-sky)',
+    recommended_insulin_amount: 'var(--color-c-peach)',
+    actual_insulin_taken: 'var(--color-c-green)',
+};
+
+const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'eventlogs', 'bodylog', 'time'];
 
 type TimeRangePanelProps = {
     range: TimeRange;
@@ -312,32 +320,37 @@ export function DashboardCardComponent({
 
                 break;
             }
-            case 'blood_glucose': {
-                setChartData(
-                    BuildChartData(
-                        eventlogs,
-                        rangeStartMs,
-                        rangeEndMs,
+            case 'eventlogs': {
+                const selectedEventLogs = card.visibleEventLogs ?? [];
+                if (selectedEventLogs.length === 0) {
+                    return;
+                }
+
+                const eventLogColors = selectedEventLogs.map((m) => EVENTLOG_COLORS[m]);
+
+                if (card.useNetwork) {
+                    BuildEventLogChartDataNetwork(
+                        rangeStartStr,
+                        rangeEndStr,
                         groupBy,
                         aggregationFunc,
-                        (e) => e.eventlog.blood_glucose,
-                        'var(--color-c-sky)'
-                    )
-                );
-                break;
-            }
-            case 'insulin': {
-                setChartData(
-                    BuildChartData(
-                        eventlogs,
-                        rangeStartMs,
-                        rangeEndMs,
-                        groupBy,
-                        aggregationFunc,
-                        (e) => e.eventlog.actual_insulin_taken,
-                        'var(--color-c-green)'
-                    )
-                );
+                        selectedEventLogs,
+                        eventLogColors
+                    ).then(setChartData);
+                } else {
+                    setChartData(
+                        BuildEventLogChartData(
+                            eventlogs,
+                            rangeStartMs,
+                            rangeEndMs,
+                            groupBy,
+                            aggregationFunc,
+                            selectedEventLogs,
+                            eventLogColors
+                        )
+                    );
+                }
+
                 break;
             }
             case 'bodylog': {
@@ -387,6 +400,7 @@ export function DashboardCardComponent({
         card.selectedTags,
         card.selectedMetrics,
         card.visibleMacros,
+        card.visibleEventLogs,
         eventlogs,
         bodylogs,
         bodyMetrics,
@@ -678,6 +692,18 @@ export function DashboardCardComponent({
                                 <MacroMultiSelect
                                     selected={card.visibleMacros ?? []}
                                     onChange={(visibleMacros) => onUpdate({...card, visibleMacros})}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {card.type === 'eventlogs' && (
+                        <div className="flex flex-col gap-1">
+                            <label class="font-semibold">Blood Glucose / Insulin</label>
+                            <div className="flex flex-col p-2 gap-2">
+                                <EventLogMultiSelect
+                                    selected={card.visibleEventLogs ?? []}
+                                    onChange={(visibleEventLogs) => onUpdate({...card, visibleEventLogs})}
                                 />
                             </div>
                         </div>

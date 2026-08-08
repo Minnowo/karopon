@@ -72,6 +72,13 @@ type MacronutrientPoint struct {
 	Calorie float64    `json:"calorie"  db:"calorie"`
 }
 
+type EventLogPoint struct {
+	Bucket                   TimeMillis `json:"bucket"                     db:"bucket"`
+	BloodGlucose             float64    `json:"blood_glucose"              db:"blood_glucose"`
+	RecommendedInsulinAmount float64    `json:"recommended_insulin_amount" db:"recommended_insulin_amount"`
+	ActualInsulinTaken       float64    `json:"actual_insulin_taken"       db:"actual_insulin_taken"`
+}
+
 func ValueToString(val any) string {
 	switch v := val.(type) {
 	case nil:

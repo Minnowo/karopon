@@ -299,3 +299,71 @@ func (db *PGDatabase) LoadUserMacrosTimeData(
 
 	return db.SelectContext(ctx, out, query, args...)
 }
+
+func (db *PGDatabase) LoadUserEventLogTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.EventLogPoint,
+) error {
+
+	if !aggregation.IsValid() {
+		return database.ErrInvalidAggregation
+	}
+
+	tzName := timezone.Name
+	if tzName == "" {
+		tzName = "UTC"
+	}
+
+	aggFunc := aggregateToPG(aggregation)
+	dayOffsetSeconds := int(dayOffset.Seconds())
+
+	// USER_TIME is stored as a naive UTC timestamp; see LoadUserTimeData above for why we
+	// reinterpret it via "AT TIME ZONE 'UTC'" and shift by dayOffsetSeconds before truncating.
+	sql := `
+		SELECT
+			date_trunc(
+				?,
+				(el.USER_TIME AT TIME ZONE 'UTC') - (? * INTERVAL '1 second'),
+				?
+			) + (? * INTERVAL '1 second')                       AS BUCKET,
+			` + aggFunc + `(el.BLOOD_GLUCOSE)                   AS BLOOD_GLUCOSE,
+			` + aggFunc + `(el.RECOMMENDED_INSULIN_AMOUNT)       AS RECOMMENDED_INSULIN_AMOUNT,
+			` + aggFunc + `(el.ACTUAL_INSULIN_TAKEN)             AS ACTUAL_INSULIN_TAKEN
+
+		FROM PON.USER_EVENTLOG el
+		WHERE
+				el.USER_ID = ?
+			AND el.USER_TIME >= ?
+			AND el.USER_TIME <= ?
+
+		GROUP BY BUCKET
+		ORDER BY BUCKET ASC
+	`
+
+	log.Debug().
+		Str("groupby", groupbyToPG(groupby)).
+		Str("aggregation", aggFunc).
+		Str("timezone", tzName).
+		Int("dayOffsetSeconds", dayOffsetSeconds).
+		Msg("running eventlog time stats agg")
+
+	query, args, err := sqlx.In(sql,
+		groupbyToPG(groupby), dayOffsetSeconds, tzName, dayOffsetSeconds,
+		userID, startTime.UTC(), endTime.UTC(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	query = db.Rebind(query)
+
+	return db.SelectContext(ctx, out, query, args...)
+}

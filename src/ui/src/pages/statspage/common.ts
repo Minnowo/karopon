@@ -23,7 +23,10 @@ export type ChartData = {
 export const MacroTypeKeys = ['fat', 'carbs', 'net_carbs', 'fibre', 'protein', 'calorie'] as const;
 export type MacroType = (typeof MacroTypeKeys)[number];
 
-export type ChartType = 'macros' | 'blood_glucose' | 'insulin' | 'bodylog' | 'time';
+export const EventLogTypeKeys = ['blood_glucose', 'recommended_insulin_amount', 'actual_insulin_taken'] as const;
+export type EventLogType = (typeof EventLogTypeKeys)[number];
+
+export type ChartType = 'macros' | 'eventlogs' | 'bodylog' | 'time';
 
 export const GraphStyleKeys = ['line', 'bar', 'table', 'pie'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
@@ -41,6 +44,7 @@ export type DashboardCard = {
     type: ChartType;
     title: string;
     visibleMacros: MacroType[];
+    visibleEventLogs: EventLogType[];
     selectedTags: string[];
     selectedMetrics?: string[];
     graphStyle?: GraphStyle;
@@ -90,6 +94,7 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
             type: 'macros',
             title: 'Macronutrients Consumed (g)',
             visibleMacros: ['fat', 'net_carbs', 'fibre', 'protein'],
+            visibleEventLogs: [],
             selectedTags: [],
             timeRanges: CommonRanges,
             curTimeRange: 0,
@@ -98,20 +103,10 @@ export const DEFAULT_DASHBOARD: UserDashboard = {
         },
         {
             id: 1,
-            type: 'blood_glucose',
-            title: 'Blood Glucose (mmol/L)',
+            type: 'eventlogs',
+            title: 'Blood Glucose & Insulin',
             visibleMacros: [],
-            selectedTags: [],
-            timeRanges: CommonRanges,
-            curTimeRange: 0,
-            hiddenLabels: [],
-            useNetwork: false,
-        },
-        {
-            id: 2,
-            type: 'insulin',
-            title: 'Insulin Taken (mL)',
-            visibleMacros: [],
+            visibleEventLogs: ['blood_glucose', 'actual_insulin_taken'],
             selectedTags: [],
             timeRanges: CommonRanges,
             curTimeRange: 0,

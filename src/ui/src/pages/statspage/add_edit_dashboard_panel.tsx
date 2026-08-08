@@ -1,15 +1,15 @@
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
-import {DashboardCard, MacroType} from './common';
+import {DashboardCard, EventLogType, MacroType} from './common';
 import {TblUserBodyMetric, TblUserTag} from '../../api/types';
 import {TagToString} from '../../utils/tags';
 import {TagInput} from '../../components/tag_input';
 import {BodyMetricMultiSelect} from './body_metric_multiselect';
 import {MacroMultiSelect} from './macro_multiselect';
+import {EventLogMultiSelect} from './eventlog_multiselect';
 
 const CHART_LABELS: Record<DashboardCard['type'], string> = {
     macros: 'Macros / Calories',
-    blood_glucose: 'Blood Glucose',
-    insulin: 'Insulin',
+    eventlogs: 'Blood Glucose / Insulin',
     bodylog: 'Body Metrics',
     time: 'Time Spent by Tag',
 };
@@ -47,6 +47,7 @@ export function AddEditDashboardPanel({
     const [tags, setTags] = useState<TblUserTag[]>([]);
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
     const [visibleMacros, setVisibleMacros] = useState<MacroType[]>(['fat', 'net_carbs', 'fibre', 'protein']);
+    const [visibleEventLogs, setVisibleEventLogs] = useState<EventLogType[]>(['blood_glucose', 'actual_insulin_taken']);
 
     const addCard = () => {
         if (!onCardAdded) {
@@ -57,6 +58,7 @@ export function AddEditDashboardPanel({
             type: addType,
             title: CHART_LABELS[addType],
             visibleMacros: addType === 'macros' ? visibleMacros : [],
+            visibleEventLogs: addType === 'eventlogs' ? visibleEventLogs : [],
             selectedTags: tags.map(TagToString),
             selectedMetrics,
         };
@@ -116,6 +118,13 @@ export function AddEditDashboardPanel({
                         <div className="container-theme">
                             <h2 className="text-lg font-bold">Macros / Calories</h2>
                             <MacroMultiSelect selected={visibleMacros} onChange={setVisibleMacros} />
+                        </div>
+                    )}
+
+                    {addType === 'eventlogs' && (
+                        <div className="container-theme">
+                            <h2 className="text-lg font-bold">Blood Glucose / Insulin</h2>
+                            <EventLogMultiSelect selected={visibleEventLogs} onChange={setVisibleEventLogs} />
                         </div>
                     )}
 

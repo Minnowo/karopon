@@ -143,4 +143,5 @@ func (a *APIV1) Register(r *mux.Router) {
 	post.HandleFunc("/stats/time", a.postStatsTime)
 	post.HandleFunc("/stats/bodylog", a.postBodyLogStats)
 	post.HandleFunc("/stats/macros", a.postMacroStats)
+	post.HandleFunc("/stats/eventlogs", a.postEventLogStats)
 }

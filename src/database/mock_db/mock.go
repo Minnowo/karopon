@@ -494,3 +494,17 @@ func (p *BaseMockDB) LoadUserMacrosTimeData(
 ) error {
 	panic("not implemented")
 }
+
+func (p *BaseMockDB) LoadUserEventLogTimeData(
+	ctx context.Context,
+	userID int,
+	startTime time.Time,
+	endTime time.Time,
+	aggregation database.AggregationFunc,
+	groupby database.GroupBy,
+	timezone database.Timezone,
+	dayOffset time.Duration,
+	out *[]database.EventLogPoint,
+) error {
+	panic("not implemented")
+}
