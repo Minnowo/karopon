@@ -117,10 +117,20 @@ export function MultiLineGraph2({
 
     const labelPositions = useMemo(() => {
         const positions: Record<string, Map<number, number>> = {};
+
+        // Only stack points whose value label will actually be rendered - a hidden 0-value
+        // label shouldn't take up a slot and push visible labels away from their natural spot.
+        if (hideValueLabels) {
+            return positions;
+        }
+
         const xBuckets = new Map<number, Array<{key: number; y: number}>>();
 
         for (const key of visibleCols) {
             for (const p of lines[key] ?? []) {
+                if (hideZeroValues && p.value === 0) {
+                    continue;
+                }
                 if (!xBuckets.has(p.x)) {
                     xBuckets.set(p.x, []);
                 }
@@ -143,7 +153,7 @@ export function MultiLineGraph2({
         }
 
         return positions;
-    }, [visibleCols, lines]);
+    }, [visibleCols, lines, hideValueLabels, hideZeroValues]);
 
     return (
         <div ref={containerRef} className="w-full">
