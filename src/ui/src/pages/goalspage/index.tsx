@@ -12,17 +12,7 @@ export function GoalsPage(state: BaseState) {
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
     const [editingGoal, setEditingGoal] = useState<TblUserGoal | null>(null);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
-    const [selectedDate, setSelectedDate] = useState<string>('');
     const [numberToShow, setNumberToShow] = useState<number>(15);
-
-    const asOf = selectedDate
-        ? (() => {
-              // gets the set date with nows time
-              const now = new Date();
-              const [y, m, d] = selectedDate.split('-').map(Number);
-              return new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()).getTime();
-          })()
-        : 0;
 
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
@@ -79,13 +69,6 @@ export function GoalsPage(state: BaseState) {
                 >
                     New Goal
                 </button>
-                <input
-                    type="date"
-                    value={selectedDate}
-                    aria-label="Select date"
-                    onInput={(e) => setSelectedDate((e.target as HTMLInputElement).value)}
-                />
-                {selectedDate && <button onClick={() => setSelectedDate('')}>Today</button>}
                 <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
@@ -97,6 +80,7 @@ export function GoalsPage(state: BaseState) {
                     onCreated={createGoal}
                     onCancel={() => setShowNewGoalPanel(false)}
                     userGoal={newGoal.current}
+                    bodyMetrics={state.bodyMetrics}
                 />
             )}
 
@@ -114,12 +98,13 @@ export function GoalsPage(state: BaseState) {
                                     onCreated={createGoal}
                                     onUpdated={updateGoal}
                                     onCancel={() => setEditingGoal(null)}
+                                    bodyMetrics={state.bodyMetrics}
                                 />
                             ) : (
                                 <GoalPanel
                                     key={g.id}
                                     goal={g}
-                                    asOf={asOf}
+                                    dayOffsetSeconds={state.user.day_time_offset_seconds}
                                     editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
                                     deleteGoal={deleteGoal}
                                 />

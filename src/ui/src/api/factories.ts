@@ -17,6 +17,7 @@ export const NewTblUserGoal = (overrides: Partial<TblUserGoal> = {}): TblUserGoa
     name: '',
     target_value: 0,
     target_col: GoalTargetColumnValues[0],
+    target_metric: '',
     aggregation_type: GoalAggregationTypeValues[0],
     value_comparison: GoalComparisonTypeValues[0],
     time_expr: GoalTimeExprValues[1],

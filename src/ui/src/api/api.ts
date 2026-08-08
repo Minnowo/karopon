@@ -15,8 +15,6 @@ import {
     TblDataSource,
     TblDataSourceFood,
     TblUserGoal,
-    UserGoalProgress,
-    CheckGoalProgress,
     TblUserTag,
     TblUserTimespan,
     TaggedTimespan,
@@ -146,16 +144,6 @@ export const ApiGetUserBodyMetrics = (): Promise<TblUserBodyMetric[]> => {
 
 export const ApiGetUserGoals = (): Promise<TblUserGoal[]> => {
     return fetchJson(`${ApiBase}/api/goals`);
-};
-
-export const ApiGetUserGoalProgress = (goal: CheckGoalProgress): Promise<UserGoalProgress> => {
-    return fetchJson(`${ApiBase}/api/goal/progress`, {
-        headers: {
-            'content-type': 'application/json',
-        },
-        method: 'POST',
-        body: JSON.stringify(goal),
-    });
 };
 
 export const ApiGetUserTags = (): Promise<TblUserTag[]> => {

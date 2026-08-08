@@ -12,20 +12,16 @@ import (
 type GoalTargetColumn string
 
 const (
-	TargetColumnCalories             GoalTargetColumn = "CALORIES"
-	TargetColumnNetCarbs             GoalTargetColumn = "NET_CARBS"
-	TargetColumnFat                  GoalTargetColumn = "FAT"
-	TargetColumnCarbs                GoalTargetColumn = "CARBS"
-	TargetColumnFibre                GoalTargetColumn = "FIBRE"
-	TargetColumnProtein              GoalTargetColumn = "PROTEIN"
-	TargetColumnBodyWeightKg         GoalTargetColumn = "BODY_WEIGHT_KG"
-	TargetColumnBodyWeightLbs        GoalTargetColumn = "BODY_WEIGHT_LBS"
-	TargetColumnBodyFatPercent       GoalTargetColumn = "BODY_FAT_PERCENT"
-	TargetColumnBodyHeartRate        GoalTargetColumn = "HEART_RATE"
-	TargetColumnBodySteps            GoalTargetColumn = "STEPS"
-	TargetColumnBodyBloodPressureSys GoalTargetColumn = "BLOOD_PRESSURE_SYS"
-	TargetColumnBodyBloodPressureDia GoalTargetColumn = "BLOOD_PRESSURE_DIA"
-	TargetColumnEventBloodSugar      GoalTargetColumn = "BLOOD_SUGAR"
+	TargetColumnCalories        GoalTargetColumn = "CALORIES"
+	TargetColumnNetCarbs        GoalTargetColumn = "NET_CARBS"
+	TargetColumnFat             GoalTargetColumn = "FAT"
+	TargetColumnCarbs           GoalTargetColumn = "CARBS"
+	TargetColumnFibre           GoalTargetColumn = "FIBRE"
+	TargetColumnProtein         GoalTargetColumn = "PROTEIN"
+	TargetColumnEventBloodSugar GoalTargetColumn = "BLOOD_SUGAR"
+	// TargetColumnBodyMetric targets a user-defined body metric (see TblUserBodyMetric),
+	// identified by name via TblUserGoal.TargetMetric.
+	TargetColumnBodyMetric GoalTargetColumn = "BODY_METRIC"
 )
 
 var (
@@ -41,13 +37,8 @@ func (a GoalTargetColumn) IsValid() bool {
 		TargetColumnCarbs,
 		TargetColumnFibre,
 		TargetColumnProtein,
-		TargetColumnBodyWeightKg,
-		TargetColumnBodyWeightLbs,
-		TargetColumnBodyFatPercent,
-		TargetColumnBodyHeartRate,
-		TargetColumnBodySteps,
-		TargetColumnBodyBloodPressureSys, TargetColumnBodyBloodPressureDia,
-		TargetColumnEventBloodSugar:
+		TargetColumnEventBloodSugar,
+		TargetColumnBodyMetric:
 		return true
 	default:
 		return false

@@ -30,6 +30,7 @@ var postgresUpMigrations = []database.Migration{
 	database.NewFileMigration(19, 20, "pg/0021_user_setting"),
 	database.NewFileMigration(20, 21, "pg/0022_fix_goal_unique_index"),
 	database.NewFileMigration(21, 22, "pg/0023_bodylog_dynamic_shape"),
+	database.NewFileMigration(22, 23, "pg/0024_goal_target_metric"),
 }
 
 func (db *PGDatabase) GetMigrationMaxVersion() database.Version {

@@ -182,14 +182,8 @@ export const GoalTargetColumnValues = [
     'CARBS',
     'FIBRE',
     'PROTEIN',
-    'BODY_WEIGHT_KG',
-    'BODY_WEIGHT_LBS',
-    'BODY_FAT_PERCENT',
-    'HEART_RATE',
-    'STEPS',
-    'BLOOD_PRESSURE_SYS',
-    'BLOOD_PRESSURE_DIA',
     'BLOOD_SUGAR',
+    'BODY_METRIC',
 ] as const;
 export type GoalTargetColumn = (typeof GoalTargetColumnValues)[number];
 
@@ -215,20 +209,10 @@ export type TblUserGoal = {
     name: string;
     target_value: number;
     target_col: GoalTargetColumn;
+    target_metric: string;
     aggregation_type: GoalAggregationType;
     value_comparison: GoalComparisonType;
     time_expr: GoalTimeExpr;
-};
-
-export type CheckGoalProgress = TblUserGoal & {
-    timezone: string;
-    as_of: number;
-};
-
-export type UserGoalProgress = {
-    current_value: number;
-    target_value: number;
-    time_remaining: number;
 };
 
 export type TblUserTag = {

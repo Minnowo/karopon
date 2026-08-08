@@ -252,6 +252,7 @@ type TblUserGoal struct {
 	AggregationType string     `db:"aggregation_type" json:"aggregation_type"`
 	ValueComparison string     `db:"value_comparison" json:"value_comparison"`
 	TimeExpr        string     `db:"time_expr"        json:"time_expr"`
+	TargetMetric    string     `db:"target_metric"    json:"target_metric"`
 }
 
 func (u *TblUserGoal) TimeRange(now time.Time, shift time.Duration) (time.Time, time.Time, error) {

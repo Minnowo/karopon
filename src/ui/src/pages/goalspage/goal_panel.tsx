@@ -1,33 +1,31 @@
 import {useEffect, useState} from 'preact/hooks';
-import {TblUserGoal, UserGoalProgress} from '../../api/types';
-import {ApiGetUserGoalProgress} from '../../api/api';
+import {TblUserGoal} from '../../api/types';
 import {SnakeCaseToTitle} from '../../utils/strings';
 import {FormatDuration} from '../../utils/time';
 import {DropdownButton} from '../../components/drop_down_button';
+import {GetGoalCurrentValue, GoalTargetTimeRemaining} from './goal_progress';
 
 type GoalPanelProps = {
     goal: TblUserGoal;
-    asOf: number;
+    dayOffsetSeconds: number;
     editGoal: (goal: TblUserGoal) => void;
     deleteGoal: (goal: TblUserGoal) => void;
 };
-export const GoalPanel = ({goal, asOf, editGoal, deleteGoal}: GoalPanelProps) => {
-    const [progress, setProgress] = useState<UserGoalProgress | null>(null);
+export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPanelProps) => {
+    const [currentValue, setCurrentValue] = useState<number | null>(null);
 
     useEffect(() => {
-        setProgress(null);
-        (async () => {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            setProgress(await ApiGetUserGoalProgress({...goal, timezone, as_of: asOf}));
-        })();
-    }, [goal, asOf]);
+        setCurrentValue(null);
+        GetGoalCurrentValue(goal).then(setCurrentValue);
+    }, [goal]);
+
+    const timeRemaining = GoalTargetTimeRemaining(goal, dayOffsetSeconds);
 
     const barColor = (() => {
         switch (goal.target_col) {
             case 'CALORIES':
             case 'NET_CARBS':
             case 'CARBS':
-            case 'STEPS':
                 return 'bg-c-yellow';
             case 'FAT':
                 return 'bg-c-flamingo';
@@ -59,20 +57,20 @@ export const GoalPanel = ({goal, asOf, editGoal, deleteGoal}: GoalPanelProps) =>
                 />
             </div>
             <p className="text-sm">
-                Want {SnakeCaseToTitle(goal.target_col)} to be {SnakeCaseToTitle(goal.value_comparison)}{' '}
-                {goal.target_value.toFixed(1)}
+                Want {goal.target_col === 'BODY_METRIC' ? goal.target_metric : SnakeCaseToTitle(goal.target_col)} to be{' '}
+                {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value.toFixed(1)}
             </p>
-            {progress ? (
+            {currentValue !== null ? (
                 <>
                     <p>
-                        Current: {progress.current_value.toFixed(1)} / {progress.target_value.toFixed(1)}
+                        Current: {currentValue.toFixed(1)} / {goal.target_value.toFixed(1)}
                     </p>
-                    <p className="text-xs">Time remaining: {FormatDuration(progress.time_remaining)}</p>
+                    <p className="text-xs">Time remaining: {FormatDuration(Math.max(0, timeRemaining))}</p>
                     <div className="w-full h-2 rounded mt-2 bg-c-surface2">
                         <div
                             className={`${barColor} h-2 rounded`}
                             style={{
-                                width: `${Math.min(100, (progress.current_value / progress.target_value) * 100)}%`,
+                                width: `${Math.min(100, (currentValue / goal.target_value) * 100)}%`,
                             }}
                         />
                     </div>

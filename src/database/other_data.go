@@ -34,12 +34,6 @@ type CreateUserEventLog struct {
 	PhotoIDs                 []int      `json:"photo_ids"`
 }
 
-type UserGoalProgress struct {
-	CurrentValue  float64        `json:"current_value"`
-	TargetValue   float64        `json:"target_value"`
-	TimeRemaining DurationMillis `json:"time_remaining"`
-}
-
 type UserBodyLog struct {
 	BodyLog TblUserBodyLog         `json:"bodylog"`
 	Metrics []TblUserBodyLogMetric `json:"metrics"`

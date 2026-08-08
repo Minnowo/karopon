@@ -8,6 +8,7 @@ import {
     GoalTargetColumnValues,
     GoalTimeExpr,
     GoalTimeExprValues,
+    TblUserBodyMetric,
     TblUserGoal,
 } from '../../api/types';
 import {ChangeEvent} from 'preact/compat';
@@ -18,13 +19,14 @@ import {SnakeCaseToTitle} from '../../utils/strings';
 
 type Props = {
     userGoal: TblUserGoal;
+    bodyMetrics: TblUserBodyMetric[];
     onCreated: (goal: TblUserGoal) => void;
     onUpdated?: (goal: TblUserGoal) => void;
     onCancel: () => void;
     className?: string;
 };
 
-export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, className = ''}: Props) {
+export function GoalCreationPanel({userGoal, bodyMetrics, onCreated, onUpdated, onCancel, className = ''}: Props) {
     const [error, setError] = useState<string | null>(null);
     const goal = useMemo(() => ({...userGoal}), [userGoal]);
     const render = DoRender();
@@ -33,6 +35,7 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
     const timeRangeId = useId();
     const aggregationId = useId();
     const targetId = useId();
+    const targetMetricId = useId();
     const comparisonId = useId();
     const targetValueId = useId();
 
@@ -47,6 +50,10 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
         }
         if (goal.target_value < 0) {
             setError('The target value must be > 0.');
+            return;
+        }
+        if (goal.target_col === 'BODY_METRIC' && !goal.target_metric) {
+            setError('Please select a body metric.');
             return;
         }
 
@@ -168,6 +175,39 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
                     </div>
                 </div>
 
+                {goal.target_col === 'BODY_METRIC' && (
+                    <div title="The specific body metric this goal tracks.">
+                        <label className="block text-sm font-medium" htmlFor={targetMetricId}>
+                            Body Metric
+                        </label>
+                        {bodyMetrics.length === 0 ? (
+                            <div className="text-sm text-faded">No body metrics defined yet.</div>
+                        ) : (
+                            <select
+                                id={targetMetricId}
+                                className="border rounded px-2 py-1 w-full"
+                                value={goal.target_metric}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                                    goal.target_metric = e.currentTarget.value;
+                                    render();
+                                }}
+                            >
+                                <option value="" disabled>
+                                    Select a body metric
+                                </option>
+                                {[...bodyMetrics]
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((m) => (
+                                        <option key={m.id} value={m.name}>
+                                            {m.name}
+                                            {m.unit ? ` (${m.unit})` : ''}
+                                        </option>
+                                    ))}
+                            </select>
+                        )}
+                    </div>
+                )}
+
                 <div title="Target value is the target number you want to reach.">
                     <label className="block text-sm font-medium" htmlFor={targetValueId}>
                         Target Value
@@ -185,7 +225,8 @@ export function GoalCreationPanel({userGoal, onCreated, onUpdated, onCancel, cla
 
                 <div>
                     My {SnakeCaseToTitle(goal.time_expr)} goal is for the {SnakeCaseToTitle(goal.aggregation_type)} of my{' '}
-                    {SnakeCaseToTitle(goal.target_col)} to be {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}.
+                    {goal.target_col === 'BODY_METRIC' ? goal.target_metric || '...' : SnakeCaseToTitle(goal.target_col)} to be{' '}
+                    {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}.
                 </div>
 
                 <div className="flex justify-end gap-2">

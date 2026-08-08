@@ -42,6 +42,11 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if goal.TargetColumn() == database.TargetColumnBodyMetric && goal.TargetMetric == "" {
+		api.BadReq(w, "TargetMetric is required when TargetColumn is BODY_METRIC.")
+		return
+	}
+
 	if !goal.Comparison().IsValid() {
 		api.BadReq(w, "Comparison type is invalid.")
 		return

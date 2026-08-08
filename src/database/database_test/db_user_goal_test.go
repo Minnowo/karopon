@@ -4,7 +4,6 @@ import (
 	"karopon/src/database"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,8 @@ func testGoalCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 		UserID:          userID,
 		Name:            "Daily Weight",
 		TargetValue:     70.0,
-		TargetCol:       string(database.TargetColumnBodyWeightKg),
+		TargetCol:       string(database.TargetColumnBodyMetric),
+		TargetMetric:    "Weight",
 		AggregationType: string(database.AggregationAvg),
 		ValueComparison: string(database.ComparisonLessThan),
 		TimeExpr:        "DAILY",
@@ -37,10 +37,7 @@ func testGoalCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
 	require.Len(t, goals, 1)
 	assert.Equal(t, "Daily Weight", goals[0].Name)
-
-	var progress database.UserGoalProgress
-	require.NoError(t, db.LoadUserGoalProgress(ctx, time.Now(), 0, &goals[0], &progress))
-	assert.InDelta(t, 70.0, progress.TargetValue, 0.001)
+	assert.Equal(t, "Weight", goals[0].TargetMetric)
 
 	require.NoError(t, db.DeleteUserGoal(ctx, userID, goalID))
 
