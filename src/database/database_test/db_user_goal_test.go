@@ -2,6 +2,7 @@ package database_test
 
 import (
 	"karopon/src/database"
+	"strings"
 	"sync"
 	"testing"
 
@@ -44,6 +45,50 @@ func testGoalCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	goals = goals[:0]
 	require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
 	assert.Empty(t, goals)
+}
+
+// testGoalTargetMetricUnitSeparatorDelimiter is a regression test for TIME goals, which
+// encode their selected tags as "namespace:name" strings joined by the ASCII Unit Separator
+// (0x1F) in TargetMetric (see EncodeGoalTags/DecodeGoalTags on the frontend). A NUL byte
+// (0x00) was tried first but Postgres text/varchar columns reject it outright
+// ("invalid byte sequence for encoding UTF8: 0x00"); 0x1F has no such restriction. This
+// confirms the value round-trips through the database exactly.
+func testGoalTargetMetricUnitSeparatorDelimiter(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
+
+	lock.Lock()
+	t.Cleanup(lock.Unlock)
+
+	ctx := t.Context()
+	db := newTestDB(t)
+
+	userID := getTestUser(t, db)
+
+	targetMetric := "tags:one\x1ftags:two\x1ftags:three"
+
+	goal := &database.TblUserGoal{
+		UserID:          userID,
+		Name:            "Weekly Tag Time",
+		TargetValue:     5.0,
+		TargetCol:       string(database.TargetColumnTime),
+		TargetMetric:    targetMetric,
+		AggregationType: string(database.AggregationSum),
+		ValueComparison: string(database.ComparisonGreaterThan),
+		TimeExpr:        "WEEKLY",
+	}
+	goalID, err := db.AddUserGoal(ctx, goal)
+	require.NoError(t, err)
+	require.NotZero(t, goalID)
+
+	var goals []database.TblUserGoal
+	require.NoError(t, db.LoadUserGoals(ctx, userID, &goals))
+	require.Len(t, goals, 1)
+	assert.Equal(
+		t,
+		targetMetric,
+		goals[0].TargetMetric,
+		"TargetMetric should round-trip exactly, including the embedded unit separator bytes",
+	)
+	assert.Len(t, strings.Split(goals[0].TargetMetric, "\x1f"), 3)
 }
 
 func testUpdateUserGoal(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

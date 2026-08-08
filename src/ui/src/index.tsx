@@ -40,7 +40,6 @@ import {
     ApiGetUserNamespaces,
     ApiGetDashboards,
     ApiGetUserTagColors,
-    ApiGetStatsTime,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';

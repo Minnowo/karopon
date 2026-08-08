@@ -1,8 +1,20 @@
 import {GoalTargetColumn, GoalTimeExpr, TblUserGoal} from '../../api/types';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
-import {ApiGetBodyLogStatsTime, ApiGetStatsEventLog, ApiGetStatsMacro} from '../../api/api';
+import {ApiGetBodyLogStatsTime, ApiGetStatsEventLog, ApiGetStatsMacro, ApiGetStatsTime} from '../../api/api';
 import {MacronutrientPoint} from '../../api/types_stats_macros';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
+
+const MILLIS_PER_HOUR = 3_600_000;
+
+// TIME goals encode their selected tags as "namespace:name" strings joined by the ASCII Unit
+// Separator (0x1F) inside TblUserGoal.target_metric (opaque to the backend - see
+// TargetColumnTime in user_goals.go). It can't be typed into a tag name, and unlike NUL
+// (0x00) it's a valid byte in a Postgres text/varchar column.
+const GOAL_TAG_DELIMITER = '\x1f';
+
+export const EncodeGoalTags = (tags: string[]): string => tags.join(GOAL_TAG_DELIMITER);
+
+export const DecodeGoalTags = (targetMetric: string): string[] => (targetMetric ? targetMetric.split(GOAL_TAG_DELIMITER) : []);
 
 export type GoalProgress = {
     currentValue: number;
@@ -59,6 +71,16 @@ export const GetGoalCurrentValue = async (goal: TblUserGoal): Promise<number> =>
         }
         const points = await ApiGetBodyLogStatsTime({...request, metrics: [goal.target_metric]});
         return points[0]?.value ?? 0;
+    }
+
+    if (goal.target_col === 'TIME') {
+        const tags = DecodeGoalTags(goal.target_metric);
+        if (tags.length === 0) {
+            return 0;
+        }
+        const points = await ApiGetStatsTime({...request, columns: [], tags});
+        const totalMs = points.reduce((sum, p) => sum + p.duration_milli, 0);
+        return totalMs / MILLIS_PER_HOUR;
     }
 
     const macroKey = MACRO_TARGET_KEY[goal.target_col];

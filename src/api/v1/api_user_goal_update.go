@@ -45,9 +45,12 @@ func (a *APIV1) updateUserGoal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if goal.TargetColumn() == database.TargetColumnBodyMetric && goal.TargetMetric == "" {
-		api.BadReq(w, "TargetMetric is required when TargetColumn is BODY_METRIC.")
-		return
+	switch goal.TargetColumn() {
+	case database.TargetColumnBodyMetric, database.TargetColumnTime:
+		if goal.TargetMetric == "" {
+			api.BadReq(w, "TargetMetric is required for this TargetColumn.")
+			return
+		}
 	}
 
 	if !goal.Comparison().IsValid() {

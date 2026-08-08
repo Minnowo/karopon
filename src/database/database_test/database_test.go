@@ -90,6 +90,10 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 		func(t *testing.T) { testLoadDataSourceFoodBySimilarNameN(t, newTestDB, &lock) },
 	)
 	t.Run("goal_crud", func(t *testing.T) { testGoalCRUD(t, newTestDB, &lock) })
+	t.Run(
+		"goal_target_metric_unit_separator_delimiter",
+		func(t *testing.T) { testGoalTargetMetricUnitSeparatorDelimiter(t, newTestDB, &lock) },
+	)
 	t.Run("UpdateUserGoal", func(t *testing.T) { testUpdateUserGoal(t, newTestDB, &lock) })
 	t.Run("DeleteUserTimespan", func(t *testing.T) { testDeleteUserTimespan(t, newTestDB, &lock) })
 	t.Run("UpdateUserTimespan", func(t *testing.T) { testUpdateUserTimespan(t, newTestDB, &lock) })

@@ -184,6 +184,7 @@ export const GoalTargetColumnValues = [
     'PROTEIN',
     'BLOOD_SUGAR',
     'BODY_METRIC',
+    'TIME',
 ] as const;
 export type GoalTargetColumn = (typeof GoalTargetColumnValues)[number];
 

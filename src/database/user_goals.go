@@ -22,6 +22,10 @@ const (
 	// TargetColumnBodyMetric targets a user-defined body metric (see TblUserBodyMetric),
 	// identified by name via TblUserGoal.TargetMetric.
 	TargetColumnBodyMetric GoalTargetColumn = "BODY_METRIC"
+	// TargetColumnTime targets the summed duration of one or more tags (see TblUserTag),
+	// encoded via TblUserGoal.TargetMetric. The encoding is opaque to the backend - it is
+	// only interpreted client-side (currently a JSON array of "namespace:name" strings).
+	TargetColumnTime GoalTargetColumn = "TIME"
 )
 
 var (
@@ -38,7 +42,8 @@ func (a GoalTargetColumn) IsValid() bool {
 		TargetColumnFibre,
 		TargetColumnProtein,
 		TargetColumnEventBloodSugar,
-		TargetColumnBodyMetric:
+		TargetColumnBodyMetric,
+		TargetColumnTime:
 		return true
 	default:
 		return false

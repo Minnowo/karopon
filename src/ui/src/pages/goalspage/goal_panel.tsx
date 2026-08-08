@@ -3,7 +3,7 @@ import {TblUserGoal} from '../../api/types';
 import {SnakeCaseToTitle} from '../../utils/strings';
 import {FormatDuration} from '../../utils/time';
 import {DropdownButton} from '../../components/drop_down_button';
-import {GetGoalCurrentValue, GoalTargetTimeRemaining} from './goal_progress';
+import {DecodeGoalTags, GetGoalCurrentValue, GoalTargetTimeRemaining} from './goal_progress';
 
 type GoalPanelProps = {
     goal: TblUserGoal;
@@ -33,10 +33,21 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
                 return 'bg-c-sapphire';
             case 'PROTEIN':
                 return 'bg-c-green';
+            case 'TIME':
+                return 'bg-c-sky';
             default:
                 return 'bg-c-peach';
         }
     })();
+
+    const targetLabel =
+        goal.target_col === 'BODY_METRIC'
+            ? goal.target_metric
+            : goal.target_col === 'TIME'
+              ? DecodeGoalTags(goal.target_metric).join(', ')
+              : SnakeCaseToTitle(goal.target_col);
+
+    const unit = goal.target_col === 'TIME' ? 'h' : '';
 
     return (
         <div className="container-theme">
@@ -57,13 +68,15 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
                 />
             </div>
             <p className="text-sm">
-                Want {goal.target_col === 'BODY_METRIC' ? goal.target_metric : SnakeCaseToTitle(goal.target_col)} to be{' '}
-                {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value.toFixed(1)}
+                Want {targetLabel} to be {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value.toFixed(1)}
+                {unit}
             </p>
             {currentValue !== null ? (
                 <>
                     <p>
-                        Current: {currentValue.toFixed(1)} / {goal.target_value.toFixed(1)}
+                        Current: {currentValue.toFixed(1)}
+                        {unit} / {goal.target_value.toFixed(1)}
+                        {unit}
                     </p>
                     <p className="text-xs">Time remaining: {FormatDuration(Math.max(0, timeRemaining))}</p>
                     <div className="w-full h-2 rounded mt-2 bg-c-surface2">

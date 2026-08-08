@@ -81,6 +81,8 @@ export function GoalsPage(state: BaseState) {
                     onCancel={() => setShowNewGoalPanel(false)}
                     userGoal={newGoal.current}
                     bodyMetrics={state.bodyMetrics}
+                    namespaces={state.namespaces}
+                    setNamespaces={state.setNamespaces}
                 />
             )}
 
@@ -99,6 +101,8 @@ export function GoalsPage(state: BaseState) {
                                     onUpdated={updateGoal}
                                     onCancel={() => setEditingGoal(null)}
                                     bodyMetrics={state.bodyMetrics}
+                                    namespaces={state.namespaces}
+                                    setNamespaces={state.setNamespaces}
                                 />
                             ) : (
                                 <GoalPanel

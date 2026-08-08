@@ -1,4 +1,4 @@
-import {useId, useMemo, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useId, useMemo, useState} from 'preact/hooks';
 import {
     GoalAggregationType,
     GoalAggregationTypeValues,
@@ -16,17 +16,31 @@ import {DoRender} from '../../hooks/doRender';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
 import {SnakeCaseToTitle} from '../../utils/strings';
+import {TagInput} from '../../components/tag_input';
+import {SplitTag, TagToString} from '../../utils/tags';
+import {DecodeGoalTags, EncodeGoalTags} from './goal_progress';
 
 type Props = {
     userGoal: TblUserGoal;
     bodyMetrics: TblUserBodyMetric[];
+    namespaces: string[];
+    setNamespaces: Dispatch<StateUpdater<string[]>>;
     onCreated: (goal: TblUserGoal) => void;
     onUpdated?: (goal: TblUserGoal) => void;
     onCancel: () => void;
     className?: string;
 };
 
-export function GoalCreationPanel({userGoal, bodyMetrics, onCreated, onUpdated, onCancel, className = ''}: Props) {
+export function GoalCreationPanel({
+    userGoal,
+    bodyMetrics,
+    namespaces,
+    setNamespaces,
+    onCreated,
+    onUpdated,
+    onCancel,
+    className = '',
+}: Props) {
     const [error, setError] = useState<string | null>(null);
     const goal = useMemo(() => ({...userGoal}), [userGoal]);
     const render = DoRender();
@@ -54,6 +68,10 @@ export function GoalCreationPanel({userGoal, bodyMetrics, onCreated, onUpdated, 
         }
         if (goal.target_col === 'BODY_METRIC' && !goal.target_metric) {
             setError('Please select a body metric.');
+            return;
+        }
+        if (goal.target_col === 'TIME' && DecodeGoalTags(goal.target_metric).length === 0) {
+            setError('Please select at least one tag.');
             return;
         }
 
@@ -208,6 +226,24 @@ export function GoalCreationPanel({userGoal, bodyMetrics, onCreated, onUpdated, 
                     </div>
                 )}
 
+                {goal.target_col === 'TIME' && (
+                    <div title="Tags this goal tracks. Their durations are summed together.">
+                        <label className="block text-sm font-medium" htmlFor={targetMetricId}>
+                            Tags
+                        </label>
+                        <TagInput
+                            id={targetMetricId}
+                            namespaces={namespaces}
+                            setNamespaces={setNamespaces}
+                            thisTags={DecodeGoalTags(goal.target_metric).map(SplitTag)}
+                            onChange={(tags) => {
+                                goal.target_metric = EncodeGoalTags(tags.map(TagToString));
+                                render();
+                            }}
+                        />
+                    </div>
+                )}
+
                 <div title="Target value is the target number you want to reach.">
                     <label className="block text-sm font-medium" htmlFor={targetValueId}>
                         Target Value
@@ -225,8 +261,13 @@ export function GoalCreationPanel({userGoal, bodyMetrics, onCreated, onUpdated, 
 
                 <div>
                     My {SnakeCaseToTitle(goal.time_expr)} goal is for the {SnakeCaseToTitle(goal.aggregation_type)} of my{' '}
-                    {goal.target_col === 'BODY_METRIC' ? goal.target_metric || '...' : SnakeCaseToTitle(goal.target_col)} to be{' '}
-                    {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}.
+                    {goal.target_col === 'BODY_METRIC'
+                        ? goal.target_metric || '...'
+                        : goal.target_col === 'TIME'
+                          ? DecodeGoalTags(goal.target_metric).join(', ') || '...'
+                          : SnakeCaseToTitle(goal.target_col)}{' '}
+                    to be {SnakeCaseToTitle(goal.value_comparison)} {goal.target_value}
+                    {goal.target_col === 'TIME' ? ' hours' : ''}.
                 </div>
 
                 <div className="flex justify-end gap-2">
