@@ -85,6 +85,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("UpdateUserEventFoodLog", func(t *testing.T) { testUpdateUserEventFoodLog(t, newTestDB, &lock) })
 	t.Run("bodylog_crud", func(t *testing.T) { testBodylogCRUD(t, newTestDB, &lock) })
 	t.Run("UpdateUserBodyLog", func(t *testing.T) { testUpdateUserBodyLog(t, newTestDB, &lock) })
+	t.Run("DeleteUserBodyMetric", func(t *testing.T) { testDeleteUserBodyMetric(t, newTestDB, &lock) })
 	t.Run(
 		"LoadDataSourceFoodBySimilarNameN",
 		func(t *testing.T) { testLoadDataSourceFoodBySimilarNameN(t, newTestDB, &lock) },

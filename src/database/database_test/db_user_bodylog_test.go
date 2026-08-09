@@ -164,3 +164,63 @@ func testUpdateUserBodyLog(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 	require.Len(t, logs, 1)
 	require.Len(t, logs[0].Metrics, 2, "metrics should be unchanged after wrong-user update")
 }
+
+func testDeleteUserBodyMetric(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
+
+	lock.Lock()
+	t.Cleanup(lock.Unlock)
+
+	ctx := t.Context()
+	db := newTestDB(t)
+
+	userID := getTestUser(t, db)
+
+	weightMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Weight", Unit: "kg"}
+	weightMetricID, err := db.AddUserBodyMetric(ctx, weightMetric)
+	require.NoError(t, err)
+
+	stepsMetric := &database.TblUserBodyMetric{UserID: userID, Name: "Steps", Unit: "steps"}
+	stepsMetricID, err := db.AddUserBodyMetric(ctx, stepsMetric)
+	require.NoError(t, err)
+
+	entry := &database.UserBodyLog{
+		BodyLog: database.TblUserBodyLog{UserID: userID, UserTime: database.TimeMillis(time.Now())},
+		Metrics: []database.TblUserBodyLogMetric{
+			{BodyMetricID: weightMetricID, Value: 75.5},
+			{BodyMetricID: stepsMetricID, Value: 5000},
+		},
+	}
+	id, err := db.AddUserBodyLogs(ctx, entry)
+	require.NoError(t, err)
+	require.NotZero(t, id)
+
+	// Deleting a metric that still has logged values must not fail with a foreign
+	// key violation - the logged values for it should just disappear.
+	require.NoError(t, db.DeleteUserBodyMetric(ctx, userID, weightMetricID))
+
+	var metrics []database.TblUserBodyMetric
+	require.NoError(t, db.LoadUserBodyMetrics(ctx, userID, &metrics))
+	require.Len(t, metrics, 1)
+	assert.Equal(t, stepsMetricID, metrics[0].ID)
+
+	var logs []database.UserBodyLog
+	require.NoError(t, db.LoadUserBodyLogs(ctx, userID, &logs))
+	require.Len(t, logs, 1, "the bodylog entry itself should survive")
+	require.Len(t, logs[0].Metrics, 1, "only the deleted metric's value should be gone")
+	assert.Equal(t, stepsMetricID, logs[0].Metrics[0].BodyMetricID)
+
+	// Deleting a body metric that belongs to a different user should fail and not
+	// touch that user's data.
+	otherUserID := getTestUser2(t, db)
+	otherUserMetric := &database.TblUserBodyMetric{UserID: otherUserID, Name: "Weight", Unit: "kg"}
+	otherUserMetricID, err := db.AddUserBodyMetric(ctx, otherUserMetric)
+	require.NoError(t, err)
+
+	err = db.DeleteUserBodyMetric(ctx, userID, otherUserMetricID)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, database.ErrUserDoesNotHaveThisID))
+
+	var otherMetrics []database.TblUserBodyMetric
+	require.NoError(t, db.LoadUserBodyMetrics(ctx, otherUserID, &otherMetrics))
+	require.Len(t, otherMetrics, 1, "the other user's metric should be untouched")
+}
