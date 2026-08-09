@@ -17,6 +17,11 @@ var assets embed.FS
 
 var mainJsPath = "dist/static/main.js"
 var mainCSSPath = "dist/static/main.css"
+var manifestPath = "dist/manifest.json"
+var icon192Path = "dist/icons/icon-192.png"
+var icon512Path = "dist/icons/icon-512.png"
+var appleTouchIconPath = "dist/icons/apple-touch-icon.png"
+var faviconPath = "dist/icons/favicon.png"
 var indexHTML []byte
 
 func init() {
@@ -58,8 +63,11 @@ func init() {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="dark" />
+        <meta name="theme-color" content="#1b1b1b" />
         <title>Karopon</title>
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />`))
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/png" href="/icons/favicon.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />`))
 
 	// Invalidate the cache of these if the server restarts
 	{
@@ -92,6 +100,11 @@ func Register(r *mux.Router) {
 
 	r.Handle("/static/main.js", serveFile(mainJsPath, "text/javascript"))
 	r.Handle("/static/main.css", serveFile(mainCSSPath, "text/css"))
+	r.Handle("/manifest.json", serveFile(manifestPath, "application/manifest+json"))
+	r.Handle("/icons/icon-192.png", serveFile(icon192Path, "image/png"))
+	r.Handle("/icons/icon-512.png", serveFile(icon512Path, "image/png"))
+	r.Handle("/icons/apple-touch-icon.png", serveFile(appleTouchIconPath, "image/png"))
+	r.Handle("/icons/favicon.png", serveFile(faviconPath, "image/png"))
 
 	r.HandleFunc("/", serveIndex)
 	r.HandleFunc("/index.html", serveIndex)
