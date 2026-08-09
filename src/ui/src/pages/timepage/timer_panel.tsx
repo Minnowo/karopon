@@ -4,9 +4,17 @@ import {TagInput} from '../../components/tag_input';
 import {TimeInput} from '../../components/time_input';
 import {FormatTimerTimestamp} from '../../utils/date_utils';
 import {FormatDuration} from '../../utils/time';
-import {TimeNowContext} from './context';
+import {useTimeNow} from '../../hooks/useTimeNow';
 
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
+
+// Isolated so the once-a-second tick only re-renders this small span, not the
+// whole TimerPanel, and so the shared ticker is only subscribed to while a timer
+// is actually running.
+const RunningDuration = ({startTime}: {startTime: number}) => {
+    const now = useTimeNow();
+    return <span className="wsnw">{FormatDuration(now - startTime)}</span>;
+};
 
 type TimerPanelProps = {
     timeformat: UserTimeFormat;
@@ -102,9 +110,7 @@ export const TimerPanel = ({
                         </div>
                         <div className="wsnw">
                             {running ? (
-                                <TimeNowContext.Consumer>
-                                    {(now) => <span className="wsnw">{FormatDuration(now - timer.timespan.start_time)}</span>}
-                                </TimeNowContext.Consumer>
+                                <RunningDuration startTime={timer.timespan.start_time} />
                             ) : (
                                 <span className="wsnw">
                                     {FormatDuration(timer.timespan.stop_time - timer.timespan.start_time)}

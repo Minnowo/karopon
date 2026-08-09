@@ -1,7 +1,6 @@
-import {Dispatch, StateUpdater, useEffect, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater} from 'preact/hooks';
 import {TaggedTimespan, TblUserTimespan, UserTimeFormat} from '../../api/types';
 import {TimerPanel} from './timer_panel';
-import {TimeNowContext} from './context';
 
 type ActiveTimerPanelProps = {
     timeformat: UserTimeFormat;
@@ -30,18 +29,6 @@ export const ActiveTimerPanel = ({
     editTimer,
     deleteTimer,
 }: ActiveTimerPanelProps) => {
-    const [timeNow, setTimeNow] = useState<number>(Date.now());
-
-    useEffect(() => {
-        if (timers.length <= 0) {
-            return;
-        }
-
-        const ticker = setInterval(() => setTimeNow(Date.now()), 1000);
-
-        return () => clearInterval(ticker);
-    }, [timers]);
-
     if (timers.length <= 0) {
         return;
     }
@@ -49,26 +36,22 @@ export const ActiveTimerPanel = ({
     return (
         <div className="grid gap-2">
             <h1> Active Timers </h1>
-            {timers.length > 0 && (
-                <TimeNowContext.Provider value={timeNow}>
-                    {timers.map((ts: TaggedTimespan) => (
-                        <TimerPanel
-                            key={ts.timespan.id}
-                            timeformat={timeformat}
-                            namespaces={namespaces}
-                            setNamespaces={setNamespaces}
-                            tagColors={tagColors}
-                            timer={ts}
-                            updateTimespan={updateTimespan}
-                            updateTags={updateTags}
-                            continueTimer={continueTimer}
-                            deleteTimer={deleteTimer}
-                            editTimer={editTimer}
-                            stopTimer={stopTimer}
-                        />
-                    ))}
-                </TimeNowContext.Provider>
-            )}
+            {timers.map((ts: TaggedTimespan) => (
+                <TimerPanel
+                    key={ts.timespan.id}
+                    timeformat={timeformat}
+                    namespaces={namespaces}
+                    setNamespaces={setNamespaces}
+                    tagColors={tagColors}
+                    timer={ts}
+                    updateTimespan={updateTimespan}
+                    updateTags={updateTags}
+                    continueTimer={continueTimer}
+                    deleteTimer={deleteTimer}
+                    editTimer={editTimer}
+                    stopTimer={stopTimer}
+                />
+            ))}
         </div>
     );
 };
