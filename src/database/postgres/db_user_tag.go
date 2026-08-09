@@ -20,6 +20,28 @@ func (db *PGDatabase) AddUserTag(ctx context.Context, tag *database.TblUserTag) 
 	return db.NamedInsertReturningID(ctx, query, tag)
 }
 
+func (db *PGDatabase) GetOrCreateUserTag(ctx context.Context, userID int, namespace, name string) (int, error) {
+
+	query := `
+		WITH ins AS (
+			INSERT INTO PON.USER_TAG (user_id, namespace, name)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (user_id, namespace, name) DO NOTHING
+			RETURNING id
+		)
+		SELECT id FROM ins
+			UNION ALL
+		SELECT id FROM PON.USER_TAG WHERE user_id = $1 AND namespace = $2 AND name = $3
+		LIMIT 1
+	`
+
+	var id int
+
+	err := db.GetContext(ctx, &id, query, userID, namespace, name)
+
+	return id, err
+}
+
 func (db *PGDatabase) DeleteUserTag(ctx context.Context, userID int, namespace, name string) error {
 
 	query := `DELETE FROM PON.USER_TAG WHERE USER_ID = $1 AND NAMESPACE = $2 AND NAME = $3`

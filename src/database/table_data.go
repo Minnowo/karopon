@@ -298,6 +298,34 @@ type TblUserTimespanTag struct {
 	TagID      int `db:"tag_id"      json:"tag_id"`
 }
 
+// TblUserActivity is a reusable break-activity definition (e.g. "Calf raises"),
+// modeled on TblUserFood: a shape the user defines once and logs instances of
+// later as tagged timespans.
+type TblUserActivity struct {
+	ID       int    `db:"id"       json:"id"`
+	UserID   int    `db:"user_id"  json:"-"`
+	Name     string `db:"name"     json:"name"`
+	TagID    int    `db:"tag_id"   json:"-"`
+	Duration int    `db:"duration" json:"duration"`
+	Note     string `db:"note"     json:"note"`
+}
+
+// TblUserReminder is a user-configured recurring nudge. LastActivityAt is the
+// anchor the client diffs against (LastActivityAt + IntervalMinutes) to compute
+// its countdown; logging, skipping, or snoozing all just update this timestamp.
+type TblUserReminder struct {
+	ID              int        `db:"id"               json:"id"`
+	UserID          int        `db:"user_id"          json:"-"`
+	Enabled         bool       `db:"enabled"          json:"enabled"`
+	IntervalMinutes int        `db:"interval_minutes" json:"interval_minutes"`
+	LastActivityAt  TimeMillis `db:"last_activity_at" json:"last_activity_at"`
+}
+
+type TblUserReminderActivity struct {
+	ReminderID int `db:"reminder_id" json:"reminder_id"`
+	ActivityID int `db:"activity_id" json:"activity_id"`
+}
+
 type TblUserDashboard struct {
 	ID     int    `db:"id"      json:"id"`
 	UserID int    `db:"user_id" json:"user_id"`

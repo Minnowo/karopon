@@ -44,6 +44,56 @@ type TaggedTimespan struct {
 	Tags     []TblUserTag    `json:"tags"`
 }
 
+// ActivityWithTag embeds an activity's resolved tag, mirroring TaggedTimespan.
+type ActivityWithTag struct {
+	Activity TblUserActivity `json:"activity"`
+	Tag      TblUserTag      `json:"tag"`
+}
+
+// NewUserActivityRequest is the request envelope for creating an activity.
+// The tag is referenced by (namespace, name) rather than ID, consistent with
+// how tags are addressed everywhere else in the API; the server resolves or
+// creates the tag and stores its ID internally.
+type NewUserActivityRequest struct {
+	Name         string `json:"name"`
+	TagNamespace string `json:"tag_namespace"`
+	TagName      string `json:"tag_name"`
+	Duration     int    `json:"duration"`
+	Note         string `json:"note"`
+}
+
+// UpdateUserActivityRequest is the request envelope for updating an activity.
+type UpdateUserActivityRequest struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	TagNamespace string `json:"tag_namespace"`
+	TagName      string `json:"tag_name"`
+	Duration     int    `json:"duration"`
+	Note         string `json:"note"`
+}
+
+// ReminderWithActivities embeds a reminder's linked activities (each with its
+// resolved tag). Activities is always a non-nil (possibly empty) slice: an empty
+// list means a "plain" reminder with no linked activities.
+type ReminderWithActivities struct {
+	Reminder   TblUserReminder   `json:"reminder"`
+	Activities []ActivityWithTag `json:"activities"`
+}
+
+// NewUserReminder is the request envelope for creating a reminder together with
+// its initial set of linked activity IDs.
+type NewUserReminder struct {
+	Reminder    TblUserReminder `json:"reminder"`
+	ActivityIDs []int           `json:"activity_ids"`
+}
+
+// SetUserReminderActivitiesRequest is the request envelope for replacing the
+// set of activities linked to an existing reminder.
+type SetUserReminderActivitiesRequest struct {
+	ReminderID  int   `json:"reminder_id"`
+	ActivityIDs []int `json:"activity_ids"`
+}
+
 type BodyLogMetricPoint struct {
 	Metric string     `json:"metric" db:"metric"`
 	Bucket TimeMillis `json:"bucket" db:"bucket"`

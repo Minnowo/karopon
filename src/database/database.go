@@ -276,6 +276,10 @@ type DB interface {
 	AddUserTag(ctx context.Context, tag *TblUserTag) (int, error)
 	DeleteUserTag(ctx context.Context, userID int, namespace, name string) error
 
+	// GetOrCreateUserTag returns the ID of the tag (userID, namespace, name), creating it if it
+	// does not already exist.
+	GetOrCreateUserTag(ctx context.Context, userID int, namespace, name string) (int, error)
+
 	// UpdateUserTag renames the tag (userID, namespace, name) to (newNamespace, newName).
 	// If a tag already exists at (newNamespace, newName):
 	//   - if merge is false, ErrTagAlreadyExists is returned and nothing is changed.
@@ -316,6 +320,48 @@ type DB interface {
 	// Any tags that do not exist are created for the given userID.
 	// Returns an error for any failures.
 	SetUserTimespanTags(ctx context.Context, userID, timespanID int, tags []TblUserTag) error
+
+	///
+	/// User Activity
+	///
+
+	// AddUserActivity adds a new activity definition and returns its ID, or an error.
+	// Does not edit the given struct.
+	AddUserActivity(ctx context.Context, activity *TblUserActivity) (int, error)
+
+	// LoadUserActivities loads all activity definitions owned by the given user,
+	// with each activity's resolved tag embedded.
+	LoadUserActivities(ctx context.Context, userID int, out *[]ActivityWithTag) error
+
+	// UpdateUserActivity updates the given activity. Does not edit the given struct.
+	UpdateUserActivity(ctx context.Context, activity *TblUserActivity) error
+
+	// DeleteUserActivity deletes an activity by its ID, scoped to the owning user.
+	DeleteUserActivity(ctx context.Context, userID int, activityID int) error
+
+	///
+	/// User Reminder
+	///
+
+	// AddUserReminder adds a new reminder and links it to the given activityIDs,
+	// which must already exist and belong to userID. Returns the reminder ID or an error.
+	AddUserReminder(ctx context.Context, r *TblUserReminder, activityIDs []int) (int, error)
+
+	// LoadUserReminders loads all reminders owned by the given user, with each
+	// reminder's linked activities (and their resolved tags) embedded.
+	LoadUserReminders(ctx context.Context, userID int, out *[]ReminderWithActivities) error
+
+	// UpdateUserReminder updates the reminder's Enabled/IntervalMinutes/LastActivityAt
+	// fields. Does not edit the given struct. Also used for skip/snooze, where the
+	// caller computes the new LastActivityAt.
+	UpdateUserReminder(ctx context.Context, r *TblUserReminder) error
+
+	// SetUserReminderActivities replaces the set of activities linked to a reminder.
+	// All activityIDs must belong to userID, or ErrUserDoesNotHaveThisID is returned.
+	SetUserReminderActivities(ctx context.Context, userID, reminderID int, activityIDs []int) error
+
+	// DeleteUserReminder deletes a reminder by its ID, scoped to the owning user.
+	DeleteUserReminder(ctx context.Context, userID int, reminderID int) error
 
 	// LoadUserDashboards loads all dashboards owned by the given user.
 	LoadUserDashboards(ctx context.Context, userID int, out *[]TblUserDashboard) error

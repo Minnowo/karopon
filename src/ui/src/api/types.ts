@@ -237,6 +237,57 @@ export type TaggedTimespan = {
     tags: TblUserTag[];
 };
 
+export type TblUserActivity = {
+    id: number;
+    name: string;
+    duration: number;
+    note: string;
+};
+
+export type ActivityWithTag = {
+    activity: TblUserActivity;
+    tag: TblUserTag;
+};
+
+export type NewUserActivityRequest = {
+    name: string;
+    tag_namespace: string;
+    tag_name: string;
+    duration: number;
+    note: string;
+};
+
+export type UpdateUserActivityRequest = {
+    id: number;
+    name: string;
+    tag_namespace: string;
+    tag_name: string;
+    duration: number;
+    note: string;
+};
+
+export type TblUserReminder = {
+    id: number;
+    enabled: boolean;
+    interval_minutes: number;
+    last_activity_at: number;
+};
+
+export type ReminderWithActivities = {
+    reminder: TblUserReminder;
+    activities: ActivityWithTag[];
+};
+
+export type NewUserReminder = {
+    reminder: TblUserReminder;
+    activity_ids: number[];
+};
+
+export type SetUserReminderActivitiesRequest = {
+    reminder_id: number;
+    activity_ids: number[];
+};
+
 export type UserSession = {
     created: number;
     expires: number;

@@ -10,6 +10,8 @@ import type {
     TaggedTimespan,
     TblUserDashboard,
     TblUserTagColor,
+    ActivityWithTag,
+    ReminderWithActivities,
 } from '../api/types';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
@@ -24,6 +26,8 @@ const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
 const LOCAL_STORAGE_KEY_DASHBOARDS = 'dashboards';
 const LOCAL_STORAGE_KEY_TAG_COLORS = 'tag_colors';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
+const LOCAL_STORAGE_KEY_ACTIVITIES = 'activities';
+const LOCAL_STORAGE_KEY_REMINDERS = 'reminders';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
 
@@ -63,6 +67,10 @@ export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_
 export const LocalStoreDashboards = (cards: TblUserDashboard[]) => store(LOCAL_STORAGE_KEY_DASHBOARDS, JSON.stringify(cards));
 export const LocalStoreTagColors = (colors: TblUserTagColor[]) => store(LOCAL_STORAGE_KEY_TAG_COLORS, JSON.stringify(colors));
 export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
+export const LocalStoreActivities = (activities: ActivityWithTag[]) =>
+    store(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(activities));
+export const LocalStoreReminders = (reminders: ReminderWithActivities[]) =>
+    store(LOCAL_STORAGE_KEY_REMINDERS, JSON.stringify(reminders));
 
 export const LocalGetServerToken = () => load<string>(LOCAL_STORAGE_KEY_REMOTE_TOKEN, true);
 export const LocalGetServer = () => load<string>(LOCAL_STORAGE_KEY_REMOTE, true);
@@ -78,6 +86,8 @@ export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_
 export const LocalGetDashboards = () => load<TblUserDashboard[]>(LOCAL_STORAGE_KEY_DASHBOARDS);
 export const LocalGetTagColors = () => load<TblUserTagColor[]>(LOCAL_STORAGE_KEY_TAG_COLORS);
 export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
+export const LocalGetActivities = () => load<ActivityWithTag[]>(LOCAL_STORAGE_KEY_ACTIVITIES);
+export const LocalGetReminders = () => load<ReminderWithActivities[]>(LOCAL_STORAGE_KEY_REMINDERS);
 
 export const LocalClearAll = () => {
     try {
@@ -93,6 +103,8 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_DASHBOARDS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_TAG_COLORS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_ACTIVITIES);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_REMINDERS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
     } catch {}
 };

@@ -104,6 +104,9 @@ func TestDB_Postgres(t *testing.T) {
 			"pon.user_tag",
 			"pon.user_timespan",
 			"pon.user_timespan_tag",
+			"pon.user_activity",
+			"pon.user_reminder",
+			"pon.user_reminder_activity",
 		}
 
 		query := `TRUNCATE ` + strings.Join(tbls, ",") + ` RESTART IDENTITY CASCADE`

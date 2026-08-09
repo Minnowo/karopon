@@ -21,6 +21,14 @@ import {
     UserSession,
     TblUserDashboard,
     TblUserTagColor,
+    TblUserActivity,
+    ActivityWithTag,
+    NewUserActivityRequest,
+    UpdateUserActivityRequest,
+    TblUserReminder,
+    ReminderWithActivities,
+    NewUserReminder,
+    SetUserReminderActivitiesRequest,
 } from './types';
 import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
 import {BodyLogStatsTimeRequest, BodyLogMetricPoint} from './types_stats_bodylog';
@@ -378,6 +386,84 @@ export const ApiDeleteUserTimespan = (ts: TblUserTimespan): Promise<void> => {
         },
         method: 'POST',
         body: JSON.stringify(ts),
+    });
+};
+
+export const ApiGetUserActivities = (): Promise<ActivityWithTag[]> => {
+    return fetchJson(`${ApiBase}/api/activities`);
+};
+
+export const ApiNewUserActivity = (req: NewUserActivityRequest): Promise<TblUserActivity> => {
+    return fetchJson(`${ApiBase}/api/activity/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(req),
+    });
+};
+
+export const ApiUpdateUserActivity = (req: UpdateUserActivityRequest): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/activity/update`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(req),
+    });
+};
+
+export const ApiDeleteUserActivity = (activity: TblUserActivity): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/activity/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(activity),
+    });
+};
+
+export const ApiGetUserReminders = (): Promise<ReminderWithActivities[]> => {
+    return fetchJson(`${ApiBase}/api/reminders`);
+};
+
+export const ApiNewUserReminder = (req: NewUserReminder): Promise<TblUserReminder> => {
+    return fetchJson(`${ApiBase}/api/reminder/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(req),
+    });
+};
+
+export const ApiUpdateUserReminder = (reminder: TblUserReminder): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/reminder/update`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(reminder),
+    });
+};
+
+export const ApiUpdateUserReminderActivities = (req: SetUserReminderActivitiesRequest): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/reminder/update/activities`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(req),
+    });
+};
+
+export const ApiDeleteUserReminder = (reminder: TblUserReminder): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/reminder/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(reminder),
     });
 };
 

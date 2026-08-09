@@ -11,6 +11,8 @@ import {
     TaggedTimespan,
     TblUserDashboard,
     TblUserTagColor,
+    ActivityWithTag,
+    ReminderWithActivities,
 } from '../api/types';
 import {ErrorDivMsg} from '../components/error_div';
 
@@ -47,6 +49,12 @@ export type BaseState = {
 
     tagColors: TblUserTagColor[];
     setTagColors: Dispatch<StateUpdater<TblUserTagColor[]>>;
+
+    activities: ActivityWithTag[];
+    setActivities: Dispatch<StateUpdater<ActivityWithTag[]>>;
+
+    reminders: ReminderWithActivities[];
+    setReminders: Dispatch<StateUpdater<ReminderWithActivities[]>>;
 
     dataSources: TblDataSource[] | null;
 

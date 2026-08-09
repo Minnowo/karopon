@@ -139,4 +139,18 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("tag_color_user_isolation", func(t *testing.T) { testTagColorUserIsolation(t, newTestDB, &lock) })
 	t.Run("user_photo_add", func(t *testing.T) { testUserPhotoAdd(t, newTestDB, &lock) })
 	t.Run("user_eventlog_photo_mapping", func(t *testing.T) { testUserEventlogPhotoMapping(t, newTestDB, &lock) })
+	t.Run("activity_crud_1", func(t *testing.T) { testActivityCRUD1(t, newTestDB, &lock) })
+	t.Run("UpdateUserActivity", func(t *testing.T) { testUpdateUserActivity(t, newTestDB, &lock) })
+	t.Run("reminder_crud_plain", func(t *testing.T) { testReminderCRUDPlain(t, newTestDB, &lock) })
+	t.Run("reminder_crud_with_activities", func(t *testing.T) { testReminderCRUDWithActivities(t, newTestDB, &lock) })
+	t.Run(
+		"SetUserReminderActivities_replaces",
+		func(t *testing.T) { testSetUserReminderActivitiesReplaces(t, newTestDB, &lock) },
+	)
+	t.Run("UpdateUserReminder", func(t *testing.T) { testUpdateUserReminder(t, newTestDB, &lock) })
+	t.Run(
+		"SetUserReminderActivities_ownership_check",
+		func(t *testing.T) { testSetUserReminderActivitiesOwnershipCheck(t, newTestDB, &lock) },
+	)
+	t.Run("DeleteUserReminder", func(t *testing.T) { testDeleteUserReminder(t, newTestDB, &lock) })
 }

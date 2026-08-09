@@ -320,6 +320,10 @@ func (p *BaseMockDB) DeleteUserTag(ctx context.Context, userID int, namespace, n
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) GetOrCreateUserTag(ctx context.Context, userID int, namespace, name string) (int, error) {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) UpdateUserTag(
 	ctx context.Context,
 	userID int,
@@ -402,6 +406,50 @@ func (p *BaseMockDB) SetUserTimespanTags(
 	userID, timespanID int,
 	tags []database.TblUserTag,
 ) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserActivity(ctx context.Context, activity *database.TblUserActivity) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserActivities(ctx context.Context, userID int, out *[]database.ActivityWithTag) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserActivity(ctx context.Context, activity *database.TblUserActivity) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserActivity(ctx context.Context, userID int, activityID int) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserReminder(
+	ctx context.Context,
+	r *database.TblUserReminder,
+	activityIDs []int,
+) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserReminders(ctx context.Context, userID int, out *[]database.ReminderWithActivities) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserReminder(ctx context.Context, r *database.TblUserReminder) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) SetUserReminderActivities(
+	ctx context.Context,
+	userID, reminderID int,
+	activityIDs []int,
+) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserReminder(ctx context.Context, userID int, reminderID int) error {
 	panic("not implemented")
 }
 

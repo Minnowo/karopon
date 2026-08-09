@@ -45,6 +45,9 @@ func TestDB_Sqlite(t *testing.T) {
 			"PON_USER_TAG",
 			"PON_USER_TIMESPAN",
 			"PON_USER_TIMESPAN_TAG",
+			"PON_USER_ACTIVITY",
+			"PON_USER_REMINDER",
+			"PON_USER_REMINDER_ACTIVITY",
 		}
 
 		err = conn.WithTx(t.Context(), func(tx *sqlx.Tx) error {

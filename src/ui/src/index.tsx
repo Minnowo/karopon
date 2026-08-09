@@ -25,6 +25,8 @@ import {
     TaggedTimespan,
     TblUserDashboard,
     TblUserTagColor,
+    ActivityWithTag,
+    ReminderWithActivities,
 } from './api/types';
 import {
     ApiGetUserFoods,
@@ -40,6 +42,8 @@ import {
     ApiGetUserNamespaces,
     ApiGetDashboards,
     ApiGetUserTagColors,
+    ApiGetUserActivities,
+    ApiGetUserReminders,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
 import {EventsPage} from './pages/eventpage';
@@ -69,6 +73,10 @@ import {
     LocalStoreNamespaces,
     LocalStoreTimespans,
     LocalStoreUser,
+    LocalGetActivities,
+    LocalStoreActivities,
+    LocalGetReminders,
+    LocalStoreReminders,
 } from './utils/localstate';
 import {ErrorDiv, ErrorDivMsg} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
@@ -78,6 +86,8 @@ import {BodyMetricsPage} from './pages/bodymetricspage';
 import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
+import {ActivityPage} from './pages/activitypage';
+import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
 
 export const App = () => {
     // This cookie is set when there is a valid auth token cookie.
@@ -95,6 +105,8 @@ export const App = () => {
     const [timespans, setTimespans] = useState<TaggedTimespan[]>(LocalGetTimespans() ?? []);
     const [dashboards, setDashboards] = useState<TblUserDashboard[]>(LocalGetDashboards() ?? []);
     const [tagColors, setTagColors] = useState<TblUserTagColor[]>(LocalGetTagColors() ?? []);
+    const [activities, setActivities] = useState<ActivityWithTag[]>(LocalGetActivities() ?? []);
+    const [reminders, setReminders] = useState<ReminderWithActivities[]>(LocalGetReminders() ?? []);
     const [dataSources, setDataSources] = useState<TblDataSource[]>(LocalGetDataSources() ?? []);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
@@ -176,6 +188,18 @@ export const App = () => {
     }, [tagColors]);
 
     useLayoutEffect(() => {
+        if (activities !== null) {
+            LocalStoreActivities(activities);
+        }
+    }, [activities]);
+
+    useLayoutEffect(() => {
+        if (reminders !== null) {
+            LocalStoreReminders(reminders);
+        }
+    }, [reminders]);
+
+    useLayoutEffect(() => {
         if (dataSources !== null) {
             LocalStoreDataSources(dataSources);
         }
@@ -198,6 +222,8 @@ export const App = () => {
                     ApiGetUserTimespans(me.timespan_history_fetch_limit).then(setTimespans),
                     ApiGetDashboards().then(setDashboards),
                     ApiGetUserTagColors().then(setTagColors),
+                    ApiGetUserActivities().then(setActivities),
+                    ApiGetUserReminders().then(setReminders),
                 ];
 
                 Promise.allSettled(requests).then((results) => {
@@ -246,6 +272,38 @@ export const App = () => {
                 )}
             </>
 
+            <ReminderPromptPanel
+                user={user}
+                setUser={setUser}
+                foods={foods}
+                setFoods={setFoods}
+                events={events}
+                setEvents={setEvents}
+                eventlogs={eventlogs}
+                setEventLogs={setEventLogsWithFoodlogs}
+                goals={goals}
+                setGoals={setGoals}
+                bodylogs={bodylogs}
+                bodyMetrics={bodyMetrics}
+                dataSources={dataSources}
+                setBodyLogs={setBodyLogs}
+                setBodyMetrics={setBodyMetrics}
+                namespaces={namespaces}
+                setNamespaces={setNamespaces}
+                timespans={timespans}
+                setTimespans={setTimespans}
+                dashboards={dashboards}
+                setDashboards={setDashboards}
+                tagColors={tagColors}
+                setTagColors={setTagColors}
+                activities={activities}
+                setActivities={setActivities}
+                reminders={reminders}
+                setReminders={setReminders}
+                setErrorMsg={setErrorMsg}
+                doRefresh={doRefresh}
+            />
+
             <Header user={user} />
 
             <div className="m-auto md:max-w-[800px]">
@@ -279,6 +337,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -309,6 +371,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -340,6 +406,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -370,6 +440,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -400,6 +474,44 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#activity':
+                            return (
+                                <ActivityPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -430,6 +542,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -460,6 +576,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -490,6 +610,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -519,6 +643,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     dataSources={dataSources}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
@@ -550,6 +678,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
@@ -580,6 +712,10 @@ export const App = () => {
                                     setDashboards={setDashboards}
                                     tagColors={tagColors}
                                     setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
                                     setErrorMsg={setErrorMsg}
                                     doRefresh={doRefresh}
                                 />
