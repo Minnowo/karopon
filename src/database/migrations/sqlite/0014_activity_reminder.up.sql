@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS PON_USER_REMINDER (
     INTERVAL_MINUTES    INTEGER NOT NULL,
     LAST_ACTIVITY_AT    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    -- Minimal cron-like schedule string: "D:HHMM-HHMM" windows (day 0=Sun..6=Sat)
+    -- joined by the ASCII Unit Separator (0x1F), same encoding as goalspage's tag
+    -- based goals. Interpreted entirely client-side; empty string means the reminder
+    -- never fires.
+    CRON                TEXT NOT NULL DEFAULT '',
+
     FOREIGN KEY (USER_ID) REFERENCES PON_USER(ID)
 );
 

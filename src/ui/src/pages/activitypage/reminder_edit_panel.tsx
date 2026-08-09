@@ -3,21 +3,44 @@ import {ActivityWithTag, ReminderWithActivities} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {AddReminderPanel} from './add_reminder_panel';
 import {FormatDuration} from '../../utils/time';
+import {DAY_NAMES, MinutesToTimeInputValue, ParseCronSchedule} from '../../utils/reminder_schedule';
 
 type ReminderEditPanelProps = {
     activities: ActivityWithTag[];
+    hour12: boolean;
     reminderWithActivities: ReminderWithActivities;
     updateReminder: (
         reminderID: number,
         enabled: boolean,
         intervalMinutes: number,
+        cron: string,
         activityIDs: number[],
         activityIDsChanged: boolean
     ) => void;
     deleteReminder: (reminderWithActivities: ReminderWithActivities) => void;
 };
 
-export function ReminderEditPanel({activities, reminderWithActivities, updateReminder, deleteReminder}: ReminderEditPanelProps) {
+const FormatScheduleSummary = (cron: string): string => {
+    const windows = ParseCronSchedule(cron);
+
+    if (windows.length === 0) {
+        return 'No active windows - this reminder will never fire';
+    }
+
+    return windows
+        .slice()
+        .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startMinute - b.startMinute)
+        .map((w) => `${DAY_NAMES[w.dayOfWeek]} ${MinutesToTimeInputValue(w.startMinute)}-${MinutesToTimeInputValue(w.endMinute)}`)
+        .join(', ');
+};
+
+export function ReminderEditPanel({
+    activities,
+    hour12,
+    reminderWithActivities,
+    updateReminder,
+    deleteReminder,
+}: ReminderEditPanelProps) {
     const [showEdit, setShowEdit] = useState(false);
     // Computed once on page load, not ticked, per the "no need for this to tick" requirement.
     const [now] = useState(() => Date.now());
@@ -29,19 +52,21 @@ export function ReminderEditPanel({activities, reminderWithActivities, updateRem
         return (
             <AddReminderPanel
                 activities={activities}
+                hour12={hour12}
                 title="Edit Reminder"
                 submitLabel="Save"
                 initial={{
                     enabled: reminder.enabled,
                     intervalMinutes: reminder.interval_minutes,
                     activityIDs: initialActivityIDs,
+                    cron: reminder.cron,
                 }}
-                onCreate={({enabled, intervalMinutes, activityIDs}) => {
+                onCreate={({enabled, intervalMinutes, activityIDs, cron}) => {
                     const sortedInitial = [...initialActivityIDs].sort();
                     const sortedNew = [...activityIDs].sort();
                     const activityIDsChanged = JSON.stringify(sortedInitial) !== JSON.stringify(sortedNew);
 
-                    updateReminder(reminder.id, enabled, intervalMinutes, activityIDs, activityIDsChanged);
+                    updateReminder(reminder.id, enabled, intervalMinutes, cron, activityIDs, activityIDsChanged);
                     setShowEdit(false);
                 }}
                 onCancel={() => setShowEdit(false)}
@@ -66,6 +91,7 @@ export function ReminderEditPanel({activities, reminderWithActivities, updateRem
                         {msUntilDue <= 0 ? 'Due now' : `Next in ${FormatDuration(msUntilDue)}`}
                     </div>
                 )}
+                <div className="text-sm text-c-subtext">{FormatScheduleSummary(reminder.cron)}</div>
                 <div className="text-sm text-c-subtext">
                     {linkedActivities.length === 0
                         ? 'Plain reminder, no activities'

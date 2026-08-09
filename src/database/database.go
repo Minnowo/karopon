@@ -351,7 +351,7 @@ type DB interface {
 	// reminder's linked activities (and their resolved tags) embedded.
 	LoadUserReminders(ctx context.Context, userID int, out *[]ReminderWithActivities) error
 
-	// UpdateUserReminder updates the reminder's Enabled/IntervalMinutes/LastActivityAt
+	// UpdateUserReminder updates the reminder's Enabled/IntervalMinutes/LastActivityAt/Cron
 	// fields. Does not edit the given struct. Also used for skip/snooze, where the
 	// caller computes the new LastActivityAt.
 	UpdateUserReminder(ctx context.Context, r *TblUserReminder) error

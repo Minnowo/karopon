@@ -1,6 +1,7 @@
 import {useEffect, useMemo, useRef} from 'preact/hooks';
 import {ReminderWithActivities} from '../api/types';
 import {useTimeNow} from './useTimeNow';
+import {IsWithinSchedule, ParseCronSchedule} from '../utils/reminder_schedule';
 
 // Due-checking doesn't need second-level precision, so this re-renders far less often
 // than the shared 1s tick.
@@ -9,7 +10,8 @@ const CHECK_INTERVAL_MS = 10_000;
 // Determines which (if any) reminder is currently due, reading the current time from
 // the shared ticker (useTimeNow) instead of running its own interval.
 // The server does not run a live countdown; due-ness is computed client-side from
-// last_activity_at + interval.
+// last_activity_at + interval, and only counts while the reminder's cron schedule
+// says the current day/time is an active window.
 export const useReminderNotifications = (reminders: ReminderWithActivities[]) => {
     const anyEnabled = reminders.some((r) => r.reminder.enabled);
 
@@ -36,6 +38,7 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
 
     return useMemo(() => {
         let dueReminder: ReminderWithActivities | null = null;
+        const now = new Date(timeNow);
 
         for (const r of reminders) {
             if (!r.reminder.enabled) {
@@ -45,6 +48,10 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
             const dueAt = r.reminder.last_activity_at + r.reminder.interval_minutes * 60000;
 
             if (timeNow < dueAt) {
+                continue;
+            }
+
+            if (!IsWithinSchedule(ParseCronSchedule(r.reminder.cron), now)) {
                 continue;
             }
 

@@ -271,6 +271,11 @@ export type TblUserReminder = {
     enabled: boolean;
     interval_minutes: number;
     last_activity_at: number;
+    // Minimal cron-like schedule string: "D:HHMM-HHMM" windows (day 0=Sun..6=Sat)
+    // joined by the ASCII Unit Separator - see utils/reminder_schedule.ts, which
+    // mirrors goalspage/goal_progress.ts's tag encoding. Empty string means the
+    // reminder never fires.
+    cron: string;
 };
 
 export type ReminderWithActivities = {

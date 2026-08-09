@@ -313,12 +313,19 @@ type TblUserActivity struct {
 // TblUserReminder is a user-configured recurring nudge. LastActivityAt is the
 // anchor the client diffs against (LastActivityAt + IntervalMinutes) to compute
 // its countdown; logging, skipping, or snoozing all just update this timestamp.
+// Cron is a minimal cron-like schedule string: a flat list of "D:HHMM-HHMM" windows
+// (day 0=Sunday..6=Saturday matching JS Date.getDay()) joined by the ASCII Unit
+// Separator (0x1F, unreachable from a keyboard), mirroring how goalspage's tag-based
+// goals encode their tag list into TblUserGoal.TargetMetric. It is opaque to the
+// backend and interpreted entirely client-side; an empty string means the reminder
+// never fires.
 type TblUserReminder struct {
 	ID              int        `db:"id"               json:"id"`
 	UserID          int        `db:"user_id"          json:"-"`
 	Enabled         bool       `db:"enabled"          json:"enabled"`
 	IntervalMinutes int        `db:"interval_minutes" json:"interval_minutes"`
 	LastActivityAt  TimeMillis `db:"last_activity_at" json:"last_activity_at"`
+	Cron            string     `db:"cron"             json:"cron"`
 }
 
 type TblUserReminderActivity struct {

@@ -9,7 +9,13 @@ import {
     ApiUpdateUserReminderActivities,
     ApiDeleteUserReminder,
 } from '../../api/api';
-import {ActivityWithTag, NewUserActivityRequest, ReminderWithActivities, UpdateUserActivityRequest} from '../../api/types';
+import {
+    ActivityWithTag,
+    NewUserActivityRequest,
+    ReminderWithActivities,
+    UpdateUserActivityRequest,
+    UserTimeFormat,
+} from '../../api/types';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {GetErrorHandler} from '../../utils/error';
 import {AddActivityPanel} from './add_activity_panel';
@@ -21,6 +27,8 @@ export const ActivityPage = (state: BaseState) => {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [showAddActivityPanel, setShowAddActivityPanel] = useState<boolean>(false);
     const [showAddReminderPanel, setShowAddReminderPanel] = useState<boolean>(false);
+
+    const hour12 = state.user.time_format === UserTimeFormat.Hour12;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
@@ -74,9 +82,9 @@ export const ActivityPage = (state: BaseState) => {
             .catch(handleErr);
     };
 
-    const addReminder = (enabled: boolean, intervalMinutes: number, activityIDs: number[]) => {
+    const addReminder = (enabled: boolean, intervalMinutes: number, cron: string, activityIDs: number[]) => {
         ApiNewUserReminder({
-            reminder: {id: 0, enabled, interval_minutes: intervalMinutes, last_activity_at: new Date().getTime()},
+            reminder: {id: 0, enabled, interval_minutes: intervalMinutes, last_activity_at: new Date().getTime(), cron},
             activity_ids: activityIDs,
         })
             .then((reminder) => {
@@ -92,6 +100,7 @@ export const ActivityPage = (state: BaseState) => {
         reminderID: number,
         enabled: boolean,
         intervalMinutes: number,
+        cron: string,
         activityIDs: number[],
         activityIDsChanged: boolean
     ) => {
@@ -101,7 +110,7 @@ export const ActivityPage = (state: BaseState) => {
             return;
         }
 
-        const updatedReminder = {...existing.reminder, enabled, interval_minutes: intervalMinutes};
+        const updatedReminder = {...existing.reminder, enabled, interval_minutes: intervalMinutes, cron};
 
         const ops = [ApiUpdateUserReminder(updatedReminder)];
 
@@ -152,7 +161,10 @@ export const ActivityPage = (state: BaseState) => {
                 <AddReminderPanel
                     className="mb-4"
                     activities={state.activities}
-                    onCreate={({enabled, intervalMinutes, activityIDs}) => addReminder(enabled, intervalMinutes, activityIDs)}
+                    hour12={hour12}
+                    onCreate={({enabled, intervalMinutes, cron, activityIDs}) =>
+                        addReminder(enabled, intervalMinutes, cron, activityIDs)
+                    }
                     onCancel={() => setShowAddReminderPanel(false)}
                 />
             )}
@@ -179,6 +191,7 @@ export const ActivityPage = (state: BaseState) => {
                             <ReminderEditPanel
                                 key={r.reminder.id}
                                 activities={state.activities}
+                                hour12={hour12}
                                 reminderWithActivities={r}
                                 updateReminder={updateReminder}
                                 deleteReminder={deleteReminder}

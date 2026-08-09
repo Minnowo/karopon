@@ -23,9 +23,9 @@ func (db *SqliteDatabase) AddUserReminder(
 
 		query := `
 			INSERT INTO PON_USER_REMINDER (
-				USER_ID, ENABLED, INTERVAL_MINUTES, LAST_ACTIVITY_AT
+				USER_ID, ENABLED, INTERVAL_MINUTES, LAST_ACTIVITY_AT, CRON
 			) VALUES (
-				:USER_ID, :ENABLED, :INTERVAL_MINUTES, :LAST_ACTIVITY_AT
+				:USER_ID, :ENABLED, :INTERVAL_MINUTES, :LAST_ACTIVITY_AT, :CRON
 			)
 		`
 
@@ -56,7 +56,8 @@ func (db *SqliteDatabase) UpdateUserReminder(ctx context.Context, r *database.Tb
 		SET
 			ENABLED = :ENABLED,
 			INTERVAL_MINUTES = :INTERVAL_MINUTES,
-			LAST_ACTIVITY_AT = :LAST_ACTIVITY_AT
+			LAST_ACTIVITY_AT = :LAST_ACTIVITY_AT,
+			CRON = :CRON
 		WHERE ID = :ID AND USER_ID = :USER_ID
 	`
 
@@ -87,7 +88,7 @@ func (db *SqliteDatabase) LoadUserReminders(
 
 	query := `
 		SELECT
-			r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT,
+			r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON,
 			CASE
 				WHEN COUNT(a.ID) = 0 THEN NULL
 				ELSE json_group_array(
@@ -109,7 +110,7 @@ func (db *SqliteDatabase) LoadUserReminders(
 			t.ID = a.TAG_ID
 		)
 		WHERE r.USER_ID = $1
-		GROUP BY r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT
+		GROUP BY r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON
 		ORDER BY r.ID ASC
 	`
 

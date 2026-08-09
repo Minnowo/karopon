@@ -21,9 +21,9 @@ func (db *PGDatabase) AddUserReminder(
 
 		query := `
 			INSERT INTO PON.USER_REMINDER (
-				user_id, enabled, interval_minutes, last_activity_at
+				user_id, enabled, interval_minutes, last_activity_at, cron
 			) VALUES (
-				:user_id, :enabled, :interval_minutes, :last_activity_at
+				:user_id, :enabled, :interval_minutes, :last_activity_at, :cron
 			) RETURNING id
 		`
 
@@ -54,7 +54,8 @@ func (db *PGDatabase) UpdateUserReminder(ctx context.Context, r *database.TblUse
 		SET
 			ENABLED = :enabled,
 			INTERVAL_MINUTES = :interval_minutes,
-			LAST_ACTIVITY_AT = :last_activity_at
+			LAST_ACTIVITY_AT = :last_activity_at,
+			CRON = :cron
 		WHERE ID = :id AND USER_ID = :user_id
 	`
 
@@ -81,7 +82,7 @@ func (db *PGDatabase) LoadUserReminders(ctx context.Context, userID int, out *[]
 
 	query := `
 		SELECT
-			r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT,
+			r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON,
 			CASE
 				WHEN COUNT(a.ID) = 0 THEN NULL
 				ELSE jsonb_agg(jsonb_build_array(a.ID, a.NAME, a.TAG_ID, a.DURATION, a.NOTE, t.NAMESPACE, t.NAME))
@@ -91,7 +92,7 @@ func (db *PGDatabase) LoadUserReminders(ctx context.Context, userID int, out *[]
 		LEFT JOIN PON.USER_ACTIVITY a ON (a.ID = ra.ACTIVITY_ID AND a.USER_ID = $1)
 		LEFT JOIN PON.USER_TAG t ON (t.ID = a.TAG_ID)
 		WHERE r.USER_ID = $1
-		GROUP BY r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT
+		GROUP BY r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON
 		ORDER BY r.ID ASC
 	`
 

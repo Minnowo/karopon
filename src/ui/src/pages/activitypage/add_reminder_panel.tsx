@@ -2,15 +2,29 @@ import {useState} from 'preact/hooks';
 import {ActivityWithTag} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
+import {TimeInput} from '../../components/time_input';
+import {
+    AllDayEveryDayWindows,
+    DAY_NAMES,
+    FormatCronSchedule,
+    MinutesToDate,
+    ParseCronSchedule,
+    ScheduleWindow,
+} from '../../utils/reminder_schedule';
 
 type NewReminder = {
     enabled: boolean;
     intervalMinutes: number;
     activityIDs: number[];
+    cron: string;
 };
 
 type AddReminderPanelProps = {
     activities: ActivityWithTag[];
+    // Whether time entry should show 12-hour (with AM/PM) or 24-hour time, matching
+    // the user's time_format preference - same as TimeInput usage elsewhere (e.g.
+    // timepage/timer_panel.tsx).
+    hour12: boolean;
     title?: string;
     submitLabel?: string;
     initial?: NewReminder;
@@ -19,8 +33,11 @@ type AddReminderPanelProps = {
     className?: string;
 };
 
+let nextRowKey = 0;
+
 export function AddReminderPanel({
     activities,
+    hour12,
     title = 'Create New Reminder',
     submitLabel = 'Create',
     initial,
@@ -31,10 +48,29 @@ export function AddReminderPanel({
     const [enabled, setEnabled] = useState<boolean>(initial?.enabled ?? true);
     const [intervalMinutes, setIntervalMinutes] = useState<number>(initial?.intervalMinutes ?? 45);
     const [activityIDs, setActivityIDs] = useState<number[]>(initial?.activityIDs ?? []);
+    const [windows, setWindows] = useState<Array<ScheduleWindow & {key: number}>>(() =>
+        ParseCronSchedule(initial?.cron ?? '').map((w) => ({...w, key: nextRowKey++}))
+    );
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const toggleActivity = (id: number) => {
         setActivityIDs((old) => (old.includes(id) ? old.filter((x) => x !== id) : [...old, id]));
+    };
+
+    const addWindow = () => {
+        setWindows((old) => [...old, {key: nextRowKey++, dayOfWeek: 1, startMinute: 9 * 60, endMinute: 17 * 60}]);
+    };
+
+    const removeWindow = (key: number) => {
+        setWindows((old) => old.filter((w) => w.key !== key));
+    };
+
+    const updateWindow = (key: number, changes: Partial<ScheduleWindow>) => {
+        setWindows((old) => old.map((w) => (w.key === key ? {...w, ...changes} : w)));
+    };
+
+    const setAllDayEveryDay = () => {
+        setWindows(AllDayEveryDayWindows().map((w) => ({...w, key: nextRowKey++})));
     };
 
     const onSaveClick = () => {
@@ -43,7 +79,19 @@ export function AddReminderPanel({
             return;
         }
 
-        onCreate({enabled, intervalMinutes, activityIDs});
+        if (windows.length === 0) {
+            setErrorMsg('Add at least one active window - a reminder never fires without one');
+            return;
+        }
+
+        for (const w of windows) {
+            if (w.endMinute < w.startMinute) {
+                setErrorMsg("A window's end time cannot be before its start time");
+                return;
+            }
+        }
+
+        onCreate({enabled, intervalMinutes, activityIDs, cron: FormatCronSchedule(windows)});
     };
 
     return (
@@ -66,6 +114,60 @@ export function AddReminderPanel({
                     value={intervalMinutes}
                     onValueChange={setIntervalMinutes}
                 />
+
+                <div>
+                    <div className="flex items-center justify-between">
+                        <span className="font-semibold">Active windows</span>
+                        <div className="flex gap-2">
+                            <button className="text-xs px-2 py-1" onClick={setAllDayEveryDay}>
+                                Every day, all day
+                            </button>
+                            <button className="text-xs px-2 py-1" onClick={addWindow}>
+                                Add window
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-sm font-normal text-c-subtext mb-1">
+                        This reminder can only fire during these day/time windows. At least one is required.
+                    </p>
+
+                    {windows.length === 0 ? (
+                        <p className="text-sm font-normal">No windows added yet.</p>
+                    ) : (
+                        <div className="flex flex-col gap-1">
+                            {windows.map((w) => (
+                                <div key={w.key} className="flex items-center gap-2 font-normal flex-wrap">
+                                    <select
+                                        value={w.dayOfWeek}
+                                        onChange={(e) => updateWindow(w.key, {dayOfWeek: parseInt(e.currentTarget.value, 10)})}
+                                    >
+                                        {DAY_NAMES.map((name, i) => (
+                                            <option key={i} value={i}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <TimeInput
+                                        label="Start"
+                                        value={MinutesToDate(w.startMinute)}
+                                        onChange={(d) => updateWindow(w.key, {startMinute: d.getHours() * 60 + d.getMinutes()})}
+                                        hour12={hour12}
+                                    />
+                                    <span>to</span>
+                                    <TimeInput
+                                        label="End"
+                                        value={MinutesToDate(w.endMinute)}
+                                        onChange={(d) => updateWindow(w.key, {endMinute: d.getHours() * 60 + d.getMinutes()})}
+                                        hour12={hour12}
+                                    />
+                                    <button className="cancel-btn text-xs px-2 py-1" onClick={() => removeWindow(w.key)}>
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 <div>
                     <span className="font-semibold">Break activities (optional)</span>
