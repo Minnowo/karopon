@@ -71,7 +71,12 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
                         ? r.activities[Math.floor(Math.random() * r.activities.length)].activity.name
                         : 'Time to move';
 
-                new Notification('Movement reminder', {body});
+                try {
+                    new Notification('Movement reminder', {body});
+                } catch {
+                    // ignore - some mobile browsers (e.g. Chrome on Android) throw when
+                    // constructing Notification directly instead of via a service worker
+                }
             }
         }
 
