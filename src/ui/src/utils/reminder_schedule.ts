@@ -40,6 +40,10 @@ export const MinutesToDate = (min: number): Date => {
 export const ParseCronSchedule = (cron: string): ScheduleWindow[] => {
     const windows: ScheduleWindow[] = [];
 
+    if (!cron) {
+        return windows;
+    }
+
     for (const entry of cron.split(WINDOW_DELIMITER)) {
         if (!entry) {
             continue;
