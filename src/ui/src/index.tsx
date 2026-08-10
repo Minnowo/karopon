@@ -88,6 +88,7 @@ import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 import {ActivityPage} from './pages/activitypage';
 import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
+import {ErrorBoundary} from './components/error_boundary';
 
 export const App = () => {
     // This cookie is set when there is a valid auth token cookie.
@@ -727,4 +728,9 @@ export const App = () => {
     );
 };
 
-render(<App />, document.getElementById('app'));
+render(
+    <ErrorBoundary>
+        <App />
+    </ErrorBoundary>,
+    document.getElementById('app')
+);
