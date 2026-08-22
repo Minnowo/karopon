@@ -45,6 +45,10 @@ func testReminderCRUDPlain(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 		Enabled:         true,
 		IntervalMinutes: 45,
 		LastActivityAt:  database.TimeMillis(time.Now().Truncate(time.Second)),
+		ActivityMode:    "all",
+		ActiveTimers:    `{"3":41}`,
+		Sound:           "chime",
+		Name:            "Stretch break",
 	}
 
 	reminderID, err := db.AddUserReminder(ctx, reminder, nil)
@@ -57,6 +61,10 @@ func testReminderCRUDPlain(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 	assert.Equal(t, reminderID, reminders[0].Reminder.ID)
 	assert.True(t, reminders[0].Reminder.Enabled)
 	assert.Equal(t, 45, reminders[0].Reminder.IntervalMinutes)
+	assert.Equal(t, "all", reminders[0].Reminder.ActivityMode)
+	assert.Equal(t, `{"3":41}`, reminders[0].Reminder.ActiveTimers)
+	assert.Equal(t, "chime", reminders[0].Reminder.Sound)
+	assert.Equal(t, "Stretch break", reminders[0].Reminder.Name)
 	assert.NotNil(t, reminders[0].Activities)
 	assert.Len(t, reminders[0].Activities, 0)
 }
@@ -141,6 +149,10 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 		Enabled:         true,
 		IntervalMinutes: 45,
 		LastActivityAt:  database.TimeMillis(time.Now().Truncate(time.Second)),
+		ActivityMode:    "random",
+		ActiveTimers:    "{}",
+		Sound:           "chime",
+		Name:            "Original name",
 	}
 	reminderID, err := db.AddUserReminder(ctx, reminder, nil)
 	require.NoError(t, err)
@@ -150,6 +162,10 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 	reminder.Enabled = false
 	reminder.IntervalMinutes = 60
 	reminder.LastActivityAt = database.TimeMillis(newLastActivity)
+	reminder.ActivityMode = "all"
+	reminder.ActiveTimers = `{"7":12}`
+	reminder.Sound = "beep"
+	reminder.Name = "Updated name"
 	require.NoError(t, db.UpdateUserReminder(ctx, reminder))
 
 	var reminders []database.ReminderWithActivities
@@ -158,6 +174,10 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 	assert.False(t, reminders[0].Reminder.Enabled)
 	assert.Equal(t, 60, reminders[0].Reminder.IntervalMinutes)
 	assert.True(t, newLastActivity.Equal(reminders[0].Reminder.LastActivityAt.Time()))
+	assert.Equal(t, "all", reminders[0].Reminder.ActivityMode)
+	assert.Equal(t, `{"7":12}`, reminders[0].Reminder.ActiveTimers)
+	assert.Equal(t, "Updated name", reminders[0].Reminder.Name)
+	assert.Equal(t, "beep", reminders[0].Reminder.Sound)
 }
 
 func testSetUserReminderActivitiesOwnershipCheck(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

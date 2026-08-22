@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef} from 'preact/hooks';
-import {ReminderWithActivities} from '../api/types';
-import {useTimeNow} from './useTimeNow';
-import {IsWithinSchedule, ParseCronSchedule} from '../utils/reminder_schedule';
+import {ReminderWithActivities} from '../../api/types';
+import {useTimeNow} from '../../hooks/useTimeNow';
+import {IsWithinSchedule, ParseCronSchedule} from './schedule_window';
 
 // Due-checking doesn't need second-level precision, so this re-renders far less often
 // than the shared 1s tick.
@@ -64,20 +64,6 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
             }
 
             firedForRef.current.set(r.reminder.id, r.reminder.last_activity_at);
-
-            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                const body =
-                    r.activities.length > 0
-                        ? r.activities[Math.floor(Math.random() * r.activities.length)].activity.name
-                        : 'Time to move';
-
-                try {
-                    new Notification('Movement reminder', {body});
-                } catch {
-                    // ignore - some mobile browsers (e.g. Chrome on Android) throw when
-                    // constructing Notification directly instead of via a service worker
-                }
-            }
         }
 
         return {dueReminder};

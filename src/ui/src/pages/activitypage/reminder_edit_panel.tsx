@@ -1,9 +1,9 @@
 import {useState} from 'preact/hooks';
-import {ActivityWithTag, ReminderWithActivities} from '../../api/types';
+import {ActivityWithTag, ReminderActivityMode, ReminderWithActivities} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {AddReminderPanel} from './add_reminder_panel';
 import {FormatDuration} from '../../utils/time';
-import {DAY_NAMES, MinutesToTimeInputValue, ParseCronSchedule} from '../../utils/reminder_schedule';
+import {DAY_NAMES, MinutesToTimeInputValue, ParseCronSchedule} from './schedule_window';
 
 type ReminderEditPanelProps = {
     activities: ActivityWithTag[];
@@ -15,7 +15,10 @@ type ReminderEditPanelProps = {
         intervalMinutes: number,
         cron: string,
         activityIDs: number[],
-        activityIDsChanged: boolean
+        activityIDsChanged: boolean,
+        activityMode: ReminderActivityMode,
+        sound: string,
+        name: string
     ) => void;
     deleteReminder: (reminderWithActivities: ReminderWithActivities) => void;
 };
@@ -60,13 +63,26 @@ export function ReminderEditPanel({
                     intervalMinutes: reminder.interval_minutes,
                     activityIDs: initialActivityIDs,
                     cron: reminder.cron,
+                    activityMode: reminder.activity_mode,
+                    sound: reminder.sound,
+                    name: reminder.name,
                 }}
-                onCreate={({enabled, intervalMinutes, activityIDs, cron}) => {
+                onCreate={({enabled, intervalMinutes, activityIDs, cron, activityMode, sound, name}) => {
                     const sortedInitial = [...initialActivityIDs].sort();
                     const sortedNew = [...activityIDs].sort();
                     const activityIDsChanged = JSON.stringify(sortedInitial) !== JSON.stringify(sortedNew);
 
-                    updateReminder(reminder.id, enabled, intervalMinutes, cron, activityIDs, activityIDsChanged);
+                    updateReminder(
+                        reminder.id,
+                        enabled,
+                        intervalMinutes,
+                        cron,
+                        activityIDs,
+                        activityIDsChanged,
+                        activityMode,
+                        sound,
+                        name
+                    );
                     setShowEdit(false);
                 }}
                 onCancel={() => setShowEdit(false)}
@@ -81,11 +97,14 @@ export function ReminderEditPanel({
         <div className="w-full container-theme flex items-center gap-2">
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold">Every {reminder.interval_minutes} min</span>
+                    <span className="text-lg font-semibold">
+                        {reminder.name ? reminder.name : `Every ${reminder.interval_minutes} min`}
+                    </span>
                     <span className={reminder.enabled ? 'text-c-green text-sm' : 'text-c-red text-sm'}>
                         {reminder.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                 </div>
+                {reminder.name && <div className="text-sm text-c-subtext">Every {reminder.interval_minutes} min</div>}
                 {reminder.enabled && (
                     <div className="text-sm text-c-subtext">
                         {msUntilDue <= 0 ? 'Due now' : `Next in ${FormatDuration(msUntilDue)}`}

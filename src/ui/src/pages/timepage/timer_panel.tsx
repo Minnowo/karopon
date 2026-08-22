@@ -8,9 +8,6 @@ import {useTimeNow} from '../../hooks/useTimeNow';
 
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 
-// Isolated so the once-a-second tick only re-renders this small span, not the
-// whole TimerPanel, and so the shared ticker is only subscribed to while a timer
-// is actually running.
 const RunningDuration = ({startTime}: {startTime: number}) => {
     const now = useTimeNow();
     return <span className="wsnw">{FormatDuration(now - startTime)}</span>;

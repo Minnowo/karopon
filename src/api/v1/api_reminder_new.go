@@ -44,6 +44,11 @@ func (a *APIV1) addUserReminder(w http.ResponseWriter, r *http.Request) {
 		req.Reminder.LastActivityAt = database.TimeMillis(time.Now())
 	}
 
+	if err := normalizeReminderFields(&req.Reminder); err != nil {
+		api.BadReq(w, err.Error())
+		return
+	}
+
 	newID, err := a.Db.AddUserReminder(r.Context(), &req.Reminder, req.ActivityIDs)
 
 	if err != nil {

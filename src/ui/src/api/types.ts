@@ -266,16 +266,27 @@ export type UpdateUserActivityRequest = {
     note: string;
 };
 
+// "random" suggests one linked activity at random when a reminder fires; "all" shows
+// every linked activity at once.
+export type ReminderActivityMode = 'random' | 'all';
+
 export type TblUserReminder = {
     id: number;
+    name: string;
     enabled: boolean;
     interval_minutes: number;
     last_activity_at: number;
+    activity_mode: ReminderActivityMode;
+    sound: string;
     // Minimal cron-like schedule string: "D:HHMM-HHMM" windows (day 0=Sun..6=Sat)
     // joined by the ASCII Unit Separator - see utils/reminder_schedule.ts, which
     // mirrors goalspage/goal_progress.ts's tag encoding. Empty string means the
     // reminder never fires.
     cron: string;
+    // JSON object mapping activity ID -> the currently running timespan ID for that
+    // activity, e.g. '{"3":41}'. Lets a start/stop timer survive a page reload or a
+    // different device. See utils/active_timers.ts for parse/stringify helpers.
+    active_timers: string;
 };
 
 export type ReminderWithActivities = {

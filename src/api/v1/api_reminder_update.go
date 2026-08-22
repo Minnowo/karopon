@@ -46,6 +46,11 @@ func (a *APIV1) updateUserReminder(w http.ResponseWriter, r *http.Request) {
 
 	reminder.UserID = user.ID
 
+	if err := normalizeReminderFields(&reminder); err != nil {
+		api.BadReq(w, err.Error())
+		return
+	}
+
 	err = a.Db.UpdateUserReminder(r.Context(), &reminder)
 
 	if err != nil {

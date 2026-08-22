@@ -1,8 +1,9 @@
 import {useState} from 'preact/hooks';
-import {ActivityWithTag} from '../../api/types';
+import {ActivityWithTag, ReminderActivityMode} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
 import {TimeInput} from '../../components/time_input';
+import {PlayReminderSound, SOUND_OPTIONS} from '../../utils/sound';
 import {
     AllDayEveryDayWindows,
     DAY_NAMES,
@@ -10,13 +11,16 @@ import {
     MinutesToDate,
     ParseCronSchedule,
     ScheduleWindow,
-} from '../../utils/reminder_schedule';
+} from './schedule_window';
 
 type NewReminder = {
     enabled: boolean;
     intervalMinutes: number;
     activityIDs: number[];
     cron: string;
+    activityMode: ReminderActivityMode;
+    sound: string;
+    name: string;
 };
 
 type AddReminderPanelProps = {
@@ -48,6 +52,9 @@ export function AddReminderPanel({
     const [enabled, setEnabled] = useState<boolean>(initial?.enabled ?? true);
     const [intervalMinutes, setIntervalMinutes] = useState<number>(initial?.intervalMinutes ?? 45);
     const [activityIDs, setActivityIDs] = useState<number[]>(initial?.activityIDs ?? []);
+    const [activityMode, setActivityMode] = useState<ReminderActivityMode>(initial?.activityMode ?? 'random');
+    const [sound, setSound] = useState<string>(initial?.sound ?? 'chime');
+    const [name, setName] = useState<string>(initial?.name ?? '');
     const [windows, setWindows] = useState<Array<ScheduleWindow & {key: number}>>(() =>
         ParseCronSchedule(initial?.cron ?? '').map((w) => ({...w, key: nextRowKey++}))
     );
@@ -74,6 +81,11 @@ export function AddReminderPanel({
     };
 
     const onSaveClick = () => {
+        if (name.trim().length === 0) {
+            setErrorMsg('Name cannot be empty');
+            return;
+        }
+
         if (intervalMinutes <= 0) {
             setErrorMsg('Interval must be a positive number');
             return;
@@ -91,7 +103,15 @@ export function AddReminderPanel({
             }
         }
 
-        onCreate({enabled, intervalMinutes, activityIDs, cron: FormatCronSchedule(windows)});
+        onCreate({
+            enabled,
+            intervalMinutes,
+            activityIDs,
+            cron: FormatCronSchedule(windows),
+            activityMode,
+            sound,
+            name: name.trim(),
+        });
     };
 
     return (
@@ -101,6 +121,18 @@ export function AddReminderPanel({
             <ErrorDiv errorMsg={errorMsg} />
 
             <div className="flex flex-col font-semibold gap-2">
+                <label className="flex flex-col gap-1">
+                    <span>Name</span>
+                    <input
+                        type="text"
+                        className="w-full font-normal"
+                        placeholder="Time to move"
+                        value={name}
+                        required
+                        onInput={(e) => setName(e.currentTarget.value)}
+                    />
+                </label>
+
                 <label className="flex items-center gap-2">
                     <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.currentTarget.checked)} />
                     <span>Enabled</span>
@@ -172,8 +204,8 @@ export function AddReminderPanel({
                 <div>
                     <span className="font-semibold">Break activities (optional)</span>
                     <p className="text-sm font-normal text-c-subtext">
-                        When this reminder fires, it will randomly suggest one of the selected activities. Leave empty for a plain
-                        reminder with no logging.
+                        When this reminder fires, it will suggest activities from this list. Leave empty for a plain reminder with
+                        no logging.
                     </p>
                     {activities.length === 0 ? (
                         <p className="text-sm font-normal">No break activities have been created yet.</p>
@@ -191,6 +223,33 @@ export function AddReminderPanel({
                             ))}
                         </div>
                     )}
+                </div>
+
+                <div>
+                    <label className="flex flex-col gap-1">
+                        <span>When multiple activities are selected</span>
+                        <select
+                            value={activityMode}
+                            onChange={(e) => setActivityMode(e.currentTarget.value as ReminderActivityMode)}
+                        >
+                            <option value="random">Pick one at random</option>
+                            <option value="all">Show all</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <span>Sound</span>
+                    <div className="flex flex-row gap-1">
+                        <select value={sound} onChange={(e) => setSound(e.currentTarget.value)}>
+                            {SOUND_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                        <button onClick={() => PlayReminderSound(sound)}> Play</button>
+                    </div>
                 </div>
             </div>
 

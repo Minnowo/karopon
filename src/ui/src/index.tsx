@@ -12,7 +12,8 @@ import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
-import {useCallback, useLayoutEffect, useState} from 'preact/hooks';
+import {useCallback, useEffect, useLayoutEffect, useState} from 'preact/hooks';
+import {UnlockAudioContext} from './utils/sound';
 import {
     TblUser,
     TblUserFood,
@@ -198,6 +199,50 @@ export const App = () => {
         if (reminders !== null) {
             LocalStoreReminders(reminders);
         }
+    }, [reminders]);
+
+    useEffect(() => {
+        // request proper permissions for notification / web audio api in advance, if we actually need it.
+
+        let alertEnabled = false;
+        let audioNeeded = false;
+        for (const r of reminders) {
+            if (r.reminder.enabled) {
+                alertEnabled = true;
+                if (r.reminder.sound !== 'none' && r.reminder.sound !== '') {
+                    audioNeeded = true;
+                    break;
+                }
+            }
+        }
+
+        if (!alertEnabled) {
+            return;
+        }
+
+        const unlockAudio = () => {
+            try {
+                if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            } catch {
+                // ignore
+            }
+
+            if (audioNeeded) {
+                UnlockAudioContext();
+            }
+            window.removeEventListener('pointerdown', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+
+        window.addEventListener('pointerdown', unlockAudio);
+        window.addEventListener('keydown', unlockAudio);
+
+        return () => {
+            window.removeEventListener('pointerdown', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
     }, [reminders]);
 
     useLayoutEffect(() => {

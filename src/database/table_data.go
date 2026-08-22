@@ -322,10 +322,18 @@ type TblUserActivity struct {
 type TblUserReminder struct {
 	ID              int        `db:"id"               json:"id"`
 	UserID          int        `db:"user_id"          json:"-"`
+	Name            string     `db:"name"             json:"name"`
 	Enabled         bool       `db:"enabled"          json:"enabled"`
 	IntervalMinutes int        `db:"interval_minutes" json:"interval_minutes"`
 	LastActivityAt  TimeMillis `db:"last_activity_at" json:"last_activity_at"`
 	Cron            string     `db:"cron"             json:"cron"`
+	ActivityMode    string     `db:"activity_mode"    json:"activity_mode"`
+	Sound           string     `db:"sound"            json:"sound"`
+
+	// ActiveTimers is a JSON object mapping activity ID -> the currently running
+	// timespan ID for that activity (e.g. {"3": 41}), so a start/stop timer
+	// survives a page reload or a different device. Opaque to the backend.
+	ActiveTimers string `db:"active_timers" json:"active_timers"`
 }
 
 type TblUserReminderActivity struct {

@@ -25,15 +25,10 @@ const stopTickingIfUnused = () => {
 
 // useTimeNow returns the current time. All callers share the same underlying 1s
 // timer; each caller just gets its own local state update on tick, so only the
-// component calling this hook re-renders - no context/provider required.
-//
-// intervalMs lets a caller re-render less often than the shared timer ticks (e.g.
-// 10000 to only update every 10s) without spinning up a second timer - the shared
-// tick still fires every second, but this caller only calls setState (and thus only
-// re-renders) once intervalMs has actually elapsed since its last update.
-export const useTimeNow = (enabled = true, intervalMs = 1000): number => {
+// component calling this hook re-renders.
+export const useTimeNow = (enabled = true, intervalMs = 0): number => {
     const [now, setNow] = useState<number>(() => Date.now());
-    const lastEmitRef = useRef<number>(now);
+    const tickMsRef = useRef<number>(0);
 
     useEffect(() => {
         if (!enabled) {
@@ -41,8 +36,10 @@ export const useTimeNow = (enabled = true, intervalMs = 1000): number => {
         }
 
         const listener = (t: number) => {
-            if (t - lastEmitRef.current >= intervalMs) {
-                lastEmitRef.current = t;
+            tickMsRef.current += 1000;
+
+            if (tickMsRef.current >= intervalMs) {
+                tickMsRef.current = 0;
                 setNow(t);
             }
         };

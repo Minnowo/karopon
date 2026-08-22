@@ -12,6 +12,7 @@ import {
 import {
     ActivityWithTag,
     NewUserActivityRequest,
+    ReminderActivityMode,
     ReminderWithActivities,
     UpdateUserActivityRequest,
     UserTimeFormat,
@@ -82,9 +83,27 @@ export const ActivityPage = (state: BaseState) => {
             .catch(handleErr);
     };
 
-    const addReminder = (enabled: boolean, intervalMinutes: number, cron: string, activityIDs: number[]) => {
+    const addReminder = (
+        enabled: boolean,
+        intervalMinutes: number,
+        cron: string,
+        activityIDs: number[],
+        activityMode: ReminderActivityMode,
+        sound: string,
+        name: string
+    ) => {
         ApiNewUserReminder({
-            reminder: {id: 0, enabled, interval_minutes: intervalMinutes, last_activity_at: new Date().getTime(), cron},
+            reminder: {
+                id: 0,
+                enabled,
+                interval_minutes: intervalMinutes,
+                last_activity_at: new Date().getTime(),
+                cron,
+                activity_mode: activityMode,
+                active_timers: '{}',
+                sound,
+                name,
+            },
             activity_ids: activityIDs,
         })
             .then((reminder) => {
@@ -102,7 +121,10 @@ export const ActivityPage = (state: BaseState) => {
         intervalMinutes: number,
         cron: string,
         activityIDs: number[],
-        activityIDsChanged: boolean
+        activityIDsChanged: boolean,
+        activityMode: ReminderActivityMode,
+        sound: string,
+        name: string
     ) => {
         const existing = state.reminders.find((r) => r.reminder.id === reminderID);
 
@@ -110,7 +132,15 @@ export const ActivityPage = (state: BaseState) => {
             return;
         }
 
-        const updatedReminder = {...existing.reminder, enabled, interval_minutes: intervalMinutes, cron};
+        const updatedReminder = {
+            ...existing.reminder,
+            enabled,
+            interval_minutes: intervalMinutes,
+            cron,
+            activity_mode: activityMode,
+            sound,
+            name,
+        };
 
         const ops = [ApiUpdateUserReminder(updatedReminder)];
 
@@ -162,8 +192,8 @@ export const ActivityPage = (state: BaseState) => {
                     className="mb-4"
                     activities={state.activities}
                     hour12={hour12}
-                    onCreate={({enabled, intervalMinutes, cron, activityIDs}) =>
-                        addReminder(enabled, intervalMinutes, cron, activityIDs)
+                    onCreate={({enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name}) =>
+                        addReminder(enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name)
                     }
                     onCancel={() => setShowAddReminderPanel(false)}
                 />
