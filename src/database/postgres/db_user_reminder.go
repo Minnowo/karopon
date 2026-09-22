@@ -22,10 +22,10 @@ func (db *PGDatabase) AddUserReminder(
 		query := `
 			INSERT INTO PON.USER_REMINDER (
 				user_id, enabled, interval_minutes, last_activity_at, cron,
-				activity_mode, active_timers, sound, name
+				activity_mode, active_timers, sound, name, alarm_mode
 			) VALUES (
 				:user_id, :enabled, :interval_minutes, :last_activity_at, :cron,
-				:activity_mode, :active_timers, :sound, :name
+				:activity_mode, :active_timers, :sound, :name, :alarm_mode
 			) RETURNING id
 		`
 
@@ -61,7 +61,8 @@ func (db *PGDatabase) UpdateUserReminder(ctx context.Context, r *database.TblUse
 			ACTIVITY_MODE = :activity_mode,
 			ACTIVE_TIMERS = :active_timers,
 			SOUND = :sound,
-			NAME = :name
+			NAME = :name,
+			ALARM_MODE = :alarm_mode
 		WHERE ID = :id AND USER_ID = :user_id
 	`
 
@@ -89,7 +90,7 @@ func (db *PGDatabase) LoadUserReminders(ctx context.Context, userID int, out *[]
 	query := `
 		SELECT
 			r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON,
-			r.ACTIVITY_MODE, r.ACTIVE_TIMERS, r.SOUND, r.NAME,
+			r.ACTIVITY_MODE, r.ACTIVE_TIMERS, r.SOUND, r.NAME, r.ALARM_MODE,
 			CASE
 				WHEN COUNT(a.ID) = 0 THEN NULL
 				ELSE jsonb_agg(jsonb_build_array(a.ID, a.NAME, a.TAG_ID, a.DURATION, a.NOTE, t.NAMESPACE, t.NAME))
@@ -100,7 +101,7 @@ func (db *PGDatabase) LoadUserReminders(ctx context.Context, userID int, out *[]
 		LEFT JOIN PON.USER_TAG t ON (t.ID = a.TAG_ID)
 		WHERE r.USER_ID = $1
 		GROUP BY r.ID, r.USER_ID, r.ENABLED, r.INTERVAL_MINUTES, r.LAST_ACTIVITY_AT, r.CRON,
-			r.ACTIVITY_MODE, r.ACTIVE_TIMERS, r.SOUND, r.NAME
+			r.ACTIVITY_MODE, r.ACTIVE_TIMERS, r.SOUND, r.NAME, r.ALARM_MODE
 		ORDER BY r.ID ASC
 	`
 

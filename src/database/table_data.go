@@ -329,6 +329,7 @@ type TblUserReminder struct {
 	Cron            string     `db:"cron"             json:"cron"`
 	ActivityMode    string     `db:"activity_mode"    json:"activity_mode"`
 	Sound           string     `db:"sound"            json:"sound"`
+	AlarmMode       string     `db:"alarm_mode"       json:"alarm_mode"`
 
 	// ActiveTimers is a JSON object mapping activity ID -> the currently running
 	// timespan ID for that activity (e.g. {"3": 41}), so a start/stop timer

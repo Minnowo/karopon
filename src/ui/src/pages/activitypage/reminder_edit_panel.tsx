@@ -1,5 +1,5 @@
 import {useState} from 'preact/hooks';
-import {ActivityWithTag, ReminderActivityMode, ReminderWithActivities} from '../../api/types';
+import {ActivityWithTag, ReminderActivityMode, ReminderAlarmMode, ReminderWithActivities} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {AddReminderPanel} from './add_reminder_panel';
 import {FormatDuration} from '../../utils/time';
@@ -18,7 +18,8 @@ type ReminderEditPanelProps = {
         activityIDsChanged: boolean,
         activityMode: ReminderActivityMode,
         sound: string,
-        name: string
+        name: string,
+        alarmMode: ReminderAlarmMode
     ) => void;
     deleteReminder: (reminderWithActivities: ReminderWithActivities) => void;
 };
@@ -66,8 +67,9 @@ export function ReminderEditPanel({
                     activityMode: reminder.activity_mode,
                     sound: reminder.sound,
                     name: reminder.name,
+                    alarmMode: reminder.alarm_mode,
                 }}
-                onCreate={({enabled, intervalMinutes, activityIDs, cron, activityMode, sound, name}) => {
+                onCreate={({enabled, intervalMinutes, activityIDs, cron, activityMode, sound, name, alarmMode}) => {
                     const sortedInitial = [...initialActivityIDs].sort();
                     const sortedNew = [...activityIDs].sort();
                     const activityIDsChanged = JSON.stringify(sortedInitial) !== JSON.stringify(sortedNew);
@@ -81,7 +83,8 @@ export function ReminderEditPanel({
                         activityIDsChanged,
                         activityMode,
                         sound,
-                        name
+                        name,
+                        alarmMode
                     );
                     setShowEdit(false);
                 }}

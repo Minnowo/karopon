@@ -13,6 +13,7 @@ import {
     ActivityWithTag,
     NewUserActivityRequest,
     ReminderActivityMode,
+    ReminderAlarmMode,
     ReminderWithActivities,
     UpdateUserActivityRequest,
     UserTimeFormat,
@@ -90,7 +91,8 @@ export const ActivityPage = (state: BaseState) => {
         activityIDs: number[],
         activityMode: ReminderActivityMode,
         sound: string,
-        name: string
+        name: string,
+        alarmMode: ReminderAlarmMode
     ) => {
         ApiNewUserReminder({
             reminder: {
@@ -103,6 +105,7 @@ export const ActivityPage = (state: BaseState) => {
                 active_timers: '{}',
                 sound,
                 name,
+                alarm_mode: alarmMode,
             },
             activity_ids: activityIDs,
         })
@@ -124,7 +127,8 @@ export const ActivityPage = (state: BaseState) => {
         activityIDsChanged: boolean,
         activityMode: ReminderActivityMode,
         sound: string,
-        name: string
+        name: string,
+        alarmMode: ReminderAlarmMode
     ) => {
         const existing = state.reminders.find((r) => r.reminder.id === reminderID);
 
@@ -140,6 +144,7 @@ export const ActivityPage = (state: BaseState) => {
             activity_mode: activityMode,
             sound,
             name,
+            alarm_mode: alarmMode,
         };
 
         const ops = [ApiUpdateUserReminder(updatedReminder)];
@@ -192,8 +197,8 @@ export const ActivityPage = (state: BaseState) => {
                     className="mb-4"
                     activities={state.activities}
                     hour12={hour12}
-                    onCreate={({enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name}) =>
-                        addReminder(enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name)
+                    onCreate={({enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name, alarmMode}) =>
+                        addReminder(enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name, alarmMode)
                     }
                     onCancel={() => setShowAddReminderPanel(false)}
                 />

@@ -1,5 +1,5 @@
 import {useState} from 'preact/hooks';
-import {ActivityWithTag, ReminderActivityMode} from '../../api/types';
+import {ActivityWithTag, ReminderActivityMode, ReminderAlarmMode} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv} from '../../components/error_div';
 import {TimeInput} from '../../components/time_input';
@@ -21,6 +21,7 @@ type NewReminder = {
     activityMode: ReminderActivityMode;
     sound: string;
     name: string;
+    alarmMode: ReminderAlarmMode;
 };
 
 type AddReminderPanelProps = {
@@ -55,6 +56,7 @@ export function AddReminderPanel({
     const [activityMode, setActivityMode] = useState<ReminderActivityMode>(initial?.activityMode ?? 'random');
     const [sound, setSound] = useState<string>(initial?.sound ?? 'chime');
     const [name, setName] = useState<string>(initial?.name ?? '');
+    const [alarmMode, setAlarmMode] = useState<ReminderAlarmMode>(initial?.alarmMode ?? 'reminder');
     const [windows, setWindows] = useState<Array<ScheduleWindow & {key: number}>>(() =>
         ParseCronSchedule(initial?.cron ?? '').map((w) => ({...w, key: nextRowKey++}))
     );
@@ -111,6 +113,7 @@ export function AddReminderPanel({
             activityMode,
             sound,
             name: name.trim(),
+            alarmMode,
         });
     };
 
@@ -223,6 +226,16 @@ export function AddReminderPanel({
                             ))}
                         </div>
                     )}
+                </div>
+
+                <div>
+                    <label className="flex flex-col gap-1">
+                        <span>Notification type</span>
+                        <select value={alarmMode} onChange={(e) => setAlarmMode(e.currentTarget.value as ReminderAlarmMode)}>
+                            <option value="reminder">Reminder (normal notification)</option>
+                            <option value="alarm">Alarm (rings full-screen, even if the app is closed)</option>
+                        </select>
+                    </label>
                 </div>
 
                 <div>

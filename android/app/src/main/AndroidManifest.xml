@@ -5,6 +5,14 @@
          Android denies AF_INET socket creation entirely without it. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- For reminder/alarm notifications (runtime-requested on API 33+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Lets alarm-mode reminders fire on time even in Doze. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Lets alarm-mode reminders wake/unlock the screen to ring. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:label="Karopon"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
@@ -25,5 +33,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="cc.headpats.karopon.AlarmRingActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+
+        <receiver
+            android:name="cc.headpats.karopon.AlarmReceiver"
+            android:exported="false" />
     </application>
 </manifest>

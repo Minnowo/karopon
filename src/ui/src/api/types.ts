@@ -270,6 +270,8 @@ export type UpdateUserActivityRequest = {
 // every linked activity at once.
 export type ReminderActivityMode = 'random' | 'all';
 
+export type ReminderAlarmMode = 'reminder' | 'alarm';
+
 export type TblUserReminder = {
     id: number;
     name: string;
@@ -278,6 +280,7 @@ export type TblUserReminder = {
     last_activity_at: number;
     activity_mode: ReminderActivityMode;
     sound: string;
+    alarm_mode: ReminderAlarmMode;
     // Minimal cron-like schedule string: "D:HHMM-HHMM" windows (day 0=Sun..6=Sat)
     // joined by the ASCII Unit Separator - see utils/reminder_schedule.ts, which
     // mirrors goalspage/goal_progress.ts's tag encoding. Empty string means the

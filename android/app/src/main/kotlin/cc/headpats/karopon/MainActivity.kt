@@ -1,9 +1,15 @@
 package cc.headpats.karopon
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
@@ -11,6 +17,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -36,8 +43,13 @@ class MainActivity : ComponentActivity() {
     // than a one-shot callback that might fire before the WebView exists.
     private val urlState = mutableStateOf<String?>(null)
 
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        requestAlarmPermissions()
 
         setContent {
             MaterialTheme {
@@ -66,6 +78,17 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    private fun requestAlarmPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
+        }
+    }
+
     private fun sessionSecret(): String {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.getString(SESSION_SECRET_KEY, null)?.let { return it }
@@ -86,6 +109,7 @@ private fun ServerWebView(urlState: MutableState<String?>) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                addJavascriptInterface(AlarmJsBridge(context), "AndroidAlarms")
                 webViewClient = WebViewClient()
                 // Plain WebView drops JS alert()/confirm() dialogs silently
                 // unless a WebChromeClient handles them - the frontend uses

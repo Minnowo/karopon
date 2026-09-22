@@ -85,6 +85,45 @@ export const IsWithinSchedule = (windows: ScheduleWindow[], date: Date): boolean
     return windows.some((w) => w.dayOfWeek === day && minuteOfDay >= w.startMinute && minuteOfDay <= w.endMinute);
 };
 
+// Windows repeat weekly, so scanning 8 days forward always finds a hit if any window exists.
+export const ComputeNextFireTime = (dueAt: number, windows: ScheduleWindow[], now: number): number | null => {
+    if (windows.length === 0) {
+        return null;
+    }
+
+    const start = Math.max(dueAt, now);
+
+    for (let dayOffset = 0; dayOffset <= 7; dayOffset++) {
+        const dayDate = new Date(start);
+        dayDate.setDate(dayDate.getDate() + dayOffset);
+        const dayOfWeek = dayDate.getDay();
+        const minuteFloor = dayOffset === 0 ? dayDate.getHours() * 60 + dayDate.getMinutes() : 0;
+
+        let best: number | null = null;
+
+        for (const w of windows) {
+            if (w.dayOfWeek !== dayOfWeek || w.endMinute < minuteFloor) {
+                continue;
+            }
+
+            const minute = Math.max(w.startMinute, minuteFloor);
+            const fireDate = new Date(dayDate);
+            fireDate.setHours(0, 0, 0, 0);
+            fireDate.setMinutes(minute);
+
+            if (best === null || fireDate.getTime() < best) {
+                best = fireDate.getTime();
+            }
+        }
+
+        if (best !== null) {
+            return best;
+        }
+    }
+
+    return null;
+};
+
 export const AllDayEveryDayWindows = (): ScheduleWindow[] => {
     const windows: ScheduleWindow[] = [];
 

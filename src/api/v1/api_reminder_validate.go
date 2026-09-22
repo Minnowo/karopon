@@ -83,6 +83,14 @@ func normalizeReminderFields(r *database.TblUserReminder) error {
 		return fmt.Errorf("activity_mode must be one of 'random' or 'all', got %q", r.ActivityMode)
 	}
 
+	switch r.AlarmMode {
+	case "":
+		r.AlarmMode = "reminder"
+	case "reminder", "alarm":
+	default:
+		return fmt.Errorf("alarm_mode must be one of 'reminder' or 'alarm', got %q", r.AlarmMode)
+	}
+
 	if len(r.Sound) > maxSoundLength {
 		return fmt.Errorf("sound must be at most %d characters", maxSoundLength)
 	}

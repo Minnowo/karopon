@@ -49,6 +49,7 @@ func testReminderCRUDPlain(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 		ActiveTimers:    `{"3":41}`,
 		Sound:           "chime",
 		Name:            "Stretch break",
+		AlarmMode:       "alarm",
 	}
 
 	reminderID, err := db.AddUserReminder(ctx, reminder, nil)
@@ -65,6 +66,7 @@ func testReminderCRUDPlain(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) 
 	assert.Equal(t, `{"3":41}`, reminders[0].Reminder.ActiveTimers)
 	assert.Equal(t, "chime", reminders[0].Reminder.Sound)
 	assert.Equal(t, "Stretch break", reminders[0].Reminder.Name)
+	assert.Equal(t, "alarm", reminders[0].Reminder.AlarmMode)
 	assert.NotNil(t, reminders[0].Activities)
 	assert.Len(t, reminders[0].Activities, 0)
 }
@@ -153,6 +155,7 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 		ActiveTimers:    "{}",
 		Sound:           "chime",
 		Name:            "Original name",
+		AlarmMode:       "reminder",
 	}
 	reminderID, err := db.AddUserReminder(ctx, reminder, nil)
 	require.NoError(t, err)
@@ -166,6 +169,7 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 	reminder.ActiveTimers = `{"7":12}`
 	reminder.Sound = "beep"
 	reminder.Name = "Updated name"
+	reminder.AlarmMode = "alarm"
 	require.NoError(t, db.UpdateUserReminder(ctx, reminder))
 
 	var reminders []database.ReminderWithActivities
@@ -178,6 +182,7 @@ func testUpdateUserReminder(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 	assert.Equal(t, `{"7":12}`, reminders[0].Reminder.ActiveTimers)
 	assert.Equal(t, "Updated name", reminders[0].Reminder.Name)
 	assert.Equal(t, "beep", reminders[0].Reminder.Sound)
+	assert.Equal(t, "alarm", reminders[0].Reminder.AlarmMode)
 }
 
 func testSetUserReminderActivitiesOwnershipCheck(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

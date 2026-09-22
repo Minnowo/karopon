@@ -89,6 +89,7 @@ import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 import {ActivityPage} from './pages/activitypage';
 import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
+import {useSyncNativeAlarms} from './pages/activitypage/native_alarm_bridge';
 import {ErrorBoundary} from './components/error_boundary';
 
 export const App = () => {
@@ -113,6 +114,8 @@ export const App = () => {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
     const doRefresh = useCallback(() => setRefresh((x) => x + 1), []);
+
+    useSyncNativeAlarms(reminders);
 
     useLayoutEffect(() => {
         const updateFunc = () => setHashRoute(window.location.hash);
