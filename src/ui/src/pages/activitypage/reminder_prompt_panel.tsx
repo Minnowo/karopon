@@ -105,7 +105,7 @@ export const ReminderPromptPanel = (state: BaseState) => {
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             const body =
                 dueReminder.activities.length === 0
-                    ? 'hello'
+                    ? ''
                     : dueReminder.reminder.activity_mode === 'all'
                       ? dueReminder.activities.map((a) => a.activity.name).join(', ')
                       : dueReminder.activities[Math.floor(Math.random() * dueReminder.activities.length)].activity.name;
@@ -241,10 +241,10 @@ export const ReminderPromptPanel = (state: BaseState) => {
         <div className="flex flex-col items-center text-center py-4 mb-4">
             <div className="container-theme max-w-sm w-full text-left">
                 <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-lg font-bold">{dueReminder.reminder.name || 'Time to move'}</span>
+                    <span className="text-lg font-bold">{dueReminder.reminder.name}</span>
                 </div>
 
-                {shownActivities.length > 0 ? (
+                {shownActivities.length > 0 && (
                     <div className="mb-4 flex flex-col gap-2">
                         {shownActivities.map((activityWithTag) => {
                             const runningTimespanID = activeTimers[activityWithTag.activity.id];
@@ -284,8 +284,6 @@ export const ReminderPromptPanel = (state: BaseState) => {
                             );
                         })}
                     </div>
-                ) : (
-                    <p className="mb-4">Take a few minutes to stand up, stretch, or walk around.</p>
                 )}
 
                 <div className="flex justify-between flex-wrap">
