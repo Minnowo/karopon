@@ -36,15 +36,14 @@ private const val SESSION_SECRET_KEY = "session_secret"
 
 class MainActivity : ComponentActivity() {
 
-    // Compose state instead of a captured `var webView`: the WebView's
-    // creation (via AndroidView's factory) and the server's readiness (via
-    // the background thread below) can finish in either order, so the URL
-    // load has to be driven by recomposition (AndroidView's `update`) rather
-    // than a one-shot callback that might fire before the WebView exists.
+    // Holds the webview URL.
     private val urlState = mutableStateOf<String?>(null)
 
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    @Volatile
+    private var keepServerAlive = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,21 +58,28 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Runs on a plain background thread (not a coroutine, to keep the
-        // app dependency-free) so DB connect/migrate never blocks the UI
-        // thread. GoServer.nativeStart itself only returns once the server
-        // is bound and ready.
         Thread {
-            val code = GoServer.nativeStart(filesDir.absolutePath, SERVER_PORT, sessionSecret())
-            if (code == 0) {
-                runOnUiThread { urlState.value = "http://127.0.0.1:$SERVER_PORT/" }
-            } else {
-                Log.e(TAG, "go server failed to start, code=$code")
+            // keep restarting the server if it dies until the activity actually ends.
+            while (keepServerAlive) {
+                val code = GoServer.nativeStart(filesDir.absolutePath, SERVER_PORT, sessionSecret())
+                if (code == 0) {
+                    runOnUiThread { urlState.value = "http://127.0.0.1:$SERVER_PORT/" }
+                } else {
+                    Log.e(TAG, "go server failed to start, code=$code")
+                    break
+                }
+
+                GoServer.nativeWaitStopped()
+
+                if (keepServerAlive) {
+                    Log.w(TAG, "go server stopped unexpectedly, restarting")
+                }
             }
         }.start()
     }
 
     override fun onDestroy() {
+        keepServerAlive = false
         GoServer.nativeStop()
         super.onDestroy()
     }
@@ -111,9 +117,6 @@ private fun ServerWebView(urlState: MutableState<String?>) {
                 settings.domStorageEnabled = true
                 addJavascriptInterface(AlarmJsBridge(context), "AndroidAlarms")
                 webViewClient = WebViewClient()
-                // Plain WebView drops JS alert()/confirm() dialogs silently
-                // unless a WebChromeClient handles them - the frontend uses
-                // confirm() for delete confirmations throughout.
                 webChromeClient = KaroponWebChromeClient(context)
             }
         },

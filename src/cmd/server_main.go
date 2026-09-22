@@ -42,10 +42,12 @@ type ServerOptions struct {
 	DefaultPassword string //nolint:gosec // not a hardcoded credential, it's a config value supplied by the caller
 }
 
-// StartServer connects to the database, runs migrations, and starts serving
-// HTTP requests in the background. It returns once the server is bound and
-// accepting connections; call the returned shutdown func to stop it.
-func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context.Context) error, err error) {
+// StartServer does all the setup and runs HTTP server. It returns once the server is bound and
+// accepting connections.
+func StartServer(
+	ctx context.Context,
+	opts ServerOptions,
+) (shutdown func(context.Context) error, waitForStop <-chan struct{}, err error) {
 
 	if opts.FakeAuthUser != "" {
 		config.SetFakeAuthUser(opts.FakeAuthUser)
@@ -56,7 +58,7 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 	listener, err := net.Listen("tcp", addr)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	log.Info().Str("db", opts.DatabaseVendor).Str("conn", opts.DatabaseConn).Msg("connecting to db")
@@ -64,18 +66,18 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 
 	if err != nil {
 		_ = listener.Close()
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = db.Migrate(ctx); err != nil {
 		_ = listener.Close()
-		return nil, err
+		return nil, nil, err
 	}
 
 	if opts.DefaultUsername != "" && opts.DefaultPassword != "" {
 		if err = EnsureUser(ctx, db, opts.DefaultUsername, opts.DefaultPassword); err != nil {
 			_ = listener.Close()
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -114,10 +116,14 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 		MaxHeaderBytes: 2 * constants.KB,
 	}
 
+	stoppedCh := make(chan struct{})
+
 	go func() {
+		defer close(stoppedCh)
 		if serveErr := srv.Serve(listener); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
 			log.Error().Err(serveErr).Msg("server stopped unexpectedly")
 		}
+		log.Info().Msg("server stopped")
 	}()
 
 	log.Info().Str("address", addr).Time("at", time.Now()).Msg("Site is running")
@@ -127,7 +133,7 @@ func StartServer(ctx context.Context, opts ServerOptions) (shutdown func(context
 		return srv.Shutdown(shutdownCtx)
 	}
 
-	return shutdown, nil
+	return shutdown, stoppedCh, nil
 }
 
 func CmdServerMain(ctx context.Context, c *cli.Command) error {
@@ -151,7 +157,7 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		opts.FakeAuthUser = fakeAuth
 	}
 
-	shutdown, err := StartServer(ctx, opts)
+	shutdown, shutdownWait, err := StartServer(ctx, opts)
 
 	if err != nil {
 		return err
@@ -164,5 +170,9 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	return shutdown(shutdownCtx)
+	err = shutdown(shutdownCtx)
+
+	<-shutdownWait
+
+	return err
 }

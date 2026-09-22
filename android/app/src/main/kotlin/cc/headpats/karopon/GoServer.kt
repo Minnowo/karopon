@@ -16,4 +16,7 @@ object GoServer {
     @JvmStatic external fun nativeStop()
 
     @JvmStatic external fun nativeIsRunning(): Boolean
+
+    /** Blocks until the server stops, whether from nativeStop() or an unexpected failure. */
+    @JvmStatic external fun nativeWaitStopped()
 }

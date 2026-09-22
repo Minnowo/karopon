@@ -43,6 +43,7 @@ const (
 var (
 	mu       sync.Mutex
 	shutdown func(context.Context) error
+	stopped  <-chan struct{}
 )
 
 func jstringToString(env *C.JNIEnv, s C.jstring) string {
@@ -107,7 +108,7 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 		DefaultPassword: "admin",
 	}
 
-	fn, err := cmd.StartServer(context.Background(), opts)
+	fn, stoppedCh, err := cmd.StartServer(context.Background(), opts)
 
 	if err != nil {
 		log.Error().Err(err).Msg("failed to start server")
@@ -115,8 +116,35 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 	}
 
 	shutdown = fn
+	stopped = stoppedCh
+
+	// Clears shutdown/stopped once the serve loop exits for any reason, so a
+	// later nativeStart() doesn't see stale state from a server that already
+	// died, and nativeWaitStopped()'s caller can tell it's safe to restart.
+	go func() {
+		<-stoppedCh
+
+		mu.Lock()
+		shutdown = nil
+		stopped = nil
+		mu.Unlock()
+	}()
 
 	return statusOK
+}
+
+//export Java_cc_headpats_karopon_GoServer_nativeWaitStopped
+func Java_cc_headpats_karopon_GoServer_nativeWaitStopped(env *C.JNIEnv, clazz C.jclass) {
+
+	mu.Lock()
+	ch := stopped
+	mu.Unlock()
+
+	if ch == nil {
+		return
+	}
+
+	<-ch
 }
 
 //export Java_cc_headpats_karopon_GoServer_nativeStop
