@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useRef} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {ApiNewUserTimespan, ApiUpdateUserReminder, ApiUpdateUserTimespan} from '../../api/api';
-import {ActivityWithTag, TaggedTimespan, TblUserReminder} from '../../api/types';
+import {ActivityWithTag, ReminderWithActivities, TaggedTimespan, TblUserReminder} from '../../api/types';
 import {useReminderNotifications} from './hooks';
 import {useTimeNow} from '../../hooks/useTimeNow';
 import {GetErrorHandler} from '../../utils/error';
@@ -85,39 +85,13 @@ const ActivityTotalDuration = ({completedMs, runningStartTime}: {completedMs: nu
     return <span className="wsnw">{FormatDuration(completedMs + liveMs)}</span>;
 };
 
-export const ReminderPromptPanel = (state: BaseState) => {
-    const {dueReminder} = useReminderNotifications(state.reminders);
+type ReminderPromptCardProps = {
+    state: BaseState;
+    dueReminder: ReminderWithActivities;
+    session: ShowSession;
+};
 
-    const sessionRef = useRef<ShowSession | null>(null);
-
-    if (dueReminder && sessionRef.current?.reminderID !== dueReminder.reminder.id) {
-        const activityIDs =
-            dueReminder.reminder.activity_mode === 'all'
-                ? dueReminder.activities.map((a) => a.activity.id)
-                : dueReminder.activities.length > 0
-                  ? [dueReminder.activities[Math.floor(Math.random() * dueReminder.activities.length)].activity.id]
-                  : [];
-
-        sessionRef.current = {reminderID: dueReminder.reminder.id, since: Date.now(), activityIDs};
-
-        PlayReminderSound(dueReminder.reminder.sound);
-
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            const body =
-                dueReminder.activities.length === 0
-                    ? ''
-                    : dueReminder.reminder.activity_mode === 'all'
-                      ? dueReminder.activities.map((a) => a.activity.name).join(', ')
-                      : dueReminder.activities[Math.floor(Math.random() * dueReminder.activities.length)].activity.name;
-
-            try {
-                new Notification(dueReminder.reminder.name, {body});
-            } catch {}
-        }
-    } else if (!dueReminder) {
-        sessionRef.current = null;
-    }
-
+const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(state.setErrorMsg, state.doRefresh), [state.doRefresh]);
 
@@ -129,11 +103,6 @@ export const ReminderPromptPanel = (state: BaseState) => {
         return m;
     }, [state.tagColors]);
 
-    if (!dueReminder || !sessionRef.current) {
-        return null;
-    }
-
-    const session = sessionRef.current;
     const shownActivities = dueReminder.activities.filter((a) => session.activityIDs.includes(a.activity.id));
     const activeTimers = ParseActiveTimers(dueReminder.reminder.active_timers);
 
@@ -238,68 +207,121 @@ export const ReminderPromptPanel = (state: BaseState) => {
     };
 
     return (
-        <div className="flex flex-col items-center text-center py-4 mb-4">
-            <div className="container-theme max-w-sm w-full text-left">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-lg font-bold">{dueReminder.reminder.name}</span>
-                </div>
+        <div className="container-theme max-w-sm w-full text-left">
+            <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-lg font-bold">{dueReminder.reminder.name}</span>
+            </div>
 
-                {shownActivities.length > 0 && (
-                    <div className="mb-4 flex flex-col gap-2">
-                        {shownActivities.map((activityWithTag) => {
-                            const runningTimespanID = activeTimers[activityWithTag.activity.id];
-                            const {completedMs, runningStartTime} = computeActivityTime(
-                                activityWithTag,
-                                state.timespans,
-                                dueReminder.reminder.last_activity_at,
-                                runningTimespanID
-                            );
-                            const isRunning = runningStartTime !== null;
+            {shownActivities.length > 0 && (
+                <div className="mb-4 flex flex-col gap-2">
+                    {shownActivities.map((activityWithTag) => {
+                        const runningTimespanID = activeTimers[activityWithTag.activity.id];
+                        const {completedMs, runningStartTime} = computeActivityTime(
+                            activityWithTag,
+                            state.timespans,
+                            dueReminder.reminder.last_activity_at,
+                            runningTimespanID
+                        );
+                        const isRunning = runningStartTime !== null;
 
-                            return (
-                                <div key={activityWithTag.activity.id} className="flex items-center justify-between gap-2">
-                                    <div>
-                                        <p>
-                                            {activityWithTag.activity.name} - {activityWithTag.activity.duration} min
-                                            {activityWithTag.activity.note ? ` - ${activityWithTag.activity.note}` : ''}
-                                        </p>
-                                        <TagChip
-                                            tag={activityWithTag.tag}
-                                            color={tagColorMap.get(activityWithTag.tag.namespace)}
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <ActivityTotalDuration completedMs={completedMs} runningStartTime={runningStartTime} />
-                                        {isRunning ? (
-                                            <button className="cancel-btn" onClick={() => stopActivity(activityWithTag)}>
-                                                Stop
-                                            </button>
-                                        ) : (
-                                            <button className="save-btn" onClick={() => startActivity(activityWithTag)}>
-                                                Start
-                                            </button>
-                                        )}
-                                    </div>
+                        return (
+                            <div key={activityWithTag.activity.id} className="flex items-center justify-between gap-2">
+                                <div>
+                                    <p>
+                                        {activityWithTag.activity.name} - {activityWithTag.activity.duration} min
+                                        {activityWithTag.activity.note ? ` - ${activityWithTag.activity.note}` : ''}
+                                    </p>
+                                    <TagChip tag={activityWithTag.tag} color={tagColorMap.get(activityWithTag.tag.namespace)} />
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
+                                <div className="flex items-center gap-2">
+                                    <ActivityTotalDuration completedMs={completedMs} runningStartTime={runningStartTime} />
+                                    {isRunning ? (
+                                        <button className="cancel-btn" onClick={() => stopActivity(activityWithTag)}>
+                                            Stop
+                                        </button>
+                                    ) : (
+                                        <button className="save-btn" onClick={() => startActivity(activityWithTag)}>
+                                            Start
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
-                <div className="flex justify-between flex-wrap">
-                    <div className="flex justify-end gap-2 flex-wrap">
-                        <button className="cancel-btn" onClick={dismiss}>
-                            Skip
-                        </button>
-                        <button className="cancel-btn" onClick={snooze}>
-                            Snooze {SNOOZE_MINUTES}m
-                        </button>
-                    </div>
-                    <button className="save-btn" onClick={dismiss}>
-                        Done
+            <div className="flex justify-between flex-wrap">
+                <div className="flex justify-end gap-2 flex-wrap">
+                    <button className="cancel-btn" onClick={dismiss}>
+                        Skip
+                    </button>
+                    <button className="cancel-btn" onClick={snooze}>
+                        Snooze {SNOOZE_MINUTES}m
                     </button>
                 </div>
+                <button className="save-btn" onClick={dismiss}>
+                    Done
+                </button>
             </div>
+        </div>
+    );
+};
+
+export const ReminderPromptPanel = (state: BaseState) => {
+    const {dueReminders} = useReminderNotifications(state.reminders);
+
+    const sessionsRef = useRef<Map<number, ShowSession>>(new Map());
+
+    const dueIDs = new Set(dueReminders.map((r) => r.reminder.id));
+    for (const id of sessionsRef.current.keys()) {
+        if (!dueIDs.has(id)) {
+            sessionsRef.current.delete(id);
+        }
+    }
+
+    for (const dueReminder of dueReminders) {
+        if (sessionsRef.current.has(dueReminder.reminder.id)) {
+            continue;
+        }
+
+        const activityIDs =
+            dueReminder.reminder.activity_mode === 'all'
+                ? dueReminder.activities.map((a) => a.activity.id)
+                : dueReminder.activities.length > 0
+                  ? [dueReminder.activities[Math.floor(Math.random() * dueReminder.activities.length)].activity.id]
+                  : [];
+
+        sessionsRef.current.set(dueReminder.reminder.id, {reminderID: dueReminder.reminder.id, since: Date.now(), activityIDs});
+
+        PlayReminderSound(dueReminder.reminder.sound);
+
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            const body =
+                dueReminder.activities.length === 0
+                    ? ''
+                    : dueReminder.reminder.activity_mode === 'all'
+                      ? dueReminder.activities.map((a) => a.activity.name).join(', ')
+                      : dueReminder.activities[Math.floor(Math.random() * dueReminder.activities.length)].activity.name;
+
+            try {
+                new Notification(dueReminder.reminder.name, {body});
+            } catch {}
+        }
+    }
+
+    if (dueReminders.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-col items-center gap-4 text-center py-4 mb-4">
+            {dueReminders.map((dueReminder) => {
+                const session = sessionsRef.current.get(dueReminder.reminder.id);
+                return session ? (
+                    <ReminderPromptCard key={dueReminder.reminder.id} state={state} dueReminder={dueReminder} session={session} />
+                ) : null;
+            })}
         </div>
     );
 };

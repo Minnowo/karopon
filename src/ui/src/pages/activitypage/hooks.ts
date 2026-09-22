@@ -7,7 +7,7 @@ import {IsWithinSchedule, ParseCronSchedule} from './schedule_window';
 // than the shared 1s tick.
 const CHECK_INTERVAL_MS = 10_000;
 
-// Determines which (if any) reminder is currently due, reading the current time from
+// Determines which reminders are currently due, reading the current time from
 // the shared ticker (useTimeNow) instead of running its own interval.
 // The server does not run a live countdown; due-ness is computed client-side from
 // last_activity_at + interval, and only counts while the reminder's cron schedule
@@ -37,7 +37,7 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
     }, [anyEnabled]);
 
     return useMemo(() => {
-        let dueReminder: ReminderWithActivities | null = null;
+        const dueReminders: ReminderWithActivities[] = [];
         const now = new Date(timeNow);
 
         for (const r of reminders) {
@@ -55,9 +55,7 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
                 continue;
             }
 
-            if (dueReminder === null) {
-                dueReminder = r;
-            }
+            dueReminders.push(r);
 
             if (firedForRef.current.get(r.reminder.id) === r.reminder.last_activity_at) {
                 continue;
@@ -66,6 +64,6 @@ export const useReminderNotifications = (reminders: ReminderWithActivities[]) =>
             firedForRef.current.set(r.reminder.id, r.reminder.last_activity_at);
         }
 
-        return {dueReminder};
+        return {dueReminders};
     }, [reminders, timeNow]);
 };
