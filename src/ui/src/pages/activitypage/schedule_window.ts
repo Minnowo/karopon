@@ -106,13 +106,18 @@ export const ComputeNextFireTime = (dueAt: number, windows: ScheduleWindow[], no
                 continue;
             }
 
-            const minute = Math.max(w.startMinute, minuteFloor);
-            const fireDate = new Date(dayDate);
-            fireDate.setHours(0, 0, 0, 0);
-            fireDate.setMinutes(minute);
+            let fireTime: number;
+            if (dayOffset === 0 && w.startMinute <= minuteFloor) {
+                fireTime = start;
+            } else {
+                const fireDate = new Date(dayDate);
+                fireDate.setHours(0, 0, 0, 0);
+                fireDate.setMinutes(w.startMinute);
+                fireTime = fireDate.getTime();
+            }
 
-            if (best === null || fireDate.getTime() < best) {
-                best = fireDate.getTime();
+            if (best === null || fireTime < best) {
+                best = fireTime;
             }
         }
 
