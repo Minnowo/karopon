@@ -81,6 +81,7 @@ class AlarmRingActivity : ComponentActivity() {
     }
 
     private fun dismiss() {
+        stopRinging()
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(reminderID)
 
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -99,10 +100,16 @@ class AlarmRingActivity : ComponentActivity() {
         finish()
     }
 
-    override fun onDestroy() {
+    private fun stopRinging() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
+        mediaPlayer = null
         vibrator?.cancel()
+        vibrator = null
+    }
+
+    override fun onDestroy() {
+        stopRinging()
         super.onDestroy()
     }
 }
