@@ -1,5 +1,6 @@
 package cc.headpats.karopon
 
+import android.app.KeyguardManager
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -81,7 +82,20 @@ class AlarmRingActivity : ComponentActivity() {
 
     private fun dismiss() {
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(reminderID)
-        startActivity(Intent(this, MainActivity::class.java))
+
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardManager.requestDismissKeyguard(
+            this,
+            object : KeyguardManager.KeyguardDismissCallback() {
+                override fun onDismissSucceeded() = launchMainActivity()
+                override fun onDismissError() = launchMainActivity()
+                override fun onDismissCancelled() = launchMainActivity()
+            },
+        )
+    }
+
+    private fun launchMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP))
         finish()
     }
 
