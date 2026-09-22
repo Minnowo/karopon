@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -48,12 +49,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requestAlarmPermissions()
-
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    ServerWebView(urlState)
+                    ServerWebView(this@MainActivity, urlState)
                 }
             }
         }
@@ -84,7 +83,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun requestAlarmPermissions() {
+    fun ensureAlarmPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -92,6 +91,14 @@ class MainActivity : ComponentActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
+        }
+
+        // Android 14+ no longer grants USE_FULL_SCREEN_INTENT automatically for apps
+        // targeting API 34 - without this, alarm-mode reminders silently fall back to
+        // a plain heads-up notification instead of ringing over the lock screen.
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !notificationManager.canUseFullScreenIntent()) {
+            startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
         }
     }
 
@@ -107,7 +114,7 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-private fun ServerWebView(urlState: MutableState<String?>) {
+private fun ServerWebView(activity: MainActivity, urlState: MutableState<String?>) {
     val url by urlState
     AndroidView(
         modifier = Modifier.fillMaxSize(),
@@ -115,7 +122,7 @@ private fun ServerWebView(urlState: MutableState<String?>) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                addJavascriptInterface(AlarmJsBridge(context), "AndroidAlarms")
+                addJavascriptInterface(AlarmJsBridge(activity), "AndroidAlarms")
                 webViewClient = WebViewClient()
                 webChromeClient = KaroponWebChromeClient(context)
             }

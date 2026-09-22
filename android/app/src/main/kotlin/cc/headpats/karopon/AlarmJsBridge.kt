@@ -1,14 +1,14 @@
 package cc.headpats.karopon
 
-import android.content.Context
 import android.webkit.JavascriptInterface
 
-class AlarmJsBridge(context: Context) {
+class AlarmJsBridge(private val activity: MainActivity) {
 
-    private val scheduler = AlarmScheduler(context)
+    private val scheduler = AlarmScheduler(activity)
 
     @JavascriptInterface
     fun schedule(id: Int, whenMillis: Double, title: String, body: String, isAlarm: Boolean, sound: String) {
+        activity.runOnUiThread { activity.ensureAlarmPermissions() }
         scheduler.schedule(id, whenMillis.toLong(), title, body, isAlarm, sound)
     }
 
