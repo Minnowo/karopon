@@ -229,7 +229,7 @@ export const TagsPage = (state: BaseState) => {
                                 }}
                             />
                         ) : (
-                            <div key={tagStr} className="container-theme flex items-center gap-2">
+                            <div key={tagStr} className="surface-1 flex items-center gap-2">
                                 <span className="flex-1 text-sm">{tagStr}</span>
                                 <DropdownButton
                                     actions={[

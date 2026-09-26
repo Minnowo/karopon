@@ -63,7 +63,7 @@ export function AddActivityPanel({
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme ${className}`}>
+        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
             <div className="w-full mb-2 text-lg font-bold">{title}</div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -112,10 +112,10 @@ export function AddActivityPanel({
             </div>
 
             <div className="flex justify-end gap-2 mt-2">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onSaveClick}>
+                <button className="btn-success" onClick={onSaveClick}>
                     {submitLabel}
                 </button>
             </div>

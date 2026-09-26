@@ -31,7 +31,7 @@ export function BodyLogPanel({bodyLog, bodyMetrics, onCopy, onEdit, onDelete}: B
     );
 
     return (
-        <div className="w-full p-3 border rounded container-theme">
+        <div className="w-full surface-1">
             <div className="flex flex-row flex-wrap w-full justify-between align-middle mb-2">
                 <span />
                 <div className="text-center font-semibold">{FormatSmartTimestamp(bodyLog.bodylog.user_time)}</div>
@@ -52,9 +52,9 @@ export function BodyLogPanel({bodyLog, bodyMetrics, onCopy, onEdit, onDelete}: B
             </div>
 
             {rows.length === 0 ? (
-                <div className="text-sm text-faded py-2">No metrics recorded</div>
+                <div className="text-sm text-c-on-surface-variant py-2">No metrics recorded</div>
             ) : (
-                <div className="rounded border p-2 divide-y">
+                <div className="surface-2 divide-y divide-c-outline-variant">
                     {rows.map((r) => (
                         <Metric key={r.metric!.id} label={r.metric!.name} value={`${r.value.value} ${r.metric!.unit}`} />
                     ))}

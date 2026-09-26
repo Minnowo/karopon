@@ -237,7 +237,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     };
 
     return (
-        <div className="w-full p-2 rounded-sm container-theme">
+        <div className="w-full p-2 rounded-sm surface-1">
             <div className="flex w-full justify-between mb-2">
                 <span className="text-lg font-bold">{p.dialogTitle}</span>
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
@@ -407,10 +407,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </div>
             )}
             <div className="flex justify-between sm:justify-end gap-2">
-                <button className="cancel-btn" onClick={p.onCancel}>
+                <button className="btn-error" onClick={p.onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onCreateClick} disabled={saving}>
+                <button className="btn-success" onClick={onCreateClick} disabled={saving}>
                     {saving ? 'Saving...' : p.saveButtonTitle}
                 </button>
             </div>

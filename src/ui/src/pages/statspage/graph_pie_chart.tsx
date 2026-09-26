@@ -91,7 +91,7 @@ export const PieChart = ({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -102,7 +102,7 @@ export const PieChart = ({
             </div>
 
             {total === 0 ? (
-                <div className="p-4 text-center text-c-yellow">{NoInformationMessage}</div>
+                <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
                     <svg width={size} height={size}>
@@ -124,7 +124,7 @@ export const PieChart = ({
                             );
                         })}
                     </svg>
-                    {hoverText && <div className="text-c-text font-bold text-lg">{hoverText}</div>}
+                    {hoverText && <div className="text-c-on-surface font-bold text-lg">{hoverText}</div>}
                     <div className="flex gap-4 mt-4 flex-wrap">
                         {slices.map((slice, i) => (
                             <div key={i} className="flex items-center gap-1">

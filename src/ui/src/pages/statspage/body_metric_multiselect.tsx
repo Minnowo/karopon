@@ -16,7 +16,7 @@ export function BodyMetricMultiSelect({bodyMetrics, selected, onChange}: BodyMet
     };
 
     if (bodyMetrics.length === 0) {
-        return <div className="text-sm text-faded">No body metrics defined yet.</div>;
+        return <div className="text-sm text-c-on-surface-variant">No body metrics defined yet.</div>;
     }
 
     return (
@@ -28,7 +28,7 @@ export function BodyMetricMultiSelect({bodyMetrics, selected, onChange}: BodyMet
                         <input type="checkbox" checked={selected.includes(m.name)} onChange={() => toggle(m.name)} />
                         <span>
                             {m.name}
-                            {m.unit && <span className="text-faded"> ({m.unit})</span>}
+                            {m.unit && <span className="text-c-on-surface-variant"> ({m.unit})</span>}
                         </span>
                     </label>
                 ))}

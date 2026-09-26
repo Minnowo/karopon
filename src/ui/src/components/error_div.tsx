@@ -71,17 +71,17 @@ export function ErrorDiv({errorMsg, className}: ErrorDivProps) {
     const devMessage = getDeveloperMessage(errorMsg);
 
     return (
-        <details role="alert" className={`flex flex-col text-left text-c-red ${className ?? ''}`}>
+        <details role="alert" className={`flex flex-col text-left text-c-error ${className ?? ''}`}>
             <summary className="cursor-pointer text-sm font-semibold">
                 {userMessage}
                 {devMessage && (
                     <>
-                        &nbsp;<span className="text-xs">(click for dev info)</span>
+                        &nbsp;<span className="text-xs text-c-on-surface-variant">(click for dev info)</span>
                     </>
                 )}
             </summary>
 
-            {devMessage && <pre className="text-xs text-c-overlay2 mt-1 whitespace-pre-wrap">{devMessage}</pre>}
+            {devMessage && <pre className="text-xs text-c-on-surface-variant mt-1 whitespace-pre-wrap">{devMessage}</pre>}
         </details>
     );
 }

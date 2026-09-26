@@ -79,7 +79,7 @@ export function BodyPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
-                <button disabled={showNewEventPanel} className={`w-24`} onClick={() => setShowNewEventPanel(true)}>
+                <button disabled={showNewEventPanel} onClick={() => setShowNewEventPanel(true)}>
                     New Event
                 </button>
 

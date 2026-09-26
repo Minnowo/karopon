@@ -49,13 +49,13 @@ export function ActivityEditPanel({
     }
 
     return (
-        <div className="w-full container-theme flex items-center gap-2">
+        <div className="w-full surface-1 flex items-center gap-2">
             <div className="flex-1">
                 <div className="flex items-center gap-2">
                     <span className="text-lg font-semibold">{activity.name}</span>
                     <TagChip tag={tag} color={tagColors?.get(tag.namespace)} />
                 </div>
-                <div className="text-sm text-c-subtext">
+                <div className="text-sm text-c-on-surface-variant">
                     {activity.duration} min{activity.note ? ` - ${activity.note}` : ''}
                 </div>
             </div>

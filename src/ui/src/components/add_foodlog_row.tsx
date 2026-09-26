@@ -123,7 +123,7 @@ export function AddFoodlogPanelRow({
                 <td>
                     <button
                         tabindex={-1}
-                        className="bg-c-red hover:bg-c-red px-1"
+                        className="btn-error"
                         aria-label={food.name ? `Remove ${food.name}` : 'Remove food row'}
                         onClick={() => deleteSelf()}
                     >

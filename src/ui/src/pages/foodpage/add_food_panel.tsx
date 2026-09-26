@@ -62,12 +62,12 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme ${className}`}>
+        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
             <div className="w-full mb-4">
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer text-lg font-bold">
                         Create New Food
-                        <span className="text-xs"> (click for help)</span>
+                        <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                     </summary>
 
                     <div className="text-sm p-4">
@@ -226,10 +226,10 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onSaveClick}>
+                <button className="btn-success" onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>

@@ -67,7 +67,7 @@ export function AddEditDashboardPanel({
     };
 
     return (
-        <div className={`flex flex-col gap-2 p-2 container-theme ${className}`}>
+        <div className={`flex flex-col gap-2 p-2 surface-1 ${className}`}>
             <h2 className="text-lg font-bold">{titleLabel}</h2>
             <div className="flex gap-2 items-center">
                 <input
@@ -81,7 +81,7 @@ export function AddEditDashboardPanel({
             </div>
 
             {onCardAdded && (
-                <div className="container-theme flex flex-col gap-2">
+                <div className="surface-2 flex flex-col gap-2">
                     <h2 className="text-lg font-bold">Add Chart</h2>
                     <div class="flex flex-row flex-wrap gap-2 items-center">
                         <select
@@ -102,7 +102,7 @@ export function AddEditDashboardPanel({
                     </div>
 
                     {addType === 'time' && (
-                        <div className="container-theme">
+                        <div className="surface-3">
                             <h2 className="text-lg font-bold">Tags</h2>
                             <TagInput
                                 namespaces={namespaces}
@@ -115,21 +115,21 @@ export function AddEditDashboardPanel({
                     )}
 
                     {addType === 'macros' && (
-                        <div className="container-theme">
+                        <div className="surface-3">
                             <h2 className="text-lg font-bold">Macros / Calories</h2>
                             <MacroMultiSelect selected={visibleMacros} onChange={setVisibleMacros} />
                         </div>
                     )}
 
                     {addType === 'eventlogs' && (
-                        <div className="container-theme">
+                        <div className="surface-3">
                             <h2 className="text-lg font-bold">Blood Glucose / Insulin</h2>
                             <EventLogMultiSelect selected={visibleEventLogs} onChange={setVisibleEventLogs} />
                         </div>
                     )}
 
                     {addType === 'bodylog' && (
-                        <div className="container-theme">
+                        <div className="surface-3">
                             <h2 className="text-lg font-bold">Body Metrics</h2>
                             <BodyMetricMultiSelect
                                 bodyMetrics={bodyMetrics}
@@ -143,17 +143,17 @@ export function AddEditDashboardPanel({
 
             <div className="flex flex-wrap justify-between gap-2">
                 {onDelete ? (
-                    <button className="delete-btn" onClick={onDelete}>
+                    <button className="btn-error" onClick={onDelete}>
                         Delete
                     </button>
                 ) : (
                     <div> </div>
                 )}
                 <div className="flex gap-2">
-                    <button className="cancel-btn" onClick={onCancel}>
+                    <button className="btn-error" onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className="save-btn" onClick={() => onConfirm(name)}>
+                    <button className="btn-success" onClick={() => onConfirm(name)}>
                         {confirmLabel}
                     </button>
                 </div>

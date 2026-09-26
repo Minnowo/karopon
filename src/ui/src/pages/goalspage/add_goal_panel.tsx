@@ -83,7 +83,7 @@ export function GoalCreationPanel({
     };
 
     return (
-        <div className={`container-theme ${className}`}>
+        <div className={`surface-1 ${className}`}>
             <div className="flex justify-between">
                 <h2 className="text-lg font-semibold">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
             </div>
@@ -199,7 +199,7 @@ export function GoalCreationPanel({
                             Body Metric
                         </label>
                         {bodyMetrics.length === 0 ? (
-                            <div className="text-sm text-faded">No body metrics defined yet.</div>
+                            <div className="text-sm text-c-on-surface-variant">No body metrics defined yet.</div>
                         ) : (
                             <select
                                 id={targetMetricId}
@@ -271,10 +271,10 @@ export function GoalCreationPanel({
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <button className="cancel-btn" onClick={onCancel}>
+                    <button className="btn-error" onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className="save-btn" onClick={doCreateOrUpdate}>
+                    <button className="btn-success" onClick={doCreateOrUpdate}>
                         {isEditing ? 'Update Goal' : 'Create Goal'}
                     </button>
                 </div>

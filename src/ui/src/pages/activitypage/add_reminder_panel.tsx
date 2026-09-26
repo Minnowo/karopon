@@ -118,7 +118,7 @@ export function AddReminderPanel({
     };
 
     return (
-        <div className={`rounded-sm p-2 border container-theme ${className}`}>
+        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
             <div className="w-full mb-2 text-lg font-bold">{title}</div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -162,7 +162,7 @@ export function AddReminderPanel({
                             </button>
                         </div>
                     </div>
-                    <p className="text-sm font-normal text-c-subtext mb-1">
+                    <p className="text-sm font-normal text-c-on-surface-variant mb-1">
                         This reminder can only fire during these day/time windows. At least one is required.
                     </p>
 
@@ -195,7 +195,7 @@ export function AddReminderPanel({
                                         onChange={(d) => updateWindow(w.key, {endMinute: d.getHours() * 60 + d.getMinutes()})}
                                         hour12={hour12}
                                     />
-                                    <button className="cancel-btn text-xs px-2 py-1" onClick={() => removeWindow(w.key)}>
+                                    <button className="btn-error text-xs" onClick={() => removeWindow(w.key)}>
                                         Remove
                                     </button>
                                 </div>
@@ -206,7 +206,7 @@ export function AddReminderPanel({
 
                 <div>
                     <span className="font-semibold">Break activities (optional)</span>
-                    <p className="text-sm font-normal text-c-subtext">
+                    <p className="text-sm font-normal text-c-on-surface-variant">
                         When this reminder fires, it will suggest activities from this list. Leave empty for a plain reminder with
                         no logging.
                     </p>
@@ -267,10 +267,10 @@ export function AddReminderPanel({
             </div>
 
             <div className="flex justify-end gap-2 mt-2">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onSaveClick}>
+                <button className="btn-success" onClick={onSaveClick}>
                     {submitLabel}
                 </button>
             </div>

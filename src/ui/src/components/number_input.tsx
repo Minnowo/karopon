@@ -34,7 +34,7 @@ export function NumberInput({
     labelOnLeftSide = true,
     disabled = false,
     className = '',
-    innerClassName = 'w-12',
+    innerClassName = 'w-16',
     buttonClassName = '',
     innerTabIndex = undefined,
 }: FloatInputProps) {
@@ -134,7 +134,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-high"
                     ariaLabel={label ? `Increase ${label}` : 'Increase value'}
                 >
                     {UpArrow}
@@ -143,7 +143,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-overlay1"
+                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-high"
                     ariaLabel={label ? `Decrease ${label}` : 'Decrease value'}
                 >
                     {DownArrow}

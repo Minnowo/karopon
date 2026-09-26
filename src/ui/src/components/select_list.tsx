@@ -194,7 +194,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                     ref={listRef}
                     id={listboxId}
                     role="listbox"
-                    class={`absolute z-10 border border-c-accent2 mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
+                    class={`absolute z-10 border border-c-primary mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll`}
                 >
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => {
@@ -206,7 +206,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                                     role="option"
                                     aria-selected={selectedIndex === i}
                                     key={key}
-                                    class={`${selectedIndex === i ? 'bg-c-surface2' : 'bg-c-surface0'}  p-2 hover:bg-c-surface2 cursor-pointer`}
+                                    class={`${selectedIndex === i ? 'bg-c-surface-container-highest' : 'bg-c-surface-container'}  p-2 hover:bg-c-surface-container-highest cursor-pointer`}
                                     onClick={() => doSelect(item)}
                                 >
                                     {key}
@@ -214,7 +214,10 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                             );
                         })
                     ) : (
-                        <li role="presentation" class="bg-c-surface0 p-2 hover:bg-c-surface1 cursor-pointer">
+                        <li
+                            role="presentation"
+                            class="bg-c-surface-container p-2 hover:bg-c-surface-container-high cursor-pointer"
+                        >
                             {' '}
                             {noResultsText}{' '}
                         </li>

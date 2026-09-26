@@ -50,7 +50,7 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
     const unit = goal.target_col === 'TIME' ? 'h' : '';
 
     return (
-        <div className="container-theme">
+        <div className="surface-1">
             <div className="flex flex-row justify-between">
                 <h2 className="text-lg font-semibold">{goal.name}</h2>
                 <DropdownButton
@@ -79,7 +79,7 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
                         {unit}
                     </p>
                     <p className="text-xs">Time remaining: {FormatDuration(Math.max(0, timeRemaining))}</p>
-                    <div className="w-full h-2 rounded mt-2 bg-c-surface2">
+                    <div className="w-full h-2 rounded mt-2 bg-c-surface-container-highest">
                         <div
                             className={`${barColor} h-2 rounded`}
                             style={{

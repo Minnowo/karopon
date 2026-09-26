@@ -59,17 +59,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
         return (
             <div className="flex flex-col items-center text-center py-8 px-4">
-                <div className="container-theme max-w-md w-full text-left">
-                    <p className="text-lg font-bold text-c-red mb-2">Something went wrong</p>
+                <div className="surface-1 max-w-md w-full text-left">
+                    <p className="text-lg font-bold text-c-error mb-2">Something went wrong</p>
                     <p className="mb-2">The app hit an unexpected error and could not continue.</p>
-                    <pre className="text-xs text-c-overlay2 mt-1 mb-4 whitespace-pre-wrap break-words">
+                    <pre className="text-xs text-c-on-surface-variant mt-1 mb-4 whitespace-pre-wrap break-words">
                         {error.stack || error.message}
                     </pre>
                     <div className="flex justify-end gap-2 flex-wrap">
-                        <button className="cancel-btn" onClick={this.reload}>
+                        <button className="btn-error" onClick={this.reload}>
                             Reload
                         </button>
-                        <button className="save-btn" onClick={this.clearAndReload}>
+                        <button className="btn-success" onClick={this.clearAndReload}>
                             Clear local data and reload
                         </button>
                     </div>

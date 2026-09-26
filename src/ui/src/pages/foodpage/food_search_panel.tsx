@@ -114,13 +114,13 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                         {results.map((food: TblDataSourceFood, i: number) => {
                             const shown = i === curRow;
                             const toggle = () => setCurRow(shown ? -1 : i);
-                            const rowColor = i % 2 === 0 ? 'bg-c-surface0' : 'bg-c-surface1';
+                            const rowColor = i % 2 === 0 ? 'bg-c-surface-container' : 'bg-c-surface-container-high';
 
                             return (
                                 <Fragment key={food.id}>
                                     {shown && (
                                         <tr className={`cursor-pointer ${rowColor}`} onClick={toggle}>
-                                            <td className="border-c-accent2 border-t-2 " colSpan={7}>
+                                            <td className="border-c-primary border-t-2 " colSpan={7}>
                                                 <div className="mx-1">{food.name}</div>
                                             </td>
                                         </tr>
@@ -149,7 +149,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                                                         <span>ID {food.data_source_row_int_id}</span>
                                                     </div>
                                                     <button
-                                                        className="bg-c-green max-w-32 w-full"
+                                                        className="btn-success max-w-32 w-full"
                                                         onClick={() => state.onChooseFood(food)}
                                                     >
                                                         Choose
@@ -164,7 +164,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                     </tbody>
                 </table>
             ) : (
-                <p className="text-c-magenta mt-2">No results found.</p>
+                <p className="text-c-on-surface-variant mt-2">No results found.</p>
             )}
         </div>
     );

@@ -59,11 +59,11 @@ export const AddTimerPanel = ({
     };
 
     return (
-        <div className={`flex flex-col gap-1 container-theme ${className}`}>
+        <div className={`flex flex-col gap-1 surface-1 ${className}`}>
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer text-lg font-bold">
                     Create New Timer
-                    <span className="text-xs"> (click for help)</span>
+                    <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                 </summary>
 
                 <div className="text-sm p-4">
@@ -155,10 +155,10 @@ export const AddTimerPanel = ({
             </label>
 
             <div className="flex justify-end gap-2">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={doCreate}>
+                <button className="btn-success" onClick={doCreate}>
                     {saveButtonTitle}
                 </button>
             </div>

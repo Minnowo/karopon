@@ -65,9 +65,9 @@ const TimeInputDialog = ({value, onSave, onClose, showDate, showSeconds, hour12}
     const sep = <div className="flex items-center select-none text-2xl font-bold text-faded mx-1 self-center">:</div>;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-c-crust/50" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={onClose}>
             <div
-                className="container-theme rounded-t-2xl sm:rounded-xl w-full sm:max-w-xs pb-6 pt-4 px-4"
+                className="surface-1 rounded-t-2xl sm:rounded-xl w-full sm:max-w-xs pb-6 pt-4 px-4"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-stretch justify-center">
@@ -169,10 +169,10 @@ const TimeInputDialog = ({value, onSave, onClose, showDate, showSeconds, hour12}
                 </div>
 
                 <div className="flex flex-row gap-2 my-2">
-                    <button className="w-full mt-4 bg-c-red font-bold" onClick={onClose}>
+                    <button className="w-full mt-4 btn-error" onClick={onClose}>
                         Cancel
                     </button>
-                    <button className="w-full mt-4 bg-c-green font-bold" onClick={doSave}>
+                    <button className="w-full mt-4 btn-success" onClick={doSave}>
                         Done
                     </button>
                 </div>
@@ -465,7 +465,7 @@ export const TimeInput = ({
                     <div className="flex flex-row">
                         <input
                             ref={ampmRef}
-                            className="w-8 border-none focus:outline-none text-center text-xs"
+                            className="w-10 border-none focus:outline-none text-center text-xs"
                             type="text"
                             tabIndex={childTabIndex}
                             value={isPm ? 'PM' : 'AM'}
@@ -487,7 +487,7 @@ export const TimeInput = ({
                 <button
                     tabIndex={-1}
                     aria-label="Open time picker"
-                    className="h-full select-none px-2 p-0 leading-none border-none bg-transparent hover:bg-c-overlay1"
+                    className="h-full select-none px-2 p-0 leading-none border-none bg-transparent hover:bg-c-surface-container-high"
                     onClick={(e) => {
                         e.stopPropagation();
                         setDialogOpen(true);

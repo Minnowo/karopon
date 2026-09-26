@@ -193,7 +193,7 @@ export function MultiLineGraph2({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -204,7 +204,7 @@ export function MultiLineGraph2({
             </div>
 
             {data.rows.length === 0 ? (
-                <div className="p-4 text-center text-c-yellow">{NoInformationMessage}</div>
+                <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
                     <svg
@@ -212,7 +212,7 @@ export function MultiLineGraph2({
                         height={height + (tiltLabels ? chartFontSize : 0)}
                         viewBox={`0 0 ${width + pad} ${height}`}
                         preserveAspectRatio="xMinYMin meet"
-                        className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
+                        className="border border-c-primary rounded text-c-on-surface-variant"
                     >
                         {showYAxis && (
                             <g>

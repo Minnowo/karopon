@@ -97,12 +97,12 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
     };
 
     return (
-        <div className={`container-theme ${p.className}`}>
+        <div className={`surface-1 ${p.className}`}>
             <div>
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer text-lg font-bold">
                         Food Builder
-                        <span className="text-xs"> (click for help)</span>
+                        <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                     </summary>
 
                     <div className="text-sm p-4">
@@ -257,11 +257,11 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="cancel-btn" onClick={p.onCancel}>
+                <button className="btn-error" onClick={p.onCancel}>
                     {' '}
                     Cancel
                 </button>
-                <button className="save-btn" onClick={onCreateClick}>
+                <button className="btn-success" onClick={onCreateClick}>
                     Build Food{' '}
                 </button>
             </div>

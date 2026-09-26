@@ -77,7 +77,6 @@ export const FoodPage = (state: BaseState) => {
             <div className="flex justify-evenly my-4">
                 <button
                     disabled={showAddFoodPanel}
-                    className="w-24"
                     onClick={() => {
                         setShowAddFoodPanel(true);
                         setBaseFood(TblUserFoodFactory.empty());
@@ -87,7 +86,6 @@ export const FoodPage = (state: BaseState) => {
                 </button>
                 <button
                     disabled={showBuildFoodPanel}
-                    className="w-24"
                     onClick={() => {
                         setShowBuildFoodPanel(true);
                     }}

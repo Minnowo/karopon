@@ -207,7 +207,7 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
     };
 
     return (
-        <div className="container-theme max-w-sm w-full text-left">
+        <div className="surface-1 max-w-sm w-full text-left">
             <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-lg font-bold">{dueReminder.reminder.name}</span>
             </div>
@@ -236,11 +236,11 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
                                 <div className="flex items-center gap-2">
                                     <ActivityTotalDuration completedMs={completedMs} runningStartTime={runningStartTime} />
                                     {isRunning ? (
-                                        <button className="cancel-btn" onClick={() => stopActivity(activityWithTag)}>
+                                        <button className="btn-error" onClick={() => stopActivity(activityWithTag)}>
                                             Stop
                                         </button>
                                     ) : (
-                                        <button className="save-btn" onClick={() => startActivity(activityWithTag)}>
+                                        <button className="btn-success" onClick={() => startActivity(activityWithTag)}>
                                             Start
                                         </button>
                                     )}
@@ -253,14 +253,14 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
 
             <div className="flex justify-between flex-wrap">
                 <div className="flex justify-end gap-2 flex-wrap">
-                    <button className="cancel-btn" onClick={dismiss}>
+                    <button className="btn-error" onClick={dismiss}>
                         Skip
                     </button>
-                    <button className="cancel-btn" onClick={snooze}>
+                    <button className="btn-error" onClick={snooze}>
                         Snooze {SNOOZE_MINUTES}m
                     </button>
                 </div>
-                <button className="save-btn" onClick={dismiss}>
+                <button className="btn-success" onClick={dismiss}>
                     Done
                 </button>
             </div>

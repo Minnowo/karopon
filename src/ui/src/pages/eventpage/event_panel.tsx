@@ -14,7 +14,7 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
     const [curRow, setCurRow] = useState<number>(-1);
 
     return (
-        <div className="container-theme">
+        <div className="surface-1">
             <div className="flex flex-wrap justify-between align-middle">
                 <span className="text-s font-semibold">{`${foodGroup.eventlog.event} `}</span>
                 <span className=" text-s font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
@@ -90,14 +90,14 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
                                     <Fragment key={food.id}>
                                         {shown && (
                                             <tr className="cursor-pointer" onClick={toggle}>
-                                                <td className="border-c-accent2 border-t-2 border-l-2 " colSpan={8}>
+                                                <td className="border-c-primary border-t-2 border-l-2 " colSpan={8}>
                                                     <div className="mx-1">{food.name}</div>
                                                 </td>
                                             </tr>
                                         )}
                                         <tr onClick={toggle} className="cursor-pointer">
                                             <td
-                                                className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-accent2' : ''} `}
+                                                className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-primary' : ''} `}
                                             >
                                                 {!shown ? (
                                                     <div className="overflow-x-hidden">{food.name}</div>

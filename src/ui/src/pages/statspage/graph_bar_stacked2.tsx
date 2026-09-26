@@ -194,7 +194,7 @@ export function StackedBarGraph2({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -205,7 +205,7 @@ export function StackedBarGraph2({
             </div>
 
             {data.rows.length === 0 ? (
-                <div className="p-4 text-center text-c-yellow">{NoInformationMessage}</div>
+                <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
                     <div className="relative">
@@ -214,7 +214,7 @@ export function StackedBarGraph2({
                             height={CHART_HEIGHT + (tiltLabels ? chartFontSize : 0)}
                             viewBox={`0 0 ${width + PAD} ${CHART_HEIGHT}`}
                             preserveAspectRatio="xMinYMin meet"
-                            className="border border-c-yellow rounded text-c-mantle dark:text-c-text"
+                            className="border border-c-primary rounded text-c-on-surface-variant"
                             onClick={() => setClickedIdx(null)}
                         >
                             {showYAxis && (
@@ -305,7 +305,7 @@ export function StackedBarGraph2({
                                     maxWidth: TOOLTIP_MAX_W,
                                     overflowX: 'auto',
                                 }}
-                                className="container-theme border border-c-yellow rounded px-2 py-1 text-xs shadow-lg"
+                                className="surface-1 border border-c-primary rounded px-2 py-1 text-xs shadow-lg"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {visibleCols
@@ -332,7 +332,7 @@ export function StackedBarGraph2({
                                     })}
                                 <div
                                     style={{whiteSpace: 'nowrap'}}
-                                    className="font-bold mt-0.5 border-t border-c-overlay1 pt-0.5"
+                                    className="font-bold mt-0.5 border-t border-c-outline-variant pt-0.5"
                                 >
                                     Total: {clickedBar.total.toFixed(precision)}
                                 </div>

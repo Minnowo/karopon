@@ -76,7 +76,7 @@ export const TimerPanel = ({
     };
 
     return (
-        <div className={`flex flex-row items-start sm:items-center container-theme p-2`}>
+        <div className={`flex flex-row items-start sm:items-center surface-1 p-2`}>
             <div className="flex flex-1 flex-col gap-2">
                 <div className="flex flex-col gap-2 sm:flex-row">
                     <TagInput
@@ -144,10 +144,10 @@ export const TimerPanel = ({
                             onInput={(e) => setNote(e.currentTarget.value)}
                         />
                         <div className="flex gap-2 justify-end">
-                            <button className="cancel-btn" onClick={() => setShowEdit(false)}>
+                            <button className="btn-error" onClick={() => setShowEdit(false)}>
                                 Cancel
                             </button>
-                            <button className="save-btn" onClick={saveEdit}>
+                            <button className="btn-success" onClick={saveEdit}>
                                 Save
                             </button>
                         </div>
@@ -164,10 +164,10 @@ export const TimerPanel = ({
                 )}
                 {!showEdit && showNote && note !== timer.timespan.note && (
                     <div className="flex gap-2 justify-end">
-                        <button className="cancel-btn" onClick={() => setNote(timer.timespan.note)}>
+                        <button className="btn-error" onClick={() => setNote(timer.timespan.note)}>
                             Cancel
                         </button>
-                        <button className="save-btn" onClick={saveNote}>
+                        <button className="btn-success" onClick={saveNote}>
                             Save
                         </button>
                     </div>

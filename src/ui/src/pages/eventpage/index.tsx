@@ -97,7 +97,6 @@ export const EventsPage = (state: BaseState) => {
             <div className="w-full flex justify-evenly my-4">
                 <button
                     disabled={showNewEventPanel}
-                    className="w-24"
                     onClick={() => {
                         setShowNewEventPanel(true);
                         setNewEvent(UserEventFoodLogFactory.empty());

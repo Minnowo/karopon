@@ -21,19 +21,22 @@ const TagColorRow = ({namespace, currentColor, value, onChange}: TagColorRowProp
     return (
         <div className="flex flex-wrap justify-between items-center gap-2">
             <div className="flex items-center gap-2 min-w-0">
-                <span className="w-6 h-6 rounded border flex-shrink-0" style={{backgroundColor: previewColor}} />
+                <span
+                    className="w-6 h-6 rounded border border-c-outline-variant flex-shrink-0"
+                    style={{backgroundColor: previewColor}}
+                />
                 <span className="text-sm font-mono break-all">{namespace}</span>
             </div>
             <div className="flex flex-col min-w-40 gap-1">
                 <input
                     type="text"
-                    className={`flex-1 w-64 px-2 py-1 text-sm font-mono ${invalid ? 'border-c-red' : ''}`}
+                    className={`flex-1 w-64 px-2 py-1 text-sm font-mono ${invalid ? 'border-c-error' : ''}`}
                     placeholder="#rrggbb or --name"
                     aria-label={`Color for ${namespace}`}
                     value={value}
                     onInput={(e) => onChange(e.currentTarget.value)}
                 />
-                {invalid && <span className="text-xs text-c-red">Must be #rgb, #rrggbb, or var(--name)</span>}
+                {invalid && <span className="text-xs text-c-error">Must be #rgb, #rrggbb, or var(--name)</span>}
             </div>
         </div>
     );
@@ -61,11 +64,11 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
     };
 
     return (
-        <div className="mb-4 p-3 border rounded container-theme flex flex-col gap-2">
+        <div className="mb-4 surface-1 flex flex-col gap-2">
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer">
                     <h2 className="text-lg font-bold inline">Tag Colors</h2>
-                    <span className="text-xs"> (click for help)</span>
+                    <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                 </summary>
 
                 <div className="text-sm p-4">
@@ -151,10 +154,10 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
                 />
             ))}
             <div className="flex gap-2 justify-end">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" disabled={hasInvalid} onClick={handleSave}>
+                <button className="btn-success" disabled={hasInvalid} onClick={handleSave}>
                     Save
                 </button>
             </div>

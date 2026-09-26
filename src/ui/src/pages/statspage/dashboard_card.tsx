@@ -100,7 +100,7 @@ function TimeRangePanel({
         <div className="flex flex-col">
             <details className="w-full">
                 <summary className="w-full cursor-pointer text-sm font-semibold">{range.name}</summary>
-                <div className="flex flex-col p-2 container-theme gap-2">
+                <div className="flex flex-col p-2 surface-1 gap-2">
                     <div className="flex flex-row gap-2">
                         <input
                             className="w-full"
@@ -114,7 +114,7 @@ function TimeRangePanel({
                         <button className="px-2" onClick={onMoveDown} disabled={isLast}>
                             ↓
                         </button>
-                        <button className="delete-btn" onClick={onRemove} disabled={!canRemove}>
+                        <button className="btn-error" onClick={onRemove} disabled={!canRemove}>
                             ✕
                         </button>
                     </div>
@@ -169,10 +169,10 @@ function TimeRangePanel({
                         </select>
                     </div>
                     <div className="flex justify-end gap-2">
-                        <button className="cancel-btn" onClick={() => setDraft(range)} disabled={!isDirty}>
+                        <button className="btn-error" onClick={() => setDraft(range)} disabled={!isDirty}>
                             Cancel
                         </button>
-                        <button className="save-btn" onClick={() => onSave(draft)} disabled={!isDirty}>
+                        <button className="btn-success" onClick={() => onSave(draft)} disabled={!isDirty}>
                             Save
                         </button>
                     </div>
@@ -576,7 +576,7 @@ export function DashboardCardComponent({
     };
 
     return (
-        <div ref={thisRef} className={`${editing ? 'flex flex-col container-theme gap-2' : ''}`}>
+        <div ref={thisRef} className={`${editing ? 'flex flex-col surface-1 gap-2' : ''}`}>
             {editing && (
                 <div className="flex flex-col gap-2">
                     <div className="flex justify-between">
@@ -743,7 +743,7 @@ export function DashboardCardComponent({
                     )}
 
                     <div className="flex justify-between">
-                        <button className="px-2 py-1 delete-btn" onClick={onRemove}>
+                        <button className="btn-error" onClick={onRemove}>
                             ✕ Remove
                         </button>
                     </div>

@@ -77,7 +77,7 @@ export function TableGraph2({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-yellow text-c-crust' : 'text-c-text'}`}
+                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -88,18 +88,18 @@ export function TableGraph2({
             </div>
 
             {data.rows.length === 0 ? (
-                <div className="p-4 text-center text-c-yellow">{NoInformationMessage}</div>
+                <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
-                    <div className="overflow-x-auto border border-c-yellow rounded">
+                    <div className="overflow-x-auto border border-c-primary rounded">
                         <table className="border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="sticky left-0 bg-c-mantle px-3 py-1 text-left border-b border-c-overlay1" />
+                                    <th className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left border-b border-c-outline-variant" />
                                     {data.rows.map((row) => (
                                         <th
                                             key={row.x}
-                                            className="px-3 py-1 text-right border-b border-c-overlay1 whitespace-nowrap"
+                                            className="px-3 py-1 text-right border-b border-c-outline-variant whitespace-nowrap"
                                         >
                                             {FormatXLabel(row.x, groupBy)}
                                         </th>
@@ -109,7 +109,7 @@ export function TableGraph2({
                             <tbody>
                                 {showSumRow && (
                                     <tr>
-                                        <th className="sticky left-0 bg-c-mantle px-3 py-1 text-left whitespace-nowrap">
+                                        <th className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left whitespace-nowrap">
                                             {SUM_ROW_LABEL}
                                         </th>
                                         {data.rows.map((row) => {
@@ -125,7 +125,7 @@ export function TableGraph2({
                                 {visibleCols.map((key) => (
                                     <tr key={key}>
                                         <th
-                                            className="sticky left-0 bg-c-mantle px-3 py-1 text-left whitespace-nowrap"
+                                            className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left whitespace-nowrap"
                                             style={{color: data.colors[key]}}
                                         >
                                             {data.labels[key]}

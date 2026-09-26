@@ -38,12 +38,10 @@ function SessionRow({
     };
 
     return (
-        <div
-            className={`rounded-sm p-2 border container-theme flex flex-col gap-1 ${session.is_current ? 'border-c-green' : ''}`}
-        >
+        <div className={`rounded-sm p-2 border surface-1 flex flex-col gap-1 ${session.is_current ? 'border-c-success' : ''}`}>
             <div className="flex items-start justify-between gap-2">
                 <span className="break-all text-sm font-semibold">{label}</span>
-                {session.is_current && <span className="text-c-green font-bold text-xs wsnw">current</span>}
+                {session.is_current && <span className="text-c-success font-bold text-xs wsnw">current</span>}
             </div>
 
             {editing ? (
@@ -64,10 +62,10 @@ function SessionRow({
                         autoFocus
                     />
                     <div className="flex justify-end gap-2">
-                        <button className="bg-c-red font-bold text-sm max-w-32 px-3 py-1 border" onClick={cancelEdit}>
+                        <button className="btn-error text-sm max-w-32" onClick={cancelEdit}>
                             Cancel
                         </button>
-                        <button className="bg-c-green font-bold text-sm max-w-32 px-3 py-1" onClick={saveEdit}>
+                        <button className="btn-success text-sm max-w-32" onClick={saveEdit}>
                             Save
                         </button>
                     </div>

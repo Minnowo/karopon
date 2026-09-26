@@ -21,7 +21,7 @@ export function UserHeader({user}: UserHeaderProps) {
             <button
                 tabIndex={0}
                 type="button"
-                className="std-focus bg-transparent border-none rounded-none p-0 text-c-yellow"
+                className="std-focus bg-transparent border-none rounded-none p-0 text-c-primary"
                 aria-haspopup="menu"
                 aria-expanded={showDropDown}
                 onClick={() => setShowDropDown(true)}
@@ -29,7 +29,7 @@ export function UserHeader({user}: UserHeaderProps) {
                 {user.name}
             </button>
             {showDropDown && (
-                <div className="flex flex-col absolute left-0 z-10 container-theme p-2">
+                <div className="flex flex-col absolute left-0 z-10 surface-1 p-2">
                     <a href="#settings" onClick={() => setShowDropDown(false)}>
                         Settings
                     </a>

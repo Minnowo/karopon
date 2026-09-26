@@ -61,7 +61,6 @@ export function GoalsPage(state: BaseState) {
             <div className="flex flex-wrap justify-evenly my-4 gap-2">
                 <button
                     disabled={showNewGoalPanel}
-                    className="w-24"
                     onClick={() => {
                         setShowNewGoalPanel(true);
                         newGoal.current = NewTblUserGoal({target_value: 1500});

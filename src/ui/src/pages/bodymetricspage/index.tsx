@@ -71,10 +71,10 @@ export const BodyMetricsPage = (state: BaseState) => {
                     <p>No body metrics defined yet.</p>
                 ) : (
                     sortedMetrics.map((m) => (
-                        <div key={m.id} className="container-theme flex items-center gap-2">
+                        <div key={m.id} className="surface-1 flex items-center gap-2">
                             <span className="flex-1 text-sm">
                                 {m.name}
-                                {m.unit && <span className="text-faded"> ({m.unit})</span>}
+                                {m.unit && <span className="text-c-on-surface-variant"> ({m.unit})</span>}
                             </span>
                             <DropdownButton actions={[{label: 'Delete', dangerous: true, onClick: () => deleteMetric(m)}]} />
                         </div>

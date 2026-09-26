@@ -72,7 +72,7 @@ export function SettingsPage(state: BaseState) {
         <div className="flex flex-col space-y-4">
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-48 ${isEditing && 'bg-c-red font-bold'}`}
+                    className={`w-48 ${isEditing && 'btn-error'}`}
                     onClick={() => {
                         setIsEditing((x) => !x);
                     }}
@@ -232,7 +232,7 @@ export function SettingsPage(state: BaseState) {
                     value={userRef.current.theme}
                     onInput={(e) => update('theme', (e.target as HTMLSelectElement).value)}
                 >
-                    {['dark-classic', 'dark-1', 'dark-2', 'dark-3', 'dark-4'].map((x) => (
+                    {['dark', 'light'].map((x) => (
                         <option key={x} value={x}>
                             {x}
                         </option>
@@ -261,7 +261,7 @@ export function SettingsPage(state: BaseState) {
 
             {isEditing && (
                 <input
-                    className="w-full my-1 sm:ml-auto sm:max-w-32 bg-c-green font-bold"
+                    className="w-full my-1 sm:ml-auto sm:max-w-32 btn-success"
                     type="submit"
                     value="Save Settings"
                     onClick={save}

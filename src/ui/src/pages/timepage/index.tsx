@@ -132,13 +132,10 @@ export function TimespansPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
-                <button className="w-24" onClick={() => startTimerNow()}>
-                    Start Timer
-                </button>
+                <button onClick={() => startTimerNow()}>Start Timer</button>
 
                 <button
                     disabled={showNewTimespan}
-                    className={'w-24'}
                     onClick={() => {
                         setShowNewTimespan(true);
                         setTmpTimer(NewTaggedTimespan());

@@ -97,24 +97,24 @@ export function ReminderEditPanel({
     const msUntilDue = dueAt - now;
 
     return (
-        <div className="w-full container-theme flex items-center gap-2">
+        <div className="w-full surface-1 flex items-center gap-2">
             <div className="flex-1">
                 <div className="flex items-center gap-2">
                     <span className="text-lg font-semibold">
                         {reminder.name ? reminder.name : `Every ${reminder.interval_minutes} min`}
                     </span>
-                    <span className={reminder.enabled ? 'text-c-green text-sm' : 'text-c-red text-sm'}>
+                    <span className={reminder.enabled ? 'text-c-success text-sm' : 'text-c-error text-sm'}>
                         {reminder.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                 </div>
-                {reminder.name && <div className="text-sm text-c-subtext">Every {reminder.interval_minutes} min</div>}
+                {reminder.name && <div className="text-sm text-c-on-surface-variant">Every {reminder.interval_minutes} min</div>}
                 {reminder.enabled && (
-                    <div className="text-sm text-c-subtext">
+                    <div className="text-sm text-c-on-surface-variant">
                         {msUntilDue <= 0 ? 'Due now' : `Next in ${FormatDuration(msUntilDue)}`}
                     </div>
                 )}
-                <div className="text-sm text-c-subtext">{FormatScheduleSummary(reminder.cron)}</div>
-                <div className="text-sm text-c-subtext">
+                <div className="text-sm text-c-on-surface-variant">{FormatScheduleSummary(reminder.cron)}</div>
+                <div className="text-sm text-c-on-surface-variant">
                     {linkedActivities.length === 0
                         ? 'Plain reminder, no activities'
                         : linkedActivities.map((a) => a.activity.name).join(', ')}

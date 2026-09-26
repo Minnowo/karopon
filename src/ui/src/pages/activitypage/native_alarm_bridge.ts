@@ -15,7 +15,6 @@ declare global {
 }
 
 export const useSyncNativeAlarms = (reminders: ReminderWithActivities[]) => {
-
     const scheduledRef = useRef<Map<number, number>>(new Map());
 
     useEffect(() => {

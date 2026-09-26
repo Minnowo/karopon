@@ -70,7 +70,7 @@ export function AddBodyPanel({
 
     return (
         <>
-            <div className={`container-theme ${className}`}>
+            <div className={`surface-1 ${className}`}>
                 <div className="flex">
                     <span className="text-lg font-bold">{title}</span>
                 </div>
@@ -80,7 +80,7 @@ export function AddBodyPanel({
                 <div className="flex flex-col gap-2 justify-between">
                     <div className="flex flex-col gap-2">
                         {sortedMetrics.length === 0 ? (
-                            <div className="text-sm text-faded">
+                            <div className="text-sm text-c-on-surface-variant">
                                 No body metrics defined yet. Add some from the{' '}
                                 <a href="#body-metrics" className="underline">
                                     Body Metrics
@@ -104,10 +104,10 @@ export function AddBodyPanel({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <button className="cancel-btn" onClick={onCancel}>
+                        <button className="btn-error" onClick={onCancel}>
                             Cancel
                         </button>
-                        <button className="save-btn" onClick={doSave}>
+                        <button className="btn-success" onClick={doSave}>
                             {saveButtonTitle}
                         </button>
                     </div>

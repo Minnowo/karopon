@@ -69,7 +69,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
     };
 
     return (
-        <div className="w-full container-theme">
+        <div className="w-full surface-1">
             <ErrorDiv errorMsg={errorMsg} />
             <div className="flex justify-between font-semibold">
                 {showUpdatePanel ? (
@@ -104,10 +104,10 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         </div>
 
                         <div class="text-right pl-1">
-                            <button class="w-full mb-2 bg-c-red" onClick={onCancelClick}>
+                            <button class="w-full mb-2 btn-error" onClick={onCancelClick}>
                                 Cancel
                             </button>
-                            <button class="w-full bg-c-green" onClick={onSaveClick}>
+                            <button class="w-full btn-success" onClick={onSaveClick}>
                                 Update
                             </button>
                         </div>

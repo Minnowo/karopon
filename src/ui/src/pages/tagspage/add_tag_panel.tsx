@@ -37,7 +37,7 @@ export const AddTagPanel = ({
     };
 
     return (
-        <div className="mb-4 p-3 border rounded container-theme flex flex-col gap-2">
+        <div className="mb-4 surface-1 flex flex-col gap-2">
             <h2 className="text-lg font-bold">{title}</h2>
             <ErrorDiv errorMsg={localError} />
             <div className="flex flex-col sm:flex-row gap-2">
@@ -72,10 +72,10 @@ export const AddTagPanel = ({
                 </label>
             )}
             <div className="flex gap-2 justify-end">
-                <button className="cancel-btn" onClick={onCancel}>
+                <button className="btn-error" onClick={onCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={handleSubmit}>
+                <button className="btn-success" onClick={handleSubmit}>
                     {submitLabel}
                 </button>
             </div>
