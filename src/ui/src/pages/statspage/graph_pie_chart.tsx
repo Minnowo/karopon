@@ -91,7 +91,7 @@ export const PieChart = ({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
+                                className={graphStyle === s ? 'btn-primary' : 'btn-outlined'}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -105,26 +105,30 @@ export const PieChart = ({
                 <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
-                    <svg width={size} height={size}>
-                        {slices.map((slice, i) => {
-                            const [start, end] = makeArc(slice.value);
-                            const path = DescribeArc(center, center, radius, start, end);
-                            return (
-                                <path
-                                    key={i}
-                                    d={path}
-                                    fill={slice.color}
-                                    onMouseEnter={() =>
-                                        setHoverText(
-                                            `${slice.label} - ${slice.value.toFixed(2)}g (${((slice.value / total) * 100).toFixed(1)}%)`
-                                        )
-                                    }
-                                    onMouseLeave={() => setHoverText(null)}
-                                />
-                            );
-                        })}
-                    </svg>
-                    {hoverText && <div className="text-c-on-surface font-bold text-lg">{hoverText}</div>}
+                    <div className="surface-2 p-0 flex flex-col items-center">
+                        <svg width={size} height={size}>
+                            {slices.map((slice, i) => {
+                                const [start, end] = makeArc(slice.value);
+                                const path = DescribeArc(center, center, radius, start, end);
+                                return (
+                                    <path
+                                        key={i}
+                                        d={path}
+                                        fill={slice.color}
+                                        stroke="var(--color-c-surface-container)"
+                                        strokeWidth="2"
+                                        onMouseEnter={() =>
+                                            setHoverText(
+                                                `${slice.label} - ${slice.value.toFixed(2)}g (${((slice.value / total) * 100).toFixed(1)}%)`
+                                            )
+                                        }
+                                        onMouseLeave={() => setHoverText(null)}
+                                    />
+                                );
+                            })}
+                        </svg>
+                        {hoverText && <div className="text-c-on-surface font-bold text-lg pb-2">{hoverText}</div>}
+                    </div>
                     <div className="flex gap-4 mt-4 flex-wrap">
                         {slices.map((slice, i) => (
                             <div key={i} className="flex items-center gap-1">

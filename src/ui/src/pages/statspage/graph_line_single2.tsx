@@ -92,7 +92,6 @@ export function LineSingleGraph2({
     );
 
     const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
-    console.info(chartFontSize, tickSpacing);
     const tiltLabels = useMemo(
         () =>
             ShouldTiltXLabels(
@@ -141,7 +140,7 @@ export function LineSingleGraph2({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
+                                className={graphStyle === s ? 'btn-primary' : 'btn-outlined'}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -155,10 +154,10 @@ export function LineSingleGraph2({
             ) : (
                 <svg
                     width={width}
-                    height={height + (tiltLabels ? chartFontSize : 0)}
-                    viewBox={`0 0 ${width + pad} ${height}`}
+                    height={height + chartFontSize}
+                    viewBox={`0 0 ${width + pad} ${height + chartFontSize}`}
                     preserveAspectRatio="xMinYMin meet"
-                    className="border border-c-primary rounded text-c-on-surface-variant"
+                    className="surface-2 p-0 text-c-on-surface-variant"
                 >
                     {showYAxis && (
                         <g>

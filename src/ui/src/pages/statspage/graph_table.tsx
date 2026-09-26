@@ -77,7 +77,7 @@ export function TableGraph2({
                         {GraphStyleKeys.map((s) => (
                             <button
                                 key={s}
-                                className={`px-3 py-1 border rounded ${graphStyle === s ? 'bg-c-primary text-c-on-primary' : 'text-c-on-surface'}`}
+                                className={graphStyle === s ? 'btn-primary' : 'btn-outlined'}
                                 onClick={() => onGraphStyleChange(s)}
                             >
                                 {s.toUpperCase()}
@@ -91,7 +91,7 @@ export function TableGraph2({
                 <div className="p-4 text-center text-c-primary">{NoInformationMessage}</div>
             ) : (
                 <>
-                    <div className="overflow-x-auto border border-c-primary rounded">
+                    <div className="overflow-x-auto surface-2 p-0">
                         <table className="border-collapse">
                             <thead>
                                 <tr>
