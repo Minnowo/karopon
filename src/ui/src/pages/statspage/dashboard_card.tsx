@@ -13,7 +13,6 @@ import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
 import {BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
 import {BuildMacroChartData, BuildMacroChartDataNetwork} from './data_build_macros';
 import {BuildEventLogChartData, BuildEventLogChartDataNetwork} from './data_build_eventlogs';
-import {FlipSwitch} from '../../components/flip_switch';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
 import {TimeRangeInput} from '../../components/timerange_input';
 import {FormatSmartTimestamp2} from '../../utils/date_utils';
@@ -659,41 +658,48 @@ export function DashboardCardComponent({
                         <label class="font-semibold">Other Options</label>
                         <div className="flex flex-col p-2 gap-2">
                             <label
-                                className="flex items-center justify-between cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer"
                                 title="If chart data should come from the server or only in-memory. If using large time ranges, this is recommended."
                             >
+                                <input
+                                    type="checkbox"
+                                    checked={card.useNetwork}
+                                    onChange={(e) => onUpdate({...card, useNetwork: e.currentTarget.checked})}
+                                />
                                 <span className="text-sm">Use Network Data</span>
-                                <FlipSwitch value={card.useNetwork} onValueChanged={(v) => onUpdate({...card, useNetwork: v})} />
                             </label>
                             <label
-                                className="flex items-center justify-between cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer"
                                 title="Don't show the numeric value text for data points that are 0."
                             >
-                                <span className="text-sm">Hide Zero Values</span>
-                                <FlipSwitch
-                                    value={card.hideZeroValues ?? false}
-                                    onValueChanged={(v) => onUpdate({...card, hideZeroValues: v})}
+                                <input
+                                    type="checkbox"
+                                    checked={card.hideZeroValues ?? false}
+                                    onChange={(e) => onUpdate({...card, hideZeroValues: e.currentTarget.checked})}
                                 />
+                                <span className="text-sm">Hide Zero Values</span>
                             </label>
                             <label
-                                className="flex items-center justify-between cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer"
                                 title="Don't show any numeric value text on the chart."
                             >
-                                <span className="text-sm">Hide Value Labels</span>
-                                <FlipSwitch
-                                    value={card.hideValueLabels ?? false}
-                                    onValueChanged={(v) => onUpdate({...card, hideValueLabels: v})}
+                                <input
+                                    type="checkbox"
+                                    checked={card.hideValueLabels ?? false}
+                                    onChange={(e) => onUpdate({...card, hideValueLabels: e.currentTarget.checked})}
                                 />
+                                <span className="text-sm">Hide Value Labels</span>
                             </label>
                             <label
-                                className="flex items-center justify-between cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer"
                                 title="Show a Y-axis with approximate values."
                             >
-                                <span className="text-sm">Show Y-Axis</span>
-                                <FlipSwitch
-                                    value={card.showYAxis ?? false}
-                                    onValueChanged={(v) => onUpdate({...card, showYAxis: v})}
+                                <input
+                                    type="checkbox"
+                                    checked={card.showYAxis ?? false}
+                                    onChange={(e) => onUpdate({...card, showYAxis: e.currentTarget.checked})}
                                 />
+                                <span className="text-sm">Show Y-Axis</span>
                             </label>
                         </div>
                     </div>

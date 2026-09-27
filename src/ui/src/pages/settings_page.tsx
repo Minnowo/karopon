@@ -4,7 +4,6 @@ import {DoRender} from '../hooks/doRender';
 import {TblUpdateUser, TblUser, UserTimeFormat} from '../api/types';
 import {NumberInput} from '../components/number_input';
 import {CalorieFormula} from '../utils/calories';
-import {FlipSwitch} from '../components/flip_switch';
 import {ApiUpdateUser} from '../api/api';
 import {ErrorDiv} from '../components/error_div';
 
@@ -194,31 +193,36 @@ export function SettingsPage(state: BaseState) {
                 step={1}
             />
 
-            <label className="flex items-center justify-between cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="checkbox"
+                    disabled={!isEditing}
+                    checked={userRef.current.show_diabetes}
+                    onChange={(e) => update('show_diabetes', e.currentTarget.checked)}
+                />
                 <span className="text-lg font-medium">Show Diabetes Features</span>
-                <FlipSwitch
-                    disabled={!isEditing}
-                    value={userRef.current.show_diabetes}
-                    onValueChanged={(v) => update('show_diabetes', v)}
-                />
             </label>
 
-            <label className="flex items-center justify-between cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="checkbox"
+                    disabled={!isEditing}
+                    checked={userRef.current.time_format === UserTimeFormat.Hour24}
+                    onChange={(e) =>
+                        update('time_format', e.currentTarget.checked ? UserTimeFormat.Hour24 : UserTimeFormat.Hour12)
+                    }
+                />
                 <span className="text-lg font-medium">Use 24 Hour Time</span>
-                <FlipSwitch
-                    disabled={!isEditing}
-                    value={userRef.current.time_format === UserTimeFormat.Hour24}
-                    onValueChanged={(v) => update('time_format', v ? UserTimeFormat.Hour24 : UserTimeFormat.Hour12)}
-                />
             </label>
 
-            <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-lg font-medium">Fill Events From Last Instance</span>
-                <FlipSwitch
+            <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="checkbox"
                     disabled={!isEditing}
-                    value={userRef.current.fill_eventlog_from_last}
-                    onValueChanged={(v) => update('fill_eventlog_from_last', v)}
+                    checked={userRef.current.fill_eventlog_from_last}
+                    onChange={(e) => update('fill_eventlog_from_last', e.currentTarget.checked)}
                 />
+                <span className="text-lg font-medium">Fill Events From Last Instance</span>
             </label>
 
             <div>

@@ -1,6 +1,5 @@
 import {useState} from 'preact/hooks';
 import {ErrorDiv} from '../../components/error_div';
-import {FlipSwitch} from '../../components/flip_switch';
 
 type AddTagPanelProps = {
     initialNamespace?: string;
@@ -66,9 +65,9 @@ export const AddTagPanel = ({
                 />
             </div>
             {showMergeOption && (
-                <label className="flex items-center justify-between cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={merge} onChange={(e) => setMerge(e.currentTarget.checked)} />
                     <span className="text-sm">Merge if tag with same name exists</span>
-                    <FlipSwitch value={merge} onValueChanged={setMerge} />
                 </label>
             )}
             <div className="flex gap-2 justify-end">
