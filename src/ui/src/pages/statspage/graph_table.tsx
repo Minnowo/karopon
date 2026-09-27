@@ -95,7 +95,7 @@ export function TableGraph2({
                         <table className="border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left border-b border-c-outline-variant" />
+                                    <th className="sticky left-0 bg-c-surface-container-1 px-3 py-1 text-left border-b border-c-outline-variant" />
                                     {data.rows.map((row) => (
                                         <th
                                             key={row.x}
@@ -109,7 +109,7 @@ export function TableGraph2({
                             <tbody>
                                 {showSumRow && (
                                     <tr>
-                                        <th className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left whitespace-nowrap">
+                                        <th className="sticky left-0 bg-c-surface-container-1 px-3 py-1 text-left whitespace-nowrap">
                                             {SUM_ROW_LABEL}
                                         </th>
                                         {data.rows.map((row) => {
@@ -125,7 +125,7 @@ export function TableGraph2({
                                 {visibleCols.map((key) => (
                                     <tr key={key}>
                                         <th
-                                            className="sticky left-0 bg-c-surface-container-low px-3 py-1 text-left whitespace-nowrap"
+                                            className="sticky left-0 bg-c-surface-container-1 px-3 py-1 text-left whitespace-nowrap"
                                             style={{color: data.colors[key]}}
                                         >
                                             {data.labels[key]}

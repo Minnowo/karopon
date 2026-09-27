@@ -48,7 +48,7 @@ export function AddFoodlogPanelRow({
     return (
         <>
             <tr>
-                <td className="wsnw w-full pr-1">
+                <td className="wsnw w-full pr-1 py-0">
                     <FuzzySearch<TblUserFood>
                         query={foodTemplate.current.name}
                         onQueryChange={(q) => {
@@ -59,7 +59,7 @@ export function AddFoodlogPanelRow({
                         data={foods}
                         dataDisplayStr={(d: TblUserFood) => `${d.name} (${d.unit})`}
                         dataSearchStr={(d: TblUserFood) => d.name}
-                        className="w-full min-w-32 my-1 sm:mr-1"
+                        className="w-full min-w-48 my-1 sm:mr-1"
                         placeholder="Food Name"
                         noResultsText="New Food"
                         onSelect={(newFood: TblUserFood | null) => {
@@ -83,7 +83,7 @@ export function AddFoodlogPanelRow({
                         }}
                     />
                 </td>
-                <td className="pr-1">
+                <td className="pr-1 py-0">
                     <NumberInput
                         innerClassName="w-full min-w-[5ch]"
                         precision={1}
@@ -103,13 +103,13 @@ export function AddFoodlogPanelRow({
                         }}
                     />
                 </td>
-                <td className="pr-2 text-right"> {food.fat.toFixed(1)} </td>
-                <td className="pr-2 text-right"> {food.carb.toFixed(1)} </td>
-                <td className="pr-2 text-right"> {food.fibre.toFixed(1)} </td>
-                <td className="pr-2 text-right">{food.protein.toFixed(1)} </td>
-                {showNetCarb && <td className="pr-2 text-right">{(food.carb - food.fibre).toFixed(1)}</td>}
+                <td className="pr-2 py-0 text-right"> {food.fat.toFixed(1)} </td>
+                <td className="pr-2 py-0 text-right"> {food.carb.toFixed(1)} </td>
+                <td className="pr-2 py-0 text-right"> {food.fibre.toFixed(1)} </td>
+                <td className="pr-2 py-0 text-right">{food.protein.toFixed(1)} </td>
+                {showNetCarb && <td className="pr-2 py-0 text-right">{(food.carb - food.fibre).toFixed(1)}</td>}
                 {showCalories && (
-                    <td className="pr-2 text-right">
+                    <td className="pr-2 py-0 text-right">
                         {CalculateCalories(
                             food.protein,
                             food.carb - food.fibre,
@@ -120,10 +120,10 @@ export function AddFoodlogPanelRow({
                         ).toFixed(0)}
                     </td>
                 )}
-                <td>
+                <td className="py-0">
                     <button
                         tabindex={-1}
-                        className="btn-error"
+                        className="btn-outlined-error"
                         aria-label={food.name ? `Remove ${food.name}` : 'Remove food row'}
                         onClick={() => deleteSelf()}
                     >

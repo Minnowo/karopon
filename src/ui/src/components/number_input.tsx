@@ -95,7 +95,7 @@ export function NumberInput({
     return (
         <div aria-disabled={disabled} className={`flex flex-row relative input-like p-0 ${className}`}>
             {labelOnLeftSide && label && (
-                <label className="flex items-center wsnw select-none px-1" htmlFor={inputId}>
+                <label className="flex items-center wsnw select-none pl-2 pr-1" htmlFor={inputId}>
                     {label}
                 </label>
             )}
@@ -103,7 +103,7 @@ export function NumberInput({
                 ref={inputRef}
                 id={inputId}
                 tabindex={innerTabIndex}
-                className={`${innerClassName} pl-1 border-none focus:outline-none`}
+                className={`${innerClassName} pl-2 pr-0 border-none focus:outline-none`}
                 type="text"
                 inputMode="decimal"
                 disabled={disabled}
@@ -134,7 +134,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-high"
+                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-3"
                     ariaLabel={label ? `Increase ${label}` : 'Increase value'}
                 >
                     {UpArrow}
@@ -143,7 +143,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-high"
+                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-3"
                     ariaLabel={label ? `Decrease ${label}` : 'Decrease value'}
                 >
                     {DownArrow}

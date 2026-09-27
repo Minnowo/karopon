@@ -285,7 +285,7 @@ export function TagInput({
                                 id={optionId(0)}
                                 role="option"
                                 aria-selected={selectedIndex === 0}
-                                class={`${selectedIndex === 0 ? 'bg-c-surface-container-highest' : 'bg-c-surface-container'} p-2 hover:bg-c-surface-container-highest cursor-pointer`}
+                                class={`${selectedIndex === 0 ? 'bg-c-surface-container-4' : 'bg-c-surface-container-2'} p-2 hover:bg-c-surface-container-4 cursor-pointer`}
                                 onClick={() => {
                                     createButtonClick();
                                     inputRef.current?.focus();
@@ -302,7 +302,7 @@ export function TagInput({
                                 const tagStr = `${item.namespace}:${item.name}`;
                                 const thisIndex = (showCreateButton ? -1 : 0) + selectedIndex;
                                 const isSelected = thisIndex === i;
-                                const color = isSelected ? 'bg-c-surface-container-highest' : 'bg-c-surface-container';
+                                const color = isSelected ? 'bg-c-surface-container-4' : 'bg-c-surface-container-2';
                                 const flatIndex = i + (showCreateButton ? 1 : 0);
                                 return (
                                     <li
@@ -311,7 +311,7 @@ export function TagInput({
                                         role="option"
                                         aria-selected={isSelected}
                                         key={tagStr}
-                                        class={`${color} p-2 hover:bg-c-surface-container-highest cursor-pointer`}
+                                        class={`${color} p-2 hover:bg-c-surface-container-4 cursor-pointer`}
                                         onClick={() => {
                                             TryAddTag(tagStr);
                                             inputRef.current?.focus();

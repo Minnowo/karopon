@@ -90,31 +90,57 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
                                     <Fragment key={food.id}>
                                         {shown && (
                                             <tr className="cursor-pointer" onClick={toggle}>
-                                                <td className="border-c-primary border-t-2 border-l-2 " colSpan={8}>
+                                                <td
+                                                    className="border-c-primary border-t-2 border-l-2 border-r-2 border-b-0"
+                                                    colSpan={8}
+                                                >
                                                     <div className="mx-1">{food.name}</div>
                                                 </td>
                                             </tr>
                                         )}
                                         <tr onClick={toggle} className="cursor-pointer">
                                             <td
-                                                className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-c-primary' : ''} `}
+                                                className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-b-2 border-l-2 border-r-0 border-t-0 border-c-primary' : ''} `}
                                             >
                                                 {!shown ? (
                                                     <div className="overflow-x-hidden">{food.name}</div>
                                                 ) : (
-                                                    <div className="w-full">&nbsp;</div>
+                                                    <div className="w-full no-drag">&nbsp;</div>
                                                 )}
                                             </td>
-                                            <td className="text-right wsnw pr-2">
-                                                {' '}
+                                            <td
+                                                className={`text-right pr-2 wsnw ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
                                                 {food.portion} {food.unit}{' '}
                                             </td>
-                                            <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
-                                            <td className="text-right pr-2">{food.carb.toFixed(1)}</td>
-                                            <td className="text-right pr-2">{food.fibre.toFixed(1)}</td>
-                                            <td className="text-right pr-2">{food.protein.toFixed(1)}</td>
-                                            <td className="text-right pr-2">{(food.carb - food.fibre).toFixed(1)}</td>
-                                            <td className="text-right">
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
+                                                {food.fat.toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
+                                                {food.carb.toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
+                                                {food.fibre.toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
+                                                {food.protein.toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-b-2 border-x-0 border-t-0 border-c-primary' : ''}`}
+                                            >
+                                                {(food.carb - food.fibre).toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`text-right ${shown ? 'border-b-2 border-l-0 border-r-2 border-t-0 border-c-primary' : ''}`}
+                                            >
                                                 {CalculateCalories(
                                                     food.protein,
                                                     food.carb - food.fibre,

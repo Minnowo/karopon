@@ -28,15 +28,15 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
             case 'CARBS':
                 return 'bg-c-yellow';
             case 'FAT':
-                return 'bg-c-flamingo';
+                return 'bg-c-pink';
             case 'FIBRE':
-                return 'bg-c-sapphire';
+                return 'bg-c-blue';
             case 'PROTEIN':
                 return 'bg-c-green';
             case 'TIME':
-                return 'bg-c-sky';
+                return 'bg-c-l-blue';
             default:
-                return 'bg-c-peach';
+                return 'bg-c-red';
         }
     })();
 
@@ -79,7 +79,7 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
                         {unit}
                     </p>
                     <p className="text-xs">Time remaining: {FormatDuration(Math.max(0, timeRemaining))}</p>
-                    <div className="w-full h-2 rounded mt-2 bg-c-surface-container-highest">
+                    <div className="w-full h-2 rounded mt-2 bg-c-surface-container-4">
                         <div
                             className={`${barColor} h-2 rounded`}
                             style={{

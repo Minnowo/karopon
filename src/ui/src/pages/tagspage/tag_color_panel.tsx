@@ -85,60 +85,64 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
 
                     <ul class="space-y-2">
                         <li class="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-rosewater);" />
-                            <span>--color-c-rosewater</span>
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-flamingo);" />
-                            <span>--color-c-flamingo</span>
-                        </li>
-                        <li className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded" style="background: var(--color-c-pink);" />
                             <span>--color-c-pink</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-mauve);" />
-                            <span>--color-c-mauve</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-l-pink);" />
+                            <span>--color-c-l-pink</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-d-pink);" />
+                            <span>--color-c-d-pink</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded" style="background: var(--color-c-red);" />
                             <span>--color-c-red</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-maroon);" />
-                            <span>--color-c-maroon</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-l-red);" />
+                            <span>--color-c-l-red</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-peach);" />
-                            <span>--color-c-peach</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-d-red);" />
+                            <span>--color-c-d-red</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded" style="background: var(--color-c-yellow);" />
                             <span>--color-c-yellow</span>
                         </li>
                         <li className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-l-yellow);" />
+                            <span>--color-c-l-yellow</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-d-yellow);" />
+                            <span>--color-c-d-yellow</span>
+                        </li>
+                        <li className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded" style="background: var(--color-c-green);" />
                             <span>--color-c-green</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-teal);" />
-                            <span>--color-c-teal</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-l-green);" />
+                            <span>--color-c-l-green</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-sky);" />
-                            <span>--color-c-sky</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-sapphire);" />
-                            <span>--color-c-sapphire</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-d-green);" />
+                            <span>--color-c-d-green</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded" style="background: var(--color-c-blue);" />
                             <span>--color-c-blue</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded" style="background: var(--color-c-lavender);" />
-                            <span>--color-c-lavender</span>
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-l-blue);" />
+                            <span>--color-c-l-blue</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded" style="background: var(--color-c-d-blue);" />
+                            <span>--color-c-d-blue</span>
                         </li>
                     </ul>
                 </div>

@@ -85,84 +85,97 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
             </div>
 
             {results.length > 0 ? (
-                <table className="w-full text-sm border-collapse">
-                    <thead>
-                        <tr className="text-xs font-semibold">
-                            <th className=" text-left py-1" title="Food Name">
-                                {' '}
-                                Name{' '}
-                            </th>
-                            <th className=" text-right py-1 pr-2" title="Amount">
-                                Amt
-                            </th>
-                            <th className=" text-right py-1 pr-2" title="Fat">
-                                Fat
-                            </th>
-                            <th className=" text-right py-1 pr-2" title="Carbs">
-                                Carb
-                            </th>
-                            <th className=" text-right py-1 pr-2" title="Fibre">
-                                Fib
-                            </th>
-                            <th className=" text-right py-1 pr-2" title="Protein">
-                                Prot
-                            </th>
-                        </tr>
-                    </thead>
+                <div className="overflow-x-scroll surface-2 px-0 py-1 mb-2">
+                    <table className="w-full text-sm border-collapse table-borderless">
+                        <thead>
+                            <tr className="text-xs font-semibold">
+                                <th className=" text-left py-1" title="Food Name">
+                                    {' '}
+                                    Name{' '}
+                                </th>
+                                <th className=" text-right py-1 pr-2" title="Amount">
+                                    Amt
+                                </th>
+                                <th className=" text-right py-1 pr-2" title="Fat">
+                                    Fat
+                                </th>
+                                <th className=" text-right py-1 pr-2" title="Carbs">
+                                    Carb
+                                </th>
+                                <th className=" text-right py-1 pr-2" title="Fibre">
+                                    Fib
+                                </th>
+                                <th className=" text-right py-1 pr-2" title="Protein">
+                                    Prot
+                                </th>
+                            </tr>
+                        </thead>
 
-                    <tbody>
-                        {results.map((food: TblDataSourceFood, i: number) => {
-                            const shown = i === curRow;
-                            const toggle = () => setCurRow(shown ? -1 : i);
-                            const rowColor = i % 2 === 0 ? 'bg-c-surface-container' : 'bg-c-surface-container-high';
+                        <tbody>
+                            {results.map((food: TblDataSourceFood, i: number) => {
+                                const shown = i === curRow;
+                                const toggle = () => setCurRow(shown ? -1 : i);
 
-                            return (
-                                <Fragment key={food.id}>
-                                    {shown && (
-                                        <tr className={`cursor-pointer ${rowColor}`} onClick={toggle}>
-                                            <td className="border-c-primary border-t-2 " colSpan={7}>
-                                                <div className="mx-1">{food.name}</div>
+                                return (
+                                    <Fragment key={food.id}>
+                                        {shown && (
+                                            <tr className="cursor-pointer" onClick={toggle}>
+                                                <td
+                                                    className="border-c-primary border-t-2 border-l-2 border-r-2 border-b-0"
+                                                    colSpan={7}
+                                                >
+                                                    <div className="mx-1">{food.name}</div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                        <tr onClick={toggle} className="cursor-pointer">
+                                            <td
+                                                className={`wsnw max-w-[100px] sm:w-full pr-2 ${shown ? 'border-l-2 border-r-0 border-y-0 border-c-primary' : ''}`}
+                                            >
+                                                {!shown ? (
+                                                    <div className="overflow-x-hidden">{food.name}</div>
+                                                ) : (
+                                                    <div className="w-full no-drag">&nbsp;</div>
+                                                )}
+                                            </td>
+                                            <td className="text-right wsnw pr-2">
+                                                {food.portion} {food.unit}
+                                            </td>
+                                            <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
+                                            <td className="text-right pr-2">{food.carb.toFixed(1)}</td>
+                                            <td className="text-right pr-2">{food.fibre.toFixed(1)}</td>
+                                            <td
+                                                className={`text-right pr-2 ${shown ? 'border-r-2 border-l-0 border-y-0 border-c-primary' : ''}`}
+                                            >
+                                                {food.protein.toFixed(1)}
                                             </td>
                                         </tr>
-                                    )}
-                                    <tr onClick={toggle} className={`cursor-pointer ${rowColor}`}>
-                                        <td className={`wsnw max-w-[100px] sm:w-full pr-2`}>
-                                            {!shown ? (
-                                                <div className="overflow-x-hidden">{food.name}</div>
-                                            ) : (
-                                                <div className="w-full">&nbsp;</div>
-                                            )}
-                                        </td>
-                                        <td className="text-right wsnw pr-2">
-                                            {food.portion} {food.unit}
-                                        </td>
-                                        <td className="text-right pr-2">{food.fat.toFixed(1)}</td>
-                                        <td className="text-right pr-2">{food.carb.toFixed(1)}</td>
-                                        <td className="text-right pr-2">{food.fibre.toFixed(1)}</td>
-                                        <td className="text-right pr-2">{food.protein.toFixed(1)}</td>
-                                    </tr>
-                                    {shown && (
-                                        <tr className={`${rowColor}`}>
-                                            <td colSpan={7}>
-                                                <div className="flex flex-row py-2 justify-between px-1">
-                                                    <div className="flex flex-col">
-                                                        <span>ID {food.data_source_row_int_id}</span>
+                                        {shown && (
+                                            <tr>
+                                                <td
+                                                    className="border-c-primary border-b-2 border-l-2 border-r-2 border-t-0"
+                                                    colSpan={7}
+                                                >
+                                                    <div className="flex flex-row py-2 justify-between px-1">
+                                                        <div className="flex flex-col">
+                                                            <span>ID {food.data_source_row_int_id}</span>
+                                                        </div>
+                                                        <button
+                                                            className="btn-success max-w-32 w-full"
+                                                            onClick={() => state.onChooseFood(food)}
+                                                        >
+                                                            Choose
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        className="btn-success max-w-32 w-full"
-                                                        onClick={() => state.onChooseFood(food)}
-                                                    >
-                                                        Choose
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </Fragment>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
                 <p className="text-c-on-surface-variant mt-2">No results found.</p>
             )}

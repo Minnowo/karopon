@@ -7,7 +7,7 @@ export function DataExportPage(state: BaseState) {
     return (
         <div className="flex flex-col space-y-4">
             <section className="space-y-4">
-                <h2 className="text-xl font-semibold text-c-peach">Event Export</h2>
+                <h2 className="text-xl font-semibold text-c-red">Event Export</h2>
                 <div className="flex space-x-4">
                     <button
                         onClick={() => {
@@ -32,7 +32,7 @@ export function DataExportPage(state: BaseState) {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-semibold text-c-peach">Food Export</h2>
+                <h2 className="text-xl font-semibold text-c-red">Food Export</h2>
                 <div className="flex space-x-4">
                     <button
                         onClick={() => {

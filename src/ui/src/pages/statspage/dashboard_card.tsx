@@ -23,18 +23,26 @@ import {EventLogMultiSelect} from './eventlog_multiselect';
 
 const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
+// All 3 tiers (pale/default, light, dark/vivid) of all 5 wheel hues, grouped
+// by tier rather than by hue - the 5 base hues are the most mutually
+// distinct, so they're first in the rotation and a 5-series chart never
+// touches the light/dark tiers at all.
 const TAG_COLOR_PALETTE = [
     'var(--color-c-red)',
-    'var(--color-c-peach)',
     'var(--color-c-yellow)',
     'var(--color-c-green)',
-    'var(--color-c-teal)',
-    'var(--color-c-sky)',
-    'var(--color-c-sapphire)',
-    'var(--color-c-lavender)',
-    'var(--color-c-mauve)',
+    'var(--color-c-blue)',
     'var(--color-c-pink)',
-    'var(--color-c-flamingo)',
+    'var(--color-c-l-red)',
+    'var(--color-c-l-yellow)',
+    'var(--color-c-l-green)',
+    'var(--color-c-l-blue)',
+    'var(--color-c-l-pink)',
+    'var(--color-c-d-red)',
+    'var(--color-c-d-yellow)',
+    'var(--color-c-d-green)',
+    'var(--color-c-d-blue)',
+    'var(--color-c-d-pink)',
 ];
 
 const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
@@ -42,17 +50,17 @@ const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
 };
 
 const MACRO_COLORS: Record<MacroType, string> = {
-    fat: 'var(--color-c-flamingo)',
+    fat: 'var(--color-c-pink)',
     carbs: 'var(--color-c-yellow)',
     net_carbs: 'var(--color-c-yellow)',
-    fibre: 'var(--color-c-sapphire)',
+    fibre: 'var(--color-c-blue)',
     protein: 'var(--color-c-green)',
-    calorie: 'var(--color-c-peach)',
+    calorie: 'var(--color-c-red)',
 };
 
 const EVENTLOG_COLORS: Record<EventLogType, string> = {
-    blood_glucose: 'var(--color-c-sky)',
-    recommended_insulin_amount: 'var(--color-c-peach)',
+    blood_glucose: 'var(--color-c-l-blue)',
+    recommended_insulin_amount: 'var(--color-c-red)',
     actual_insulin_taken: 'var(--color-c-green)',
 };
 

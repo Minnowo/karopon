@@ -115,7 +115,7 @@ export const PieChart = ({
                                         key={i}
                                         d={path}
                                         fill={slice.color}
-                                        stroke="var(--color-c-surface-container)"
+                                        stroke="var(--color-c-surface-container-2)"
                                         strokeWidth="2"
                                         onMouseEnter={() =>
                                             setHoverText(

@@ -206,7 +206,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                                     role="option"
                                     aria-selected={selectedIndex === i}
                                     key={key}
-                                    class={`${selectedIndex === i ? 'bg-c-surface-container-highest' : 'bg-c-surface-container'}  p-2 hover:bg-c-surface-container-highest cursor-pointer`}
+                                    class={`${selectedIndex === i ? 'bg-c-surface-container-4' : 'bg-c-surface-container-2'}  p-2 hover:bg-c-surface-container-4 cursor-pointer`}
                                     onClick={() => doSelect(item)}
                                 >
                                     {key}
@@ -216,7 +216,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                     ) : (
                         <li
                             role="presentation"
-                            class="bg-c-surface-container p-2 hover:bg-c-surface-container-high cursor-pointer"
+                            class="bg-c-surface-container-2 p-2 hover:bg-c-surface-container-3 cursor-pointer"
                         >
                             {' '}
                             {noResultsText}{' '}

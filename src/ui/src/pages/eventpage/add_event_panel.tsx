@@ -221,15 +221,16 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         return (
             <>
                 {foods.current.length > 1 && (
-                    <tr className="text-center">
-                        <td className="text-right w-full" />
-                        <td className="pr-1">-</td>
-                        <td className="pr-2 text-right"> {totals.fat.toFixed(1)}</td>
-                        <td className="pr-2 text-right">{totals.carb.toFixed(1)}</td>
-                        <td className="pr-2 text-right">{totals.fibre.toFixed(1)}</td>
-                        <td className="pr-2 text-right">{totals.protein.toFixed(1)}</td>
-                        <td className="pr-2 text-right font-bold"> {netCarb.toFixed(1)}</td>
-                        <td className="pr-2 text-right">{calories}</td>
+                    <tr className="border-none text-center">
+                        <th className="text-right w-full" />
+                        <th className="pr-1">-</th>
+                        <th className="pr-2 text-right"> {totals.fat.toFixed(1)}</th>
+                        <th className="pr-2 text-right">{totals.carb.toFixed(1)}</th>
+                        <th className="pr-2 text-right">{totals.fibre.toFixed(1)}</th>
+                        <th className="pr-2 text-right">{totals.protein.toFixed(1)}</th>
+                        <th className="pr-2 text-right font-bold"> {netCarb.toFixed(1)}</th>
+                        <th className="pr-2 text-right">{calories}</th>
+                        <th />
                     </tr>
                 )}
             </>
@@ -344,8 +345,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </div>
             )}
 
-            <div className="overflow-x-scroll">
-                <table className="w-full text-sm border-collapse">
+            <div className="overflow-x-scroll surface-2 px-0 py-1 mb-2">
+                <table className="w-full text-sm border-collapse table-borderless">
                     <tbody>
                         {buildTableHead()}
                         {buildSumRow()}
@@ -367,15 +368,17 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
                         {buildTableHead()}
                         {buildSumRow()}
-                        <tr>
+                        <tr className="block sm:hidden">
+                            {/* This is here so that you have some room to scroll easier on mobile */}
                             <td>&nbsp;</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div className="flex flex-none justify-end gap-4">
+            <div className="surface-2 flex flex-none justify-center items-center text-center gap-4 mb-2">
                 {p.user.show_diabetes && (
                     <>
+                        {/* This is for type 1 diabetes where you need to prick your finger / inject insulin. It helps you swap sides / finger consistently so you're not always injecting / pricking the same spot everyday. */}
                         <span title="Insulin injection location and blood meter prick side (changes daily)">
                             {`${days % 2 === 0 ? 'Left' : 'Right'}-${days % 4 <= 1 ? 'Upper' : 'Lower'}`}
                         </span>

@@ -1,142 +1,19 @@
-@import 'tailwindcss';
+/*
+ * Karopon-specific styling only. The generated color tokens and ponkotsu's
+ * own base layer/utilities live in ponkotsu.css (vendored, not hand-edited)
+ * - this file imports that first and then overrides or adds to it directly,
+ * so a rule only needs to exist here if Karopon actually wants something
+ * different from (or absent in) ponkotsu.css. Don't re-declare a rule here
+ * that's already identical in ponkotsu.css - it'll apply on its own.
+ */
+@import './ponkotsu.css';
 
 @theme {
-    --color-*: initial;
-
     --color-black: #000;
     --color-white: #fff;
 
     --text-chart: 14px;
     --text-chart-sm: 12px;
-
-    --radius-sm: 4px;
-    --radius-md: 8px;
-
-    --color-c-primary: #e1c385;
-    --color-c-on-primary: #3f2e00;
-    --color-c-primary-container: #584412;
-    --color-c-on-primary-container: #fedf9f;
-    --color-c-secondary: #92ccff;
-    --color-c-on-secondary: #003351;
-    --color-c-secondary-container: #004b73;
-    --color-c-on-secondary-container: #cce5ff;
-    --color-c-tertiary: #e1b6ff;
-    --color-c-on-tertiary: #4c007b;
-    --color-c-tertiary-container: #691a9f;
-    --color-c-on-tertiary-container: #f2daff;
-
-    --color-c-error: var(--color-c-maroon);
-    --color-c-on-error: var(--color-c-on-maroon);
-    --color-c-success: var(--color-c-green);
-    --color-c-on-success: var(--color-c-on-green);
-    --color-c-surface: #151310;
-    --color-c-on-surface: #e7e1dc;
-    --color-c-on-surface-variant: #cdc5bc;
-    --color-c-surface-container-lowest: #100e0b;
-    --color-c-surface-container-low: #1d1b18;
-    --color-c-surface-container: #211f1c;
-    --color-c-surface-container-high: #2c2a27;
-    --color-c-surface-container-highest: #373431;
-    --color-c-surface-dim: #151310;
-    --color-c-surface-bright: #3b3935;
-    --color-c-outline: #969087;
-    --color-c-outline-variant: #4b463f;
-    --color-c-inverse-surface: #e7e1dc;
-    --color-c-inverse-on-surface: #32302d;
-    --color-c-inverse-primary: #725b28;
-
-    --color-c-rosewater: #c1a59f;
-    --color-c-on-rosewater: #3f2c27;
-    --color-c-flamingo: #db9c8a;
-    --color-c-on-flamingo: #4e2518;
-    --color-c-pink: #bda5b0;
-    --color-c-on-pink: #3c2b34;
-    --color-c-mauve: #b2a6c8;
-    --color-c-on-mauve: #342c47;
-    --color-c-red: #d69e8c;
-    --color-c-on-red: #4b271a;
-    --color-c-maroon: #caa390;
-    --color-c-on-maroon: #442a1d;
-    --color-c-peach: #bca894;
-    --color-c-on-peach: #3b2e20;
-    --color-c-yellow: #b9a98d;
-    --color-c-on-yellow: #392f1a;
-    --color-c-green: #a5af8c;
-    --color-c-on-green: #2b3319;
-    --color-c-teal: #91b3a3;
-    --color-c-on-teal: #17362b;
-    --color-c-sky: #8cb1bc;
-    --color-c-on-sky: #0d353e;
-    --color-c-sapphire: #93afc3;
-    --color-c-on-sapphire: #173344;
-    --color-c-blue: #8eb0c6;
-    --color-c-on-blue: #0e3446;
-    --color-c-lavender: #aea7c5;
-    --color-c-on-lavender: #322d45;
-}
-
-[data-theme='light'] {
-    --color-c-primary: #725b28;
-    --color-c-on-primary: #ffffff;
-    --color-c-primary-container: #fedf9f;
-    --color-c-on-primary-container: #251a00;
-    --color-c-secondary: #006397;
-    --color-c-on-secondary: #ffffff;
-    --color-c-secondary-container: #cce5ff;
-    --color-c-on-secondary-container: #001d31;
-    --color-c-tertiary: #8239b9;
-    --color-c-on-tertiary: #ffffff;
-    --color-c-tertiary-container: #f2daff;
-    --color-c-on-tertiary-container: #2e004d;
-
-    --color-c-error: var(--color-c-maroon);
-    --color-c-on-error: var(--color-c-on-maroon);
-    --color-c-success: var(--color-c-green);
-    --color-c-on-success: var(--color-c-on-green);
-    --color-c-surface: #fef8f3;
-    --color-c-on-surface: #1d1b18;
-    --color-c-on-surface-variant: #4b463f;
-    --color-c-surface-container-lowest: #ffffff;
-    --color-c-surface-container-low: #f9f2ed;
-    --color-c-surface-container: #f3ede8;
-    --color-c-surface-container-high: #ede7e2;
-    --color-c-surface-container-highest: #e7e1dc;
-    --color-c-surface-dim: #dfd9d4;
-    --color-c-surface-bright: #fef8f3;
-    --color-c-outline: #7c766e;
-    --color-c-outline-variant: #cdc5bc;
-    --color-c-inverse-surface: #32302d;
-    --color-c-inverse-on-surface: #f6f0eb;
-    --color-c-inverse-primary: #e1c385;
-
-    --color-c-rosewater: #705954;
-    --color-c-on-rosewater: #ffffff;
-    --color-c-flamingo: #845142;
-    --color-c-on-flamingo: #ffffff;
-    --color-c-pink: #6d5963;
-    --color-c-on-pink: #ffffff;
-    --color-c-mauve: #635978;
-    --color-c-on-mauve: #ffffff;
-    --color-c-red: #805344;
-    --color-c-on-red: #ffffff;
-    --color-c-maroon: #775747;
-    --color-c-on-maroon: #ffffff;
-    --color-c-peach: #6c5b4b;
-    --color-c-on-peach: #ffffff;
-    --color-c-yellow: #695d45;
-    --color-c-on-yellow: #ffffff;
-    --color-c-green: #596244;
-    --color-c-on-green: #ffffff;
-    --color-c-teal: #466558;
-    --color-c-on-teal: #ffffff;
-    --color-c-sky: #40646d;
-    --color-c-on-sky: #ffffff;
-    --color-c-sapphire: #476274;
-    --color-c-on-sapphire: #ffffff;
-    --color-c-blue: #416276;
-    --color-c-on-blue: #ffffff;
-    --color-c-lavender: #605b75;
-    --color-c-on-lavender: #ffffff;
 }
 
 @layer base {
@@ -151,118 +28,17 @@
     }
 
     body {
-        color: var(--color-c-text);
-        background-color: var(--color-c-base);
         font-size: var(--base-font-size);
-        line-height: 1.5;
-    }
-
-    a {
-        color: var(--color-c-primary);
-        text-decoration: none;
-        @apply std-focus;
-    }
-    a:hover {
-        text-decoration: underline;
     }
 
     img {
         @apply no-drag;
     }
 
-    h1 {
-        @apply text-3xl font-medium;
-    }
-    h2 {
-        @apply text-2xl font-medium;
-    }
-    h3 {
-        @apply text-lg font-medium;
-    }
-
-    small {
-        color: var(--color-c-on-surface-variant);
-    }
-
     hr {
         border: none;
         border-top: 1px solid var(--color-c-outline-variant);
     }
-
-    fieldset {
-        border: 1px solid var(--color-c-outline-variant);
-        @apply rounded-md p-3;
-    }
-    legend {
-        color: var(--color-c-on-surface-variant);
-        @apply px-1 text-sm;
-    }
-
-    input,
-    select,
-    textarea,
-    button {
-        @apply input-like;
-    }
-
-    button {
-        @apply enabled:hover:cursor-pointer
-            enabled:hover:border-c-outline-variant enabled:focus:border-c-outline-variant enabled:focus-within:border-c-outline-variant
-            enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-surface)_8%,var(--color-c-surface-container))]
-            enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-surface)_12%,var(--color-c-surface-container))];
-    }
-
-    input[type='checkbox'],
-    input[type='radio'],
-    input[type='range'] {
-        all: revert;
-        accent-color: var(--color-c-primary);
-        @apply hover:cursor-pointer std-focus;
-    }
-    input[type='checkbox']:disabled,
-    input[type='radio']:disabled,
-    input[type='range']:disabled {
-        @apply cursor-not-allowed opacity-60;
-    }
-
-    ::selection {
-        background: var(--color-c-primary-container);
-        color: var(--color-c-on-primary-container);
-    }
-}
-
-@utility std-focus {
-    @apply focus-visible:outline-solid
-        focus-visible:outline-2
-        focus-visible:outline-c-primary
-        focus-visible:outline-offset-2;
-}
-
-@utility input-like {
-    @apply text-c-on-surface
-        text-base font-normal
-        bg-c-surface-container
-
-        rounded-sm
-        px-2
-        py-1
-        border
-        border-c-outline-variant
-        enabled:hover:border-c-on-surface
-        enabled:focus:border-c-primary
-        focus:outline-none
-        enabled:focus-within:border-c-primary
-        focus-within:outline-none
-
-        disabled:bg-c-surface-container-high
-        disabled:text-c-on-surface-variant
-        disabled:border-c-outline-variant
-        disabled:cursor-not-allowed
-
-        aria-disabled:bg-c-surface-container-high
-        aria-disabled:text-c-on-surface-variant
-        aria-disabled:border-c-outline-variant
-        aria-disabled:cursor-not-allowed;
 }
 
 @utility table-bordered {
@@ -278,6 +54,14 @@
 .table-padded th,
 .table-padded td {
     @apply p-1;
+}
+
+@utility table-borderless {
+    @apply border-none;
+}
+.table-borderless th,
+.table-borderless td {
+    @apply border-none;
 }
 
 @utility text-faded {
@@ -297,91 +81,6 @@
 
 @utility wsnw {
     @apply whitespace-nowrap;
-}
-
-@utility surface-1 {
-    background: var(--color-c-surface-container-low);
-    @apply text-c-on-surface border border-c-outline-variant rounded-md p-3;
-}
-@utility surface-2 {
-    background: var(--color-c-surface-container);
-    @apply text-c-on-surface border border-c-outline-variant rounded-md p-3;
-}
-@utility surface-3 {
-    background: var(--color-c-surface-container-high);
-    @apply text-c-on-surface border border-c-outline-variant rounded-md p-3;
-}
-@utility surface-4 {
-    background: var(--color-c-surface-container-highest);
-    @apply text-c-on-surface border border-c-outline-variant rounded-md p-3;
-}
-@utility surface-outlined {
-    background: var(--color-c-surface);
-    border: 1px solid var(--color-c-outline-variant);
-    @apply text-c-on-surface rounded-md p-3;
-}
-
-@utility btn-filled {
-    @apply px-3 py-1 rounded font-medium border-none enabled:hover:cursor-pointer
-        disabled:opacity-38 disabled:cursor-not-allowed;
-}
-@utility btn-primary {
-    @apply btn-filled bg-c-primary text-c-on-primary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-primary)_8%,var(--color-c-primary))]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-primary)_12%,var(--color-c-primary))];
-}
-@utility btn-secondary {
-    @apply btn-filled bg-c-secondary text-c-on-secondary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-secondary)_8%,var(--color-c-secondary))]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-secondary)_12%,var(--color-c-secondary))];
-}
-@utility btn-tertiary {
-    @apply btn-filled bg-c-tertiary text-c-on-tertiary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-tertiary)_8%,var(--color-c-tertiary))]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-tertiary)_12%,var(--color-c-tertiary))];
-}
-@utility btn-error {
-    @apply btn-filled bg-c-error text-c-on-error
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-error)_8%,var(--color-c-error))]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-error)_12%,var(--color-c-error))];
-}
-@utility btn-success {
-    @apply btn-filled bg-c-success text-c-on-success
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-success)_8%,var(--color-c-success))]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-success)_12%,var(--color-c-success))];
-}
-
-@utility btn-outlined {
-    @apply px-3 py-1 rounded font-medium bg-transparent border enabled:hover:cursor-pointer
-        border-c-outline text-c-on-surface
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-on-surface)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-on-surface)_12%,transparent)]
-        disabled:opacity-38 disabled:cursor-not-allowed;
-}
-@utility btn-outlined-primary {
-    @apply btn-outlined border-c-primary text-c-primary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-primary)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-primary)_12%,transparent)];
-}
-@utility btn-outlined-secondary {
-    @apply btn-outlined border-c-secondary text-c-secondary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-secondary)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-secondary)_12%,transparent)];
-}
-@utility btn-outlined-tertiary {
-    @apply btn-outlined border-c-tertiary text-c-tertiary
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-tertiary)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-tertiary)_12%,transparent)];
-}
-@utility btn-outlined-error {
-    @apply btn-outlined border-c-error text-c-error
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-error)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-error)_12%,transparent)];
-}
-@utility btn-outlined-success {
-    @apply btn-outlined border-c-success text-c-success
-        enabled:hover:[background-color:color-mix(in_oklab,var(--color-c-success)_8%,transparent)]
-        enabled:focus-visible:[background-color:color-mix(in_oklab,var(--color-c-success)_12%,transparent)];
 }
 
 .no-summary-arrow summary {

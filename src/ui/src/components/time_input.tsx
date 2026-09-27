@@ -377,7 +377,7 @@ export const TimeInput = ({
                 ref={containerRef}
                 role="group"
                 aria-labelledby={label ? labelId : undefined}
-                className={`flex flex-row items-center input-like pl-1 ${className}`}
+                className={`flex flex-row items-center input-like pl-2 ${className}`}
                 onClick={focusFirst}
                 onFocusIn={() => setHasFocus(true)}
                 onFocusOut={(e) => {
@@ -487,7 +487,7 @@ export const TimeInput = ({
                 <button
                     tabIndex={-1}
                     aria-label="Open time picker"
-                    className="h-full select-none px-2 p-0 leading-none border-none bg-transparent hover:bg-c-surface-container-high"
+                    className="h-full select-none ml-2 px-2 p-0 leading-none border-none bg-transparent hover:bg-c-surface-container-3"
                     onClick={(e) => {
                         e.stopPropagation();
                         setDialogOpen(true);

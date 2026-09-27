@@ -18,7 +18,7 @@ export const FlipSwitch = (p: Props) => {
 
             <div
                 aria-disabled={p.disabled}
-                className="input-like w-11 h-6 border border-c-outline-variant bg-c-surface-container aria-disabled:bg-c-surface-container-high rounded-full peer-checked:bg-c-success aria-disabled:cursor-not-allowed aria-disabled:peer-checked:bg-c-success/60 transition-colors duration-200"
+                className="input-like w-11 h-6 border border-c-outline-variant bg-c-surface-container-2 aria-disabled:bg-c-surface-container-3 rounded-full peer-checked:bg-c-success aria-disabled:cursor-not-allowed aria-disabled:peer-checked:bg-c-success/60 transition-colors duration-200"
             />
 
             <div

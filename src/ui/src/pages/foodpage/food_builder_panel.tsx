@@ -156,8 +156,8 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="overflow-x-scroll mt-4">
-                <table className="w-full text-sm border-collapse">
+            <div className="overflow-x-scroll surface-2 px-0 py-1 mt-4 mb-2">
+                <table className="w-full text-sm border-collapse table-borderless">
                     <thead>
                         <tr className="font-semibold text-xs text-center">
                             <th className="text-left py-1">
@@ -198,31 +198,34 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                                 />
                             );
                         })}
-                        <tr>
+                        <tr className="block sm:hidden">
+                            {/* This is here so that you have some room to scroll easier on mobile */}
                             <td>&nbsp;</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <table className="w-full text-center">
-                <thead>
-                    <tr>
-                        <th>Fat</th>
-                        <th className="px-1">Carb</th>
-                        <th className="px-1">Fib</th>
-                        <th>Prot</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td> {totals.fat.toFixed(1)}</td>
-                        <td className="px-1">{totals.carb.toFixed(1)}</td>
-                        <td className="px-1">{totals.fibre.toFixed(1)}</td>
-                        <td>{totals.protein.toFixed(1)}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className="surface-2 px-0 py-1 mb-2">
+                <table className="w-full text-center border-collapse table-borderless">
+                    <thead>
+                        <tr>
+                            <th>Fat</th>
+                            <th className="px-1">Carb</th>
+                            <th className="px-1">Fib</th>
+                            <th>Prot</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td> {totals.fat.toFixed(1)}</td>
+                            <td className="px-1">{totals.carb.toFixed(1)}</td>
+                            <td className="px-1">{totals.fibre.toFixed(1)}</td>
+                            <td>{totals.protein.toFixed(1)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div className="flex flex-col mt-4 mb-2 gap-2">
                 <div className="flex flex-row flex-wrap gap-2">
