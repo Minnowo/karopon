@@ -150,7 +150,7 @@ export function AddReminderPanel({
                     onValueChange={setIntervalMinutes}
                 />
 
-                <div>
+                <div className="surface-2 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <h3 className="mb-0">Active windows</h3>
                         <div className="flex gap-2">
@@ -162,50 +162,68 @@ export function AddReminderPanel({
                             </button>
                         </div>
                     </div>
-                    <p className="text-sm font-normal text-c-on-surface-variant mb-1">
+                    <p className="text-sm font-normal text-c-on-surface-variant">
                         This reminder can only fire during these day/time windows. At least one is required.
                     </p>
 
                     {windows.length === 0 ? (
                         <p className="text-sm font-normal">No windows added yet.</p>
                     ) : (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-2">
                             {windows.map((w) => (
-                                <div key={w.key} className="flex items-center gap-2 font-normal flex-wrap">
-                                    <select
-                                        value={w.dayOfWeek}
-                                        onChange={(e) => updateWindow(w.key, {dayOfWeek: parseInt(e.currentTarget.value, 10)})}
-                                    >
-                                        {DAY_NAMES.map((name, i) => (
-                                            <option key={i} value={i}>
-                                                {name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <TimeInput
-                                        label="Start"
-                                        value={MinutesToDate(w.startMinute)}
-                                        onChange={(d) => updateWindow(w.key, {startMinute: d.getHours() * 60 + d.getMinutes()})}
-                                        hour12={hour12}
-                                    />
-                                    <span>to</span>
-                                    <TimeInput
-                                        label="End"
-                                        value={MinutesToDate(w.endMinute)}
-                                        onChange={(d) => updateWindow(w.key, {endMinute: d.getHours() * 60 + d.getMinutes()})}
-                                        hour12={hour12}
-                                    />
-                                    <button className="btn-error text-xs" onClick={() => removeWindow(w.key)}>
-                                        Remove
-                                    </button>
+                                <div
+                                    key={w.key}
+                                    className="flex flex-col sm:flex-row sm:items-center gap-2 font-normal surface-3"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            className="flex-1 sm:flex-none"
+                                            value={w.dayOfWeek}
+                                            onChange={(e) =>
+                                                updateWindow(w.key, {dayOfWeek: parseInt(e.currentTarget.value, 10)})
+                                            }
+                                        >
+                                            {DAY_NAMES.map((name, i) => (
+                                                <option key={i} value={i}>
+                                                    {name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button className="btn-error text-xs sm:hidden" onClick={() => removeWindow(w.key)}>
+                                            Remove
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <TimeInput
+                                            label="Start"
+                                            value={MinutesToDate(w.startMinute)}
+                                            onChange={(d) =>
+                                                updateWindow(w.key, {startMinute: d.getHours() * 60 + d.getMinutes()})
+                                            }
+                                            hour12={hour12}
+                                        />
+                                        <span>to</span>
+                                        <TimeInput
+                                            label="End"
+                                            value={MinutesToDate(w.endMinute)}
+                                            onChange={(d) => updateWindow(w.key, {endMinute: d.getHours() * 60 + d.getMinutes()})}
+                                            hour12={hour12}
+                                        />
+                                        <button
+                                            className="btn-error text-xs hidden sm:inline-block"
+                                            onClick={() => removeWindow(w.key)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-                <div>
-                    <h3>Break activities (optional)</h3>
+                <div className="surface-2 flex flex-col gap-1">
+                    <h3 className="mb-0">Break activities (optional)</h3>
                     <p className="text-sm font-normal text-c-on-surface-variant">
                         When this reminder fires, it will suggest activities from this list. Leave empty for a plain reminder with
                         no logging.
@@ -213,7 +231,7 @@ export function AddReminderPanel({
                     {activities.length === 0 ? (
                         <p className="text-sm font-normal">No break activities have been created yet.</p>
                     ) : (
-                        <div className="flex flex-col gap-1 mt-1">
+                        <div className="flex flex-col gap-1">
                             {activities.map(({activity}) => (
                                 <label key={activity.id} className="flex items-center gap-2 font-normal">
                                     <input

@@ -1,24 +1,20 @@
 import {Dispatch, StateUpdater, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {TaggedTimespan, TblUserBodyMetric, UserBodyLog, UserEventFoodLog} from '../../api/types';
-import {ChartData, CommonRanges, DashboardCard, EventLogType, GraphStyle, MacroType, TimeRange} from './common';
+import {ChartData, CommonRanges, DashboardCard, EventLogType, GraphStyle, MacroType, TimeUnit} from './common';
 import {PieChart} from './graph_pie_chart';
 import {MultiLineGraph2} from './graph_line_multi2';
 import {StackedBarGraph2} from './graph_bar_stacked2';
 import {LineSingleGraph2} from './graph_line_single2';
 import {TableGraph2} from './graph_table';
-import {SplitTag, TagToString} from '../../utils/tags';
-import {TagInput} from '../../components/tag_input';
 import {AggregationFunc, GroupBy} from '../../api/types_stats';
 import {BuildTimeChartData, BuildTimeChartDataNetwork} from './data_build_time';
 import {BuildBodyLogChartData, BuildBodyLogChartDataNetwork} from './data_build_other';
 import {BuildMacroChartData, BuildMacroChartDataNetwork} from './data_build_macros';
 import {BuildEventLogChartData, BuildEventLogChartDataNetwork} from './data_build_eventlogs';
 import {ParseRelativeTimeExpr} from '../../utils/timerange';
-import {TimeRangeInput} from '../../components/timerange_input';
-import {FormatSmartTimestamp2} from '../../utils/date_utils';
-import {BodyMetricMultiSelect} from './body_metric_multiselect';
-import {MacroMultiSelect} from './macro_multiselect';
-import {EventLogMultiSelect} from './eventlog_multiselect';
+import {DropdownButton} from '../../components/drop_down_button';
+import {DashboardCardEditor} from './dashboard_card_editor';
+import {FormatDuration} from '../../utils/time';
 
 const EMPTY_CHART_DATA: ChartData = {labels: [], rows: [], colors: []};
 
@@ -44,8 +40,21 @@ const TAG_COLOR_PALETTE = [
     'var(--color-c-d-pink)',
 ];
 
-const PRECISION_BY_TYPE: Partial<Record<DashboardCard['type'], number>> = {
-    time: 2,
+// Time builders return hours; scale is the multiplier into each unit.
+const TIME_UNITS: Record<TimeUnit, {abbr: string; scale: number; precision: number; format?: (h: number) => string}> = {
+    hours: {abbr: 'h', scale: 1, precision: 2},
+    minutes: {abbr: 'min', scale: 60, precision: 0},
+    days: {abbr: 'd', scale: 1 / 24, precision: 2},
+    mixed: {abbr: '', scale: 1, precision: 2, format: (h) => FormatDuration(Math.round(h * 60) * 60_000)},
+};
+
+const MACRO_UNITS: Record<MacroType, string> = {
+    fat: 'g',
+    carbs: 'g',
+    net_carbs: 'g',
+    fibre: 'g',
+    protein: 'g',
+    calorie: 'kcal',
 };
 
 const MACRO_COLORS: Record<MacroType, string> = {
@@ -63,131 +72,28 @@ const EVENTLOG_COLORS: Record<EventLogType, string> = {
     actual_insulin_taken: 'var(--color-c-green)',
 };
 
-const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'eventlogs', 'bodylog', 'time'];
-
-type TimeRangePanelProps = {
-    range: TimeRange;
-    dayOffsetSeconds: number;
-    canRemove: boolean;
-    isFirst: boolean;
-    isLast: boolean;
-    onSave: (range: TimeRange) => void;
-    onRemove: () => void;
-    onMoveUp: () => void;
-    onMoveDown: () => void;
+const EVENTLOG_UNITS: Record<EventLogType, string> = {
+    blood_glucose: 'mmol/L',
+    recommended_insulin_amount: 'u',
+    actual_insulin_taken: 'u',
 };
 
-function TimeRangePanel({
-    range,
-    dayOffsetSeconds,
-    canRemove,
-    isFirst,
-    isLast,
-    onSave,
-    onRemove,
-    onMoveUp,
-    onMoveDown,
-}: TimeRangePanelProps) {
-    const [draft, setDraft] = useState<TimeRange>(range);
+const MULTI_SERIES_TYPES: Array<DashboardCard['type']> = ['macros', 'eventlogs', 'bodylog', 'time'];
 
-    useEffect(() => {
-        setDraft(range);
-    }, [range]);
+// Only these require rebuilding (and possibly refetching) the chart data, so only
+// these can leave the drawn chart out of date. Everything else - graph style, the
+// hide/show toggles - is render-only and applies immediately.
+const DATA_KEYS = [
+    'type',
+    'useNetwork',
+    'timeRanges',
+    'selectedTags',
+    'selectedMetrics',
+    'visibleMacros',
+    'visibleEventLogs',
+] as const;
 
-    const isDirty =
-        draft.name !== range.name ||
-        draft.rangeStart !== range.rangeStart ||
-        draft.rangeEnd !== range.rangeEnd ||
-        draft.groupBy !== range.groupBy ||
-        draft.aggregationFunc !== range.aggregationFunc;
-
-    const now = new Date();
-
-    return (
-        <div className="flex flex-col">
-            <details className="w-full">
-                <summary className="w-full cursor-pointer text-sm font-semibold">{range.name}</summary>
-                <div className="flex flex-col p-2 surface-1 gap-2">
-                    <div className="flex flex-row gap-2">
-                        <input
-                            className="w-full"
-                            type="text"
-                            value={draft.name}
-                            onInput={(e) => setDraft({...draft, name: (e.target as HTMLInputElement).value})}
-                        />
-                        <button className="ml-auto px-2" onClick={onMoveUp} disabled={isFirst}>
-                            ↑
-                        </button>
-                        <button className="px-2" onClick={onMoveDown} disabled={isLast}>
-                            ↓
-                        </button>
-                        <button className="btn-error" onClick={onRemove} disabled={!canRemove}>
-                            ✕
-                        </button>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Start Time</label>
-                        <div className="flex flex-row items-center">
-                            <TimeRangeInput range={draft.rangeStart} onChange={(v) => setDraft({...draft, rangeStart: v})} />
-                            <span className="flex w-full justify-center">
-                                {FormatSmartTimestamp2(ParseRelativeTimeExpr(draft.rangeStart, now, dayOffsetSeconds / 1000))}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label class="font-semibold">End Time</label>
-                        <div className="flex flex-row items-center">
-                            <TimeRangeInput range={draft.rangeEnd} onChange={(v) => setDraft({...draft, rangeEnd: v})} />
-                            <span className="flex w-full justify-center">
-                                {FormatSmartTimestamp2(ParseRelativeTimeExpr(draft.rangeEnd, now, dayOffsetSeconds / 1000))}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Group By</label>
-                        <select
-                            className="px-3 py-1"
-                            value={draft.groupBy}
-                            aria-label="Group by"
-                            onInput={(e) => setDraft({...draft, groupBy: (e.target as HTMLSelectElement).value as GroupBy})}
-                        >
-                            {Object.values(GroupBy).map((value) => (
-                                <option key={value} value={value}>
-                                    {value}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Aggregation</label>
-                        <select
-                            className="px-3 py-1"
-                            value={draft.aggregationFunc}
-                            aria-label="Aggregation function"
-                            onInput={(e) =>
-                                setDraft({...draft, aggregationFunc: (e.target as HTMLSelectElement).value as AggregationFunc})
-                            }
-                        >
-                            {Object.values(AggregationFunc).map((value) => (
-                                <option key={value} value={value}>
-                                    {value}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                        <button className="btn-error" onClick={() => setDraft(range)} disabled={!isDirty}>
-                            Cancel
-                        </button>
-                        <button className="btn-success" onClick={() => onSave(draft)} disabled={!isDirty}>
-                            Save
-                        </button>
-                    </div>
-                </div>
-            </details>
-        </div>
-    );
-}
+const DataFingerprint = (card: DashboardCard): string => JSON.stringify(DATA_KEYS.map((k) => card[k]));
 
 type DashboardCardProps = {
     card: DashboardCard;
@@ -203,7 +109,12 @@ type DashboardCardProps = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
-    onUpdate: (card: DashboardCard) => void;
+    saving: boolean;
+    saveError: string | null;
+    onStartEdit: () => void;
+    onCancelEdit: () => void;
+    onSave: (card: DashboardCard) => void;
+    onDuplicate: () => void;
     onRemove: () => void;
     onMoveUp: () => void;
     onMoveDown: () => void;
@@ -223,55 +134,93 @@ export function DashboardCardComponent({
     namespaces,
     setNamespaces,
     tagColors,
-    onUpdate,
+    saving,
+    saveError,
+    onStartEdit,
+    onCancelEdit,
+    onSave,
+    onDuplicate,
     onRemove,
     onMoveUp,
     onMoveDown,
 }: DashboardCardProps) {
     const thisRef = useRef<HTMLDivElement>(null);
 
-    const [hiddenLabels, setHiddenLabels] = useState<string[]>(card.hiddenLabels ?? []);
+    // While editing, the editor works on this draft; nothing is written back to
+    // the dashboard until Save.
+    const [draft, setDraft] = useState<DashboardCard | null>(editing ? card : null);
 
-    const [timeRanges, setTimeRanges] = useState<TimeRange[]>(() =>
-        card.timeRanges && card.timeRanges.length > 0 ? card.timeRanges : CommonRanges
-    );
-    const [curTimeRange, setCurTimeRange] = useState<number>(card.curTimeRange ?? 0);
-    const [groupBy, setGroupBy] = useState<GroupBy>(
-        timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange
-            ? timeRanges[curTimeRange].groupBy
-            : GroupBy.Minute
-    );
-    const [aggregationFunc, setAggregationFunc] = useState<AggregationFunc>(
-        timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange
-            ? timeRanges[curTimeRange].aggregationFunc
-            : AggregationFunc.Sum
-    );
+    // The chart renders from this snapshot rather than the live draft, so editing
+    // a field doesn't rebuild (or refetch) the chart on every keystroke. The
+    // editor's Refresh Chart button advances it.
+    const [previewCard, setPreviewCard] = useState<DashboardCard>(card);
+
+    // Ephemeral while browsing, so poking a chart doesn't dirty the dashboard.
+    // While editing, the selected range and group-by instead live on the draft, so
+    // Save keeps them as the chart's defaults for next time the page opens.
+    const [hiddenLabels, setHiddenLabels] = useState<string[]>(card.hiddenLabels ?? []);
+    const [viewTimeRange, setViewTimeRange] = useState<number>(card.curTimeRange ?? 0);
+    const [groupByOverride, setGroupByOverride] = useState<GroupBy | null>(null);
+    const [graphStyleOverride, setGraphStyleOverride] = useState<GraphStyle | null>(null);
+
+    // Entering or leaving edit mode resets both, so a refreshed-but-unsaved
+    // preview doesn't survive a Cancel.
+    useEffect(() => {
+        setDraft(editing ? card : null);
+        setPreviewCard(card);
+        setViewTimeRange(card.curTimeRange ?? 0);
+    }, [editing]);
+
+    // A save landing (or an external change) is the new baseline to draw from.
+    useEffect(() => {
+        setPreviewCard(card);
+        setViewTimeRange(card.curTimeRange ?? 0);
+    }, [card]);
+
+    // Data comes from the snapshot; render-only options come from the draft so
+    // they take effect as soon as they're toggled.
+    const preview = previewCard;
+    const live = draft ?? card;
+    const previewStale = draft !== null && DataFingerprint(draft) !== DataFingerprint(previewCard);
 
     const [chartData, setChartData] = useState<ChartData>(EMPTY_CHART_DATA);
 
-    const {rangeStartMs, rangeEndMs, rangeStartStr, rangeEndStr} = useMemo(() => {
-        const tr =
-            timeRanges && timeRanges.length > 0 && timeRanges.length > curTimeRange ? timeRanges[curTimeRange] : CommonRanges[0];
+    const timeRanges = preview.timeRanges && preview.timeRanges.length > 0 ? preview.timeRanges : CommonRanges;
+    const curTimeRange = draft ? (draft.curTimeRange ?? 0) : viewTimeRange;
+    const selectedRange = timeRanges[Math.min(Math.max(0, curTimeRange), timeRanges.length - 1)] ?? CommonRanges[0];
 
+    // Both follow the selected range unless the chart's own control overrides
+    // them, so editing a range definition takes effect without extra wiring.
+    const groupBy = groupByOverride ?? selectedRange.groupBy;
+    const aggregationFunc: AggregationFunc = selectedRange.aggregationFunc;
+    const graphStyle: GraphStyle = graphStyleOverride ?? live.graphStyle ?? 'line';
+
+    const {rangeStartMs, rangeEndMs, rangeStartStr, rangeEndStr} = useMemo(() => {
         const offsetMs = dayOffsetSeconds / 1000;
         const now = new Date(Date.now() - offsetMs);
-        const st = ParseRelativeTimeExpr(tr.rangeStart, now, offsetMs);
-        const et = ParseRelativeTimeExpr(tr.rangeEnd, now, offsetMs);
+        const st = ParseRelativeTimeExpr(selectedRange.rangeStart, now, offsetMs);
+        const et = ParseRelativeTimeExpr(selectedRange.rangeEnd, now, offsetMs);
 
-        return {rangeStartMs: st.getTime(), rangeEndMs: et.getTime(), rangeStartStr: tr.rangeStart, rangeEndStr: tr.rangeEnd};
-    }, [timeRanges, curTimeRange, dayOffsetSeconds]);
+        return {
+            rangeStartMs: st.getTime(),
+            rangeEndMs: et.getTime(),
+            rangeStartStr: selectedRange.rangeStart,
+            rangeEndStr: selectedRange.rangeEnd,
+        };
+    }, [selectedRange, dayOffsetSeconds]);
 
     useLayoutEffect(() => {
-        switch (card.type) {
+        switch (preview.type) {
             case 'macros': {
-                const selectedMacros = card.visibleMacros ?? [];
+                const selectedMacros = preview.visibleMacros ?? [];
                 if (selectedMacros.length === 0) {
+                    setChartData(EMPTY_CHART_DATA);
                     return;
                 }
 
                 const macroColors = selectedMacros.map((m) => MACRO_COLORS[m]);
 
-                if (card.useNetwork) {
+                if (preview.useNetwork) {
                     BuildMacroChartDataNetwork(
                         rangeStartStr,
                         rangeEndStr,
@@ -298,44 +247,36 @@ export function DashboardCardComponent({
                 break;
             }
             case 'time': {
-                if (card.selectedTags?.length <= 0) {
+                const selectedTags = preview.selectedTags ?? [];
+                if (selectedTags.length === 0) {
+                    setChartData(EMPTY_CHART_DATA);
                     return;
                 }
 
-                if (card.useNetwork) {
-                    BuildTimeChartDataNetwork(
-                        rangeStartStr,
-                        rangeEndStr,
-                        groupBy,
-                        aggregationFunc,
-                        card.selectedTags,
-                        card.selectedTags.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length])
-                    ).then(setChartData);
+                const colors = selectedTags.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]);
+
+                if (preview.useNetwork) {
+                    BuildTimeChartDataNetwork(rangeStartStr, rangeEndStr, groupBy, aggregationFunc, selectedTags, colors).then(
+                        setChartData
+                    );
                 } else {
                     setChartData(
-                        BuildTimeChartData(
-                            timespans,
-                            rangeStartMs,
-                            rangeEndMs,
-                            groupBy,
-                            aggregationFunc,
-                            card.selectedTags,
-                            card.selectedTags.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length])
-                        )
+                        BuildTimeChartData(timespans, rangeStartMs, rangeEndMs, groupBy, aggregationFunc, selectedTags, colors)
                     );
                 }
 
                 break;
             }
             case 'eventlogs': {
-                const selectedEventLogs = card.visibleEventLogs ?? [];
+                const selectedEventLogs = preview.visibleEventLogs ?? [];
                 if (selectedEventLogs.length === 0) {
+                    setChartData(EMPTY_CHART_DATA);
                     return;
                 }
 
                 const eventLogColors = selectedEventLogs.map((m) => EVENTLOG_COLORS[m]);
 
-                if (card.useNetwork) {
+                if (preview.useNetwork) {
                     BuildEventLogChartDataNetwork(
                         rangeStartStr,
                         rangeEndStr,
@@ -361,14 +302,15 @@ export function DashboardCardComponent({
                 break;
             }
             case 'bodylog': {
-                const selectedMetrics = card.selectedMetrics ?? [];
+                const selectedMetrics = preview.selectedMetrics ?? [];
                 if (selectedMetrics.length === 0) {
+                    setChartData(EMPTY_CHART_DATA);
                     return;
                 }
 
                 const colors = selectedMetrics.map((_, i) => TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length]);
 
-                if (card.useNetwork) {
+                if (preview.useNetwork) {
                     BuildBodyLogChartDataNetwork(
                         rangeStartStr,
                         rangeEndStr,
@@ -398,16 +340,14 @@ export function DashboardCardComponent({
             }
         }
     }, [
-        card.type,
-        card.useNetwork,
-        timeRanges,
-        curTimeRange,
+        preview.type,
+        preview.useNetwork,
+        preview.selectedTags,
+        preview.selectedMetrics,
+        preview.visibleMacros,
+        preview.visibleEventLogs,
         aggregationFunc,
         groupBy,
-        card.selectedTags,
-        card.selectedMetrics,
-        card.visibleMacros,
-        card.visibleEventLogs,
         eventlogs,
         bodylogs,
         bodyMetrics,
@@ -420,110 +360,104 @@ export function DashboardCardComponent({
         timespans,
     ]);
 
+    const timeUnit = TIME_UNITS[live.timeUnit ?? 'hours'];
+
+    // Units and time scaling are render-only, so they apply without a refresh.
+    const displayData = useMemo((): ChartData => {
+        switch (preview.type) {
+            case 'macros':
+                return {...chartData, units: chartData.labels.map((l) => MACRO_UNITS[l as MacroType] ?? '')};
+            case 'eventlogs':
+                return {...chartData, units: chartData.labels.map((l) => EVENTLOG_UNITS[l as EventLogType] ?? '')};
+            case 'bodylog': {
+                const unitByName = new Map(bodyMetrics.map((m) => [m.name, m.unit]));
+                return {...chartData, units: chartData.labels.map((l) => unitByName.get(l) ?? '')};
+            }
+            case 'time': {
+                const rows =
+                    timeUnit.scale === 1
+                        ? chartData.rows
+                        : chartData.rows.map((r) => ({x: r.x, y: r.y.map((v) => v * timeUnit.scale)}));
+                return {...chartData, rows, units: chartData.labels.map(() => timeUnit.abbr)};
+            }
+        }
+    }, [chartData, preview.type, bodyMetrics, timeUnit]);
+
     useLayoutEffect(() => {
         // used so that charts update their size when css editing styles change it.
         const resizeEvent = new Event('resize');
         window.dispatchEvent(resizeEvent);
     }, [editing]);
 
-    const handleMoveUP = () => {
-        onMoveUp();
-
+    const scrollToSelf = () => {
         requestAnimationFrame(() => {
             thisRef.current?.scrollIntoView({
                 block: 'center',
                 behavior: 'instant',
             });
         });
+    };
+
+    const handleMoveUP = () => {
+        onMoveUp();
+        scrollToSelf();
     };
 
     const handleMoveDown = () => {
         onMoveDown();
-
-        requestAnimationFrame(() => {
-            thisRef.current?.scrollIntoView({
-                block: 'center',
-                behavior: 'instant',
-            });
-        });
-    };
-
-    const handleHiddenChange = (m: string[]) => {
-        setHiddenLabels(m);
-        onUpdate({...card, hiddenLabels: m});
+        scrollToSelf();
     };
 
     const handleCurTimeRangeChange = (c: number) => {
-        if (c >= 0 && c < timeRanges.length) {
-            const r = timeRanges[c];
-            setGroupBy(r.groupBy);
-            setAggregationFunc(r.aggregationFunc);
-        }
-        setCurTimeRange(c);
-        onUpdate({...card, curTimeRange: c});
-    };
-
-    const [addTemplateKey, setAddTemplateKey] = useState<string>('default-0');
-
-    const handleAddTimeRange = () => {
-        const [group, idxStr] = addTemplateKey.split('-');
-        const idx = Number(idxStr);
-        const template = group === 'current' ? timeRanges[idx] : CommonRanges[idx];
-
-        const newRange: TimeRange = template
-            ? {...template, name: `${template.name} Copy`}
-            : {
-                  name: 'New Range',
-                  rangeStart: 'now-24h',
-                  rangeEnd: 'now',
-                  groupBy: GroupBy.Minute,
-                  aggregationFunc: AggregationFunc.Sum,
-              };
-        const updated = [...timeRanges, newRange];
-        setTimeRanges(updated);
-        onUpdate({...card, timeRanges: updated});
-    };
-
-    const handleRemoveTimeRange = (index: number) => {
-        const updated = timeRanges.filter((_, i) => i !== index);
-        setTimeRanges(updated);
-
-        const newCur = curTimeRange >= updated.length ? Math.max(0, updated.length - 1) : curTimeRange;
-        setCurTimeRange(newCur);
-        onUpdate({...card, timeRanges: updated, curTimeRange: newCur});
-    };
-
-    const handleMoveTimeRangeUp = (index: number) => {
-        if (index <= 0) {
+        setGroupByOverride(null);
+        if (draft) {
+            setDraft({...draft, curTimeRange: c});
             return;
         }
-        const updated = [...timeRanges];
-        [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-        setTimeRanges(updated);
-        onUpdate({...card, timeRanges: updated});
+        setViewTimeRange(c);
     };
 
-    const handleMoveTimeRangeDown = (index: number) => {
-        if (index >= timeRanges.length - 1) {
+    // The chart's group-by control edits the selected range, since that's where
+    // groupBy lives. Applied to the preview snapshot as well as the draft, because
+    // the chart has already redrawn with it and shouldn't ask to be refreshed.
+    const handleGroupByChange = (g: GroupBy) => {
+        if (!draft) {
+            setGroupByOverride(g);
             return;
         }
-        const updated = [...timeRanges];
-        [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-        setTimeRanges(updated);
-        onUpdate({...card, timeRanges: updated});
-    };
 
-    const handleTimeRangeSave = (index: number, updatedRange: TimeRange) => {
-        const updated = timeRanges.map((r, i) => (i === index ? updatedRange : r));
-        setTimeRanges(updated);
-        onUpdate({...card, timeRanges: updated});
-    };
+        const withGroupBy = (c: DashboardCard): DashboardCard => {
+            const ranges = c.timeRanges && c.timeRanges.length > 0 ? c.timeRanges : CommonRanges;
+            const idx = Math.max(0, Math.min(curTimeRange, ranges.length - 1));
+            return {...c, timeRanges: ranges.map((r, i) => (i === idx ? {...r, groupBy: g} : r))};
+        };
 
-    const graphStyle: GraphStyle = card.graphStyle ?? 'line';
+        setDraft(withGroupBy(draft));
+        setPreviewCard((cur) => withGroupBy(cur));
+        setGroupByOverride(null);
+    };
 
     const handleGraphStyleChange = (s: GraphStyle) => {
-        onUpdate({...card, graphStyle: s});
+        if (draft) {
+            setDraft({...draft, graphStyle: s});
+            return;
+        }
+        setGraphStyleOverride(s);
     };
+
+    const isDirty = draft !== null && JSON.stringify(draft) !== JSON.stringify(card);
+
+    useEffect(() => {
+        // Mount-only clicking Edit on an existing chart re-renders it rather than remounting it.
+        // This is only read once at mount time.
+        if (!editing) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            thisRef.current?.scrollIntoView({block: 'start', behavior: 'smooth'});
+        });
+    }, []);
 
     const MultiSeriesGraph2 =
         graphStyle === 'bar'
@@ -538,31 +472,25 @@ export function DashboardCardComponent({
         curTimeRange,
         onTimeRangeChange: handleCurTimeRangeChange,
         timeRanges,
-        onTimeRangesChange: () => {
-            /* TODO */
-        },
         groupBy,
-        onGroupByChange: setGroupBy,
-        aggregationFunc,
-        onAggregationFunc: setAggregationFunc,
+        onGroupByChange: handleGroupByChange,
         hiddenLabels,
-        onHiddenLabelsChange: handleHiddenChange,
-        hideZeroValues: card.hideZeroValues,
-        hideValueLabels: card.hideValueLabels,
-        showYAxis: card.showYAxis,
+        onHiddenLabelsChange: setHiddenLabels,
+        hideZeroValues: live.hideZeroValues,
+        hideValueLabels: live.hideValueLabels,
+        showYAxis: live.showYAxis,
     };
 
     const renderChart = () => {
-        const title = editing ? '' : card.title;
+        const precision = preview.type === 'time' ? timeUnit.precision : undefined;
+        const formatValue = preview.type === 'time' ? timeUnit.format : undefined;
 
-        const precision = PRECISION_BY_TYPE[card.type];
-
-        if (MULTI_SERIES_TYPES.includes(card.type) || graphStyle !== 'line') {
+        if (MULTI_SERIES_TYPES.includes(preview.type) || graphStyle !== 'line') {
             return (
                 <MultiSeriesGraph2
-                    title={title}
-                    data={chartData}
+                    data={displayData}
                     precision={precision}
+                    formatValue={formatValue}
                     graphStyle={graphStyle}
                     onGraphStyleChange={handleGraphStyleChange}
                     {...baseGraphProps}
@@ -572,9 +500,9 @@ export function DashboardCardComponent({
 
         return (
             <LineSingleGraph2
-                title={title}
-                data={chartData}
+                data={displayData}
                 precision={precision}
+                formatValue={formatValue}
                 graphStyle={graphStyle}
                 onGraphStyleChange={handleGraphStyleChange}
                 {...baseGraphProps}
@@ -583,188 +511,59 @@ export function DashboardCardComponent({
     };
 
     return (
-        <div ref={thisRef} className={`${editing ? 'flex flex-col surface-1 gap-2' : ''}`}>
-            {editing && (
-                <div className="flex flex-col gap-2">
-                    <div className="flex justify-between">
-                        <h2 className="mb-0">Edit Chart</h2>
-                        <div className="flex justify-end gap-1">
-                            <button className="px-3 py-2" onClick={handleMoveUP} disabled={isFirst}>
-                                ↑
-                            </button>
-                            <button className="px-3 py-2" onClick={handleMoveDown} disabled={isLast}>
-                                ↓
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="font-semibold">Title</label>
-                        <input
-                            className="w-full px-2 py-1"
-                            value={card.title}
-                            aria-label="Card title"
-                            onInput={(e) => onUpdate({...card, title: (e.target as HTMLInputElement).value})}
-                        />
-                    </div>
-                    <div>
-                        <h3>Time Ranges</h3>
-                        <div className="flex flex-col p-2 gap-2">
-                            <div class="flex flex-row flex-wrap gap-2 items-center">
-                                <select
-                                    className="px-2 py-1"
-                                    value={addTemplateKey}
-                                    aria-label="Add from template"
-                                    onChange={(e) => setAddTemplateKey((e.target as HTMLSelectElement).value)}
-                                >
-                                    <optgroup label="Defaults">
-                                        {CommonRanges.map((r, i) => (
-                                            <option key={`default-${i}`} value={`default-${i}`}>
-                                                {r.name}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                    {timeRanges.length > 0 && (
-                                        <optgroup label="Current">
-                                            {timeRanges.map((r, i) => (
-                                                <option key={`current-${i}`} value={`current-${i}`}>
-                                                    {r.name}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    )}
-                                </select>
-                                <button className="px-3 py-1 wsnw" onClick={handleAddTimeRange}>
-                                    + Add
-                                </button>
-                            </div>
-                            {timeRanges.map((r, i) => (
-                                <TimeRangePanel
-                                    key={i}
-                                    range={r}
-                                    dayOffsetSeconds={dayOffsetSeconds}
-                                    canRemove={timeRanges.length > 1}
-                                    isFirst={i === 0}
-                                    isLast={i === timeRanges.length - 1}
-                                    onSave={(updated) => handleTimeRangeSave(i, updated)}
-                                    onRemove={() => handleRemoveTimeRange(i)}
-                                    onMoveUp={() => handleMoveTimeRangeUp(i)}
-                                    onMoveDown={() => handleMoveTimeRangeDown(i)}
-                                />
-                            ))}
-                        </div>
-                    </div>
+        <div ref={thisRef} className="surface-1 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+                <h2 className="mb-0 wsnw overflow-hidden text-ellipsis">{draft?.title ?? card.title}</h2>
+                {!editing && (
+                    <DropdownButton
+                        actions={[
+                            {label: 'Edit', onClick: onStartEdit},
+                            {label: 'Duplicate', onClick: onDuplicate},
+                            {label: 'Move Up', disabled: isFirst, onClick: handleMoveUP},
+                            {label: 'Move Down', disabled: isLast, onClick: handleMoveDown},
+                            {label: 'Delete', dangerous: true, onClick: onRemove},
+                        ]}
+                    />
+                )}
+            </div>
 
-                    <div>
-                        <h3>Other Options</h3>
-                        <div className="flex flex-col p-2 gap-2">
-                            <label
-                                className="flex items-center gap-2 cursor-pointer"
-                                title="If chart data should come from the server or only in-memory. If using large time ranges, this is recommended."
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={card.useNetwork}
-                                    onChange={(e) => onUpdate({...card, useNetwork: e.currentTarget.checked})}
-                                />
-                                <span className="text-sm">Use Network Data</span>
-                            </label>
-                            <label
-                                className="flex items-center gap-2 cursor-pointer"
-                                title="Don't show the numeric value text for data points that are 0."
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={card.hideZeroValues ?? false}
-                                    onChange={(e) => onUpdate({...card, hideZeroValues: e.currentTarget.checked})}
-                                />
-                                <span className="text-sm">Hide Zero Values</span>
-                            </label>
-                            <label
-                                className="flex items-center gap-2 cursor-pointer"
-                                title="Don't show any numeric value text on the chart."
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={card.hideValueLabels ?? false}
-                                    onChange={(e) => onUpdate({...card, hideValueLabels: e.currentTarget.checked})}
-                                />
-                                <span className="text-sm">Hide Value Labels</span>
-                            </label>
-                            <label
-                                className="flex items-center gap-2 cursor-pointer"
-                                title="Show a Y-axis with approximate values."
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={card.showYAxis ?? false}
-                                    onChange={(e) => onUpdate({...card, showYAxis: e.currentTarget.checked})}
-                                />
-                                <span className="text-sm">Show Y-Axis</span>
-                            </label>
-                        </div>
-                    </div>
+            {editing && draft !== null && (
+                <DashboardCardEditor
+                    draft={draft}
+                    onDraftChange={setDraft}
+                    dayOffsetSeconds={dayOffsetSeconds}
+                    bodyMetrics={bodyMetrics}
+                    namespaces={namespaces}
+                    setNamespaces={setNamespaces}
+                    tagColors={tagColors}
+                    isDirty={isDirty}
+                    saving={saving}
+                    saveError={saveError}
+                    onSave={() => onSave(draft)}
+                    onCancel={onCancelEdit}
+                />
+            )}
 
-                    {card.type === 'time' && (
-                        <div className="flex flex-col gap-1">
-                            <h3 className="mb-0">Tags</h3>
-                            <div className="flex flex-col p-2 gap-2">
-                                <TagInput
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    thisTags={card.selectedTags.map(SplitTag)}
-                                    onChange={(tags) => onUpdate({...card, selectedTags: tags.map(TagToString)})}
-                                    tagColors={tagColors}
-                                />
-                            </div>
-                        </div>
-                    )}
+            <div className="relative">
+                <div
+                    className={`transition-opacity ${previewStale ? 'opacity-40 pointer-events-none no-drag' : ''}`}
+                    aria-disabled={previewStale || undefined}
+                >
+                    {renderChart()}
+                </div>
 
-                    {card.type === 'bodylog' && (
-                        <div className="flex flex-col gap-1">
-                            <h3 className="mb-0">Body Metrics</h3>
-                            <div className="flex flex-col p-2 gap-2">
-                                <BodyMetricMultiSelect
-                                    bodyMetrics={bodyMetrics}
-                                    selected={card.selectedMetrics ?? []}
-                                    onChange={(selectedMetrics) => onUpdate({...card, selectedMetrics})}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {card.type === 'macros' && (
-                        <div className="flex flex-col gap-1">
-                            <h3 className="mb-0">Macros / Calories</h3>
-                            <div className="flex flex-col p-2 gap-2">
-                                <MacroMultiSelect
-                                    selected={card.visibleMacros ?? []}
-                                    onChange={(visibleMacros) => onUpdate({...card, visibleMacros})}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {card.type === 'eventlogs' && (
-                        <div className="flex flex-col gap-1">
-                            <h3 className="mb-0">Blood Glucose / Insulin</h3>
-                            <div className="flex flex-col p-2 gap-2">
-                                <EventLogMultiSelect
-                                    selected={card.visibleEventLogs ?? []}
-                                    onChange={(visibleEventLogs) => onUpdate({...card, visibleEventLogs})}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex justify-between">
-                        <button className="btn-error" onClick={onRemove}>
-                            ✕ Remove
+                {previewStale && draft !== null && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <button
+                            className="btn-secondary wsnw shadow-lg"
+                            onClick={() => setPreviewCard(draft)}
+                            title="Redraw the chart using the current settings"
+                        >
+                            Refresh Chart
                         </button>
                     </div>
-                    <hr className="my-4" />
-                </div>
-            )}
-            {renderChart()}
+                )}
+            </div>
         </div>
     );
 }

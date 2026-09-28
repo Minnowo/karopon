@@ -5,6 +5,7 @@ import {
     FormatXLabel,
     BaseGraphProps,
     ComputeYAxisTicks,
+    CommonUnit,
     ReadChartFontSize,
     ShouldTiltXLabels,
     TiltedLabelTransform,
@@ -13,9 +14,7 @@ import {GroupBy} from '../../api/types_stats';
 
 export function LineSingleGraph2({
     data,
-    title,
     timeRanges,
-    onTimeRangesChange,
 
     curTimeRange,
     onTimeRangeChange,
@@ -23,10 +22,8 @@ export function LineSingleGraph2({
     groupBy,
     onGroupByChange,
 
-    aggregationFunc,
-    onAggregationFunc,
-
     precision = 1,
+    formatValue,
     graphStyle,
     onGraphStyleChange,
     hideZeroValues = false,
@@ -53,6 +50,7 @@ export function LineSingleGraph2({
     const pad = 40;
 
     const color = data.colors[0] ?? 'currentColor';
+    const unit = CommonUnit(data, [0]);
 
     // Pre-extract values for sequential access.
     const values = useMemo(() => {
@@ -86,9 +84,11 @@ export function LineSingleGraph2({
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
 
+    const fmt = formatValue ?? ((v: number) => v.toFixed(precision));
+
     const yAxisTicks = useMemo(
-        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, precision) : []),
-        [showYAxis, maxVal, precision]
+        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, fmt) : []),
+        [showYAxis, maxVal, precision, formatValue]
     );
 
     const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
@@ -104,7 +104,6 @@ export function LineSingleGraph2({
 
     return (
         <div ref={containerRef} className="w-full">
-            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
@@ -162,6 +161,11 @@ export function LineSingleGraph2({
                     {showYAxis && (
                         <g>
                             <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="currentColor" strokeOpacity="0.4" />
+                            {unit && (
+                                <text x={pad} y={pad - 10} fill="currentColor" className="text-chart-sm" text-anchor="middle">
+                                    {unit}
+                                </text>
+                            )}
                             {yAxisTicks.map((t) => (
                                 <g key={t.label + t.y}>
                                     <line x1={pad - 4} y1={t.y} x2={pad} y2={t.y} stroke="currentColor" strokeOpacity="0.4" />
@@ -178,7 +182,7 @@ export function LineSingleGraph2({
                             <circle cx={p.x} cy={p.y} r="5" fill={color} />
                             {!hideValueLabels && !(hideZeroValues && p.value === 0) && (
                                 <text x={p.x + 5} y={p.y - 10} fill={color} className="text-chart-sm" text-anchor="start">
-                                    {p.value.toFixed(precision)}
+                                    {fmt(p.value)}
                                 </text>
                             )}
                         </g>

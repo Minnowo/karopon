@@ -1,5 +1,5 @@
 import {GraphStyleKeys, NoInformationMessage} from './common';
-import {FormatXLabel, BaseGraphProps} from './graph';
+import {FormatXLabel, BaseGraphProps, CommonUnit} from './graph';
 import {GroupBy} from '../../api/types_stats';
 
 const SUM_ROW_KEY = '${SUM}';
@@ -7,10 +7,8 @@ const SUM_ROW_LABEL = 'Sum';
 
 export function TableGraph2({
     data,
-    title,
 
     timeRanges,
-    onTimeRangesChange,
 
     curTimeRange,
     onTimeRangeChange,
@@ -18,19 +16,17 @@ export function TableGraph2({
     groupBy,
     onGroupByChange,
 
-    aggregationFunc,
-    onAggregationFunc,
-
     hiddenLabels,
     onHiddenLabelsChange,
     precision = 1,
+    formatValue,
     graphStyle,
     onGraphStyleChange,
     hideZeroValues = false,
     hideValueLabels = false,
 }: BaseGraphProps) {
     const formatCell = (value: number): string =>
-        hideValueLabels || (hideZeroValues && value === 0) ? '-' : value.toFixed(precision);
+        hideValueLabels || (hideZeroValues && value === 0) ? '-' : (formatValue?.(value) ?? value.toFixed(precision));
 
     const visibleCols = data.labels
         .map((label, index) => ({label, index}))
@@ -39,9 +35,10 @@ export function TableGraph2({
 
     const showSumRow = visibleCols.length >= 2 && !hiddenLabels.includes(SUM_ROW_KEY);
 
+    const withUnit = (label: string, unit: string): string => (unit ? `${label} (${unit})` : label);
+
     return (
         <div className="w-full">
-            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
@@ -110,7 +107,7 @@ export function TableGraph2({
                                 {showSumRow && (
                                     <tr>
                                         <th className="sticky left-0 bg-c-surface-container-1 px-3 py-1 text-left whitespace-nowrap">
-                                            {SUM_ROW_LABEL}
+                                            {withUnit(SUM_ROW_LABEL, CommonUnit(data, visibleCols))}
                                         </th>
                                         {data.rows.map((row) => {
                                             const sum = visibleCols.reduce((acc, key) => acc + (row.y[key] ?? 0), 0);
@@ -128,7 +125,7 @@ export function TableGraph2({
                                             className="sticky left-0 bg-c-surface-container-1 px-3 py-1 text-left whitespace-nowrap"
                                             style={{color: data.colors[key]}}
                                         >
-                                            {data.labels[key]}
+                                            {withUnit(data.labels[key], data.units?.[key] ?? '')}
                                         </th>
                                         {data.rows.map((row) => (
                                             <td key={row.x} className="px-3 py-1 text-right whitespace-nowrap">

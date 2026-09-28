@@ -24,7 +24,7 @@ export function BodyMetricMultiSelect({bodyMetrics, selected, onChange}: BodyMet
             {[...bodyMetrics]
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((m) => (
-                    <label key={m.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <label key={m.id} className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={selected.includes(m.name)} onChange={() => toggle(m.name)} />
                         <span>
                             {m.name}

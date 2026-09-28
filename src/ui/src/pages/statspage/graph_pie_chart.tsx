@@ -1,6 +1,6 @@
 import {useMemo, useState} from 'preact/hooks';
 import {GraphStyleKeys, NoInformationMessage} from './common';
-import {BaseGraphProps} from './graph';
+import {BaseGraphProps, FormatWithUnit} from './graph';
 
 type Point2D = {
     x: number;
@@ -28,7 +28,6 @@ export const PieChart = ({
     size = 250,
 
     data,
-    title,
     timeRanges,
     onTimeRangeChange,
 
@@ -38,6 +37,7 @@ export const PieChart = ({
     onGraphStyleChange,
 
     precision = 1,
+    formatValue,
 }: PieChartProps) => {
     const [hoverText, setHoverText] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ export const PieChart = ({
                 for (const row of data.rows) {
                     value += row.y[i] ?? 0;
                 }
-                return {label, value, color: data.colors[i]};
+                return {label, value, color: data.colors[i], unit: data.units?.[i] ?? ''};
             }),
         [data]
     );
@@ -69,7 +69,6 @@ export const PieChart = ({
 
     return (
         <div className="flex flex-col">
-            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
@@ -119,7 +118,7 @@ export const PieChart = ({
                                         strokeWidth="2"
                                         onMouseEnter={() =>
                                             setHoverText(
-                                                `${slice.label} - ${slice.value.toFixed(2)}g (${((slice.value / total) * 100).toFixed(1)}%)`
+                                                `${slice.label} - ${FormatWithUnit(formatValue?.(slice.value) ?? slice.value.toFixed(2), slice.unit)} (${((slice.value / total) * 100).toFixed(1)}%)`
                                             )
                                         }
                                         onMouseLeave={() => setHoverText(null)}
@@ -135,7 +134,8 @@ export const PieChart = ({
                                 <div style={{backgroundColor: slice.color}} className="w-4 h-4 rounded-full" />
                                 <span className="text-sm">
                                     {slice.label} {((slice.value / total) * 100).toFixed(1)}
-                                    {'% '} {slice.value.toFixed(precision)}g
+                                    {'% '}{' '}
+                                    {FormatWithUnit(formatValue?.(slice.value) ?? slice.value.toFixed(precision), slice.unit)}
                                 </span>
                             </div>
                         ))}

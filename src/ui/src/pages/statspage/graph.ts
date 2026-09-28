@@ -1,15 +1,12 @@
-import {AggregationFunc, GroupBy} from '../../api/types_stats';
+import {GroupBy} from '../../api/types_stats';
 import {TimeRange, ChartData, GraphStyle} from './common';
 import {DAY_IN_MS} from '../../utils/time';
 
 export type BaseGraphProps = {
-    title: string;
-
     graphStyle?: GraphStyle;
     onGraphStyleChange?: (s: GraphStyle) => void;
 
     timeRanges: TimeRange[];
-    onTimeRangesChange: (range: TimeRange) => void;
 
     curTimeRange: number;
     onTimeRangeChange: (idx: number) => void;
@@ -17,15 +14,13 @@ export type BaseGraphProps = {
     groupBy: GroupBy;
     onGroupByChange: (group: GroupBy) => void;
 
-    aggregationFunc: AggregationFunc;
-    onAggregationFunc: (agg: AggregationFunc) => void;
-
     hiddenLabels: string[];
     onHiddenLabelsChange: (keys: string[]) => void;
 
     data: ChartData;
 
     precision?: number;
+    formatValue?: (v: number) => string;
 
     hideZeroValues?: boolean;
     hideValueLabels?: boolean;
@@ -36,15 +31,29 @@ export type YAxisTick = {y: number; label: string};
 
 // ComputeYAxisTicks returns evenly spaced tick positions (in SVG y coordinates) and their
 // approximate values, spanning [0, maxVal] over the plot area [pad, height - pad].
-export const ComputeYAxisTicks = (maxVal: number, height: number, pad: number, precision: number, tickCount = 4): YAxisTick[] => {
+export const ComputeYAxisTicks = (
+    maxVal: number,
+    height: number,
+    pad: number,
+    format: (v: number) => string,
+    tickCount = 4
+): YAxisTick[] => {
     const ticks: YAxisTick[] = [];
     for (let i = 0; i <= tickCount; i++) {
         const value = (maxVal * i) / tickCount;
         const y = height - pad - (value / maxVal) * (height - pad * 2);
-        ticks.push({y, label: value.toFixed(precision)});
+        ticks.push({y, label: format(value)});
     }
     return ticks;
 };
+
+// CommonUnit returns the unit shared by all the given series, or '' if they differ.
+export const CommonUnit = (data: ChartData, cols: number[]): string => {
+    const unit = data.units?.[cols[0]] ?? '';
+    return cols.every((i) => (data.units?.[i] ?? '') === unit) ? unit : '';
+};
+
+export const FormatWithUnit = (value: string, unit: string): string => (unit ? `${value} ${unit}` : value);
 
 export const FormatXLabel = (key: number, groupBy: GroupBy): string => {
     switch (groupBy) {

@@ -99,23 +99,34 @@ export function ReminderEditPanel({
     return (
         <div className="w-full surface-1 flex items-center gap-2">
             <div className="flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="mb-0">{reminder.name ? reminder.name : `Every ${reminder.interval_minutes} min`}</h2>
                     <span className={reminder.enabled ? 'text-c-success text-sm' : 'text-c-error text-sm'}>
                         {reminder.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                 </div>
-                {reminder.name && <div className="text-sm text-c-on-surface-variant">Every {reminder.interval_minutes} min</div>}
-                {reminder.enabled && (
-                    <div className="text-sm text-c-on-surface-variant">
-                        {msUntilDue <= 0 ? 'Due now' : `Next in ${FormatDuration(msUntilDue)}`}
-                    </div>
-                )}
-                <div className="text-sm text-c-on-surface-variant">{FormatScheduleSummary(reminder.cron)}</div>
-                <div className="text-sm text-c-on-surface-variant">
-                    {linkedActivities.length === 0
-                        ? 'Plain reminder, no activities'
-                        : linkedActivities.map((a) => a.activity.name).join(', ')}
+
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-sm mt-1">
+                    {reminder.name && (
+                        <>
+                            <span className="text-c-on-surface-variant">Interval</span>
+                            <span>Every {reminder.interval_minutes} min</span>
+                        </>
+                    )}
+                    {reminder.enabled && (
+                        <>
+                            <span className="text-c-on-surface-variant">Next</span>
+                            <span>{msUntilDue <= 0 ? 'Due now' : `In ${FormatDuration(msUntilDue)}`}</span>
+                        </>
+                    )}
+                    <span className="text-c-on-surface-variant">Active</span>
+                    <span>{FormatScheduleSummary(reminder.cron)}</span>
+                    <span className="text-c-on-surface-variant">Activities</span>
+                    <span>
+                        {linkedActivities.length === 0
+                            ? 'Plain reminder, no activities'
+                            : linkedActivities.map((a) => a.activity.name).join(', ')}
+                    </span>
                 </div>
             </div>
             <DropdownButton

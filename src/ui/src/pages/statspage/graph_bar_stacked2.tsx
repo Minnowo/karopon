@@ -6,6 +6,8 @@ import {
     TiltedLabelTransform,
     BaseGraphProps,
     ComputeYAxisTicks,
+    CommonUnit,
+    FormatWithUnit,
 } from './graph';
 import {GraphStyleKeys, NoInformationMessage} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
@@ -31,10 +33,8 @@ type BarData = {
 // Reuses MultiLineGraph2Props since the two are swappable (same data shape, different render).
 export function StackedBarGraph2({
     data,
-    title,
 
     timeRanges,
-    onTimeRangesChange,
 
     curTimeRange,
     onTimeRangeChange,
@@ -42,12 +42,10 @@ export function StackedBarGraph2({
     groupBy,
     onGroupByChange,
 
-    aggregationFunc,
-    onAggregationFunc,
-
     hiddenLabels,
     onHiddenLabelsChange,
     precision = 1,
+    formatValue,
     graphStyle,
     onGraphStyleChange,
     hideZeroValues = false,
@@ -136,9 +134,13 @@ export function StackedBarGraph2({
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
 
+    const fmt = formatValue ?? ((v: number) => v.toFixed(precision));
+
+    const commonUnit = useMemo(() => CommonUnit(data, visibleCols), [data, visibleCols]);
+
     const yAxisTicks = useMemo(
-        () => (showYAxis ? ComputeYAxisTicks(maxTotal, CHART_HEIGHT, PAD, precision) : []),
-        [showYAxis, maxTotal, precision]
+        () => (showYAxis ? ComputeYAxisTicks(maxTotal, CHART_HEIGHT, PAD, fmt) : []),
+        [showYAxis, maxTotal, precision, formatValue]
     );
 
     const tiltLabels = useMemo(
@@ -158,7 +160,6 @@ export function StackedBarGraph2({
 
     return (
         <div ref={containerRef} className="w-full">
-            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
@@ -227,6 +228,17 @@ export function StackedBarGraph2({
                                         stroke="currentColor"
                                         strokeOpacity="0.4"
                                     />
+                                    {commonUnit && (
+                                        <text
+                                            x={PAD}
+                                            y={PAD - 10}
+                                            fill="currentColor"
+                                            className="text-chart-sm"
+                                            text-anchor="middle"
+                                        >
+                                            {commonUnit}
+                                        </text>
+                                    )}
                                     {yAxisTicks.map((t) => (
                                         <g key={t.label + t.y}>
                                             <line
@@ -271,7 +283,7 @@ export function StackedBarGraph2({
                                             className="text-chart-sm"
                                             text-anchor="middle"
                                         >
-                                            {total.toFixed(precision)}
+                                            {fmt(total)}
                                         </text>
                                     )}
                                     <text
@@ -305,7 +317,7 @@ export function StackedBarGraph2({
                                     maxWidth: TOOLTIP_MAX_W,
                                     overflowX: 'auto',
                                 }}
-                                className="surface-1 border border-c-primary rounded px-2 py-1 text-xs shadow-lg"
+                                className="surface-3 border border-c-primary rounded px-2 py-1 text-xs shadow-lg"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {visibleCols
@@ -325,7 +337,7 @@ export function StackedBarGraph2({
                                                     }}
                                                 />
                                                 <span>
-                                                    {data.labels[k]}: {val.toFixed(precision)} ({pct}%)
+                                                    {data.labels[k]}: {FormatWithUnit(fmt(val), data.units?.[k] ?? '')} ({pct}%)
                                                 </span>
                                             </div>
                                         );
@@ -334,7 +346,7 @@ export function StackedBarGraph2({
                                     style={{whiteSpace: 'nowrap'}}
                                     className="font-bold mt-0.5 border-t border-c-outline-variant pt-0.5"
                                 >
-                                    Total: {clickedBar.total.toFixed(precision)}
+                                    Total: {FormatWithUnit(fmt(clickedBar.total), commonUnit)}
                                 </div>
                             </div>
                         )}

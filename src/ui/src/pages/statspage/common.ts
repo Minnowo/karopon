@@ -17,6 +17,8 @@ export type ChartData = {
     // colors[1] = dog color
     labels: string[];
     colors: string[];
+    // units[i] is the unit for labels[i], '' when unknown.
+    units?: string[];
     rows: DataRow[];
 };
 
@@ -30,6 +32,8 @@ export type ChartType = 'macros' | 'eventlogs' | 'bodylog' | 'time';
 
 export const GraphStyleKeys = ['line', 'bar', 'table', 'pie'] as const;
 export type GraphStyle = (typeof GraphStyleKeys)[number];
+
+export type TimeUnit = 'hours' | 'minutes' | 'days' | 'mixed';
 
 export type TimeRange = {
     name: string;
@@ -56,6 +60,7 @@ export type DashboardCard = {
     hideZeroValues?: boolean;
     hideValueLabels?: boolean;
     showYAxis?: boolean;
+    timeUnit?: TimeUnit;
 };
 
 export type UserDashboard = {
@@ -87,6 +92,33 @@ export const CommonRanges: TimeRange[] = [
         aggregationFunc: AggregationFunc.Sum,
     },
 ];
+
+export const CHART_LABELS: Record<ChartType, string> = {
+    macros: 'Macros / Calories',
+    eventlogs: 'Blood Glucose / Insulin',
+    bodylog: 'Body Metrics',
+    time: 'Time Spent by Tag',
+};
+
+// A new chart starts with its type's usual series selected, otherwise it renders
+// blank until the user edits it - the data builders bail out on an empty series
+// list. Tags and body metrics have no sensible default, so those start empty.
+const DEFAULT_MACROS: MacroType[] = ['fat', 'net_carbs', 'fibre', 'protein'];
+const DEFAULT_EVENTLOGS: EventLogType[] = ['blood_glucose', 'actual_insulin_taken'];
+
+export const NewDashboardCard = (type: ChartType): DashboardCard => ({
+    id: 0,
+    type,
+    title: CHART_LABELS[type],
+    visibleMacros: type === 'macros' ? DEFAULT_MACROS : [],
+    visibleEventLogs: type === 'eventlogs' ? DEFAULT_EVENTLOGS : [],
+    selectedTags: [],
+    selectedMetrics: [],
+    timeRanges: CommonRanges,
+    curTimeRange: 0,
+    hiddenLabels: [],
+    useNetwork: false,
+});
 
 export const DEFAULT_DASHBOARD: UserDashboard = {
     id: -1,

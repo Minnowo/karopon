@@ -6,6 +6,7 @@ import {
     TiltedLabelTransform,
     BaseGraphProps,
     ComputeYAxisTicks,
+    CommonUnit,
 } from './graph';
 import {NoInformationMessage, GraphStyleKeys} from './common';
 import {useDebouncedCallback} from '../../hooks/useDebounce';
@@ -15,10 +16,8 @@ type GraphPoint = {x: number; y: number; value: number; date: number};
 
 export function MultiLineGraph2({
     data,
-    title,
 
     timeRanges,
-    onTimeRangesChange,
 
     curTimeRange,
     onTimeRangeChange,
@@ -26,12 +25,10 @@ export function MultiLineGraph2({
     groupBy,
     onGroupByChange,
 
-    aggregationFunc,
-    onAggregationFunc,
-
     hiddenLabels,
     onHiddenLabelsChange,
     precision = 1,
+    formatValue,
     graphStyle,
     onGraphStyleChange,
     hideZeroValues = false,
@@ -99,9 +96,13 @@ export function MultiLineGraph2({
 
     const chartFontSize = useMemo(() => ReadChartFontSize(), []);
 
+    const fmt = formatValue ?? ((v: number) => v.toFixed(precision));
+
+    const commonUnit = useMemo(() => CommonUnit(data, visibleCols), [data, visibleCols]);
+
     const yAxisTicks = useMemo(
-        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, precision) : []),
-        [showYAxis, maxVal, precision]
+        () => (showYAxis ? ComputeYAxisTicks(maxVal, height, pad, fmt) : []),
+        [showYAxis, maxVal, precision, formatValue]
     );
 
     const tickSpacing = data.rows.length > 1 ? (width - pad * 2) / (data.rows.length - 1) - chartFontSize / 2 : width;
@@ -157,7 +158,6 @@ export function MultiLineGraph2({
 
     return (
         <div ref={containerRef} className="w-full">
-            <h2 className="text-2xl mb-2">{title}</h2>
             <div className="flex flex-row flex-wrap justify-between">
                 <div className="flex gap-2 mb-4">
                     <select
@@ -217,6 +217,11 @@ export function MultiLineGraph2({
                         {showYAxis && (
                             <g>
                                 <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="currentColor" strokeOpacity="0.4" />
+                                {commonUnit && (
+                                    <text x={pad} y={pad - 10} fill="currentColor" className="text-chart-sm" text-anchor="middle">
+                                        {commonUnit}
+                                    </text>
+                                )}
                                 {yAxisTicks.map((t) => (
                                     <g key={t.label + t.y}>
                                         <line x1={pad - 4} y1={t.y} x2={pad} y2={t.y} stroke="currentColor" strokeOpacity="0.4" />
@@ -257,7 +262,7 @@ export function MultiLineGraph2({
                                                         className="text-chart-sm"
                                                         text-anchor="start"
                                                     >
-                                                        {p.value.toFixed(precision)}
+                                                        {fmt(p.value)}
                                                     </text>
                                                 )}
                                             </g>

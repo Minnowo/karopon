@@ -26,7 +26,7 @@ export function MacroMultiSelect({selected, onChange}: MacroMultiSelectProps) {
     return (
         <div className="flex flex-col gap-1">
             {MacroTypeKeys.map((m) => (
-                <label key={m} className="flex items-center gap-2 cursor-pointer text-sm">
+                <label key={m} className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={selected.includes(m)} onChange={() => toggle(m)} />
                     <span>{MACRO_LABELS[m]}</span>
                 </label>

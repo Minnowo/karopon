@@ -4,6 +4,7 @@ import {ThreeVertDots} from './svg';
 export type DropdownButtonAction = {
     label: string;
     dangerous?: boolean;
+    disabled?: boolean;
     onClick: () => void;
 };
 
@@ -61,15 +62,16 @@ export function DropdownButton({
             </div>
 
             {open && (
-                <div className="absolute border border-c-primary right-0 shadow-lg z-10 mt-1 font-bold text-lg">
+                <div className="absolute border border-c-primary bg-c-surface-container-2 right-0 shadow-lg z-10 mt-1 font-bold text-lg">
                     {actions.map((action, i) => (
                         <button
                             key={i}
+                            disabled={action.disabled}
                             onClick={() => {
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className={`${action.dangerous ? 'text-c-error' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface-container-2 focus:bg-c-surface-container-4 hover:bg-c-surface-container-4 px-2 py-1`}
+                            className={`${action.dangerous ? 'text-c-error' : ''} ${action.disabled ? 'opacity-50 cursor-not-allowed' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface-container-2 focus:bg-c-surface-container-4 hover:bg-c-surface-container-4 px-2 py-1`}
                         >
                             {action.label}
                         </button>
