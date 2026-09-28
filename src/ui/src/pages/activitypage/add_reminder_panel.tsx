@@ -119,7 +119,7 @@ export function AddReminderPanel({
 
     return (
         <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <div className="w-full mb-2 text-lg font-bold">{title}</div>
+            <h2 className="mb-4">{title}</h2>
 
             <ErrorDiv errorMsg={errorMsg} />
 
@@ -152,7 +152,7 @@ export function AddReminderPanel({
 
                 <div>
                     <div className="flex items-center justify-between">
-                        <span className="font-semibold">Active windows</span>
+                        <h3 className="mb-0">Active windows</h3>
                         <div className="flex gap-2">
                             <button className="text-xs px-2 py-1" onClick={setAllDayEveryDay}>
                                 Every day, all day
@@ -205,7 +205,7 @@ export function AddReminderPanel({
                 </div>
 
                 <div>
-                    <span className="font-semibold">Break activities (optional)</span>
+                    <h3>Break activities (optional)</h3>
                     <p className="text-sm font-normal text-c-on-surface-variant">
                         When this reminder fires, it will suggest activities from this list. Leave empty for a plain reminder with
                         no logging.

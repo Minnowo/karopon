@@ -100,9 +100,7 @@ export function ReminderEditPanel({
         <div className="w-full surface-1 flex items-center gap-2">
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold">
-                        {reminder.name ? reminder.name : `Every ${reminder.interval_minutes} min`}
-                    </span>
+                    <h2 className="mb-0">{reminder.name ? reminder.name : `Every ${reminder.interval_minutes} min`}</h2>
                     <span className={reminder.enabled ? 'text-c-success text-sm' : 'text-c-error text-sm'}>
                         {reminder.enabled ? 'Enabled' : 'Disabled'}
                     </span>

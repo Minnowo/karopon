@@ -84,8 +84,8 @@ export function GoalCreationPanel({
 
     return (
         <div className={`surface-1 ${className}`}>
-            <div className="flex justify-between">
-                <h2 className="text-lg font-semibold">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
+            <div className="flex justify-between mb-4">
+                <h2 className="mb-0">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
             </div>
             <ErrorDiv errorMsg={error} />
 
@@ -102,7 +102,7 @@ export function GoalCreationPanel({
 
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1" title="Time Range is the interval for the goal to start, finish, and repeat.">
-                        <label className="block text-sm font-medium" htmlFor={timeRangeId}>
+                        <label className="block font-semibold" htmlFor={timeRangeId}>
                             Time Range
                         </label>
                         <select
@@ -123,7 +123,7 @@ export function GoalCreationPanel({
                     </div>
 
                     <div className="flex-1" title="Aggregation is how your current progress should be counted and grouped.">
-                        <label className="block text-sm font-medium" htmlFor={aggregationId}>
+                        <label className="block font-semibold" htmlFor={aggregationId}>
                             Aggregation
                         </label>
                         <select
@@ -147,7 +147,7 @@ export function GoalCreationPanel({
 
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1" title="Target defines what kind of data is your goal for.">
-                        <label className="block text-sm font-medium" htmlFor={targetId}>
+                        <label className="block font-semibold" htmlFor={targetId}>
                             Target
                         </label>
                         <select
@@ -172,7 +172,7 @@ export function GoalCreationPanel({
                         className="flex-1"
                         title="Comparison is how your currently progress value should be compared to your target value."
                     >
-                        <label className="block text-sm font-medium" htmlFor={comparisonId}>
+                        <label className="block font-semibold" htmlFor={comparisonId}>
                             Comparison
                         </label>
                         <select
@@ -195,7 +195,7 @@ export function GoalCreationPanel({
 
                 {goal.target_col === 'BODY_METRIC' && (
                     <div title="The specific body metric this goal tracks.">
-                        <label className="block text-sm font-medium" htmlFor={targetMetricId}>
+                        <label className="block font-semibold" htmlFor={targetMetricId}>
                             Body Metric
                         </label>
                         {bodyMetrics.length === 0 ? (
@@ -228,7 +228,7 @@ export function GoalCreationPanel({
 
                 {goal.target_col === 'TIME' && (
                     <div title="Tags this goal tracks. Their durations are summed together.">
-                        <label className="block text-sm font-medium" htmlFor={targetMetricId}>
+                        <label className="block font-semibold" htmlFor={targetMetricId}>
                             Tags
                         </label>
                         <TagInput
@@ -245,7 +245,7 @@ export function GoalCreationPanel({
                 )}
 
                 <div title="Target value is the target number you want to reach.">
-                    <label className="block text-sm font-medium" htmlFor={targetValueId}>
+                    <label className="block font-semibold" htmlFor={targetValueId}>
                         Target Value
                     </label>
                     <NumberInput

@@ -98,10 +98,10 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
 
     return (
         <div className={`surface-1 ${p.className}`}>
-            <div>
+            <div className="mb-4">
                 <details className="w-full no-summary-arrow">
-                    <summary className="cursor-pointer text-lg font-bold">
-                        Food Builder
+                    <summary className="cursor-pointer">
+                        <h2 className="inline">Food Builder</h2>
                         <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                     </summary>
 

@@ -67,7 +67,7 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
         <div className="mb-4 surface-1 flex flex-col gap-2">
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer">
-                    <h2 className="text-lg font-bold inline">Tag Colors</h2>
+                    <h2 className="inline">Tag Colors</h2>
                     <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                 </summary>
 

@@ -239,8 +239,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     return (
         <div className="w-full p-2 rounded-sm surface-1">
-            <div className="flex w-full justify-between mb-2">
-                <span className="text-lg font-bold">{p.dialogTitle}</span>
+            <div className="flex w-full justify-between mb-4">
+                <h2 className="mb-0">{p.dialogTitle}</h2>
                 <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
                 <span />
             </div>

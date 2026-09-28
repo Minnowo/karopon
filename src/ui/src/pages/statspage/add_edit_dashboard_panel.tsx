@@ -68,7 +68,7 @@ export function AddEditDashboardPanel({
 
     return (
         <div className={`flex flex-col gap-2 p-2 surface-1 ${className}`}>
-            <h2 className="text-lg font-bold">{titleLabel}</h2>
+            <h2>{titleLabel}</h2>
             <div className="flex gap-2 items-center">
                 <input
                     type="text"
@@ -82,7 +82,7 @@ export function AddEditDashboardPanel({
 
             {onCardAdded && (
                 <div className="surface-2 flex flex-col gap-2">
-                    <h2 className="text-lg font-bold">Add Chart</h2>
+                    <h3 className="mb-0">Add Chart</h3>
                     <div class="flex flex-row flex-wrap gap-2 items-center">
                         <select
                             className="px-2 py-1"
@@ -103,7 +103,7 @@ export function AddEditDashboardPanel({
 
                     {addType === 'time' && (
                         <div className="surface-3">
-                            <h2 className="text-lg font-bold">Tags</h2>
+                            <h4>Tags</h4>
                             <TagInput
                                 namespaces={namespaces}
                                 setNamespaces={setNamespaces}
@@ -116,21 +116,21 @@ export function AddEditDashboardPanel({
 
                     {addType === 'macros' && (
                         <div className="surface-3">
-                            <h2 className="text-lg font-bold">Macros / Calories</h2>
+                            <h4>Macros / Calories</h4>
                             <MacroMultiSelect selected={visibleMacros} onChange={setVisibleMacros} />
                         </div>
                     )}
 
                     {addType === 'eventlogs' && (
                         <div className="surface-3">
-                            <h2 className="text-lg font-bold">Blood Glucose / Insulin</h2>
+                            <h4>Blood Glucose / Insulin</h4>
                             <EventLogMultiSelect selected={visibleEventLogs} onChange={setVisibleEventLogs} />
                         </div>
                     )}
 
                     {addType === 'bodylog' && (
                         <div className="surface-3">
-                            <h2 className="text-lg font-bold">Body Metrics</h2>
+                            <h4>Body Metrics</h4>
                             <BodyMetricMultiSelect
                                 bodyMetrics={bodyMetrics}
                                 selected={selectedMetrics}

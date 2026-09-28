@@ -71,8 +71,8 @@ export function AddBodyPanel({
     return (
         <>
             <div className={`surface-1 ${className}`}>
-                <div className="flex">
-                    <span className="text-lg font-bold">{title}</span>
+                <div className="flex mb-4">
+                    <h2 className="mb-0">{title}</h2>
                 </div>
 
                 <ErrorDiv errorMsg={errorMsg} />

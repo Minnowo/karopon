@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return (
             <div className="flex flex-col items-center text-center py-8 px-4">
                 <div className="surface-1 max-w-md w-full text-left">
-                    <p className="text-lg font-bold text-c-error mb-2">Something went wrong</p>
+                    <h2 className="text-c-error">Something went wrong</h2>
                     <p className="mb-2">The app hit an unexpected error and could not continue.</p>
                     <pre className="text-xs text-c-on-surface-variant mt-1 mb-4 whitespace-pre-wrap break-words">
                         {error.stack || error.message}

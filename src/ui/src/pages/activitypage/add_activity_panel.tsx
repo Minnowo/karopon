@@ -64,7 +64,7 @@ export function AddActivityPanel({
 
     return (
         <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <div className="w-full mb-2 text-lg font-bold">{title}</div>
+            <h2 className="mb-4">{title}</h2>
 
             <ErrorDiv errorMsg={errorMsg} />
 

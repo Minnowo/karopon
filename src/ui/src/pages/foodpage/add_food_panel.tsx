@@ -65,8 +65,8 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
         <div className={`rounded-sm p-2 border surface-1 ${className}`}>
             <div className="w-full mb-4">
                 <details className="w-full no-summary-arrow">
-                    <summary className="cursor-pointer text-lg font-bold">
-                        Create New Food
+                    <summary className="cursor-pointer">
+                        <h2 className="inline">Create New Food</h2>
                         <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                     </summary>
 

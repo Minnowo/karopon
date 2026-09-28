@@ -210,22 +210,22 @@
     h4,
     h5,
     h6 {
-        font-weight: 500;
+        font-weight: 550;
         color: var(--color-c-on-surface);
     }
     h1 {
-        @apply text-3xl mb-4;
-    }
-    h2 {
         @apply text-2xl mb-3;
     }
-    h3 {
+    h2 {
         @apply text-xl mb-2;
+    }
+    h3 {
+        @apply text-lg mb-1;
     }
     h4,
     h5,
     h6 {
-        @apply text-lg mb-2;
+        @apply text-base mb-1;
     }
 
     small {

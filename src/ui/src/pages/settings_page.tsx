@@ -83,7 +83,7 @@ export function SettingsPage(state: BaseState) {
             <ErrorDiv errorMsg={errorMsg} />
 
             <div>
-                <label className="font-bold" htmlFor={usernameId}>
+                <label className="font-semibold" htmlFor={usernameId}>
                     Username:
                 </label>
                 <input
@@ -99,7 +99,7 @@ export function SettingsPage(state: BaseState) {
             {isEditing && (
                 <>
                     <div>
-                        <label className="font-bold" htmlFor={newPasswordId}>
+                        <label className="font-semibold" htmlFor={newPasswordId}>
                             Change Password:
                         </label>
                         <input
@@ -112,7 +112,7 @@ export function SettingsPage(state: BaseState) {
                         />
                     </div>
                     <div>
-                        <label className="font-bold" htmlFor={confirmPasswordId}>
+                        <label className="font-semibold" htmlFor={confirmPasswordId}>
                             Confirm Password:
                         </label>
                         <input
@@ -226,7 +226,7 @@ export function SettingsPage(state: BaseState) {
             </label>
 
             <div>
-                <label className="font-bold" htmlFor={themeId}>
+                <label className="font-semibold" htmlFor={themeId}>
                     Color Theme
                 </label>
                 <select
@@ -245,7 +245,7 @@ export function SettingsPage(state: BaseState) {
             </div>
 
             <div>
-                <label className="font-bold" htmlFor={calorieMethodId}>
+                <label className="font-semibold" htmlFor={calorieMethodId}>
                     Caloric Calculation Method
                 </label>
                 <select

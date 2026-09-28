@@ -23,7 +23,7 @@ export const AddBodyMetricPanel = ({onCreate, onCancel}: AddBodyMetricPanelProps
 
     return (
         <div className="mb-4 surface-1 flex flex-col gap-2">
-            <h2 className="text-lg font-bold">New Body Metric</h2>
+            <h2>New Body Metric</h2>
             <ErrorDiv errorMsg={localError} />
             <div className="flex flex-col sm:flex-row gap-2">
                 <input

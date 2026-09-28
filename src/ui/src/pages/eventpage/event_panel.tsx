@@ -16,8 +16,8 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
     return (
         <div className="surface-1">
             <div className="flex flex-wrap justify-between align-middle">
-                <span className="text-s font-semibold">{`${foodGroup.eventlog.event} `}</span>
-                <span className=" text-s font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
+                <h2 className="mb-0">{`${foodGroup.eventlog.event} `}</h2>
+                <span className="text-sm font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
                 <DropdownButton actions={actions} />
             </div>
 

@@ -61,8 +61,8 @@ export const AddTimerPanel = ({
     return (
         <div className={`flex flex-col gap-1 surface-1 ${className}`}>
             <details className="w-full no-summary-arrow">
-                <summary className="cursor-pointer text-lg font-bold">
-                    Create New Timer
+                <summary className="cursor-pointer">
+                    <h2 className="inline">Create New Timer</h2>
                     <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
                 </summary>
 

@@ -54,7 +54,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
 
     return (
         <>
-            <h1 className="mb-4">Karopon</h1>
+            <h1>Karopon</h1>
             <form className="flex flex-col align-middle items-center" encType="multipart/form-data" onSubmit={handleSubmit}>
                 <table className="table-auto table-padded mb-2">
                     <tbody className="text-right">

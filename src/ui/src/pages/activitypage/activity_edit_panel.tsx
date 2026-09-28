@@ -52,7 +52,7 @@ export function ActivityEditPanel({
         <div className="w-full surface-1 flex items-center gap-2">
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold">{activity.name}</span>
+                    <h2 className="mb-0">{activity.name}</h2>
                     <TagChip tag={tag} color={tagColors?.get(tag.namespace)} />
                 </div>
                 <div className="text-sm text-c-on-surface-variant">

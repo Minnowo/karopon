@@ -123,7 +123,7 @@ export function SessionsPage(state: BaseState) {
     return (
         <div className="flex flex-col items-center justify-center space-y-4">
             <div className="w-full space-y-4">
-                <h2 className="font-bold text-lg my-4">Active Sessions</h2>
+                <h1>Active Sessions</h1>
 
                 <ErrorDiv errorMsg={errorMsg} />
 

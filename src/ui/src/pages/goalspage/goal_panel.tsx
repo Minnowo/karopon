@@ -52,7 +52,7 @@ export const GoalPanel = ({goal, dayOffsetSeconds, editGoal, deleteGoal}: GoalPa
     return (
         <div className="surface-1">
             <div className="flex flex-row justify-between">
-                <h2 className="text-lg font-semibold">{goal.name}</h2>
+                <h2>{goal.name}</h2>
                 <DropdownButton
                     actions={[
                         {

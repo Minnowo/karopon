@@ -126,7 +126,7 @@ function TimeRangePanel({
                         </button>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold text-sm">Start Time</label>
+                        <label class="font-semibold">Start Time</label>
                         <div className="flex flex-row items-center">
                             <TimeRangeInput range={draft.rangeStart} onChange={(v) => setDraft({...draft, rangeStart: v})} />
                             <span className="flex w-full justify-center">
@@ -135,7 +135,7 @@ function TimeRangePanel({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold text-sm">End Time</label>
+                        <label class="font-semibold">End Time</label>
                         <div className="flex flex-row items-center">
                             <TimeRangeInput range={draft.rangeEnd} onChange={(v) => setDraft({...draft, rangeEnd: v})} />
                             <span className="flex w-full justify-center">
@@ -144,7 +144,7 @@ function TimeRangePanel({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold text-sm">Group By</label>
+                        <label class="font-semibold">Group By</label>
                         <select
                             className="px-3 py-1"
                             value={draft.groupBy}
@@ -159,7 +159,7 @@ function TimeRangePanel({
                         </select>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold text-sm">Aggregation</label>
+                        <label class="font-semibold">Aggregation</label>
                         <select
                             className="px-3 py-1"
                             value={draft.aggregationFunc}
@@ -587,7 +587,7 @@ export function DashboardCardComponent({
             {editing && (
                 <div className="flex flex-col gap-2">
                     <div className="flex justify-between">
-                        <h1>Edit Chart</h1>
+                        <h2 className="mb-0">Edit Chart</h2>
                         <div className="flex justify-end gap-1">
                             <button className="px-3 py-2" onClick={handleMoveUP} disabled={isFirst}>
                                 ↑
@@ -607,7 +607,7 @@ export function DashboardCardComponent({
                         />
                     </div>
                     <div>
-                        <label class="font-semibold">Time Ranges</label>
+                        <h3>Time Ranges</h3>
                         <div className="flex flex-col p-2 gap-2">
                             <div class="flex flex-row flex-wrap gap-2 items-center">
                                 <select
@@ -655,7 +655,7 @@ export function DashboardCardComponent({
                     </div>
 
                     <div>
-                        <label class="font-semibold">Other Options</label>
+                        <h3>Other Options</h3>
                         <div className="flex flex-col p-2 gap-2">
                             <label
                                 className="flex items-center gap-2 cursor-pointer"
@@ -706,7 +706,7 @@ export function DashboardCardComponent({
 
                     {card.type === 'time' && (
                         <div className="flex flex-col gap-1">
-                            <label class="font-semibold">Tags</label>
+                            <h3 className="mb-0">Tags</h3>
                             <div className="flex flex-col p-2 gap-2">
                                 <TagInput
                                     namespaces={namespaces}
@@ -721,7 +721,7 @@ export function DashboardCardComponent({
 
                     {card.type === 'bodylog' && (
                         <div className="flex flex-col gap-1">
-                            <label class="font-semibold">Body Metrics</label>
+                            <h3 className="mb-0">Body Metrics</h3>
                             <div className="flex flex-col p-2 gap-2">
                                 <BodyMetricMultiSelect
                                     bodyMetrics={bodyMetrics}
@@ -734,7 +734,7 @@ export function DashboardCardComponent({
 
                     {card.type === 'macros' && (
                         <div className="flex flex-col gap-1">
-                            <label class="font-semibold">Macros / Calories</label>
+                            <h3 className="mb-0">Macros / Calories</h3>
                             <div className="flex flex-col p-2 gap-2">
                                 <MacroMultiSelect
                                     selected={card.visibleMacros ?? []}
@@ -746,7 +746,7 @@ export function DashboardCardComponent({
 
                     {card.type === 'eventlogs' && (
                         <div className="flex flex-col gap-1">
-                            <label class="font-semibold">Blood Glucose / Insulin</label>
+                            <h3 className="mb-0">Blood Glucose / Insulin</h3>
                             <div className="flex flex-col p-2 gap-2">
                                 <EventLogMultiSelect
                                     selected={card.visibleEventLogs ?? []}

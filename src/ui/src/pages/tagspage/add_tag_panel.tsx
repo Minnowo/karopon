@@ -37,7 +37,7 @@ export const AddTagPanel = ({
 
     return (
         <div className="mb-4 surface-1 flex flex-col gap-2">
-            <h2 className="text-lg font-bold">{title}</h2>
+            <h2>{title}</h2>
             <ErrorDiv errorMsg={localError} />
             <div className="flex flex-col sm:flex-row gap-2">
                 <input

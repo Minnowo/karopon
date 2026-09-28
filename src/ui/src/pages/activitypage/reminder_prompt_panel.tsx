@@ -208,8 +208,8 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
 
     return (
         <div className="surface-1 max-w-sm w-full text-left">
-            <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-lg font-bold">{dueReminder.reminder.name}</span>
+            <div className="flex items-center justify-between gap-2">
+                <h2>{dueReminder.reminder.name}</h2>
             </div>
 
             {shownActivities.length > 0 && (

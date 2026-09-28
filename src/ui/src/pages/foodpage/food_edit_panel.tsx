@@ -115,7 +115,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                 ) : (
                     <div className="w-full flex flex-col">
                         <div className="w-full flex flex-row">
-                            <span className="w-full text-lg mb-2">{food.name}</span>
+                            <h2 className="w-full">{food.name}</h2>
                             <DropdownButton
                                 actions={[
                                     {

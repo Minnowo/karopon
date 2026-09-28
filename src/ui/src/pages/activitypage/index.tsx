@@ -216,7 +216,7 @@ export const ActivityPage = (state: BaseState) => {
             )}
 
             <div className="mb-8">
-                <span className="text-xl font-bold block mb-4">Reminders</span>
+                <h1>Reminders</h1>
 
                 <div className="flex flex-col gap-2">
                     {state.reminders.length === 0 ? (
@@ -237,7 +237,7 @@ export const ActivityPage = (state: BaseState) => {
             </div>
 
             <div>
-                <span className="text-xl font-bold block mb-4">Break Activities</span>
+                <h1>Break Activities</h1>
 
                 <div className="flex flex-col gap-2">
                     {state.activities.length === 0 ? (
