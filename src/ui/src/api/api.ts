@@ -29,6 +29,13 @@ import {
     ReminderWithActivities,
     NewUserReminder,
     SetUserReminderActivitiesRequest,
+    ExerciseWithTags,
+    TblUserExercise,
+    WorkoutWithTags,
+    TblUserWorkout,
+    WorkoutLogWithSteps,
+    NewWorkoutLog,
+    TblUserWorkoutLog,
 } from './types';
 import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
 import {BodyLogStatsTimeRequest, BodyLogMetricPoint} from './types_stats_bodylog';
@@ -597,5 +604,107 @@ export const ApiGetStatsEventLog = (query: EventLogStatsRequest): Promise<EventL
         },
         method: 'POST',
         body: JSON.stringify(query),
+    });
+};
+
+export const ApiGetUserExercises = (): Promise<ExerciseWithTags[]> => {
+    return fetchJson(`${ApiBase}/api/exercises`);
+};
+
+export const ApiNewUserExercise = (e: ExerciseWithTags): Promise<ExerciseWithTags> => {
+    return fetchJson(`${ApiBase}/api/exercise/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(e),
+    });
+};
+
+export const ApiUpdateUserExercise = (e: ExerciseWithTags): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/exercise/update`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(e),
+    });
+};
+
+export const ApiDeleteUserExercise = (e: TblUserExercise): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/exercise/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(e),
+    });
+};
+
+export const ApiGetUserWorkouts = (): Promise<WorkoutWithTags[]> => {
+    return fetchJson(`${ApiBase}/api/workouts`);
+};
+
+export const ApiNewUserWorkout = (w: WorkoutWithTags): Promise<WorkoutWithTags> => {
+    return fetchJson(`${ApiBase}/api/workout/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(w),
+    });
+};
+
+export const ApiUpdateUserWorkout = (w: WorkoutWithTags): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/workout/update`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(w),
+    });
+};
+
+export const ApiDeleteUserWorkout = (w: TblUserWorkout): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/workout/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(w),
+    });
+};
+
+export const ApiGetUserWorkoutLogs = (n = -1): Promise<WorkoutLogWithSteps[]> => {
+    return fetchJson(`${ApiBase}/api/workoutlogs?n=${n}`);
+};
+
+export const ApiNewUserWorkoutLog = (req: NewWorkoutLog): Promise<WorkoutLogWithSteps> => {
+    return fetchJson(`${ApiBase}/api/workoutlog/new`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(req),
+    });
+};
+
+export const ApiUpdateUserWorkoutLog = (log: WorkoutLogWithSteps): Promise<WorkoutLogWithSteps> => {
+    return fetchJson(`${ApiBase}/api/workoutlog/update`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(log),
+    });
+};
+
+export const ApiDeleteUserWorkoutLog = (log: TblUserWorkoutLog): Promise<void> => {
+    return fetchNone(`${ApiBase}/api/workoutlog/delete`, {
+        headers: {
+            'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify(log),
     });
 };

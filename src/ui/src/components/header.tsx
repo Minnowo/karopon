@@ -119,6 +119,13 @@ export function Header(state: HeaderState) {
                 >
                     activity
                 </a>
+                <a
+                    className={currentHash === '#workout' ? css : ''}
+                    aria-current={currentHash === '#workout' ? 'page' : undefined}
+                    href="#workout"
+                >
+                    workout
+                </a>
                 <div className="ml-auto mr-10 flex items-center">
                     <UserHeader user={state.user} />
                 </div>

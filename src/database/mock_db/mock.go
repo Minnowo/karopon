@@ -25,6 +25,10 @@ func (p *BaseMockDB) WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) err
 	panic("not implemented")
 }
 
+func (p *BaseMockDB) WithTxRead(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	panic("not implemented")
+}
+
 func (p *BaseMockDB) ExportUserCSV(ctx context.Context, w io.Writer) error {
 	panic("not implemented")
 }
@@ -422,6 +426,84 @@ func (p *BaseMockDB) UpdateUserActivity(ctx context.Context, activity *database.
 }
 
 func (p *BaseMockDB) DeleteUserActivity(ctx context.Context, userID int, activityID int) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserExercise(
+	ctx context.Context,
+	ex *database.TblUserExercise,
+	tags []database.TblUserTag,
+) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserExercise(
+	ctx context.Context,
+	ex *database.TblUserExercise,
+	tags []database.TblUserTag,
+) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserExercise(ctx context.Context, userID int, exerciseID int) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserExercises(ctx context.Context, userID int, out *[]database.ExerciseWithTags) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserWorkout(
+	ctx context.Context,
+	w *database.TblUserWorkout,
+	tags []database.TblUserTag,
+) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserWorkout(
+	ctx context.Context,
+	w *database.TblUserWorkout,
+	tags []database.TblUserTag,
+) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserWorkout(ctx context.Context, userID int, workoutID int) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserWorkouts(ctx context.Context, userID int, out *[]database.WorkoutWithTags) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) AddUserWorkoutLog(ctx context.Context, log *database.NewWorkoutLog) (int, error) {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserWorkoutLogsN(
+	ctx context.Context,
+	userID int,
+	n int,
+	out *[]database.WorkoutLogWithSteps,
+) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) LoadUserWorkoutLog(
+	ctx context.Context,
+	userID int,
+	workoutlogID int,
+	out *database.WorkoutLogWithSteps,
+) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) UpdateUserWorkoutLog(ctx context.Context, log *database.WorkoutLogWithSteps) error {
+	panic("not implemented")
+}
+
+func (p *BaseMockDB) DeleteUserWorkoutLog(ctx context.Context, userID int, workoutlogID int) error {
 	panic("not implemented")
 }
 

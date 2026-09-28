@@ -123,6 +123,34 @@ func (db *SqliteDatabase) UpdateUserTag(
 			return err
 		}
 
+		// Same for exercises and workouts.
+		for _, link := range []struct{ table, ownerCol string }{
+			{"PON_USER_EXERCISE_TAG", "EXERCISE_ID"},
+			{"PON_USER_WORKOUT_TAG", "WORKOUT_ID"},
+		} {
+			query = `
+				DELETE FROM ` + link.table + ` AS t1
+				WHERE t1.TAG_ID = $1
+				  AND EXISTS (
+					  SELECT 1
+					  FROM ` + link.table + ` AS t2
+					  WHERE t2.` + link.ownerCol + ` = t1.` + link.ownerCol + `
+						AND t2.TAG_ID = $2
+					  LIMIT 1
+				  );
+			`
+
+			if _, err := tx.Exec(query, oldTagID, existingTagID); err != nil {
+				return err
+			}
+
+			query = `UPDATE ` + link.table + ` SET TAG_ID = $1 WHERE TAG_ID = $2`
+
+			if _, err := tx.Exec(query, existingTagID, oldTagID); err != nil {
+				return err
+			}
+		}
+
 		query = `DELETE FROM PON_USER_TAG WHERE ID = $1`
 		_, err := tx.Exec(query, oldTagID)
 

@@ -88,6 +88,7 @@ import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 import {ActivityPage} from './pages/activitypage';
+import {WorkoutPage} from './pages/workoutpage';
 import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
 import {useSyncNativeAlarms} from './pages/activitypage/native_alarm_bridge';
 import {ErrorBoundary} from './components/error_boundary';
@@ -534,6 +535,40 @@ export const App = () => {
                         case '#activity':
                             return (
                                 <ActivityPage
+                                    user={user}
+                                    setUser={setUser}
+                                    foods={foods}
+                                    setFoods={setFoods}
+                                    events={events}
+                                    setEvents={setEvents}
+                                    eventlogs={eventlogs}
+                                    setEventLogs={setEventLogsWithFoodlogs}
+                                    goals={goals}
+                                    setGoals={setGoals}
+                                    bodylogs={bodylogs}
+                                    bodyMetrics={bodyMetrics}
+                                    dataSources={dataSources}
+                                    setBodyLogs={setBodyLogs}
+                                    setBodyMetrics={setBodyMetrics}
+                                    namespaces={namespaces}
+                                    setNamespaces={setNamespaces}
+                                    timespans={timespans}
+                                    setTimespans={setTimespans}
+                                    dashboards={dashboards}
+                                    setDashboards={setDashboards}
+                                    tagColors={tagColors}
+                                    setTagColors={setTagColors}
+                                    activities={activities}
+                                    setActivities={setActivities}
+                                    reminders={reminders}
+                                    setReminders={setReminders}
+                                    setErrorMsg={setErrorMsg}
+                                    doRefresh={doRefresh}
+                                />
+                            );
+                        case '#workout':
+                            return (
+                                <WorkoutPage
                                     user={user}
                                     setUser={setUser}
                                     foods={foods}

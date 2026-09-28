@@ -56,7 +56,8 @@ export function StackedBarGraph2({
     const [width, setWidth] = useState(window.innerWidth);
     const [clickedIdx, setClickedIdx] = useState<number | null>(null);
 
-    const updateWidth = () => setWidth(containerRef.current!.clientWidth);
+    // The debounced call can land after the chart has unmounted.
+    const updateWidth = () => containerRef.current && setWidth(containerRef.current.clientWidth);
     const [handleResize] = useDebouncedCallback(updateWidth, 500);
 
     useLayoutEffect(() => {

@@ -33,7 +33,9 @@ export function LineSingleGraph2({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({width: window.innerWidth, height: window.innerHeight});
 
-    const updateSize = () => setSize({width: containerRef.current!.clientWidth, height: containerRef.current!.clientWidth});
+    // The debounced call can land after the chart has unmounted.
+    const updateSize = () =>
+        containerRef.current && setSize({width: containerRef.current.clientWidth, height: containerRef.current.clientWidth});
     const [handleResize] = useDebouncedCallback(updateSize, 500);
 
     useLayoutEffect(() => {

@@ -333,3 +333,95 @@ export enum UserTimeFormat {
     Hour24 = '24-hour',
     Hour12 = '12-hour',
 }
+
+export const StepKindValues = ['timed', 'reps', 'weighted', 'distance'] as const;
+export type StepKind = (typeof StepKindValues)[number];
+
+export type TblUserExercise = {
+    id: number;
+    user_id: number;
+    name: string;
+    note: string;
+};
+
+export type ExerciseWithTags = {
+    exercise: TblUserExercise;
+    tags: TblUserTag[];
+};
+
+export type TblUserWorkout = {
+    id: number;
+    user_id: number;
+    name: string;
+    note: string;
+    // JSON blob holding the workout's sets and steps.
+    structure: string;
+};
+
+export type WorkoutWithTags = {
+    workout: TblUserWorkout;
+    tags: TblUserTag[];
+};
+
+export type TblUserWorkoutLog = {
+    id: number;
+    user_id: number;
+    workout_id: number | null;
+    created: number;
+    name: string;
+    start_time: number;
+    stop_time: number;
+    // Time spent paused, in ms.
+    paused_ms: number;
+    completed: boolean;
+    note: string;
+};
+
+export type TblUserWorkoutStepLog = {
+    id: number;
+    user_id: number;
+    workoutlog_id: number;
+    exercise_id: number | null;
+
+    name: string;
+    kind: StepKind;
+    // Where the step was in the workout when it ran, all counting from 1.
+    set: number;
+    round: number;
+    step: number;
+
+    target_seconds: number;
+    target_reps: number;
+    target_weight: number;
+    target_distance: number;
+    actual_reps: number;
+    actual_weight: number;
+    actual_distance: number;
+    // Unit for weight or distance, e.g. kg or km.
+    unit: string;
+    // Seconds spent on the step, not counting pauses. 0 means it was skipped.
+    actual_seconds: number;
+};
+
+export type TimeSegment = {
+    start_time: number;
+    stop_time: number;
+};
+
+export type WorkoutLogWithSteps = {
+    workoutlog: TblUserWorkoutLog;
+    steps: TblUserWorkoutStepLog[];
+};
+
+export type NewWorkoutLogStep = {
+    step: TblUserWorkoutStepLog;
+    // In the order they happened. They set the step's actual_seconds and are not stored.
+    segments: TimeSegment[];
+    // The backend creates one timespan per segment with these tags. Empty tags creates none.
+    tags: TblUserTag[];
+};
+
+export type NewWorkoutLog = {
+    workoutlog: TblUserWorkoutLog;
+    steps: NewWorkoutLogStep[];
+};

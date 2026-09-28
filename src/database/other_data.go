@@ -174,3 +174,37 @@ func ValueToString(val any) string {
 		return fmt.Sprint(v)
 	}
 }
+
+type ExerciseWithTags struct {
+	Exercise TblUserExercise `json:"exercise"`
+	Tags     []TblUserTag    `json:"tags"`
+}
+
+type WorkoutWithTags struct {
+	Workout TblUserWorkout `json:"workout"`
+	Tags    []TblUserTag   `json:"tags"`
+}
+
+type TimeSegment struct {
+	StartTime TimeMillis `json:"start_time"`
+	StopTime  TimeMillis `json:"stop_time"`
+}
+
+type WorkoutLogWithSteps struct {
+	WorkoutLog TblUserWorkoutLog       `json:"workoutlog"`
+	Steps      []TblUserWorkoutStepLog `json:"steps"`
+}
+
+// NewWorkoutLogStep is a step to save with its start/stop segments, in the order they happened.
+// The segments set the step's ActualSeconds and are not stored.
+// One timespan is created per segment with Tags, none when Tags is empty.
+type NewWorkoutLogStep struct {
+	Step     TblUserWorkoutStepLog `json:"step"`
+	Segments []TimeSegment         `json:"segments"`
+	Tags     []TblUserTag          `json:"tags"`
+}
+
+type NewWorkoutLog struct {
+	WorkoutLog TblUserWorkoutLog   `json:"workoutlog"`
+	Steps      []NewWorkoutLogStep `json:"steps"`
+}

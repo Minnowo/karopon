@@ -360,3 +360,86 @@ type TblUserPhoto struct {
 	UserID int    `db:"user_id" json:"user_id"`
 	Data   []byte `db:"data"    json:"-"`
 }
+
+// StepKind is an enum for how a workout step is done.
+type StepKind string
+
+const (
+	StepKindTimed    StepKind = "timed"
+	StepKindReps     StepKind = "reps"
+	StepKindWeighted StepKind = "weighted"
+	StepKindDistance StepKind = "distance"
+)
+
+func (k StepKind) Valid() bool {
+	switch k {
+	case StepKindTimed, StepKindReps, StepKindWeighted, StepKindDistance:
+		return true
+	}
+
+	return false
+}
+
+// TblUserExercise is a user defined exercise used as a step in workouts.
+// This struct represents the PON.USER_EXERCISE table in the database.
+type TblUserExercise struct {
+	ID     int    `db:"id"      json:"id"`
+	UserID int    `db:"user_id" json:"user_id"`
+	Name   string `db:"name"    json:"name"`
+	Note   string `db:"note"    json:"note"`
+}
+
+// TblUserWorkout is a user defined workout template.
+// This struct represents the PON.USER_WORKOUT table in the database.
+type TblUserWorkout struct {
+	ID     int    `db:"id"      json:"id"`
+	UserID int    `db:"user_id" json:"user_id"`
+	Name   string `db:"name"    json:"name"`
+	Note   string `db:"note"    json:"note"`
+
+	// Structure is a JSON blob holding the workout's sets and steps.
+	Structure string `db:"structure" json:"structure"`
+}
+
+// TblUserWorkoutLog is one run of a workout.
+// This struct represents the PON.USER_WORKOUTLOG table in the database.
+type TblUserWorkoutLog struct {
+	ID        int        `db:"id"         json:"id"`
+	UserID    int        `db:"user_id"    json:"user_id"`
+	WorkoutID *int       `db:"workout_id" json:"workout_id"`
+	Created   TimeMillis `db:"created"    json:"created"`
+	Name      string     `db:"name"       json:"name"`
+	StartTime TimeMillis `db:"start_time" json:"start_time"`
+	StopTime  TimeMillis `db:"stop_time"  json:"stop_time"`
+	PausedMs  int64      `db:"paused_ms"  json:"paused_ms"`
+	Completed bool       `db:"completed"  json:"completed"`
+	Note      string     `db:"note"       json:"note"`
+}
+
+// TblUserWorkoutStepLog is one step of a workout run, with a snapshot of the exercise and its targets.
+// This struct represents the PON.USER_WORKOUTLOG_STEP table in the database.
+type TblUserWorkoutStepLog struct {
+	ID           int      `db:"id"            json:"id"`
+	UserID       int      `db:"user_id"       json:"user_id"`
+	WorkoutLogID int      `db:"workoutlog_id" json:"workoutlog_id"`
+	ExerciseID   *int     `db:"exercise_id"   json:"exercise_id"`
+	Name         string   `db:"name"          json:"name"`
+	Kind         StepKind `db:"kind"          json:"kind"`
+
+	// Where the step was in the workout when it ran, all counting from 1.
+	SetNumber int `db:"set_number" json:"set"`
+	Round     int `db:"round"      json:"round"`
+	Step      int `db:"step"       json:"step"`
+
+	TargetSeconds  int     `db:"target_seconds"  json:"target_seconds"`
+	TargetReps     int     `db:"target_reps"     json:"target_reps"`
+	TargetWeight   float64 `db:"target_weight"   json:"target_weight"`
+	TargetDistance float64 `db:"target_distance" json:"target_distance"`
+	ActualReps     int     `db:"actual_reps"     json:"actual_reps"`
+	ActualWeight   float64 `db:"actual_weight"   json:"actual_weight"`
+	ActualDistance float64 `db:"actual_distance" json:"actual_distance"`
+	Unit           string  `db:"unit"            json:"unit"`
+
+	// ActualSeconds is the time spent on the step, not counting pauses. 0 means it was skipped.
+	ActualSeconds int `db:"actual_seconds" json:"actual_seconds"`
+}

@@ -380,6 +380,9 @@ export function DashboardCardComponent({
                         : chartData.rows.map((r) => ({x: r.x, y: r.y.map((v) => v * timeUnit.scale)}));
                 return {...chartData, rows, units: chartData.labels.map(() => timeUnit.abbr)};
             }
+            default:
+                // Saved cards can hold a type this build doesn't know.
+                return chartData;
         }
     }, [chartData, preview.type, bodyMetrics, timeUnit]);
 

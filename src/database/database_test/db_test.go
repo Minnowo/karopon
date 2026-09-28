@@ -56,3 +56,27 @@ func testWithTxCommits(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, database.VERSION_UNKNOWN, version)
 }
+
+func testWithTxRead(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
+
+	lock.Lock()
+	t.Cleanup(lock.Unlock)
+
+	ctx := t.Context()
+	db := newTestDB(t)
+
+	userID := getTestUser(t, db)
+
+	err := db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
+
+		var logs []database.TblUserEventLog
+
+		return db.LoadUserEventLogsTx(tx, userID, &logs)
+	})
+	assert.NoError(t, err)
+
+	err = db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
+		return sql.ErrNoRows
+	})
+	assert.ErrorIs(t, err, sql.ErrNoRows)
+}

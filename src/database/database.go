@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -29,6 +30,10 @@ type DB interface {
 	Base() *SQLxDB
 
 	WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
+
+	// WithTxRead runs fn in a read-only transaction where every query sees the same snapshot of the data.
+	// Use it for loads that run more than one query.
+	WithTxRead(ctx context.Context, fn func(tx *sqlx.Tx) error) error
 
 	///
 	/// Export functions
@@ -340,6 +345,67 @@ type DB interface {
 	DeleteUserActivity(ctx context.Context, userID int, activityID int) error
 
 	///
+	/// User Exercise
+	///
+
+	// AddUserExercise adds a new exercise with the given tags and returns its ID.
+	// Tags that don't exist are created. Does not edit the given struct.
+	AddUserExercise(ctx context.Context, ex *TblUserExercise, tags []TblUserTag) (int, error)
+
+	// UpdateUserExercise updates the exercise and replaces its tags. Does not edit the given struct.
+	UpdateUserExercise(ctx context.Context, ex *TblUserExercise, tags []TblUserTag) error
+
+	// DeleteUserExercise deletes an exercise by its ID, scoped to the owning user.
+	// Workout log steps using it keep their snapshot with a null exercise ID.
+	DeleteUserExercise(ctx context.Context, userID int, exerciseID int) error
+
+	// LoadUserExercises loads all of the user's exercises with their tags, ordered by name.
+	LoadUserExercises(ctx context.Context, userID int, out *[]ExerciseWithTags) error
+
+	///
+	/// User Workout
+	///
+
+	// AddUserWorkout adds a new workout with the given tags and returns its ID.
+	// Tags that don't exist are created. Does not edit the given struct.
+	AddUserWorkout(ctx context.Context, w *TblUserWorkout, tags []TblUserTag) (int, error)
+
+	// UpdateUserWorkout updates the workout and replaces its tags. Does not edit the given struct.
+	UpdateUserWorkout(ctx context.Context, w *TblUserWorkout, tags []TblUserTag) error
+
+	// DeleteUserWorkout deletes a workout by its ID, scoped to the owning user.
+	// Workout logs of it are kept with a null workout ID.
+	DeleteUserWorkout(ctx context.Context, userID int, workoutID int) error
+
+	// LoadUserWorkouts loads all of the user's workouts with their tags, ordered by name.
+	LoadUserWorkouts(ctx context.Context, userID int, out *[]WorkoutWithTags) error
+
+	///
+	/// User Workout Log
+	///
+
+	// AddUserWorkoutLog adds a workout log and its steps in one transaction, and returns the log ID.
+	// For each step with tags, one timespan per segment is created with those tags and linked to the log.
+	// All rows are saved with the log's UserID. Does not edit the given struct.
+	AddUserWorkoutLog(ctx context.Context, log *NewWorkoutLog) (int, error)
+
+	// LoadUserWorkoutLogsN loads the user's n most recent workout logs with their steps.
+	// Steps are in the order they were saved. If n < 0, all logs are loaded.
+	LoadUserWorkoutLogsN(ctx context.Context, userID int, n int, out *[]WorkoutLogWithSteps) error
+
+	// LoadUserWorkoutLog loads one workout log with its steps.
+	// Returns ErrUserDoesNotHaveThisID if the user has no log with that ID.
+	LoadUserWorkoutLog(ctx context.Context, userID int, workoutlogID int, out *WorkoutLogWithSteps) error
+
+	// UpdateUserWorkoutLog updates the log's note and each step's actuals, matched by step ID.
+	// Nothing else is changed, including timespans. Returns ErrUserDoesNotHaveThisID if the
+	// log does not belong to the log's UserID.
+	UpdateUserWorkoutLog(ctx context.Context, log *WorkoutLogWithSteps) error
+
+	// DeleteUserWorkoutLog deletes a workout log, its steps, and the timespans it created.
+	DeleteUserWorkoutLog(ctx context.Context, userID int, workoutlogID int) error
+
+	///
 	/// User Reminder
 	///
 
@@ -588,10 +654,15 @@ func (db *SQLxDB) NamedInsertGetLastRowID(ctx context.Context, query string, arg
 }
 
 func (db *SQLxDB) WithTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	return db.WithTxOpts(ctx, nil, fn)
+}
+
+// WithTxOpts is WithTx with the given transaction options, nil for the defaults.
+func (db *SQLxDB) WithTxOpts(ctx context.Context, opts *sql.TxOptions, fn func(tx *sqlx.Tx) error) error {
 
 	log := zerolog.Ctx(ctx)
 
-	tx, err := db.BeginTxx(ctx, nil)
+	tx, err := db.BeginTxx(ctx, opts)
 
 	if err != nil {
 		return fmt.Errorf("could not begin transaction: %w", err)

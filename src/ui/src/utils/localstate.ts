@@ -13,6 +13,7 @@ import type {
     ActivityWithTag,
     ReminderWithActivities,
 } from '../api/types';
+import type {RunState} from '../pages/workoutpage/run_state';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 const LOCAL_STORAGE_KEY_EVENTS = 'events';
@@ -28,6 +29,7 @@ const LOCAL_STORAGE_KEY_TAG_COLORS = 'tag_colors';
 const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
 const LOCAL_STORAGE_KEY_ACTIVITIES = 'activities';
 const LOCAL_STORAGE_KEY_REMINDERS = 'reminders';
+const LOCAL_STORAGE_KEY_WORKOUT_RUN = 'workout_run';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
 
@@ -89,6 +91,14 @@ export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY
 export const LocalGetActivities = () => load<ActivityWithTag[]>(LOCAL_STORAGE_KEY_ACTIVITIES);
 export const LocalGetReminders = () => load<ReminderWithActivities[]>(LOCAL_STORAGE_KEY_REMINDERS);
 
+export const LocalStoreWorkoutRun = (run: RunState) => store(LOCAL_STORAGE_KEY_WORKOUT_RUN, JSON.stringify(run));
+export const LocalGetWorkoutRun = () => load<RunState>(LOCAL_STORAGE_KEY_WORKOUT_RUN);
+export const LocalClearWorkoutRun = () => {
+    try {
+        localStorage.removeItem(LOCAL_STORAGE_KEY_WORKOUT_RUN);
+    } catch {}
+};
+
 export const LocalClearAll = () => {
     try {
         // clear user specific stuff
@@ -105,6 +115,7 @@ export const LocalClearAll = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY_TAG_COLORS);
         localStorage.removeItem(LOCAL_STORAGE_KEY_ACTIVITIES);
         localStorage.removeItem(LOCAL_STORAGE_KEY_REMINDERS);
+        localStorage.removeItem(LOCAL_STORAGE_KEY_WORKOUT_RUN);
         localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
     } catch {}
 };

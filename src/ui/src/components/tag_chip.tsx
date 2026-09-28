@@ -5,6 +5,7 @@ type Props = {
     tag: TblUserTag;
     onRemove?: () => void;
     color?: string;
+    removeTabIndex?: number;
 };
 
 const luminance = (r: number, g: number, b: number): number => {
@@ -22,7 +23,7 @@ const hexContrastColor = (hex: string): string => {
         : '#ffffff';
 };
 
-export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefined}: Props) => {
+export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefined, removeTabIndex = undefined}: Props) => {
     const showDeleteButton = onRemove !== undefined;
     const spanRef = useRef<HTMLSpanElement>(null);
     const [cssVarTextColor, setCssVarTextColor] = useState<string | undefined>(undefined);
@@ -61,6 +62,7 @@ export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefine
                 <button
                     className="px-2 mr-1 font-bold bg-transparent border-none rounded text-inherit focus:bg-c-surface-container-4 hover:bg-c-surface-container-4"
                     type="button"
+                    tabIndex={removeTabIndex}
                     aria-label={`Remove tag ${tag.namespace}:${tag.name}`}
                     onClick={() => onRemove()}
                 >

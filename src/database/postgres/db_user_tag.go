@@ -125,6 +125,30 @@ func (db *PGDatabase) UpdateUserTag(
 			return err
 		}
 
+		// Same for exercises and workouts.
+		for _, link := range []struct{ table, ownerCol string }{
+			{"PON.USER_EXERCISE_TAG", "EXERCISE_ID"},
+			{"PON.USER_WORKOUT_TAG", "WORKOUT_ID"},
+		} {
+			query = `
+				DELETE FROM ` + link.table + ` t1
+				USING ` + link.table + ` t2
+				WHERE t1.` + link.ownerCol + ` = t2.` + link.ownerCol + `
+				  AND t1.TAG_ID = $1
+				  AND t2.TAG_ID = $2;
+			`
+
+			if _, err := tx.Exec(query, oldTagID, existingTagID); err != nil {
+				return err
+			}
+
+			query = `UPDATE ` + link.table + ` SET TAG_ID = $1 WHERE TAG_ID = $2`
+
+			if _, err := tx.Exec(query, existingTagID, oldTagID); err != nil {
+				return err
+			}
+		}
+
 		query = `DELETE FROM PON.USER_TAG WHERE ID = $1`
 		_, err := tx.Exec(query, oldTagID)
 

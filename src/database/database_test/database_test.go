@@ -49,6 +49,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("datasource_and_similar_search", func(t *testing.T) { testDataSourceAndSimilarSearch(t, newTestDB, &lock) })
 	t.Run("exports_do_not_error", func(t *testing.T) { testExportsDoNotError(t, newTestDB, &lock) })
 	t.Run("with_tx_commits", func(t *testing.T) { testWithTxCommits(t, newTestDB, &lock) })
+	t.Run("with_tx_read", func(t *testing.T) { testWithTxRead(t, newTestDB, &lock) })
 	t.Run("AddUserTag", func(t *testing.T) { testAddUserTag(t, newTestDB, &lock) })
 	t.Run("LoadUserTags", func(t *testing.T) { testLoadUserTags(t, newTestDB, &lock) })
 	t.Run("LoadUserTagNamespaces", func(t *testing.T) { testLoadUserTagNamespaces(t, newTestDB, &lock) })
@@ -142,6 +143,15 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("user_eventlog_photo_mapping", func(t *testing.T) { testUserEventlogPhotoMapping(t, newTestDB, &lock) })
 	t.Run("activity_crud_1", func(t *testing.T) { testActivityCRUD1(t, newTestDB, &lock) })
 	t.Run("UpdateUserActivity", func(t *testing.T) { testUpdateUserActivity(t, newTestDB, &lock) })
+	t.Run("exercise_crud", func(t *testing.T) { testExerciseCRUD(t, newTestDB, &lock) })
+	t.Run("workout_crud", func(t *testing.T) { testWorkoutCRUD(t, newTestDB, &lock) })
+	t.Run("workoutlog_lifecycle", func(t *testing.T) { testWorkoutLogLifecycle(t, newTestDB, &lock) })
+	t.Run(
+		"workoutlog_limit_missing_refs",
+		func(t *testing.T) { testWorkoutLogLimitAndMissingRefs(t, newTestDB, &lock) },
+	)
+	t.Run("workout_user_scoping", func(t *testing.T) { testWorkoutUserScoping(t, newTestDB, &lock) })
+	t.Run("workout_tag_merge_delete", func(t *testing.T) { testWorkoutTagMergeAndDelete(t, newTestDB, &lock) })
 	t.Run("reminder_crud_plain", func(t *testing.T) { testReminderCRUDPlain(t, newTestDB, &lock) })
 	t.Run("reminder_crud_with_activities", func(t *testing.T) { testReminderCRUDWithActivities(t, newTestDB, &lock) })
 	t.Run(

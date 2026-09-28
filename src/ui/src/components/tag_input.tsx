@@ -16,6 +16,8 @@ type TagInputProps = {
     className?: string;
     tagColors?: Map<string, string>;
     id?: string;
+    // Leaves the text box and the chips' remove buttons out of the Tab order.
+    skipTab?: boolean;
 };
 
 export function TagInput({
@@ -29,6 +31,7 @@ export function TagInput({
     className = '',
     tagColors = undefined,
     id = undefined,
+    skipTab = false,
 }: TagInputProps) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState<boolean>(false);
@@ -246,6 +249,7 @@ export function TagInput({
                     tag={tag}
                     onRemove={() => removeTag(i)}
                     color={FmtTagColor(tagColors?.get(tag.namespace))}
+                    removeTabIndex={skipTab ? -1 : undefined}
                 />
             ))}
 
@@ -253,6 +257,7 @@ export function TagInput({
                 <input
                     ref={inputRef}
                     id={id}
+                    tabIndex={skipTab ? -1 : undefined}
                     className="flex-1 w-full min-w-[6ch]"
                     value={input}
                     disabled={disabled}
