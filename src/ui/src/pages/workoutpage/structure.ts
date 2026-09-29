@@ -17,12 +17,24 @@ export type WorkoutSet = {
     steps: WorkoutStep[];
 };
 
+// What the runner plays for this workout.
+export type CueSettings = {
+    beeps: boolean;
+    // Voice: the exercise as each step starts, the next exercise 5 seconds before, and 3, 2, 1.
+    sayStep: boolean;
+    sayNext: boolean;
+    sayCountdown: boolean;
+};
+
+export const DEFAULT_CUES: CueSettings = {beeps: true, sayStep: true, sayNext: true, sayCountdown: true};
+
 export type WorkoutStructure = {
     v: 1;
     sets: WorkoutSet[];
+    cues: CueSettings;
 };
 
-export const EmptyStructure = (): WorkoutStructure => ({v: 1, sets: []});
+export const EmptyStructure = (): WorkoutStructure => ({v: 1, sets: [], cues: {...DEFAULT_CUES}});
 
 export const STEP_KIND_LABELS: Record<StepKind, string> = {
     timed: 'Timed',
@@ -47,7 +59,7 @@ export const ParseStructure = (s: string): WorkoutStructure => {
     try {
         const parsed = JSON.parse(s) as WorkoutStructure;
         if (parsed && Array.isArray(parsed.sets)) {
-            return parsed;
+            return {...parsed, cues: {...DEFAULT_CUES, ...parsed.cues}};
         }
     } catch {
         // fall through

@@ -1,5 +1,5 @@
 import {StepKind, ExerciseWithTags, NewWorkoutLog, TblUserTag, TimeSegment, WorkoutWithTags} from '../../api/types';
-import {ParseStructure, StepTags, WorkoutStep} from './structure';
+import {CueSettings, ParseStructure, StepTags, WorkoutStep} from './structure';
 
 export type RunStep = {
     exercise_id: number;
@@ -41,10 +41,15 @@ export type RunState = {
     // Set when the run is over and the summary is showing.
     finished_at: number | null;
     completed: boolean;
+    cues: CueSettings;
 };
+
+// How long before a timed step ends the next step is announced.
+const NEXT_CUE_MS = 5000;
 
 export type CueEvent =
     | {type: 'start'; step: RunStep}
+    | {type: 'next'; step: RunStep; next: RunStep}
     | {type: 'countdown'; step: RunStep; secondsLeft: 3 | 2 | 1}
     | {type: 'step'; step: RunStep; next: RunStep | null}
     | {type: 'done'};
@@ -53,8 +58,9 @@ export type CueEvent =
 export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now: number): RunState | null => {
     const exMap = new Map(exercises.map((e) => [e.exercise.id, e]));
     const steps: RunStep[] = [];
+    const structure = ParseStructure(w.workout.structure);
 
-    ParseStructure(w.workout.structure).sets.forEach((b, setIdx) => {
+    structure.sets.forEach((b, setIdx) => {
         for (let round = 0; round < b.rounds; round++) {
             b.steps.forEach((st, stepIdx) => {
                 const ex = exMap.get(st.exercise_id);
@@ -96,6 +102,7 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
         progress: steps.map(() => ({segments: [], actual_reps: 0, actual_weight: 0, actual_distance: 0})),
         finished_at: null,
         completed: false,
+        cues: structure.cues,
     };
 };
 
@@ -192,6 +199,10 @@ export const CueEvents = (prev: RunState, next: RunState, prevNow: number, now: 
     const after = StepRemaining(next, now);
     if (before === null || after === null) {
         return [];
+    }
+    const upcoming = next.steps[next.index + 1];
+    if (upcoming && before > NEXT_CUE_MS && after <= NEXT_CUE_MS) {
+        return [{type: 'next', step: next.steps[next.index], next: upcoming}];
     }
     for (const n of [3, 2, 1] as const) {
         if (before > n * 1000 && after <= n * 1000) {

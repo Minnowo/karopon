@@ -1,6 +1,6 @@
 import {ApiNewUserExercise, ApiNewUserWorkout} from '../../api/api';
 import {ExerciseWithTags, WorkoutWithTags} from '../../api/types';
-import {StringifyStructure, WorkoutStructure} from './structure';
+import {DEFAULT_CUES, StringifyStructure, WorkoutStructure} from './structure';
 
 export const REST_EXERCISE: ExerciseWithTags = {
     exercise: {id: 0, user_id: 0, name: 'Rest', note: 'Has no tags, so rest is not recorded as time.'},
@@ -45,6 +45,7 @@ export const AddSampleWorkout = async (
                 ],
             },
         ],
+        cues: {...DEFAULT_CUES},
     };
 
     const workout = await ApiNewUserWorkout({

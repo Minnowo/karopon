@@ -8,6 +8,8 @@ import {ErrorDiv} from '../../components/error_div';
 import {DownArrow, UpArrow} from '../../components/svg';
 import {FormatDuration} from '../../utils/time';
 import {
+    CueSettings,
+    EmptyStructure,
     NewWorkoutSet,
     NewWorkoutStep,
     ParseStructure,
@@ -56,12 +58,19 @@ export const StructureSummary = (s: WorkoutStructure): string => {
     return `${steps} steps, ${FormatDuration(ms)} timed`;
 };
 
+const CUE_OPTIONS: Array<{key: keyof CueSettings; label: string}> = [
+    {key: 'beeps', label: 'Beeps'},
+    {key: 'sayStep', label: 'Say each exercise as it starts'},
+    {key: 'sayNext', label: 'Say the next exercise 5 seconds before'},
+    {key: 'sayCountdown', label: 'Count down 3, 2, 1'},
+];
+
 export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     const [name, setName] = useState<string>(p.initial?.workout.name ?? '');
     const [note, setNote] = useState<string>(p.initial?.workout.note ?? '');
     const [tags, setTags] = useState<TblUserTag[]>(p.initial?.tags ?? []);
     const [structure, setStructure] = useState<WorkoutStructure>(() =>
-        p.initial ? ParseStructure(p.initial.workout.structure) : {v: 1, sets: [NewWorkoutSet()]}
+        p.initial ? ParseStructure(p.initial.workout.structure) : {...EmptyStructure(), sets: [NewWorkoutSet()]}
     );
     const [queries, setQueries] = useState<string[]>([]);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -411,6 +420,23 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                         onInput={(e) => setNote(e.currentTarget.value)}
                     />
                 </label>
+
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">Sounds</span>
+                    {CUE_OPTIONS.map((o) => (
+                        <label key={o.key} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={structure.cues[o.key]}
+                                onChange={(e) => {
+                                    const checked = e.currentTarget.checked;
+                                    setStructure((s) => ({...s, cues: {...s.cues, [o.key]: checked}}));
+                                }}
+                            />
+                            <span>{o.label}</span>
+                        </label>
+                    ))}
+                </div>
 
                 {structure.sets.map(renderSet)}
 

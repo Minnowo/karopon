@@ -3,8 +3,8 @@ import {StepKind, NewWorkoutLog} from '../../api/types';
 import {TagChip} from '../../components/tag_chip';
 import {NumberInput} from '../../components/number_input';
 import {FormatDuration} from '../../utils/time';
-import {TargetText} from './structure';
-import {Cue, useWakeLock} from './cues';
+import {DEFAULT_CUES, TargetText} from './structure';
+import {Cue, StopSpeaking, useWakeLock} from './cues';
 import {
     Actuals,
     Back,
@@ -85,7 +85,12 @@ export function Runner(p: RunnerProps) {
     const [doneInput, setDoneInput] = useState<Actuals | null>(null);
     const last = useRef<{run: RunState; now: number}>({run, now});
 
+    // Runs saved before cue settings existed have none.
+    const cues = {...DEFAULT_CUES, ...run.cues};
+
     useWakeLock(running);
+
+    useEffect(() => StopSpeaking, []);
 
     // Faster than useTimeNow so the countdown and beeps land close to the second.
     useEffect(() => {
@@ -97,7 +102,7 @@ export function Runner(p: RunnerProps) {
     }, [running]);
 
     const apply = (next: RunState, at: number) => {
-        CueEvents(last.current.run, next, last.current.now, at).forEach(Cue);
+        CueEvents(last.current.run, next, last.current.now, at).forEach((e) => Cue(e, cues));
         last.current = {run: next, now: at};
         if (next !== run) {
             p.setRun(next);

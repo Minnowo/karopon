@@ -155,7 +155,8 @@ export function WorkoutPage(state: BaseState) {
             return;
         }
         UnlockAudioContext();
-        Cue({type: 'start', step: s.steps[0]});
+        // Inside the click, since some browsers only allow audio and speech after a user gesture.
+        Cue({type: 'start', step: s.steps[0]}, s.cues);
         setRun(s);
     };
 
