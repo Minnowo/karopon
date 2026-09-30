@@ -76,7 +76,7 @@ export const TimerPanel = ({
     };
 
     return (
-        <div className={`flex flex-row items-start sm:items-center surface-1 p-2`}>
+        <div className="flex flex-row items-start sm:items-center surface-1">
             <div className="flex flex-1 flex-col gap-2">
                 <div className="flex flex-col gap-2 sm:flex-row">
                     <TagInput
@@ -98,9 +98,7 @@ export const TimerPanel = ({
                             <span>{FormatTimerTimestamp(timer.timespan.start_time)}</span>
                             <span className="text-faded mx-2">{'-'}</span>
                             {running ? (
-                                <button className="px-2 py-1 border rounded text-xs" onClick={() => stopTimer(timer)}>
-                                    Stop
-                                </button>
+                                <button onClick={() => stopTimer(timer)}>Stop</button>
                             ) : (
                                 <span>{FormatTimerTimestamp(timer.timespan.stop_time)}</span>
                             )}
@@ -144,9 +142,7 @@ export const TimerPanel = ({
                             onInput={(e) => setNote(e.currentTarget.value)}
                         />
                         <div className="flex gap-2 justify-end">
-                            <button className="btn-error" onClick={() => setShowEdit(false)}>
-                                Cancel
-                            </button>
+                            <button onClick={() => setShowEdit(false)}>Cancel</button>
                             <button className="btn-success" onClick={saveEdit}>
                                 Save
                             </button>
@@ -164,9 +160,7 @@ export const TimerPanel = ({
                 )}
                 {!showEdit && showNote && note !== timer.timespan.note && (
                     <div className="flex gap-2 justify-end">
-                        <button className="btn-error" onClick={() => setNote(timer.timespan.note)}>
-                            Cancel
-                        </button>
+                        <button onClick={() => setNote(timer.timespan.note)}>Cancel</button>
                         <button className="btn-success" onClick={saveNote}>
                             Save
                         </button>

@@ -101,13 +101,12 @@ export function BodyPage(state: BaseState) {
             )}
 
             {state.bodylogs.length === 0 ? (
-                <div className="text-center font-bold py-32">
-                    No entries found!
-                    <br />
-                    Try adding a new body log!
+                <div className="text-center py-32">
+                    <h3>No entries found!</h3>
+                    <small>Try adding a new body log!</small>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4">
                     {state.bodylogs
                         .slice(0, numberToShow)
                         .map((log: UserBodyLog) =>

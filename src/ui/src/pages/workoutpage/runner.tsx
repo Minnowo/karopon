@@ -138,19 +138,19 @@ export function Runner(p: RunnerProps) {
     const paused = run.paused_at !== null;
 
     return (
-        <div className="surface-1 rounded-sm p-4 flex flex-col items-center gap-4 text-center">
-            <div className="w-full flex justify-between text-sm text-c-on-surface-variant">
-                <span>{run.name}</span>
-                <span>
+        <div className="surface-1 flex flex-col items-center gap-4 text-center">
+            <div className="w-full flex justify-between">
+                <small>{run.name}</small>
+                <small>
                     Step {run.index + 1} of {run.steps.length}
-                </span>
+                </small>
             </div>
 
-            <div className="text-sm">
+            <p>
                 {st.set_name || `Set ${st.set + 1}`} - Round {st.round + 1} of {st.rounds}
-            </div>
+            </p>
 
-            <h1 className="mb-0">{st.name}</h1>
+            <h1>{st.name}</h1>
 
             {st.tags.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1">
@@ -161,15 +161,15 @@ export function Runner(p: RunnerProps) {
             )}
 
             {remaining !== null ? (
-                <div className="text-6xl font-bold tabular-nums">{clock(remaining, true)}</div>
+                <div className="text-6xl tabular-nums">{clock(remaining, true)}</div>
             ) : (
                 <>
-                    <div className="text-3xl font-bold">{TargetText(st.kind, st.target)}</div>
+                    <div className="text-3xl">{TargetText(st.kind, st.target)}</div>
                     <div className="text-xl tabular-nums">{clock(StepElapsed(run, now), false)}</div>
                 </>
             )}
 
-            {paused && <div className="font-semibold">Paused</div>}
+            {paused && <strong>Paused</strong>}
 
             {doneInput !== null ? (
                 <div className="flex flex-col items-center gap-2">
@@ -198,7 +198,7 @@ export function Runner(p: RunnerProps) {
                 )
             )}
 
-            <div className="text-sm text-c-on-surface-variant">{next ? `Next: ${stepTitle(next)}` : 'Last step'}</div>
+            <small>{next ? `Next: ${stepTitle(next)}` : 'Last step'}</small>
 
             <div className="flex flex-wrap justify-center gap-2">
                 <button disabled={run.index === 0} onClick={() => act(Back)}>
@@ -209,7 +209,7 @@ export function Runner(p: RunnerProps) {
             </div>
 
             <div className="flex flex-wrap justify-center gap-2">
-                <button className="btn-error" onClick={discard}>
+                <button className="btn-outlined-error" onClick={discard}>
                     Discard
                 </button>
                 <button
@@ -241,10 +241,10 @@ export function Runner(p: RunnerProps) {
                     return (
                         <div
                             key={i}
-                            className={`flex justify-between gap-2 px-2 py-1 rounded ${i === run.index ? 'font-bold bg-c-surface-container-4' : ''}`}
+                            className={`flex justify-between gap-2 px-2 py-1 rounded-sm ${i === run.index ? 'bg-c-surface-container-4' : ''}`}
                         >
-                            <span>{stepTitle(x)}</span>
-                            <span className="text-sm text-c-on-surface-variant">{status}</span>
+                            <span>{i === run.index ? <strong>{stepTitle(x)}</strong> : stepTitle(x)}</span>
+                            <small>{status}</small>
                         </div>
                     );
                 })}
@@ -268,13 +268,13 @@ function RunSummary(p: RunnerProps) {
     };
 
     return (
-        <div className="surface-1 rounded-sm p-4 flex flex-col gap-4">
+        <div className="surface-1 flex flex-col gap-4">
             <div>
-                <h1 className="mb-0">{run.completed ? 'Workout complete' : 'Workout ended early'}</h1>
-                <div className="text-sm text-c-on-surface-variant">
+                <h1>{run.completed ? 'Workout complete' : 'Workout ended early'}</h1>
+                <small>
                     {run.name} - {FormatDuration(activeMs)} - {done} of {shown.length} steps done
                     {run.paused_ms > 0 ? ` - paused ${FormatDuration(run.paused_ms)}` : ''}
-                </div>
+                </small>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -282,12 +282,10 @@ function RunSummary(p: RunnerProps) {
                     const pr = run.progress[i];
                     const skipped = pr.segments.length === 0;
                     return (
-                        <div key={i} className="border-t border-c-outline-variant pt-2 flex flex-col gap-1">
+                        <div key={i} className="flex flex-col gap-1">
                             <div className="flex flex-wrap justify-between gap-2">
-                                <span className="font-semibold">{stepTitle(st)}</span>
-                                <span className="text-sm text-c-on-surface-variant">
-                                    {skipped ? 'skipped' : FormatDuration(ProgressMs(pr))}
-                                </span>
+                                <strong>{stepTitle(st)}</strong>
+                                <small>{skipped ? 'skipped' : FormatDuration(ProgressMs(pr))}</small>
                             </div>
                             {!skipped && st.kind !== 'timed' && (
                                 <ActualInputs kind={st.kind} value={pr} onChange={(a) => setActuals(i, a)} />
@@ -297,19 +295,13 @@ function RunSummary(p: RunnerProps) {
                 })}
             </div>
 
-            <label className="block">
-                <span className="font-semibold">Note</span>
-                <textarea
-                    className="w-full"
-                    rows={2}
-                    value={note}
-                    placeholder="Note (optional)"
-                    onInput={(e) => setNote(e.currentTarget.value)}
-                />
+            <label className="flex flex-col gap-1">
+                Note
+                <textarea rows={2} value={note} placeholder="Note (optional)" onInput={(e) => setNote(e.currentTarget.value)} />
             </label>
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={p.onDiscard}>
+                <button className="btn-outlined-error" onClick={p.onDiscard}>
                     Discard
                 </button>
                 <button className="btn-success" onClick={() => p.onSave(BuildWorkoutLog(run, note))}>

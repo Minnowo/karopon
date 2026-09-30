@@ -74,7 +74,7 @@ export const BodyMetricsPage = (state: BaseState) => {
                         <div key={m.id} className="surface-1 flex items-center gap-2">
                             <span className="flex-1 text-sm">
                                 {m.name}
-                                {m.unit && <span className="text-c-on-surface-variant"> ({m.unit})</span>}
+                                {m.unit && <small> ({m.unit})</small>}
                             </span>
                             <DropdownButton actions={[{label: 'Delete', dangerous: true, onClick: () => deleteMetric(m)}]} />
                         </div>

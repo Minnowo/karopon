@@ -62,7 +62,7 @@ export function DropdownButton({
             </div>
 
             {open && (
-                <div className="absolute border border-c-primary bg-c-surface-container-2 right-0 shadow-lg z-10 mt-1 font-bold text-lg">
+                <div className="absolute right-0 z-10 mt-1 rounded-sm overflow-hidden shadow-lg bg-c-surface-container-3">
                     {actions.map((action, i) => (
                         <button
                             key={i}
@@ -71,7 +71,7 @@ export function DropdownButton({
                                 action.onClick();
                                 setOpen(false);
                             }}
-                            className={`${action.dangerous ? 'text-c-error' : ''} ${action.disabled ? 'opacity-50 cursor-not-allowed' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface-container-2 focus:bg-c-surface-container-4 hover:bg-c-surface-container-4 px-2 py-1`}
+                            className={`${action.dangerous ? 'text-c-error' : ''} ${action.disabled ? 'opacity-50 cursor-not-allowed' : ''} w-full text-left wsnw rounded-none border-none bg-c-surface-container-3 enabled:focus:bg-c-surface-container-5 enabled:hover:bg-c-surface-container-5 px-3 py-2`}
                         >
                             {action.label}
                         </button>

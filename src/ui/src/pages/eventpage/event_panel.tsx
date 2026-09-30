@@ -14,10 +14,10 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
     const [curRow, setCurRow] = useState<number>(-1);
 
     return (
-        <div className="surface-1">
-            <div className="flex flex-wrap justify-between align-middle">
-                <h2 className="mb-0">{`${foodGroup.eventlog.event} `}</h2>
-                <span className="text-sm font-semibold">{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</span>
+        <div className="surface-1 flex flex-col gap-2">
+            <div className="flex flex-wrap justify-between items-center gap-2">
+                <h2>{foodGroup.eventlog.event}</h2>
+                <small>{FormatSmartTimestamp(foodGroup.eventlog.user_time)}</small>
                 <DropdownButton actions={actions} />
             </div>
 
@@ -31,10 +31,10 @@ export const EventPanel = ({user, foodGroup, actions}: EventPanelState) => {
             )}
 
             {foodGroup.foodlogs.length > 0 && (
-                <div className="w-full mt-2 overflow-x-scroll">
+                <div className="w-full overflow-x-scroll">
                     <table className="w-full text-sm border-collapse">
                         <thead>
-                            <tr className="text-xs text-right font-semibold">
+                            <tr className="text-xs text-right">
                                 <th className="text-left py-1"> </th>
                                 <th className="py-1 pr-2" title="Amount">
                                     Amt

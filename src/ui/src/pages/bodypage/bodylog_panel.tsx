@@ -13,8 +13,8 @@ type BodyLogPanelProps = {
 
 const Metric = ({label, value}: {label: string; value: string}) => (
     <div className="flex flex-wrap justify-between py-1 text-sm">
-        <span className="">{label}</span>
-        <span className="font-medium">{value}</span>
+        <span>{label}</span>
+        <span>{value}</span>
     </div>
 );
 
@@ -31,10 +31,10 @@ export function BodyLogPanel({bodyLog, bodyMetrics, onCopy, onEdit, onDelete}: B
     );
 
     return (
-        <div className="w-full surface-1">
-            <div className="flex flex-row flex-wrap w-full justify-between align-middle mb-2">
+        <div className="w-full surface-1 flex flex-col gap-2">
+            <div className="flex flex-row flex-wrap w-full justify-between items-center">
                 <span />
-                <div className="text-center font-semibold">{FormatSmartTimestamp(bodyLog.bodylog.user_time)}</div>
+                <h4 className="text-center">{FormatSmartTimestamp(bodyLog.bodylog.user_time)}</h4>
                 <DropdownButton
                     actions={[
                         {
@@ -52,7 +52,7 @@ export function BodyLogPanel({bodyLog, bodyMetrics, onCopy, onEdit, onDelete}: B
             </div>
 
             {rows.length === 0 ? (
-                <div className="text-sm text-c-on-surface-variant py-2">No metrics recorded</div>
+                <small>No metrics recorded</small>
             ) : (
                 <div className="surface-2 divide-y divide-c-outline-variant">
                     {rows.map((r) => (

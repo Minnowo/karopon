@@ -118,17 +118,16 @@ export function AddReminderPanel({
     };
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <h2 className="mb-4">{title}</h2>
+        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+            <h2>{title}</h2>
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="flex flex-col font-semibold gap-2">
+            <div className="flex flex-col gap-2">
                 <label className="flex flex-col gap-1">
-                    <span>Name</span>
+                    Name
                     <input
                         type="text"
-                        className="w-full font-normal"
                         placeholder="Time to move"
                         value={name}
                         required
@@ -152,29 +151,20 @@ export function AddReminderPanel({
 
                 <div className="surface-2 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                        <h3 className="mb-0">Active windows</h3>
+                        <h3>Active windows</h3>
                         <div className="flex gap-2">
-                            <button className="text-xs px-2 py-1" onClick={setAllDayEveryDay}>
-                                Every day, all day
-                            </button>
-                            <button className="text-xs px-2 py-1" onClick={addWindow}>
-                                Add window
-                            </button>
+                            <button onClick={setAllDayEveryDay}>Every day, all day</button>
+                            <button onClick={addWindow}>Add window</button>
                         </div>
                     </div>
-                    <p className="text-sm font-normal text-c-on-surface-variant">
-                        This reminder can only fire during these day/time windows. At least one is required.
-                    </p>
+                    <small>This reminder can only fire during these day/time windows. At least one is required.</small>
 
                     {windows.length === 0 ? (
-                        <p className="text-sm font-normal">No windows added yet.</p>
+                        <p>No windows added yet.</p>
                     ) : (
                         <div className="flex flex-col gap-2">
                             {windows.map((w) => (
-                                <div
-                                    key={w.key}
-                                    className="flex flex-col sm:flex-row sm:items-center gap-2 font-normal surface-3"
-                                >
+                                <div key={w.key} className="flex flex-col sm:flex-row sm:items-center gap-2 surface-3">
                                     <div className="flex items-center gap-2">
                                         <select
                                             className="flex-1 sm:flex-none"
@@ -189,7 +179,7 @@ export function AddReminderPanel({
                                                 </option>
                                             ))}
                                         </select>
-                                        <button className="btn-error text-xs sm:hidden" onClick={() => removeWindow(w.key)}>
+                                        <button className="btn-outlined-error sm:hidden" onClick={() => removeWindow(w.key)}>
                                             Remove
                                         </button>
                                     </div>
@@ -210,7 +200,7 @@ export function AddReminderPanel({
                                             hour12={hour12}
                                         />
                                         <button
-                                            className="btn-error text-xs hidden sm:inline-block"
+                                            className="btn-outlined-error hidden sm:inline-block"
                                             onClick={() => removeWindow(w.key)}
                                         >
                                             Remove
@@ -222,18 +212,18 @@ export function AddReminderPanel({
                     )}
                 </div>
 
-                <div className="surface-2 flex flex-col gap-1">
-                    <h3 className="mb-0">Break activities (optional)</h3>
-                    <p className="text-sm font-normal text-c-on-surface-variant">
+                <div className="surface-2 flex flex-col gap-2">
+                    <h3>Break activities (optional)</h3>
+                    <small>
                         When this reminder fires, it will suggest activities from this list. Leave empty for a plain reminder with
                         no logging.
-                    </p>
+                    </small>
                     {activities.length === 0 ? (
-                        <p className="text-sm font-normal">No break activities have been created yet.</p>
+                        <p>No break activities have been created yet.</p>
                     ) : (
                         <div className="flex flex-col gap-1">
                             {activities.map(({activity}) => (
-                                <label key={activity.id} className="flex items-center gap-2 font-normal">
+                                <label key={activity.id} className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
                                         checked={activityIDs.includes(activity.id)}
@@ -248,7 +238,7 @@ export function AddReminderPanel({
 
                 <div>
                     <label className="flex flex-col gap-1">
-                        <span>Notification type</span>
+                        Notification type
                         <select value={alarmMode} onChange={(e) => setAlarmMode(e.currentTarget.value as ReminderAlarmMode)}>
                             <option value="reminder">Reminder (normal notification)</option>
                             <option value="alarm">Alarm (rings full-screen, even if the app is closed)</option>
@@ -258,7 +248,7 @@ export function AddReminderPanel({
 
                 <div>
                     <label className="flex flex-col gap-1">
-                        <span>When multiple activities are selected</span>
+                        When multiple activities are selected
                         <select
                             value={activityMode}
                             onChange={(e) => setActivityMode(e.currentTarget.value as ReminderActivityMode)}
@@ -270,7 +260,7 @@ export function AddReminderPanel({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                    <span>Sound</span>
+                    <label>Sound</label>
                     <div className="flex flex-row gap-1">
                         <select value={sound} onChange={(e) => setSound(e.currentTarget.value)}>
                             {SOUND_OPTIONS.map((opt) => (
@@ -284,10 +274,8 @@ export function AddReminderPanel({
                 </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-2">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+            <div className="flex justify-end gap-2">
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onSaveClick}>
                     {submitLabel}
                 </button>

@@ -62,20 +62,18 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
     };
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <div className="w-full mb-4">
+        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+            <div className="w-full">
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer">
                         <h2 className="inline">Create New Food</h2>
-                        <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
+                        <small> (click for help)</small>
                     </summary>
 
-                    <div className="text-sm p-4">
+                    <div className="flex flex-col gap-2 pt-2">
                         <p>Add a food using information from a nutrition label or a built-in data source.</p>
 
-                        <br />
-
-                        <p className="font-semibold">From a food label</p>
+                        <h4>From a food label</h4>
 
                         <ol className="list-decimal list-inside space-y-1">
                             <li>Find the nutrition label on the package.</li>
@@ -87,28 +85,25 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                                     the label.
                                 </div>
                                 <div className="ml-4 mt-1">
-                                    Example: <span className="font-semibold">1 bar (45 g)</span>
+                                    Example: <strong>1 bar (45 g)</strong>
                                 </div>
                                 <ol className="list-disc list-inside space-y-1 ml-4 mt-1">
                                     <li>
                                         Track in grams:
                                         <span className="ml-1">
-                                            Unit <span className="font-semibold">g</span>, Portion{' '}
-                                            <span className="font-semibold">45</span>
+                                            Unit <strong>g</strong>, Portion <strong>45</strong>
                                         </span>
                                     </li>
                                     <li>
                                         Track by kilograms:
                                         <span className="ml-1">
-                                            Unit <span className="font-semibold">kg</span>, Portion{' '}
-                                            <span className="font-semibold">0.045</span>
+                                            Unit <strong>kg</strong>, Portion <strong>0.045</strong>
                                         </span>
                                     </li>
                                     <li>
                                         Track by item:
                                         <span className="ml-1">
-                                            Unit <span className="font-semibold">bars</span>, Portion{' '}
-                                            <span className="font-semibold">1</span>
+                                            Unit <strong>bars</strong>, Portion <strong>1</strong>
                                         </span>
                                     </li>
                                 </ol>
@@ -118,19 +113,17 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
 
                             <li>Create the food.</li>
                         </ol>
-
-                        <br />
-                        <p className="font-semibold">From a built-in data source</p>
+                        <h4>From a built-in data source</h4>
 
                         <ol className="list-decimal list-inside space-y-1">
                             <li>
-                                Expand the <span className="font-semibold">Search data sources for food</span> section below.
+                                Expand the <strong>Search data sources for food</strong> section below.
                             </li>
                             <li>Select the data source you want to search.</li>
                             <li>Search for the food you want to add.</li>
                             <li>Review the search results and select the food you want.</li>
                             <li>
-                                Click <span className="font-semibold">Choose</span> to copy the food’s information.
+                                Click <strong>Choose</strong> to copy the food's information.
                             </li>
                             <li>Make any final adjustments to the food details.</li>
                             <li>Create the food.</li>
@@ -141,7 +134,7 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="flex flex-col font-semibold gap-2">
+            <div className="flex flex-col gap-2">
                 <div className="flex flex-row flex-wrap gap-2">
                     <input
                         ref={foodRef}
@@ -174,7 +167,7 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                 />
             </div>
 
-            <div className="flex flex-wrap flex-col sm:flex-row justify-evenly gap-x-2 gap-y-2 my-2">
+            <div className="flex flex-wrap flex-col sm:flex-row justify-evenly gap-2">
                 <NumberInput
                     className="flex-1 flex-grow"
                     innerClassName="w-full min-w-12"
@@ -226,18 +219,16 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>
 
             <details className="w-full">
-                <summary className="cursor-pointer text-sm font-semibold">Search data sources for food</summary>
+                <summary className="cursor-pointer">Search data sources for food</summary>
 
-                <div class="w-full p-2">
+                <div class="w-full pt-2">
                     {dataSources !== null && dataSources.length > 0 ? (
                         <FoodSearchPanel dataSources={dataSources} doRefresh={doRefresh} onChooseFood={onChooseFood} />
                     ) : (

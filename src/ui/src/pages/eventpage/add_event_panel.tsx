@@ -203,7 +203,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
     const buildTableHead = () => {
         return (
-            <tr className="font-semibold text-xs text-center">
+            <tr className="text-xs text-center">
                 <th className="text-left py-1" />
                 <th className="py-1">Amt</th>
                 <th className="py-1 pr-2">Fat</th>
@@ -228,7 +228,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                         <th className="pr-2 text-right">{totals.carb.toFixed(1)}</th>
                         <th className="pr-2 text-right">{totals.fibre.toFixed(1)}</th>
                         <th className="pr-2 text-right">{totals.protein.toFixed(1)}</th>
-                        <th className="pr-2 text-right font-bold"> {netCarb.toFixed(1)}</th>
+                        <th className="pr-2 text-right"> {netCarb.toFixed(1)}</th>
                         <th className="pr-2 text-right">{calories}</th>
                         <th />
                     </tr>
@@ -238,15 +238,15 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     };
 
     return (
-        <div className="w-full p-2 rounded-sm surface-1">
-            <div className="flex w-full justify-between mb-4">
-                <h2 className="mb-0">{p.dialogTitle}</h2>
-                <span> {FormatSmartTimestamp(eventTime.getTime())}</span>
+        <div className="w-full surface-1 flex flex-col gap-2">
+            <div className="flex w-full justify-between items-center gap-2">
+                <h2>{p.dialogTitle}</h2>
+                <small>{FormatSmartTimestamp(eventTime.getTime())}</small>
                 <span />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex flex-col sm:flex-row w-full mb-4 gap-y-2 sm:gap-x-2">
+            <div className="flex flex-col sm:flex-row w-full gap-2">
                 <FuzzySearch<TblUserEvent>
                     query={event}
                     onQueryChange={setEvent}
@@ -294,14 +294,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 )}
             </div>
 
-            <div className="flex items-center gap-2 mb-2">
-                <button
-                    tabindex={-1}
-                    type="button"
-                    className="text-sm"
-                    disabled={saving}
-                    onClick={() => photoInputRef.current?.click()}
-                >
+            <div className="flex items-center gap-2">
+                <button tabindex={-1} type="button" disabled={saving} onClick={() => photoInputRef.current?.click()}>
                     Add Photo
                 </button>
 
@@ -323,7 +317,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             {photos.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-2">
                     {photos.map((photo, i) => (
                         <div key={i} className="relative w-20 h-20 shrink-0">
                             <img src={photo.url} alt="Food photo" className="w-20 h-20 object-cover rounded" />
@@ -345,7 +339,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </div>
             )}
 
-            <div className="overflow-x-scroll surface-2 px-0 py-1 mb-2">
+            <div className="overflow-x-scroll surface-2 px-0 py-1">
                 <table className="w-full text-sm border-collapse table-borderless">
                     <tbody>
                         {buildTableHead()}
@@ -375,7 +369,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     </tbody>
                 </table>
             </div>
-            <div className="surface-2 flex flex-none justify-center items-center text-center gap-4 mb-2">
+            <div className="surface-2 flex flex-none justify-center items-center text-center gap-4">
                 {p.user.show_diabetes && (
                     <>
                         {/* This is for type 1 diabetes where you need to prick your finger / inject insulin. It helps you swap sides / finger consistently so you're not always injecting / pricking the same spot everyday. */}
@@ -390,7 +384,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             </div>
 
             {p.user.show_diabetes && (
-                <div className="w-full flex gap-2 flex-wrap flex-col sm:flex-row mb-2">
+                <div className="w-full flex gap-2 flex-wrap flex-col sm:flex-row">
                     <NumberInput
                         className="flex-1 flex-grow"
                         innerClassName="w-full min-w-12"
@@ -410,9 +404,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 </div>
             )}
             <div className="flex justify-between sm:justify-end gap-2">
-                <button className="btn-error" onClick={p.onCancel}>
-                    Cancel
-                </button>
+                <button onClick={p.onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onCreateClick} disabled={saving}>
                     {saving ? 'Saving...' : p.saveButtonTitle}
                 </button>

@@ -38,16 +38,16 @@ function SessionRow({
     };
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 flex flex-col gap-1 ${session.is_current ? 'border-c-success' : ''}`}>
+        <div className={`surface-1 flex flex-col gap-2 ${session.is_current ? 'surface-border border-c-success' : ''}`}>
             <div className="flex items-start justify-between gap-2">
-                <span className="break-all text-sm font-semibold">{label}</span>
-                {session.is_current && <span className="text-c-success font-bold text-xs wsnw">current</span>}
+                <h4 className="break-all">{label}</h4>
+                {session.is_current && <small className="text-c-success wsnw">current</small>}
             </div>
 
             {editing ? (
-                <div className="flex flex-col gap-2 mt-1">
+                <div className="flex flex-col gap-2">
                     <input
-                        className="border px-2 py-1 text-sm w-full"
+                        className="w-full"
                         value={editName}
                         aria-label="Session name"
                         onInput={(e) => setEditName((e.target as HTMLInputElement).value)}
@@ -62,19 +62,17 @@ function SessionRow({
                         autoFocus
                     />
                     <div className="flex justify-end gap-2">
-                        <button className="btn-error text-sm max-w-32" onClick={cancelEdit}>
-                            Cancel
-                        </button>
-                        <button className="btn-success text-sm max-w-32" onClick={saveEdit}>
+                        <button onClick={cancelEdit}>Cancel</button>
+                        <button className="btn-success" onClick={saveEdit}>
                             Save
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-wrap justify-between items-end gap-2 text-xs">
-                    <div>
-                        <div>Created: {FormatSmartTimestamp(session.created)}</div>
-                        <div>Expires: {FormatSmartTimestamp(session.expires)}</div>
+                <div className="flex flex-wrap justify-between items-end gap-2">
+                    <div className="flex flex-col">
+                        <small>Created: {FormatSmartTimestamp(session.created)}</small>
+                        <small>Expires: {FormatSmartTimestamp(session.expires)}</small>
                     </div>
                     <DropdownButton
                         actions={[
@@ -121,8 +119,8 @@ export function SessionsPage(state: BaseState) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="w-full space-y-4">
+        <div className="flex flex-col items-center justify-center gap-4">
+            <div className="w-full flex flex-col gap-4">
                 <h1>Active Sessions</h1>
 
                 <ErrorDiv errorMsg={errorMsg} />

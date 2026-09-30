@@ -121,12 +121,11 @@ export const FoodPage = (state: BaseState) => {
                 <input onInput={searchChange} className="w-full" type="text" placeholder="search" aria-label="Search foods" />
             </div>
 
-            <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex flex-col items-center justify-center gap-4">
                 {state.foods.length === 0 ? (
-                    <div className="text-center font-bold py-32">
-                        The list is empty.
-                        <br />
-                        Try giving it some food!
+                    <div className="text-center py-32">
+                        <h3>The list is empty.</h3>
+                        <small>Try giving it some food!</small>
                     </div>
                 ) : (
                     state.foods

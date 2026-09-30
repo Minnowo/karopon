@@ -317,7 +317,7 @@ export const App = () => {
                 ) : (
                     <div className="flex flex-col justify-center items-center py-4 mb-4">
                         <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
-                        <span className="font-bold">Your session has expired, please login again.</span>
+                        <strong>Your session has expired, please login again.</strong>
                     </div>
                 )}
             </>

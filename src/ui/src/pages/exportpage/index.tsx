@@ -5,10 +5,10 @@ import {TblUserFood} from '../../api/types';
 
 export function DataExportPage(state: BaseState) {
     return (
-        <div className="flex flex-col space-y-4">
-            <section className="space-y-4">
-                <h1 className="text-c-red">Event Export</h1>
-                <div className="flex space-x-4">
+        <div className="flex flex-col gap-4">
+            <section className="flex flex-col gap-2">
+                <h2>Event Export</h2>
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => {
                             const blob = new Blob([GenerateEventTableText(state.user, state.eventlogs)], {
@@ -31,9 +31,9 @@ export function DataExportPage(state: BaseState) {
                 </div>
             </section>
 
-            <section className="space-y-4">
-                <h1 className="text-c-red">Food Export</h1>
-                <div className="flex space-x-4">
+            <section className="flex flex-col gap-2">
+                <h2>Food Export</h2>
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => {
                             const headers = Object.keys(state.foods[0]) as Array<keyof TblUserFood>;

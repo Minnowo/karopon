@@ -47,23 +47,23 @@ export function WorkoutLogPanel({log, hour12, updateLog, deleteLog}: WorkoutLogP
             <details className="flex-1" open={draft !== null ? true : undefined}>
                 <summary className="cursor-pointer">
                     <h2 className="inline">{workoutlog.name}</h2>
-                    <div className="text-sm text-c-on-surface-variant">
+                    <small className="block">
                         {new Date(workoutlog.start_time).toLocaleString(undefined, {hour12})} - {FormatDuration(activeMs)} -{' '}
                         {workoutlog.completed ? 'completed' : 'ended early'}
-                    </div>
+                    </small>
                 </summary>
 
-                <div className="flex flex-col gap-2 p-2">
+                <div className="flex flex-col gap-2 pt-2">
                     {shown.steps.map((s, i) => (
-                        <div key={s.id} className="border-t border-c-outline-variant pt-2 flex flex-col gap-1">
+                        <div key={s.id} className="flex flex-col gap-1">
                             <div className="flex flex-wrap justify-between gap-2">
                                 <span>
-                                    <span className="font-semibold">{s.name}</span> - {targetOf(s)}
+                                    <strong>{s.name}</strong> - {targetOf(s)}
                                 </span>
-                                <span className="text-sm text-c-on-surface-variant">
+                                <small>
                                     {s.actual_seconds === 0 ? 'skipped' : FormatDuration(s.actual_seconds * 1000)}
                                     {draft === null && actualOf(s) && s.actual_seconds > 0 ? ` - did ${actualOf(s)}` : ''}
-                                </span>
+                                </small>
                             </div>
                             {draft !== null && s.actual_seconds > 0 && s.kind !== 'timed' && (
                                 <ActualInputs kind={s.kind} value={s} onChange={(a) => setActuals(i, a)} />
@@ -73,10 +73,9 @@ export function WorkoutLogPanel({log, hour12, updateLog, deleteLog}: WorkoutLogP
 
                     {draft !== null ? (
                         <>
-                            <label className="block">
-                                <span className="font-semibold">Note</span>
+                            <label className="flex flex-col gap-1">
+                                Note
                                 <textarea
-                                    className="w-full"
                                     rows={2}
                                     value={draft.workoutlog.note}
                                     onInput={(e) => {
@@ -86,9 +85,7 @@ export function WorkoutLogPanel({log, hour12, updateLog, deleteLog}: WorkoutLogP
                                 />
                             </label>
                             <div className="flex justify-end gap-2">
-                                <button className="btn-error" onClick={() => setDraft(null)}>
-                                    Cancel
-                                </button>
+                                <button onClick={() => setDraft(null)}>Cancel</button>
                                 <button
                                     className="btn-success"
                                     onClick={() => {
@@ -101,7 +98,7 @@ export function WorkoutLogPanel({log, hour12, updateLog, deleteLog}: WorkoutLogP
                             </div>
                         </>
                     ) : (
-                        workoutlog.note && <p className="text-sm">{workoutlog.note}</p>
+                        workoutlog.note && <p>{workoutlog.note}</p>
                     )}
                 </div>
             </details>

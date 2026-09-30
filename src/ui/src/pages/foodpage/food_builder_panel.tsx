@@ -97,20 +97,18 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
     };
 
     return (
-        <div className={`surface-1 ${p.className}`}>
-            <div className="mb-4">
+        <div className={`surface-1 flex flex-col gap-4 ${p.className}`}>
+            <div>
                 <details className="w-full no-summary-arrow">
                     <summary className="cursor-pointer">
                         <h2 className="inline">Food Builder</h2>
-                        <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
+                        <small> (click for help)</small>
                     </summary>
 
-                    <div className="text-sm p-4">
+                    <div className="flex flex-col gap-2 pt-2">
                         <p>Combine existing foods to create a new food. Best for home cooking and recipes.</p>
 
-                        <br />
-
-                        <p className="font-semibold">Example: home cooking</p>
+                        <h4>Example: home cooking</h4>
 
                         <ol className="list-decimal list-inside space-y-1">
                             <li>Add each ingredient as its own food.</li>
@@ -118,16 +116,13 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                             <li>Cook the food.</li>
                             <li>
                                 Weigh the final result
-                                <span className="font-semibold"> (important!)</span> - this should be the total cooked weight of
-                                everything.
+                                <strong> (important!)</strong> - this should be the total cooked weight of everything.
                             </li>
                             <li>Give the food a name, then enter the final weight and unit of measure.</li>
                             <li>Build the food.</li>
                         </ol>
 
-                        <br />
-
-                        <p className="font-semibold">Example: baking 3-ingredient cookies</p>
+                        <h4>Example: baking 3-ingredient cookies</h4>
 
                         <ol className="list-decimal list-inside space-y-1">
                             <li>
@@ -139,7 +134,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                                 </ul>
                             </li>
                             <li>
-                                Enter the portions for each ingredient in the table (e.g., 1 cup peanut butter, ½ cup sugar, 1
+                                Enter the portions for each ingredient in the table (e.g., 1 cup peanut butter, 1/2 cup sugar, 1
                                 egg).
                             </li>
                             <li>Mix and bake your cookies.</li>
@@ -156,10 +151,10 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="overflow-x-scroll surface-2 px-0 py-1 mt-4 mb-2">
+            <div className="overflow-x-scroll surface-2 px-0 py-1">
                 <table className="w-full text-sm border-collapse table-borderless">
                     <thead>
-                        <tr className="font-semibold text-xs text-center">
+                        <tr className="text-xs text-center">
                             <th className="text-left py-1">
                                 <button
                                     className="w-full sm:w-32"
@@ -206,7 +201,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                 </table>
             </div>
 
-            <div className="surface-2 px-0 py-1 mb-2">
+            <div className="surface-2 px-0 py-1">
                 <table className="w-full text-center border-collapse table-borderless">
                     <thead>
                         <tr>
@@ -227,7 +222,7 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
                 </table>
             </div>
 
-            <div className="flex flex-col mt-4 mb-2 gap-2">
+            <div className="flex flex-col gap-2">
                 <div className="flex flex-row flex-wrap gap-2">
                     <input
                         className="flex-auto"
@@ -260,12 +255,9 @@ export const FoodBuilderPanel = (p: FoodBuilderPanelProps) => {
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={p.onCancel}>
-                    {' '}
-                    Cancel
-                </button>
+                <button onClick={p.onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onCreateClick}>
-                    Build Food{' '}
+                    Build Food
                 </button>
             </div>
         </div>

@@ -22,7 +22,7 @@ export function AddEditDashboardPanel({
 
     return (
         <div className={`flex flex-col gap-2 surface-1 ${className}`}>
-            <h2 className="mb-0">{titleLabel}</h2>
+            <h2>{titleLabel}</h2>
             <input
                 type="text"
                 className="w-full px-2 py-1"
@@ -34,7 +34,7 @@ export function AddEditDashboardPanel({
             />
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={onCancel} disabled={saving}>
+                <button onClick={onCancel} disabled={saving}>
                     Cancel
                 </button>
                 <button className="btn-success" onClick={() => onConfirm(name)} disabled={saving}>

@@ -87,7 +87,7 @@ export function GoalsPage(state: BaseState) {
 
             <div className="grid gap-4">
                 {state.goals.length === 0 ? (
-                    <div className="text-center font-bold py-32">No goals found.</div>
+                    <h3 className="text-center py-32">No goals found.</h3>
                 ) : (
                     state.goals
                         .slice(0, numberToShow)

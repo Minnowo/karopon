@@ -179,7 +179,7 @@ export function TimespansPage(state: BaseState) {
                 />
 
                 {state.timespans.length === 0 ? (
-                    <div className="text-center font-bold py-32">No timespans found.</div>
+                    <h3 className="text-center py-32">No timespans found.</h3>
                 ) : (
                     state.timespans
                         .filter((ts) => ts.timespan.stop_time !== 0)

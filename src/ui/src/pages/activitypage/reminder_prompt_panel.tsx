@@ -236,9 +236,7 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
                                 <div className="flex items-center gap-2">
                                     <ActivityTotalDuration completedMs={completedMs} runningStartTime={runningStartTime} />
                                     {isRunning ? (
-                                        <button className="btn-error" onClick={() => stopActivity(activityWithTag)}>
-                                            Stop
-                                        </button>
+                                        <button onClick={() => stopActivity(activityWithTag)}>Stop</button>
                                     ) : (
                                         <button className="btn-success" onClick={() => startActivity(activityWithTag)}>
                                             Start
@@ -253,12 +251,8 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
 
             <div className="flex justify-between flex-wrap">
                 <div className="flex justify-end gap-2 flex-wrap">
-                    <button className="btn-error" onClick={dismiss}>
-                        Skip
-                    </button>
-                    <button className="btn-error" onClick={snooze}>
-                        Snooze {SNOOZE_MINUTES}m
-                    </button>
+                    <button onClick={dismiss}>Skip</button>
+                    <button onClick={snooze}>Snooze {SNOOZE_MINUTES}m</button>
                 </div>
                 <button className="btn-success" onClick={dismiss}>
                     Done

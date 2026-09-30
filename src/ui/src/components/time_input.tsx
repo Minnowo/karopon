@@ -169,7 +169,7 @@ const TimeInputDialog = ({value, onSave, onClose, showDate, showSeconds, hour12}
                 </div>
 
                 <div className="flex flex-row gap-2 my-2">
-                    <button className="w-full mt-4 btn-error" onClick={onClose}>
+                    <button className="w-full mt-4" onClick={onClose}>
                         Cancel
                     </button>
                     <button className="w-full mt-4 btn-success" onClick={doSave}>

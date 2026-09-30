@@ -63,12 +63,12 @@ export function AddActivityPanel({
     };
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <h2 className="mb-4">{title}</h2>
+        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+            <h2>{title}</h2>
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="flex flex-col font-semibold gap-2">
+            <div className="flex flex-col gap-2">
                 <input
                     className="w-full"
                     type="text"
@@ -78,8 +78,8 @@ export function AddActivityPanel({
                     aria-label="Activity Name"
                 />
 
-                <div>
-                    <span className="font-semibold">Tag</span>
+                <div className="flex flex-col gap-1">
+                    <label>Tag</label>
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
@@ -99,10 +99,9 @@ export function AddActivityPanel({
                     onValueChange={setDuration}
                 />
 
-                <label className="block">
-                    <span className="font-semibold">Note</span>
+                <label className="flex flex-col gap-1">
+                    Note
                     <textarea
-                        className="w-full"
                         rows={2}
                         value={note}
                         placeholder="Note (optional)"
@@ -111,10 +110,8 @@ export function AddActivityPanel({
                 </label>
             </div>
 
-            <div className="flex justify-end gap-2 mt-2">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+            <div className="flex justify-end gap-2">
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onSaveClick}>
                     {submitLabel}
                 </button>

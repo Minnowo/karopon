@@ -68,20 +68,16 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer">
                     <h2 className="inline">Tag Colors</h2>
-                    <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
+                    <small> (click for help)</small>
                 </summary>
 
-                <div className="text-sm p-4">
-                    <p className="text-sm">
+                <div className="flex flex-col gap-2 pt-2">
+                    <p>
                         Assign a color to each namespace. Accepts hex (<code>#rgb</code>, <code>#rrggbb</code>) or CSS variables
                         name (<code>--xyz</code>). Leave empty to remove a color.
                     </p>
 
-                    <br />
-
-                    <p className="text-sm">Below are the variable name available, the colors change with the color theme.</p>
-
-                    <br />
+                    <p>Below are the variable name available, the colors change with the color theme.</p>
 
                     <ul class="space-y-2">
                         <li class="flex items-center gap-3">
@@ -158,9 +154,7 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
                 />
             ))}
             <div className="flex gap-2 justify-end">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" disabled={hasInvalid} onClick={handleSave}>
                     Save
                 </button>

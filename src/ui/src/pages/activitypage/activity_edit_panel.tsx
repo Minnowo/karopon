@@ -50,14 +50,14 @@ export function ActivityEditPanel({
 
     return (
         <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                    <h2 className="mb-0">{activity.name}</h2>
+                    <h2>{activity.name}</h2>
                     <TagChip tag={tag} color={tagColors?.get(tag.namespace)} />
                 </div>
-                <div className="text-sm text-c-on-surface-variant">
+                <small>
                     {activity.duration} min{activity.note ? ` - ${activity.note}` : ''}
-                </div>
+                </small>
             </div>
             <DropdownButton
                 actions={[

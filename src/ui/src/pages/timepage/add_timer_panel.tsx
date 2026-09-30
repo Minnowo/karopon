@@ -59,29 +59,27 @@ export const AddTimerPanel = ({
     };
 
     return (
-        <div className={`flex flex-col gap-1 surface-1 ${className}`}>
+        <div className={`flex flex-col gap-4 surface-1 ${className}`}>
             <details className="w-full no-summary-arrow">
                 <summary className="cursor-pointer">
                     <h2 className="inline">Create New Timer</h2>
-                    <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
+                    <small> (click for help)</small>
                 </summary>
 
-                <div className="text-sm p-4">
+                <div className="flex flex-col gap-2 pt-2">
                     <p>
                         Create a new timer with tags and an optional note. The timer will be started once you hit create, and it
                         will continue until you choose to stop it.
                     </p>
 
-                    <br />
-
-                    <p className="font-semibold">Adding tags</p>
+                    <h4>Adding tags</h4>
                     <p>
                         Tags consist of three parts, a namespace, separator, and a value. Using multiple tags, you can describe
                         what the timer is tracking.
-                        <br />
-                        <br />
+                    </p>
+                    <p>
                         For example, adding the tags:
-                        <span className="w-full flex flex-row flex-wrap gap-3 my-2">
+                        <span className="w-full flex flex-row flex-wrap gap-2 my-2">
                             {[
                                 {namespace: 'project', name: 'karopon'},
                                 {namespace: 'work', name: 'development'},
@@ -94,9 +92,7 @@ export const AddTimerPanel = ({
                         fixed.
                     </p>
 
-                    <br />
-
-                    <p className="font-semibold">Adding a note</p>
+                    <h4>Adding a note</h4>
                     <p>
                         A note is any other text you want to include on a timer, that doesn't fit well using tags. It could be a
                         summary of a conversation, a detailed description of what work was done, etc...
@@ -105,10 +101,9 @@ export const AddTimerPanel = ({
             </details>
 
             {showTimeEditing && (
-                <label className="block">
-                    <span className="font-semibold">Start Time</span>
+                <label className="flex flex-col gap-1">
+                    Start Time
                     <input
-                        class="w-full my-1 sm:mx-1"
                         type="datetime-local"
                         name="Event Date"
                         onChange={(e: ChangeEvent<HTMLInputElement>) => e.target && setStartTime(new Date(e.currentTarget.value))}
@@ -117,10 +112,9 @@ export const AddTimerPanel = ({
                 </label>
             )}
             {showTimeEditing && (
-                <label className="block">
-                    <span className="font-semibold">Stop Time</span>
+                <label className="flex flex-col gap-1">
+                    Stop Time
                     <input
-                        class="w-full my-1 sm:mx-1"
                         type="datetime-local"
                         name="Event Date"
                         onChange={(e: ChangeEvent<HTMLInputElement>) => e.target && setStopTime(new Date(e.currentTarget.value))}
@@ -129,10 +123,8 @@ export const AddTimerPanel = ({
                 </label>
             )}
 
-            <div>
-                <label className="font-semibold" htmlFor={tagsId}>
-                    Tags
-                </label>
+            <div className="flex flex-col gap-1">
+                <label htmlFor={tagsId}>Tags</label>
                 <TagInput
                     id={tagsId}
                     namespaces={namespaces}
@@ -143,21 +135,13 @@ export const AddTimerPanel = ({
                 />
             </div>
 
-            <label className="block">
-                <span className="font-semibold">Note</span>
-                <textarea
-                    className="w-full"
-                    rows={4}
-                    value={note ?? ''}
-                    placeholder={'Note'}
-                    onInput={(e) => setNote(e.currentTarget.value)}
-                />
+            <label className="flex flex-col gap-1">
+                Note
+                <textarea rows={4} value={note ?? ''} placeholder={'Note'} onInput={(e) => setNote(e.currentTarget.value)} />
             </label>
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={doCreate}>
                     {saveButtonTitle}
                 </button>

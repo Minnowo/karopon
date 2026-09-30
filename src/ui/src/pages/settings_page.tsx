@@ -68,10 +68,10 @@ export function SettingsPage(state: BaseState) {
     }
 
     return (
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col gap-4">
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    className={`w-48 ${isEditing && 'btn-error'}`}
+                    className="w-48"
                     onClick={() => {
                         setIsEditing((x) => !x);
                     }}
@@ -82,10 +82,8 @@ export function SettingsPage(state: BaseState) {
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div>
-                <label className="font-semibold" htmlFor={usernameId}>
-                    Username:
-                </label>
+            <div className="flex flex-col gap-1">
+                <label htmlFor={usernameId}>Username</label>
                 <input
                     id={usernameId}
                     className="w-full"
@@ -98,10 +96,8 @@ export function SettingsPage(state: BaseState) {
 
             {isEditing && (
                 <>
-                    <div>
-                        <label className="font-semibold" htmlFor={newPasswordId}>
-                            Change Password:
-                        </label>
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor={newPasswordId}>Change Password</label>
                         <input
                             id={newPasswordId}
                             className="w-full"
@@ -111,10 +107,8 @@ export function SettingsPage(state: BaseState) {
                             onInput={(e) => setNewPassword((e.target as HTMLInputElement).value)}
                         />
                     </div>
-                    <div>
-                        <label className="font-semibold" htmlFor={confirmPasswordId}>
-                            Confirm Password:
-                        </label>
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor={confirmPasswordId}>Confirm Password</label>
                         <input
                             id={confirmPasswordId}
                             className="w-full"
@@ -200,7 +194,7 @@ export function SettingsPage(state: BaseState) {
                     checked={userRef.current.show_diabetes}
                     onChange={(e) => update('show_diabetes', e.currentTarget.checked)}
                 />
-                <span className="text-lg font-medium">Show Diabetes Features</span>
+                <span>Show Diabetes Features</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -212,7 +206,7 @@ export function SettingsPage(state: BaseState) {
                         update('time_format', e.currentTarget.checked ? UserTimeFormat.Hour24 : UserTimeFormat.Hour12)
                     }
                 />
-                <span className="text-lg font-medium">Use 24 Hour Time</span>
+                <span>Use 24 Hour Time</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -222,13 +216,11 @@ export function SettingsPage(state: BaseState) {
                     checked={userRef.current.fill_eventlog_from_last}
                     onChange={(e) => update('fill_eventlog_from_last', e.currentTarget.checked)}
                 />
-                <span className="text-lg font-medium">Fill Events From Last Instance</span>
+                <span>Fill Events From Last Instance</span>
             </label>
 
-            <div>
-                <label className="font-semibold" htmlFor={themeId}>
-                    Color Theme
-                </label>
+            <div className="flex flex-col gap-1">
+                <label htmlFor={themeId}>Color Theme</label>
                 <select
                     id={themeId}
                     className="w-full"
@@ -244,10 +236,8 @@ export function SettingsPage(state: BaseState) {
                 </select>
             </div>
 
-            <div>
-                <label className="font-semibold" htmlFor={calorieMethodId}>
-                    Caloric Calculation Method
-                </label>
+            <div className="flex flex-col gap-1">
+                <label htmlFor={calorieMethodId}>Caloric Calculation Method</label>
                 <select
                     id={calorieMethodId}
                     className="w-full"
@@ -264,12 +254,7 @@ export function SettingsPage(state: BaseState) {
             </div>
 
             {isEditing && (
-                <input
-                    className="w-full my-1 sm:ml-auto sm:max-w-32 btn-success"
-                    type="submit"
-                    value="Save Settings"
-                    onClick={save}
-                />
+                <input className="w-full sm:ml-auto sm:max-w-32 btn-success" type="submit" value="Save Settings" onClick={save} />
             )}
         </div>
     );

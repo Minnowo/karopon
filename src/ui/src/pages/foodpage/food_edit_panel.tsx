@@ -69,14 +69,14 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
     };
 
     return (
-        <div className="w-full surface-1">
+        <div className="w-full surface-1 flex flex-col gap-2">
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex justify-between font-semibold">
+            <div className="flex justify-between gap-2">
                 {showUpdatePanel ? (
                     <>
-                        <div class="w-full px-1">
+                        <div class="w-full flex flex-col gap-2">
                             <input
-                                class="mb-2 wsnw w-full"
+                                class="wsnw w-full"
                                 type="text"
                                 onInput={(e) => (tmpFood.current.name = e.currentTarget.value)}
                                 value={tmpFood.current.name}
@@ -84,7 +84,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                                 aria-label="Food Name"
                             />
                             <input
-                                class="mb-2 wsnw w-full"
+                                class="wsnw w-full"
                                 type="text"
                                 onInput={(e) => (tmpFood.current.unit = e.currentTarget.value)}
                                 value={tmpFood.current.unit}
@@ -103,8 +103,8 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                             />
                         </div>
 
-                        <div class="text-right pl-1">
-                            <button class="w-full mb-2 btn-error" onClick={onCancelClick}>
+                        <div class="flex flex-col gap-2">
+                            <button class="w-full" onClick={onCancelClick}>
                                 Cancel
                             </button>
                             <button class="w-full btn-success" onClick={onSaveClick}>
@@ -113,7 +113,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         </div>
                     </>
                 ) : (
-                    <div className="w-full flex flex-col">
+                    <div className="w-full flex flex-col gap-2">
                         <div className="w-full flex flex-row">
                             <h2 className="w-full">{food.name}</h2>
                             <DropdownButton
@@ -150,7 +150,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                                 ]}
                             />
                         </div>
-                        <div className="w-full flex flex-row items-center justify-between mb-2">
+                        <div className="w-full flex flex-row items-center justify-between">
                             <NumberInput
                                 innerClassName="w-24"
                                 label={food.unit}
@@ -173,9 +173,9 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
             </div>
 
             {showUpdatePanel ? (
-                <div className="flex flex-wrap">
+                <div className="flex flex-wrap gap-2">
                     <NumberInput
-                        className={'mx-1 mt-2 wsnw'}
+                        className={'wsnw'}
                         innerClassName="w-16"
                         label={'Fat'}
                         value={tmpFood.current.fat}
@@ -186,7 +186,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 wsnw'}
+                        className={'wsnw'}
                         innerClassName="w-16"
                         label={'Carb'}
                         value={tmpFood.current.carb}
@@ -197,7 +197,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 wsnw'}
+                        className={'wsnw'}
                         innerClassName="w-16"
                         label={'Fibre'}
                         value={tmpFood.current.fibre}
@@ -208,7 +208,7 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         }}
                     />
                     <NumberInput
-                        className={'mx-1 mt-2 wsnw'}
+                        className={'wsnw'}
                         innerClassName="w-16"
                         label={'Protein'}
                         value={tmpFood.current.protein}
@@ -242,14 +242,14 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                         </div>
 
                         <div class="hidden sm:flex flex-col gap-1 w-full">
-                            <div class="flex text-xs font-semibold w-full">
-                                <div class="flex-1">Fat</div>
-                                <div class="flex-1">Carbs</div>
-                                <div class="flex-1">Fibre</div>
-                                <div class="flex-1">Protein</div>
+                            <div class="flex w-full">
+                                <small class="flex-1">Fat</small>
+                                <small class="flex-1">Carbs</small>
+                                <small class="flex-1">Fibre</small>
+                                <small class="flex-1">Protein</small>
                             </div>
 
-                            <div class="flex text-sm font-medium w-full">
+                            <div class="flex w-full">
                                 <div class="flex-1">{(food.fat * portion).toFixed(3)}</div>
                                 <div class="flex-1">{(food.carb * portion).toFixed(3)}</div>
                                 <div class="flex-1">{(food.fibre * portion).toFixed(3)}</div>

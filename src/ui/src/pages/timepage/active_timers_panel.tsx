@@ -35,7 +35,7 @@ export const ActiveTimerPanel = ({
 
     return (
         <div className="grid gap-2">
-            <h1 className="mb-0"> Active Timers </h1>
+            <h1>Active Timers</h1>
             {timers.map((ts: TaggedTimespan) => (
                 <TimerPanel
                     key={ts.timespan.id}

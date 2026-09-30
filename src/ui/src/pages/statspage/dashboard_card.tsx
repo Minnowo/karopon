@@ -516,7 +516,7 @@ export function DashboardCardComponent({
     return (
         <div ref={thisRef} className="surface-1 flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
-                <h2 className="mb-0 wsnw overflow-hidden text-ellipsis">{draft?.title ?? card.title}</h2>
+                <h2 className="wsnw overflow-hidden text-ellipsis">{draft?.title ?? card.title}</h2>
                 {!editing && (
                     <DropdownButton
                         actions={[

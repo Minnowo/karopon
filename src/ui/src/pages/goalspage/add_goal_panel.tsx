@@ -83,15 +83,13 @@ export function GoalCreationPanel({
     };
 
     return (
-        <div className={`surface-1 ${className}`}>
-            <div className="flex justify-between mb-4">
-                <h2 className="mb-0">{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
-            </div>
+        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+            <h2>{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
             <ErrorDiv errorMsg={error} />
 
             <div className="flex flex-col gap-2">
                 <input
-                    className="px-2 py-1 mt-1 w-full"
+                    className="w-full"
                     value={goal.name}
                     placeholder="Your goal name"
                     title="Enter the name of your goal here"
@@ -101,13 +99,14 @@ export function GoalCreationPanel({
                 />
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1" title="Time Range is the interval for the goal to start, finish, and repeat.">
-                        <label className="block font-semibold" htmlFor={timeRangeId}>
-                            Time Range
-                        </label>
+                    <div
+                        className="flex-1 flex flex-col gap-1"
+                        title="Time Range is the interval for the goal to start, finish, and repeat."
+                    >
+                        <label htmlFor={timeRangeId}>Time Range</label>
                         <select
                             id={timeRangeId}
-                            className="border rounded px-2 py-1 w-full"
+                            className="w-full"
                             value={goal.time_expr}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                                 goal.time_expr = e.currentTarget.value as GoalTimeExpr;
@@ -122,13 +121,14 @@ export function GoalCreationPanel({
                         </select>
                     </div>
 
-                    <div className="flex-1" title="Aggregation is how your current progress should be counted and grouped.">
-                        <label className="block font-semibold" htmlFor={aggregationId}>
-                            Aggregation
-                        </label>
+                    <div
+                        className="flex-1 flex flex-col gap-1"
+                        title="Aggregation is how your current progress should be counted and grouped."
+                    >
+                        <label htmlFor={aggregationId}>Aggregation</label>
                         <select
                             id={aggregationId}
-                            className="border rounded px-2 py-1 w-full"
+                            className="w-full"
                             value={goal.aggregation_type}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                                 goal.aggregation_type = e.currentTarget.value as GoalAggregationType;
@@ -146,13 +146,11 @@ export function GoalCreationPanel({
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1" title="Target defines what kind of data is your goal for.">
-                        <label className="block font-semibold" htmlFor={targetId}>
-                            Target
-                        </label>
+                    <div className="flex-1 flex flex-col gap-1" title="Target defines what kind of data is your goal for.">
+                        <label htmlFor={targetId}>Target</label>
                         <select
                             id={targetId}
-                            className="border rounded px-2 py-1 w-full"
+                            className="w-full"
                             value={goal.target_col}
                             onChange={(e) => {
                                 goal.target_col = e.currentTarget.value as GoalTargetColumn;
@@ -169,15 +167,13 @@ export function GoalCreationPanel({
                     </div>
 
                     <div
-                        className="flex-1"
+                        className="flex-1 flex flex-col gap-1"
                         title="Comparison is how your currently progress value should be compared to your target value."
                     >
-                        <label className="block font-semibold" htmlFor={comparisonId}>
-                            Comparison
-                        </label>
+                        <label htmlFor={comparisonId}>Comparison</label>
                         <select
                             id={comparisonId}
-                            className="border rounded px-2 py-1 w-full"
+                            className="w-full"
                             value={goal.value_comparison}
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                                 goal.value_comparison = e.currentTarget.value as GoalComparisonType;
@@ -194,16 +190,14 @@ export function GoalCreationPanel({
                 </div>
 
                 {goal.target_col === 'BODY_METRIC' && (
-                    <div title="The specific body metric this goal tracks.">
-                        <label className="block font-semibold" htmlFor={targetMetricId}>
-                            Body Metric
-                        </label>
+                    <div className="flex flex-col gap-1" title="The specific body metric this goal tracks.">
+                        <label htmlFor={targetMetricId}>Body Metric</label>
                         {bodyMetrics.length === 0 ? (
-                            <div className="text-sm text-c-on-surface-variant">No body metrics defined yet.</div>
+                            <small>No body metrics defined yet.</small>
                         ) : (
                             <select
                                 id={targetMetricId}
-                                className="border rounded px-2 py-1 w-full"
+                                className="w-full"
                                 value={goal.target_metric}
                                 onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                                     goal.target_metric = e.currentTarget.value;
@@ -227,10 +221,8 @@ export function GoalCreationPanel({
                 )}
 
                 {goal.target_col === 'TIME' && (
-                    <div title="Tags this goal tracks. Their durations are summed together.">
-                        <label className="block font-semibold" htmlFor={targetMetricId}>
-                            Tags
-                        </label>
+                    <div className="flex flex-col gap-1" title="Tags this goal tracks. Their durations are summed together.">
+                        <label htmlFor={targetMetricId}>Tags</label>
                         <TagInput
                             id={targetMetricId}
                             namespaces={namespaces}
@@ -244,10 +236,8 @@ export function GoalCreationPanel({
                     </div>
                 )}
 
-                <div title="Target value is the target number you want to reach.">
-                    <label className="block font-semibold" htmlFor={targetValueId}>
-                        Target Value
-                    </label>
+                <div className="flex flex-col gap-1" title="Target value is the target number you want to reach.">
+                    <label htmlFor={targetValueId}>Target Value</label>
                     <NumberInput
                         id={targetValueId}
                         innerClassName="w-full"
@@ -271,9 +261,7 @@ export function GoalCreationPanel({
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <button className="btn-error" onClick={onCancel}>
-                        Cancel
-                    </button>
+                    <button onClick={onCancel}>Cancel</button>
                     <button className="btn-success" onClick={doCreateOrUpdate}>
                         {isEditing ? 'Update Goal' : 'Create Goal'}
                     </button>

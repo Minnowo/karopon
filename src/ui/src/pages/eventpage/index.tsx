@@ -124,11 +124,11 @@ export const EventsPage = (state: BaseState) => {
                 />
             )}
 
-            <div className={`w-full space-y-4 ${showNewEventPanel && 'mt-4'}`}>
+            <div className={`w-full flex flex-col gap-4 ${showNewEventPanel && 'mt-4'}`}>
                 {state.eventlogs.length === 0 && (
-                    <div className="text-center font-bold py-32">
-                        Shhh… the list is taking a nap right now.
-                        <br /> Try adding something to wake it up!
+                    <div className="text-center py-32">
+                        <h3>Shhh... the list is taking a nap right now.</h3>
+                        <small>Try adding something to wake it up!</small>
                     </div>
                 )}
                 {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventFoodLog) =>

@@ -282,7 +282,7 @@ export function TagInput({
                         ref={listRef}
                         id={listboxId}
                         role="listbox"
-                        class={`absolute z-10 b-0 border border-c-primary mt-1 max-h-60 overflow-auto rounded shadow smooth-scroll wsnw`}
+                        class={`absolute z-10 mt-1 max-h-60 overflow-auto rounded-sm shadow-lg smooth-scroll wsnw`}
                     >
                         {showCreateButton && (
                             <li
@@ -290,14 +290,13 @@ export function TagInput({
                                 id={optionId(0)}
                                 role="option"
                                 aria-selected={selectedIndex === 0}
-                                class={`${selectedIndex === 0 ? 'bg-c-surface-container-4' : 'bg-c-surface-container-2'} p-2 hover:bg-c-surface-container-4 cursor-pointer`}
+                                class={`${selectedIndex === 0 ? 'bg-c-surface-container-5' : 'bg-c-surface-container-3'} p-2 hover:bg-c-surface-container-5 cursor-pointer`}
                                 onClick={() => {
                                     createButtonClick();
                                     inputRef.current?.focus();
                                 }}
                             >
-                                <span className="text-c-success font-bold">{hasNamespace ? 'New tag' : 'New namespace'}:</span>{' '}
-                                {input}
+                                <strong className="text-c-success">{hasNamespace ? 'New tag' : 'New namespace'}:</strong> {input}
                             </li>
                         )}
 
@@ -307,7 +306,7 @@ export function TagInput({
                                 const tagStr = `${item.namespace}:${item.name}`;
                                 const thisIndex = (showCreateButton ? -1 : 0) + selectedIndex;
                                 const isSelected = thisIndex === i;
-                                const color = isSelected ? 'bg-c-surface-container-4' : 'bg-c-surface-container-2';
+                                const color = isSelected ? 'bg-c-surface-container-5' : 'bg-c-surface-container-3';
                                 const flatIndex = i + (showCreateButton ? 1 : 0);
                                 return (
                                     <li
@@ -316,7 +315,7 @@ export function TagInput({
                                         role="option"
                                         aria-selected={isSelected}
                                         key={tagStr}
-                                        class={`${color} p-2 hover:bg-c-surface-container-4 cursor-pointer`}
+                                        class={`${color} p-2 hover:bg-c-surface-container-5 cursor-pointer`}
                                         onClick={() => {
                                             TryAddTag(tagStr);
                                             inputRef.current?.focus();

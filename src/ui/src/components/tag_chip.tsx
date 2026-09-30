@@ -51,7 +51,13 @@ export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefine
         setCssVarTextColor(L > 0.179 ? '#000000' : '#ffffff');
     }, [color, isHex]);
 
-    const style = color ? {backgroundColor: color, ...(cssVarTextColor ? {color: cssVarTextColor} : {})} : undefined;
+    // A theme color has an on-* pair made for text on it; the computed contrast color is the fallback.
+    const themeRole = color?.match(/^var\(--color-c-([\w-]+)\)$/)?.[1];
+    const textColor = themeRole
+        ? `var(--color-c-on-${themeRole}${cssVarTextColor ? `, ${cssVarTextColor}` : ''})`
+        : cssVarTextColor;
+
+    const style = color ? {backgroundColor: color, ...(textColor ? {color: textColor} : {})} : undefined;
 
     return (
         <span ref={spanRef} className="flex items-center min-h-8 rounded w-fit" style={style}>

@@ -44,11 +44,10 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-2">
             <ErrorDiv errorMsg={errorMsg} />
 
             <select
-                className="border rounded mb-2"
                 value={selectedDataSource ?? ''}
                 aria-label="Data source"
                 onChange={(e) => setSelectedDataSource(Number(e.currentTarget.value))}
@@ -63,13 +62,13 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                 ))}
             </select>
 
-            <div className="flex flex-row items-center mb-2">
+            <div className="flex flex-row items-center gap-2">
                 <input
                     type="text"
                     value={searchText}
                     onInput={(e: Event) => setSearchText((e.target as HTMLInputElement).value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full mr-1"
+                    className="w-full"
                     placeholder="Type food name..."
                     aria-label="Search food name"
                 />
@@ -77,7 +76,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                 <button
                     type="button"
                     onClick={handleSearch}
-                    className="ml-1 max-w-32 w-full"
+                    className="max-w-32 w-full"
                     disabled={!selectedDataSource || !searchText.trim() || loading}
                 >
                     {loading ? 'Searching...' : 'Search'}
@@ -85,10 +84,10 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
             </div>
 
             {results.length > 0 ? (
-                <div className="overflow-x-scroll surface-2 px-0 py-1 mb-2">
+                <div className="overflow-x-scroll surface-2 px-0 py-1">
                     <table className="w-full text-sm border-collapse table-borderless">
                         <thead>
-                            <tr className="text-xs font-semibold">
+                            <tr className="text-xs">
                                 <th className=" text-left py-1" title="Food Name">
                                     {' '}
                                     Name{' '}
@@ -177,7 +176,7 @@ export const FoodSearchPanel = (state: FoodSearchPanelProps) => {
                     </table>
                 </div>
             ) : (
-                <p className="text-c-on-surface-variant mt-2">No results found.</p>
+                <small>No results found.</small>
             )}
         </div>
     );

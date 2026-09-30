@@ -85,11 +85,11 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
                         <tr>
                             <td colSpan={2} className="text-left">
                                 <details className="w-full">
-                                    <summary className="cursor-pointer text-sm font-semibold">Advanced Options</summary>
+                                    <summary className="cursor-pointer">Advanced Options</summary>
 
-                                    <div className="flex flex-col mt-2">
-                                        <label className="flex flex-row  items-center">
-                                            <span className="mr-2"> Server </span>
+                                    <div className="flex flex-col pt-2">
+                                        <label className="flex flex-row items-center gap-2">
+                                            Server
                                             <input
                                                 className="w-full"
                                                 ref={serverInputRef}
@@ -112,7 +112,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
 
 export function LoginPage(p: Props) {
     return (
-        <div className="flex flex-col items-center text-center font-bold my-32">
+        <div className="flex flex-col items-center text-center my-32">
             <LoginDialog {...p} />
         </div>
     );

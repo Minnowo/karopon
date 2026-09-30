@@ -57,7 +57,7 @@ function TimeRangePanel({
                 >
                     {expanded ? '▾' : '▸'}
                 </button>
-                <h5 className="flex-1 mb-0 wsnw overflow-hidden text-ellipsis">{range.name}</h5>
+                <h5 className="flex-1 wsnw overflow-hidden text-ellipsis">{range.name}</h5>
                 <DropdownButton
                     actions={[
                         {label: expanded ? 'Close' : 'Edit', onClick: onToggleExpand},
@@ -72,7 +72,7 @@ function TimeRangePanel({
             {expanded && (
                 <div className="surface-2 flex flex-col gap-2">
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Name</label>
+                        <label>Name</label>
                         <input
                             className="w-full"
                             type="text"
@@ -81,7 +81,7 @@ function TimeRangePanel({
                         />
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Start Time</label>
+                        <label>Start Time</label>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                             <TimeRangeInput range={range.rangeStart} onChange={(v) => onChange({...range, rangeStart: v})} />
                             <span className="flex w-full justify-center text-center sm:text-left">
@@ -90,7 +90,7 @@ function TimeRangePanel({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">End Time</label>
+                        <label>End Time</label>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                             <TimeRangeInput range={range.rangeEnd} onChange={(v) => onChange({...range, rangeEnd: v})} />
                             <span className="flex w-full justify-center text-center sm:text-left">
@@ -99,9 +99,8 @@ function TimeRangePanel({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Group By</label>
+                        <label>Group By</label>
                         <select
-                            className="px-3 py-1"
                             value={range.groupBy}
                             aria-label="Group by"
                             onInput={(e) => onChange({...range, groupBy: (e.target as HTMLSelectElement).value as GroupBy})}
@@ -114,9 +113,8 @@ function TimeRangePanel({
                         </select>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Aggregation</label>
+                        <label>Aggregation</label>
                         <select
-                            className="px-3 py-1"
                             value={range.aggregationFunc}
                             aria-label="Aggregation function"
                             onInput={(e) =>
@@ -237,14 +235,14 @@ export function DashboardCardEditor({
 
     return (
         <div className="flex flex-col gap-4">
-            <h3 className="mb-0">Edit Chart</h3>
+            <h3>Edit Chart</h3>
 
             <ErrorDiv errorMsg={saveError} />
 
-            <div className="flex flex-col gap-2">
-                <label class="font-semibold">Title</label>
+            <div className="flex flex-col gap-1">
+                <label>Title</label>
                 <input
-                    className="w-full px-2 py-1"
+                    className="w-full"
                     value={draft.title}
                     aria-label="Card title"
                     onInput={(e) => onDraftChange({...draft, title: (e.target as HTMLInputElement).value})}
@@ -253,7 +251,7 @@ export function DashboardCardEditor({
 
             {draft.type === 'time' && (
                 <div className="flex flex-col gap-2">
-                    <h4 className="mb-0">Tags</h4>
+                    <h4>Tags</h4>
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
@@ -262,9 +260,8 @@ export function DashboardCardEditor({
                         tagColors={tagColors}
                     />
                     <div className="flex flex-col gap-1">
-                        <label class="font-semibold">Time Unit</label>
+                        <label>Time Unit</label>
                         <select
-                            className="px-3 py-1"
                             value={draft.timeUnit ?? 'hours'}
                             aria-label="Time unit"
                             onInput={(e) =>
@@ -282,7 +279,7 @@ export function DashboardCardEditor({
 
             {draft.type === 'bodylog' && (
                 <div className="flex flex-col gap-2">
-                    <h4 className="mb-0">Body Metrics</h4>
+                    <h4>Body Metrics</h4>
                     <BodyMetricMultiSelect
                         bodyMetrics={bodyMetrics}
                         selected={draft.selectedMetrics ?? []}
@@ -293,7 +290,7 @@ export function DashboardCardEditor({
 
             {draft.type === 'macros' && (
                 <div className="flex flex-col gap-2">
-                    <h4 className="mb-0">Macros / Calories</h4>
+                    <h4>Macros / Calories</h4>
                     <MacroMultiSelect
                         selected={draft.visibleMacros ?? []}
                         onChange={(visibleMacros) => onDraftChange({...draft, visibleMacros})}
@@ -303,7 +300,7 @@ export function DashboardCardEditor({
 
             {draft.type === 'eventlogs' && (
                 <div className="flex flex-col gap-2">
-                    <h4 className="mb-0">Blood Glucose / Insulin</h4>
+                    <h4>Blood Glucose / Insulin</h4>
                     <EventLogMultiSelect
                         selected={draft.visibleEventLogs ?? []}
                         onChange={(visibleEventLogs) => onDraftChange({...draft, visibleEventLogs})}
@@ -312,7 +309,7 @@ export function DashboardCardEditor({
             )}
 
             <div className="flex flex-col gap-2">
-                <h4 className="mb-0">Time Ranges</h4>
+                <h4>Time Ranges</h4>
                 <div class="flex flex-row flex-wrap gap-2 items-center">
                     <select
                         className="px-2 py-1"
@@ -337,13 +334,13 @@ export function DashboardCardEditor({
                             </optgroup>
                         )}
                     </select>
-                    <button className="btn-outlined-success px-3 py-1 wsnw" onClick={handleAddTimeRange}>
+                    <button className="btn-outlined-success wsnw" onClick={handleAddTimeRange}>
                         + Add
                     </button>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                     {timeRanges.map((r, i) => (
-                        <div key={i} className={i === 0 ? '' : 'border-t border-c-outline-variant'}>
+                        <div key={i}>
                             <TimeRangePanel
                                 range={r}
                                 dayOffsetSeconds={dayOffsetSeconds}
@@ -364,7 +361,7 @@ export function DashboardCardEditor({
             </div>
 
             <div className="flex flex-col gap-2">
-                <h4 className="mb-0">Other Options</h4>
+                <h4>Other Options</h4>
                 <label
                     className="flex items-center gap-2 cursor-pointer"
                     title="If chart data should come from the server or only in-memory. If using large time ranges, this is recommended."
@@ -406,7 +403,7 @@ export function DashboardCardEditor({
             </div>
 
             <div className="flex justify-end gap-2">
-                <button className="btn-error" onClick={onCancel} disabled={saving}>
+                <button onClick={onCancel} disabled={saving}>
                     Cancel
                 </button>
                 <button className="btn-success" onClick={onSave} disabled={saving || !isDirty}>

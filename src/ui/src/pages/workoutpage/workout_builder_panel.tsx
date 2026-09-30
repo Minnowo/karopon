@@ -169,12 +169,11 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     const renderStep = (setIdx: number, stepIdx: number, st: WorkoutStep, count: number) => {
         const ex = exerciseMap.get(st.exercise_id);
         return (
-            <div key={stepIdx} className="flex items-start gap-2 border-t border-c-outline-variant pt-2">
+            <div key={stepIdx} className="flex items-start gap-2">
                 <div className="flex-1 flex flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{ex ? ex.exercise.name : '(deleted exercise)'}</span>
+                        <h4>{ex ? ex.exercise.name : '(deleted exercise)'}</h4>
                         <select
-                            className="px-3 py-1"
                             value={st.kind}
                             aria-label="Step kind"
                             onChange={(e) => updateStep(setIdx, stepIdx, {kind: e.currentTarget.value as StepKind})}
@@ -193,7 +192,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 </div>
                 <div className="flex gap-1">
                     <button
-                        className="px-2"
                         disabled={stepIdx === 0}
                         aria-label="Move step up"
                         onClick={() => updateSet(setIdx, (b) => ({...b, steps: move(b.steps, stepIdx, -1)}))}
@@ -201,7 +199,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                         {UpArrow}
                     </button>
                     <button
-                        className="px-2"
                         disabled={stepIdx === count - 1}
                         aria-label="Move step down"
                         onClick={() => updateSet(setIdx, (b) => ({...b, steps: move(b.steps, stepIdx, 1)}))}
@@ -209,7 +206,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                         {DownArrow}
                     </button>
                     <button
-                        className="px-2"
                         aria-label={ex ? `Duplicate ${ex.exercise.name}` : 'Duplicate step'}
                         onClick={() =>
                             updateSet(setIdx, (b) => ({
@@ -233,7 +229,7 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     };
 
     const renderSet = (b: WorkoutSet, setIdx: number) => (
-        <div key={setIdx} className="surface-2 flex flex-col gap-2">
+        <div key={setIdx} className="surface-2 flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-2">
                 <input
                     className="flex-1"
@@ -252,8 +248,8 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 />
             </div>
 
-            <div>
-                <span className="font-semibold">Set Tags</span>
+            <div className="flex flex-col gap-1">
+                <label>Set Tags</label>
                 <TagInput
                     namespaces={p.namespaces}
                     setNamespaces={p.setNamespaces}
@@ -265,10 +261,14 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 />
             </div>
 
-            {b.steps.map((st, stepIdx) => renderStep(setIdx, stepIdx, st, b.steps.length))}
+            {b.steps.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    {b.steps.map((st, stepIdx) => renderStep(setIdx, stepIdx, st, b.steps.length))}
+                </div>
+            )}
 
-            <div>
-                <span className="font-semibold">Add Exercise</span>
+            <div className="flex flex-col gap-1">
+                <label>Add Exercise</label>
                 <FuzzySearch<ExerciseWithTags>
                     query={queries[setIdx] ?? ''}
                     onQueryChange={(q) => setQuery(setIdx, q)}
@@ -289,16 +289,10 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
             </div>
 
             <div className="flex flex-wrap justify-end gap-2">
-                <button
-                    className="px-2"
-                    disabled={setIdx === 0}
-                    aria-label="Move set up"
-                    onClick={() => updateSets((bs) => move(bs, setIdx, -1))}
-                >
+                <button disabled={setIdx === 0} aria-label="Move set up" onClick={() => updateSets((bs) => move(bs, setIdx, -1))}>
                     {UpArrow}
                 </button>
                 <button
-                    className="px-2"
                     disabled={setIdx === structure.sets.length - 1}
                     aria-label="Move set down"
                     onClick={() => updateSets((bs) => move(bs, setIdx, 1))}
@@ -318,72 +312,61 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     );
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 ${p.className ?? ''}`}>
-            <div className="mb-4">
-                <details className="w-full no-summary-arrow">
-                    <summary className="cursor-pointer">
-                        <h2 className="inline">{p.title}</h2>
-                        <span className="text-xs text-c-on-surface-variant"> (click for help)</span>
-                    </summary>
+        <div className={`surface-1 flex flex-col gap-4 ${p.className ?? ''}`}>
+            <details className="w-full no-summary-arrow">
+                <summary className="cursor-pointer">
+                    <h2 className="inline">{p.title}</h2>
+                    <small> (click for help)</small>
+                </summary>
 
-                    <div className="text-sm p-4">
-                        <p>
-                            A workout is a list of sets. A set is a list of steps that repeats for its number of rounds. Each step
-                            is one exercise with a kind and a target, like 20 seconds or 10 reps. The same exercise can be timed
-                            in one step and counted in reps in another.
-                        </p>
-
-                        <br />
-
-                        <p className="font-semibold">Rest</p>
-                        <p>
-                            Rest is just an exercise. Use the built-in Rest exercise, or make your own, and add it as a timed step
-                            wherever you want a break.
-                        </p>
-
-                        <br />
-
-                        <p className="font-semibold">Tags and time tracking</p>
-                        <ul className="list-disc list-inside space-y-1">
-                            <li>The workout, each set, and each exercise can have tags.</li>
-                            <li>
-                                When a timed step finishes, it is recorded as time with all three levels of tags, but only if the
-                                exercise itself has a tag.
-                            </li>
-                            <li>Reps, weighted, and distance steps are never recorded as time.</li>
-                        </ul>
-                        <p className="mt-2">Chain the tags so they describe the activity. For example:</p>
-                        <ul className="list-disc list-inside ml-4">
-                            <li>
-                                Workout tagged <code>workout:leg_workout_1</code>
-                            </li>
-                            <li>
-                                Set tagged <code>leg_workout_1:cardio</code>
-                            </li>
-                            <li>
-                                Exercise tagged <code>cardio:jumping_jack</code>
-                            </li>
-                        </ul>
-                        <p className="mt-2">
-                            Each jumping jack step is recorded as{' '}
-                            <code>workout:leg_workout_1 leg_workout_1:cardio cardio:jumping_jack</code>.
-                        </p>
-
-                        <br />
-
-                        <p className="font-semibold">Example: a tabata</p>
-                        <ol className="list-decimal list-inside space-y-1">
-                            <li>Create an exercise, e.g. Jumping Jacks tagged cardio:jumping_jack.</li>
-                            <li>Make sure the Rest exercise exists.</li>
-                            <li>Name the workout and tag it, e.g. workout:tabata.</li>
-                            <li>In the first set, change rounds to 8.</li>
-                            <li>Add Jumping Jacks as a timed step of 20 seconds, then Rest as a timed step of 10 seconds.</li>
-                            <li>Save. The workout runs 8 x (20s work, 10s rest) = 4 minutes.</li>
-                        </ol>
-                        <p className="mt-2">The Sample Tabata workout is built exactly like this.</p>
-                    </div>
-                </details>
-            </div>
+                <div className="flex flex-col gap-2 pt-2">
+                    <p>
+                        A workout is a list of sets. A set is a list of steps that repeats for its number of rounds. Each step is
+                        one exercise with a kind and a target, like 20 seconds or 10 reps. The same exercise can be timed in one
+                        step and counted in reps in another.
+                    </p>
+                    <h4>Rest</h4>
+                    <p>
+                        Rest is just an exercise. Use the built-in Rest exercise, or make your own, and add it as a timed step
+                        wherever you want a break.
+                    </p>
+                    <h4>Tags and time tracking</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                        <li>The workout, each set, and each exercise can have tags.</li>
+                        <li>
+                            When a timed step finishes, it is recorded as time with all three levels of tags, but only if the
+                            exercise itself has a tag.
+                        </li>
+                        <li>Reps, weighted, and distance steps are never recorded as time.</li>
+                    </ul>
+                    <p>Chain the tags so they describe the activity. For example:</p>
+                    <ul className="list-disc list-inside ml-4">
+                        <li>
+                            Workout tagged <code>workout:leg_workout_1</code>
+                        </li>
+                        <li>
+                            Set tagged <code>leg_workout_1:cardio</code>
+                        </li>
+                        <li>
+                            Exercise tagged <code>cardio:jumping_jack</code>
+                        </li>
+                    </ul>
+                    <p>
+                        Each jumping jack step is recorded as{' '}
+                        <code>workout:leg_workout_1 leg_workout_1:cardio cardio:jumping_jack</code>.
+                    </p>
+                    <h4>Example: a tabata</h4>
+                    <ol className="list-decimal list-inside space-y-1">
+                        <li>Create an exercise, e.g. Jumping Jacks tagged cardio:jumping_jack.</li>
+                        <li>Make sure the Rest exercise exists.</li>
+                        <li>Name the workout and tag it, e.g. workout:tabata.</li>
+                        <li>In the first set, change rounds to 8.</li>
+                        <li>Add Jumping Jacks as a timed step of 20 seconds, then Rest as a timed step of 10 seconds.</li>
+                        <li>Save. The workout runs 8 x (20s work, 10s rest) = 4 minutes.</li>
+                    </ol>
+                    <p>The Sample Tabata workout is built exactly like this.</p>
+                </div>
+            </details>
 
             <ErrorDiv errorMsg={errorMsg} />
 
@@ -397,8 +380,8 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                     aria-label="Workout Name"
                 />
 
-                <div>
-                    <span className="font-semibold">Workout Tags</span>
+                <div className="flex flex-col gap-1">
+                    <label>Workout Tags</label>
                     <TagInput
                         namespaces={p.namespaces}
                         setNamespaces={p.setNamespaces}
@@ -410,10 +393,9 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                     />
                 </div>
 
-                <label className="block">
-                    <span className="font-semibold">Note</span>
+                <label className="flex flex-col gap-1">
+                    Note
                     <textarea
-                        className="w-full"
                         rows={2}
                         value={note}
                         placeholder="Note (optional)"
@@ -422,7 +404,7 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 </label>
 
                 <div className="flex flex-col gap-1">
-                    <span className="font-semibold">Sounds</span>
+                    <label>Sounds</label>
                     {CUE_OPTIONS.map((o) => (
                         <label key={o.key} className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -444,13 +426,11 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                     Add Set
                 </button>
 
-                <div className="text-sm text-c-on-surface-variant">{StructureSummary(structure)}</div>
+                <small>{StructureSummary(structure)}</small>
             </div>
 
-            <div className="flex justify-end gap-2 mt-2">
-                <button className="btn-error" onClick={p.onCancel}>
-                    Cancel
-                </button>
+            <div className="flex justify-end gap-2">
+                <button onClick={p.onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onSaveClick}>
                     {p.submitLabel}
                 </button>

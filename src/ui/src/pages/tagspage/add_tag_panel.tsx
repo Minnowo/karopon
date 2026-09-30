@@ -71,9 +71,7 @@ export const AddTagPanel = ({
                 </label>
             )}
             <div className="flex gap-2 justify-end">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={handleSubmit}>
                     {submitLabel}
                 </button>

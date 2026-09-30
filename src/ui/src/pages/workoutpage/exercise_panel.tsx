@@ -51,8 +51,8 @@ export function AddExercisePanel({
     };
 
     return (
-        <div className={`rounded-sm p-2 border surface-1 ${className}`}>
-            <h2 className="mb-4">{title}</h2>
+        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+            <h2>{title}</h2>
 
             <ErrorDiv errorMsg={errorMsg} />
 
@@ -66,8 +66,8 @@ export function AddExercisePanel({
                     aria-label="Exercise Name"
                 />
 
-                <div>
-                    <span className="font-semibold">Tags</span>
+                <div className="flex flex-col gap-1">
+                    <label>Tags</label>
                     <TagInput
                         namespaces={namespaces}
                         setNamespaces={setNamespaces}
@@ -78,10 +78,9 @@ export function AddExercisePanel({
                     />
                 </div>
 
-                <label className="block">
-                    <span className="font-semibold">Note</span>
+                <label className="flex flex-col gap-1">
+                    Note
                     <textarea
-                        className="w-full"
                         rows={2}
                         value={note}
                         placeholder="Note (optional)"
@@ -90,10 +89,8 @@ export function AddExercisePanel({
                 </label>
             </div>
 
-            <div className="flex justify-end gap-2 mt-2">
-                <button className="btn-error" onClick={onCancel}>
-                    Cancel
-                </button>
+            <div className="flex justify-end gap-2">
+                <button onClick={onCancel}>Cancel</button>
                 <button className="btn-success" onClick={onSaveClick}>
                     {submitLabel}
                 </button>
@@ -138,14 +135,14 @@ export function ExerciseEditPanel({
 
     return (
         <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="mb-0">{exercise.exercise.name}</h2>
+                    <h2>{exercise.exercise.name}</h2>
                     {exercise.tags.map((t) => (
                         <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={tagColors.get(t.namespace)} />
                     ))}
                 </div>
-                {exercise.exercise.note && <div className="text-sm text-c-on-surface-variant">{exercise.exercise.note}</div>}
+                {exercise.exercise.note && <small>{exercise.exercise.note}</small>}
             </div>
             <DropdownButton
                 actions={[

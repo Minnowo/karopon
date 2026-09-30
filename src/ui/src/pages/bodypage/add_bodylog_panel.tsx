@@ -70,23 +70,17 @@ export function AddBodyPanel({
 
     return (
         <>
-            <div className={`surface-1 ${className}`}>
-                <div className="flex mb-4">
-                    <h2 className="mb-0">{title}</h2>
-                </div>
+            <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+                <h2>{title}</h2>
 
                 <ErrorDiv errorMsg={errorMsg} />
 
                 <div className="flex flex-col gap-2 justify-between">
                     <div className="flex flex-col gap-2">
                         {sortedMetrics.length === 0 ? (
-                            <div className="text-sm text-c-on-surface-variant">
-                                No body metrics defined yet. Add some from the{' '}
-                                <a href="#body-metrics" className="underline">
-                                    Body Metrics
-                                </a>{' '}
-                                page.
-                            </div>
+                            <small>
+                                No body metrics defined yet. Add some from the <a href="#body-metrics">Body Metrics</a> page.
+                            </small>
                         ) : (
                             sortedMetrics.map((metric) => (
                                 <NumberInput
@@ -104,9 +98,7 @@ export function AddBodyPanel({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <button className="btn-error" onClick={onCancel}>
-                            Cancel
-                        </button>
+                        <button onClick={onCancel}>Cancel</button>
                         <button className="btn-success" onClick={doSave}>
                             {saveButtonTitle}
                         </button>

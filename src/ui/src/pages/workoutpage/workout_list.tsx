@@ -44,17 +44,17 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
 
     return (
         <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="mb-0">{workout.name}</h2>
+                    <h2>{workout.name}</h2>
                     {tags.map((t) => (
                         <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={p.tagColors.get(t.namespace)} />
                     ))}
                 </div>
-                <div className="text-sm text-c-on-surface-variant">
+                <small>
                     {summary}
                     {workout.note ? ` - ${workout.note}` : ''}
-                </div>
+                </small>
             </div>
             <button className="btn-success" onClick={() => p.startWorkout(p.workout)}>
                 Start

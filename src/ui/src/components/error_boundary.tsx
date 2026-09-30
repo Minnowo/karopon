@@ -66,9 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         {error.stack || error.message}
                     </pre>
                     <div className="flex justify-end gap-2 flex-wrap">
-                        <button className="btn-error" onClick={this.reload}>
-                            Reload
-                        </button>
+                        <button onClick={this.reload}>Reload</button>
                         <button className="btn-success" onClick={this.clearAndReload}>
                             Clear local data and reload
                         </button>
