@@ -56,7 +56,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
         <>
             <h1>Karopon</h1>
             <form className="flex flex-col align-middle items-center" encType="multipart/form-data" onSubmit={handleSubmit}>
-                <table className="table-auto table-padded mb-2">
+                <table className="table-auto table-padded table-borderless mb-2 w-fit">
                     <tbody className="text-right">
                         <tr title="Your username">
                             <td className="px-2">
