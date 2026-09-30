@@ -169,6 +169,7 @@ export function DashboardCardComponent({
         setDraft(editing ? card : null);
         setPreviewCard(card);
         setViewTimeRange(card.curTimeRange ?? 0);
+        setGraphStyleOverride(null);
     }, [editing]);
 
     // A save landing (or an external change) is the new baseline to draw from.
