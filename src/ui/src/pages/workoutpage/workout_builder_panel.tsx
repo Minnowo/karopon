@@ -115,7 +115,7 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     const renderTargets = (setIdx: number, stepIdx: number, st: WorkoutStep) => {
         const kind = st.kind;
         return (
-            <div className="flex flex-wrap items-center gap-2">
+            <>
                 {kind === 'timed' && (
                     <NumberInput
                         label="Seconds"
@@ -162,35 +162,57 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                         onInput={(e) => updateStep(setIdx, stepIdx, {unit: e.currentTarget.value})}
                     />
                 )}
-            </div>
+            </>
         );
     };
 
     const renderStep = (setIdx: number, stepIdx: number, st: WorkoutStep, count: number) => {
         const ex = exerciseMap.get(st.exercise_id);
         return (
-            <div key={stepIdx} className="flex items-start gap-2">
-                <div className="flex-1 flex flex-col gap-1">
-                    <div className="flex flex-wrap items-center gap-2">
+            <div key={stepIdx} className="surface-3 flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0 flex flex-wrap items-center gap-2">
                         <h4>{ex ? ex.exercise.name : '(deleted exercise)'}</h4>
-                        <select
-                            value={st.kind}
-                            aria-label="Step kind"
-                            onChange={(e) => updateStep(setIdx, stepIdx, {kind: e.currentTarget.value as StepKind})}
-                        >
-                            {StepKindValues.map((k) => (
-                                <option key={k} value={k}>
-                                    {STEP_KIND_LABELS[k]}
-                                </option>
-                            ))}
-                        </select>
                         {ex?.tags.map((t) => (
                             <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={p.tagColors.get(t.namespace)} />
                         ))}
                     </div>
+                    <button
+                        className="btn-outlined-error"
+                        aria-label={ex ? `Remove ${ex.exercise.name}` : 'Remove step'}
+                        onClick={() => updateSet(setIdx, (b) => ({...b, steps: b.steps.filter((_, j) => j !== stepIdx)}))}
+                    >
+                        X
+                    </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                    <select
+                        value={st.kind}
+                        aria-label="Step kind"
+                        onChange={(e) => updateStep(setIdx, stepIdx, {kind: e.currentTarget.value as StepKind})}
+                    >
+                        {StepKindValues.map((k) => (
+                            <option key={k} value={k}>
+                                {STEP_KIND_LABELS[k]}
+                            </option>
+                        ))}
+                    </select>
                     {renderTargets(setIdx, stepIdx, st)}
                 </div>
-                <div className="flex gap-1">
+
+                <div className="flex justify-end gap-2">
+                    <button
+                        aria-label={ex ? `Duplicate ${ex.exercise.name}` : 'Duplicate step'}
+                        onClick={() =>
+                            updateSet(setIdx, (b) => ({
+                                ...b,
+                                steps: [...b.steps.slice(0, stepIdx + 1), {...st}, ...b.steps.slice(stepIdx + 1)],
+                            }))
+                        }
+                    >
+                        Duplicate
+                    </button>
                     <button
                         disabled={stepIdx === 0}
                         aria-label="Move step up"
@@ -205,24 +227,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                     >
                         {DownArrow}
                     </button>
-                    <button
-                        aria-label={ex ? `Duplicate ${ex.exercise.name}` : 'Duplicate step'}
-                        onClick={() =>
-                            updateSet(setIdx, (b) => ({
-                                ...b,
-                                steps: [...b.steps.slice(0, stepIdx + 1), {...st}, ...b.steps.slice(stepIdx + 1)],
-                            }))
-                        }
-                    >
-                        Duplicate
-                    </button>
-                    <button
-                        className="btn-outlined-error"
-                        aria-label={ex ? `Remove ${ex.exercise.name}` : 'Remove step'}
-                        onClick={() => updateSet(setIdx, (b) => ({...b, steps: b.steps.filter((_, j) => j !== stepIdx)}))}
-                    >
-                        X
-                    </button>
                 </div>
             </div>
         );
@@ -230,22 +234,35 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
 
     const renderSet = (b: WorkoutSet, setIdx: number) => (
         <div key={setIdx} className="surface-2 flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-                <input
-                    className="flex-1 min-w-32"
-                    type="text"
-                    value={b.name}
-                    placeholder={`Set ${setIdx + 1} name (optional)`}
-                    aria-label="Set name"
-                    onInput={(e) => updateSet(setIdx, (x) => ({...x, name: e.currentTarget.value}))}
-                />
-                <NumberInput
-                    label="Rounds"
-                    min={1}
-                    precision={0}
-                    value={b.rounds}
-                    onValueChange={(v) => updateSet(setIdx, (x) => ({...x, rounds: v}))}
-                />
+            <div className="flex flex-col gap-2">
+                <div className="flex items-end gap-2">
+                    <label className="flex-1 min-w-0 flex flex-col gap-1">
+                        Name
+                        <input
+                            type="text"
+                            value={b.name}
+                            placeholder={`Set ${setIdx + 1} name (optional)`}
+                            onInput={(e) => updateSet(setIdx, (x) => ({...x, name: e.currentTarget.value}))}
+                        />
+                    </label>
+                    <button
+                        className="btn-outlined-error"
+                        aria-label={`Delete set ${setIdx + 1}`}
+                        onClick={() => updateSets((bs) => bs.filter((_, j) => j !== setIdx))}
+                    >
+                        X
+                    </button>
+                </div>
+                <label className="flex flex-col gap-1">
+                    Rounds
+                    <NumberInput
+                        className="self-start"
+                        min={1}
+                        precision={0}
+                        value={b.rounds}
+                        onValueChange={(v) => updateSet(setIdx, (x) => ({...x, rounds: v}))}
+                    />
+                </label>
             </div>
 
             <div className="flex flex-col gap-1">
@@ -288,7 +305,12 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 />
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex justify-end gap-2">
+                <button
+                    onClick={() => updateSets((bs) => [...bs.slice(0, setIdx + 1), structuredClone(b), ...bs.slice(setIdx + 1)])}
+                >
+                    Duplicate Set
+                </button>
                 <button disabled={setIdx === 0} aria-label="Move set up" onClick={() => updateSets((bs) => move(bs, setIdx, -1))}>
                     {UpArrow}
                 </button>
@@ -298,14 +320,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                     onClick={() => updateSets((bs) => move(bs, setIdx, 1))}
                 >
                     {DownArrow}
-                </button>
-                <button
-                    onClick={() => updateSets((bs) => [...bs.slice(0, setIdx + 1), structuredClone(b), ...bs.slice(setIdx + 1)])}
-                >
-                    Duplicate Set
-                </button>
-                <button className="btn-outlined-error" onClick={() => updateSets((bs) => bs.filter((_, j) => j !== setIdx))}>
-                    Delete Set
                 </button>
             </div>
         </div>
