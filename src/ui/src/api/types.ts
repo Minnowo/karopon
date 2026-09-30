@@ -18,6 +18,8 @@ export type TblUser = {
     day_time_offset_seconds: number;
     fill_eventlog_from_last: boolean;
     timespan_history_fetch_limit: number;
+    custom_css: string;
+    misc_settings: string;
 };
 
 export type TblUpdateUser = {

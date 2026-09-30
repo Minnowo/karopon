@@ -20,6 +20,9 @@ const MAX_USER_PASSWORD_LENGTH int = 72
 const MAX_PASSWORD_LENGTH int = 72 // bcrypt max allowed
 const MIN_PASSWORD_LENGTH int = 1
 
+const MAX_CUSTOM_CSS_SIZE int = 128 * KB
+const MAX_MISC_SETTINGS_SIZE int = 128 * KB
+
 const SHOW_DOWNLOAD_EXPIRE_TIME bool = true
 const SHOW_DOWNLOAD_EXPIRE_TIME_REMAINING bool = true
 const SHOW_DOWNLOADS_REMAINING bool = true

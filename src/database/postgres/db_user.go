@@ -50,7 +50,9 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 				EVENT_LOG_TRAILING_ROWS,
 				DAY_TIME_OFFSET_SECONDS,
 				FILL_EVENTLOG_FROM_LAST,
-				TIMESPAN_HISTORY_FETCH_LIMIT
+				TIMESPAN_HISTORY_FETCH_LIMIT,
+				CUSTOM_CSS,
+				MISC_SETTINGS
 			) VALUES (
 				:name, :password,
 				:theme, :show_diabetes, :caloric_calc_method,
@@ -61,7 +63,9 @@ func (db *PGDatabase) AddUser(ctx context.Context, user *database.TblUser) (int,
 				:event_log_trailing_rows,
 				:day_time_offset_seconds,
 				:fill_eventlog_from_last,
-				:timespan_history_fetch_limit
+				:timespan_history_fetch_limit,
+				:custom_css,
+				:misc_settings
 			)
     	    RETURNING ID;
     	`
@@ -97,7 +101,9 @@ func (db *PGDatabase) UpdateUser(ctx context.Context, user *database.TblUser) er
 	EVENT_LOG_TRAILING_ROWS=:event_log_trailing_rows,
 	DAY_TIME_OFFSET_SECONDS=:day_time_offset_seconds,
 	FILL_EVENTLOG_FROM_LAST=:fill_eventlog_from_last,
-	TIMESPAN_HISTORY_FETCH_LIMIT=:timespan_history_fetch_limit
+	TIMESPAN_HISTORY_FETCH_LIMIT=:timespan_history_fetch_limit,
+	CUSTOM_CSS=:custom_css,
+	MISC_SETTINGS=:misc_settings
 	WHERE ID=:id
 	`
 

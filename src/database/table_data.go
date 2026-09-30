@@ -42,6 +42,12 @@ type TblUser struct {
 	DayTimeOffsetSeconds      int               `db:"day_time_offset_seconds"      json:"day_time_offset_seconds"`
 	FillEventLogFromLast      bool              `db:"fill_eventlog_from_last"      json:"fill_eventlog_from_last"`
 	TimespanHistoryFetchLimit int               `db:"timespan_history_fetch_limit" json:"timespan_history_fetch_limit"`
+
+	// CustomCSS is user written CSS applied to the UI for this user.
+	CustomCSS string `db:"custom_css" json:"custom_css"`
+
+	// MiscSettings is a JSON blob holding client settings that don't need their own column.
+	MiscSettings string `db:"misc_settings" json:"misc_settings"`
 }
 
 // NewDefaultTblUser builds a TblUser with the default settings assigned to
@@ -58,6 +64,7 @@ func NewDefaultTblUser(username string, password []byte) TblUser {
 		TargetBloodSugar:          5.6,
 		FillEventLogFromLast:      false,
 		TimespanHistoryFetchLimit: 50,
+		MiscSettings:              "{}",
 		SessionExpireTimeSeconds:  int64(time.Duration(time.Hour * 24 * 10).Seconds()),
 	}
 }
@@ -92,6 +99,8 @@ func (u *TblUser) Copy() *TblUser {
 		DayTimeOffsetSeconds:      u.DayTimeOffsetSeconds,
 		FillEventLogFromLast:      u.FillEventLogFromLast,
 		TimespanHistoryFetchLimit: u.TimespanHistoryFetchLimit,
+		CustomCSS:                 u.CustomCSS,
+		MiscSettings:              u.MiscSettings,
 	}
 }
 

@@ -38,6 +38,10 @@ export function SettingsPage(state: BaseState) {
             setErrorMsg('Username must be less than 20 characters!');
             return;
         }
+        if (new Blob([userRef.current.custom_css]).size > 128 * 1024) {
+            setErrorMsg('Custom CSS must be less than 128 KB.');
+            return;
+        }
         if (newPassword !== confirmPassword) {
             setErrorMsg('New password does not match the confirm password!');
             return;
@@ -252,6 +256,18 @@ export function SettingsPage(state: BaseState) {
                     ))}
                 </select>
             </div>
+
+            <label className="flex flex-col gap-1">
+                Custom CSS
+                <textarea
+                    className="font-mono"
+                    rows={8}
+                    disabled={!isEditing}
+                    value={userRef.current.custom_css}
+                    placeholder="Applied to every page as-is (optional). Add ?nocss to the URL to turn it off."
+                    onInput={(e) => update('custom_css', e.currentTarget.value)}
+                />
+            </label>
 
             {isEditing && (
                 <input className="w-full sm:ml-auto sm:max-w-32 btn-success" type="submit" value="Save Settings" onClick={save} />

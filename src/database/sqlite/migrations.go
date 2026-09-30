@@ -24,6 +24,7 @@ var sqliteUpMigrations = []database.Migration{
 	database.NewFileMigration(13, 14, "sqlite/0015_reminder_activity_mode"),
 	database.NewFileMigration(14, 15, "sqlite/0016_reminder_alarm_mode"),
 	database.NewFileMigration(15, 16, "sqlite/0017_workout"),
+	database.NewFileMigration(16, 17, "sqlite/0018_user_custom_css"),
 }
 
 func (db *SqliteDatabase) GetMigrationMaxVersion() database.Version {

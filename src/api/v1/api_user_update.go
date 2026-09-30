@@ -55,6 +55,25 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(newUser.User.CustomCSS) > constants.MAX_CUSTOM_CSS_SIZE {
+		api.BadReqf(w, "Custom CSS must be less than %d KB.", constants.MAX_CUSTOM_CSS_SIZE/constants.KB)
+		return
+	}
+
+	if newUser.User.MiscSettings == "" {
+		newUser.User.MiscSettings = "{}"
+	}
+
+	if len(newUser.User.MiscSettings) > constants.MAX_MISC_SETTINGS_SIZE {
+		api.BadReqf(w, "Misc settings must be less than %d KB.", constants.MAX_MISC_SETTINGS_SIZE/constants.KB)
+		return
+	}
+
+	if !json.Valid([]byte(newUser.User.MiscSettings)) {
+		api.BadReq(w, "Misc settings must be valid JSON.")
+		return
+	}
+
 	if newUser.NewPassword != "" {
 
 		if len(newUser.NewPassword) > constants.MAX_USER_PASSWORD_LENGTH {

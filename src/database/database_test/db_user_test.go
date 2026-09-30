@@ -29,6 +29,8 @@ func testUserCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 		SessionExpireTimeSeconds: 500,
 		TimeFormat:               "auto",
 		DateFormat:               "auto",
+		CustomCSS:                "body { color: red; }",
+		MiscSettings:             `{"a":1}`,
 	}
 
 	// test the username is not taken
@@ -66,6 +68,8 @@ func testUserCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	loaded.SessionExpireTimeSeconds = 100
 	loaded.TimeFormat = "auto2"
 	loaded.DateFormat = "auto2"
+	loaded.CustomCSS = ""
+	loaded.MiscSettings = `{"b":[1,2]}`
 	require.NoError(t, db.UpdateUser(ctx, &loaded))
 
 	// check the new username was taken

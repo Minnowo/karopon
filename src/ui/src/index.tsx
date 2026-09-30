@@ -304,6 +304,22 @@ export const App = () => {
         }
     }, [user]);
 
+    // ?nocss skips the custom CSS so a broken stylesheet can still be fixed from the settings page.
+    useLayoutEffect(() => {
+        const css = new URLSearchParams(window.location.search).has('nocss') ? '' : (user?.custom_css ?? '');
+        let el = document.getElementById('user-custom-css');
+        if (css === '') {
+            el?.remove();
+            return;
+        }
+        if (!el) {
+            el = document.createElement('style');
+            el.id = 'user-custom-css';
+            document.head.appendChild(el);
+        }
+        el.textContent = css;
+    }, [user?.custom_css]);
+
     if (user === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
