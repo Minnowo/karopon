@@ -232,7 +232,7 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
         <div key={setIdx} className="surface-2 flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-2">
                 <input
-                    className="flex-1"
+                    className="flex-1 min-w-32"
                     type="text"
                     value={b.name}
                     placeholder={`Set ${setIdx + 1} name (optional)`}

@@ -134,7 +134,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(1)}
-                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-3"
+                    className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-5"
                     ariaLabel={label ? `Increase ${label}` : 'Increase value'}
                 >
                     {UpArrow}
@@ -143,7 +143,7 @@ export function NumberInput({
                     tabIndex={-1}
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
-                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-3"
+                    className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-5"
                     ariaLabel={label ? `Decrease ${label}` : 'Decrease value'}
                 >
                     {DownArrow}

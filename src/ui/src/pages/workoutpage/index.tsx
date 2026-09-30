@@ -17,6 +17,7 @@ import {
 import {ExerciseWithTags, NewWorkoutLog, UserTimeFormat, WorkoutLogWithSteps, WorkoutWithTags} from '../../api/types';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {GetErrorHandler} from '../../utils/error';
+import {FmtTagColor} from '../../utils/tags';
 import {AddExercisePanel, ExerciseEditPanel} from './exercise_panel';
 import {WorkoutBuilderPanel} from './workout_builder_panel';
 import {WorkoutEditPanel} from './workout_list';
@@ -52,7 +53,10 @@ export function WorkoutPage(state: BaseState) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
 
-    const tagColors = useMemo(() => new Map(state.tagColors.map((c) => [c.namespace, c.color])), [state.tagColors]);
+    const tagColors = useMemo(
+        () => new Map(state.tagColors.map((c) => [c.namespace, FmtTagColor(c.color) ?? c.color])),
+        [state.tagColors]
+    );
 
     useEffect(() => {
         Promise.all([ApiGetUserExercises(), ApiGetUserWorkouts(), ApiGetUserWorkoutLogs()])
@@ -236,7 +240,7 @@ export function WorkoutPage(state: BaseState) {
                         />
                     )}
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                         {workouts.length === 0 ? (
                             <div className="flex flex-col items-start gap-2">
                                 <p>No workouts have been created yet.</p>
@@ -279,7 +283,7 @@ export function WorkoutPage(state: BaseState) {
                         />
                     )}
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                         {exercises.length === 0 ? (
                             <p>No exercises have been created yet.</p>
                         ) : (
@@ -298,7 +302,7 @@ export function WorkoutPage(state: BaseState) {
             )}
 
             {tab === 'history' && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4">
                     {logs.length === 0 ? (
                         <p>No workouts have been logged yet.</p>
                     ) : (
