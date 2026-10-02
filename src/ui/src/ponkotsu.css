@@ -343,8 +343,8 @@
             not-disabled:not-aria-disabled:focus:inset-ring-0
             not-disabled:not-aria-disabled:focus-within:border-c-outline
             not-disabled:not-aria-disabled:focus-within:inset-ring-0
-            enabled:hover:bg-c-surface-container-1-hover
-            enabled:active:bg-c-surface-container-1-focus
+            not-disabled:not-aria-disabled:hover:bg-c-surface-container-1-hover
+            not-disabled:not-aria-disabled:active:bg-c-surface-container-1-focus
             std-focus!;
     }
 
@@ -516,3 +516,4 @@
         enabled:hover:bg-c-success-hover-tint
         enabled:active:bg-c-success-focus-tint;
 }
+
