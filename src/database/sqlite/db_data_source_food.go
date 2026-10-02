@@ -38,7 +38,7 @@ func (db *SqliteDatabase) LoadDataSourceFoodBySimilarNameN(
 	out *[]database.TblDataSourceFood,
 ) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	return db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
 
 		query := `
 		   SELECT * FROM PON_DATA_SOURCE_FOOD

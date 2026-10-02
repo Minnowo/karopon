@@ -39,7 +39,7 @@ func (db *PGDatabase) LoadDataSourceFoodBySimilarNameN(
 	out *[]database.TblDataSourceFood,
 ) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	return db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
 
 		// TODO: make this a setting or a parameter?
 		// Default is 0.3, which is decent, but you get 0 results searching for apples and simple stuff when the name is

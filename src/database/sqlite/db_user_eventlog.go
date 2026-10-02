@@ -98,7 +98,7 @@ func (db *SqliteDatabase) LoadUserEventFoodLog(
 	eventWithFood *database.UserEventFoodLog,
 ) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	return db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
 
 		var eventlog database.TblUserEventLog
 
@@ -137,7 +137,7 @@ func (db *SqliteDatabase) LoadUserEventFoodLogsN(
 	eventWithFood *[]database.UserEventFoodLog,
 ) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	return db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
 
 		var eventlogs []database.TblUserEventLog
 
@@ -185,7 +185,7 @@ func (db *SqliteDatabase) LoadUserEventFoodLogs(
 
 func (db *SqliteDatabase) LoadUserEventLogs(ctx context.Context, userID int, out *[]database.TblUserEventLog) error {
 
-	return db.WithTx(ctx, func(tx *sqlx.Tx) error {
+	return db.WithTxRead(ctx, func(tx *sqlx.Tx) error {
 		return db.LoadUserEventLogsTx(tx, userID, out)
 	})
 }
