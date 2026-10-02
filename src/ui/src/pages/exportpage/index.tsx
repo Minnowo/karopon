@@ -2,10 +2,23 @@ import {BaseState} from '../../state/basestate';
 import {DownloadData, GenerateEventTableText} from '../../utils/download';
 import {encodeCSVField} from '../../utils/csv';
 import {TblUserFood} from '../../api/types';
+import {ApiGetUserExercises, ApiGetUserWorkouts} from '../../api/api';
+import {ExerciseText, WorkoutText} from '../workoutpage/structure';
+import {useState} from 'preact/hooks';
+import {ErrorDiv} from '../../components/error_div';
+import {GetErrorHandler} from '../../utils/error';
+
+const downloadText = (text: string, filename: string) =>
+    DownloadData(new Blob([text], {type: 'text/plain; charset=utf-8'}), filename);
 
 export function DataExportPage(state: BaseState) {
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const handleErr = GetErrorHandler(setErrorMsg, state.doRefresh);
+
     return (
         <div className="flex flex-col gap-4">
+            <ErrorDiv errorMsg={errorMsg} />
+
             <section className="flex flex-col gap-2">
                 <h2>Event Export</h2>
                 <div className="flex flex-wrap gap-2">
@@ -60,6 +73,34 @@ export function DataExportPage(state: BaseState) {
                         }}
                     >
                         Export as JSON
+                    </button>
+                </div>
+            </section>
+
+            <section className="flex flex-col gap-2">
+                <h2>Workout Export</h2>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={() => {
+                            Promise.all([ApiGetUserWorkouts(), ApiGetUserExercises()])
+                                .then(([workouts, exercises]) =>
+                                    downloadText(workouts.map((w) => WorkoutText(w, exercises)).join('\n\n\n'), 'workouts.txt')
+                                )
+                                .catch(handleErr);
+                        }}
+                    >
+                        Export Workouts as Text
+                    </button>
+                    <button
+                        onClick={() => {
+                            ApiGetUserExercises()
+                                .then((exercises) =>
+                                    downloadText(exercises.map((e) => ExerciseText(e)).join('\n\n'), 'exercises.txt')
+                                )
+                                .catch(handleErr);
+                        }}
+                    >
+                        Export Exercises as Text
                     </button>
                 </div>
             </section>

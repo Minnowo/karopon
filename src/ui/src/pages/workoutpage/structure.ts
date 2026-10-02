@@ -1,4 +1,5 @@
-import {StepKind, TblUserTag} from '../../api/types';
+import {ExerciseWithTags, StepKind, TblUserTag, WorkoutWithTags} from '../../api/types';
+import {TagToString} from '../../utils/tags';
 
 export type WorkoutStep = {
     exercise_id: number;
@@ -95,4 +96,30 @@ export const TargetText = (kind: StepKind, t: Pick<WorkoutStep, 'seconds' | 'rep
         case 'distance':
             return `${t.distance} ${t.unit}`.trim();
     }
+};
+
+const tagsLine = (tags: TblUserTag[]): string | null => (tags.length > 0 ? `Tags: ${tags.map(TagToString).join(', ')}` : null);
+
+export const ExerciseText = ({exercise, tags}: ExerciseWithTags): string =>
+    [exercise.name, tagsLine(tags), exercise.note ? `Note: ${exercise.note}` : null].filter((x) => x !== null).join('\n');
+
+export const WorkoutText = ({workout, tags}: WorkoutWithTags, exercises: ExerciseWithTags[]): string => {
+    const exMap = new Map(exercises.map((e) => [e.exercise.id, e]));
+    const s = ParseStructure(workout.structure);
+
+    const lines = [workout.name, tagsLine(tags), workout.note ? `Note: ${workout.note}` : null].filter((x) => x !== null);
+
+    s.sets.forEach((set, i) => {
+        lines.push('', `${set.name || `Set ${i + 1}`}${set.rounds > 1 ? ` (x${set.rounds})` : ''}`);
+        const setTags = tagsLine(set.tags);
+        if (setTags) {
+            lines.push(setTags);
+        }
+        for (const st of set.steps) {
+            const ex = exMap.get(st.exercise_id);
+            lines.push(`  ${ex ? ex.exercise.name : '(deleted exercise)'} - ${TargetText(st.kind, st)}`);
+        }
+    });
+
+    return lines.join('\n');
 };

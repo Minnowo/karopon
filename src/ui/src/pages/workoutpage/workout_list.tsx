@@ -2,7 +2,7 @@ import {Dispatch, StateUpdater, useMemo, useState} from 'preact/hooks';
 import {ExerciseWithTags, WorkoutWithTags} from '../../api/types';
 import {TagChip} from '../../components/tag_chip';
 import {DropdownButton} from '../../components/drop_down_button';
-import {ParseStructure} from './structure';
+import {ParseStructure, WorkoutText} from './structure';
 import {StructureSummary, WorkoutBuilderPanel} from './workout_builder_panel';
 
 type WorkoutEditPanelProps = {
@@ -62,6 +62,10 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
             <DropdownButton
                 actions={[
                     {label: 'Edit', onClick: () => setShowEdit(true)},
+                    {
+                        label: 'Copy as Text',
+                        onClick: () => void navigator.clipboard.writeText(WorkoutText(p.workout, p.exercises)),
+                    },
                     {label: 'Delete', dangerous: true, onClick: () => p.deleteWorkout(p.workout)},
                 ]}
             />

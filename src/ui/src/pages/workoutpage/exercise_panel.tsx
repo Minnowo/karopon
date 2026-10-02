@@ -4,6 +4,7 @@ import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
 import {ErrorDiv} from '../../components/error_div';
 import {DropdownButton} from '../../components/drop_down_button';
+import {ExerciseText} from './structure';
 
 type TagProps = {
     namespaces: string[];
@@ -147,6 +148,7 @@ export function ExerciseEditPanel({
             <DropdownButton
                 actions={[
                     {label: 'Edit', onClick: () => setShowEdit(true)},
+                    {label: 'Copy as Text', onClick: () => void navigator.clipboard.writeText(ExerciseText(exercise))},
                     {label: 'Delete', dangerous: true, onClick: () => deleteExercise(exercise)},
                 ]}
             />
