@@ -98,7 +98,8 @@ func testWorkoutCRUD(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	assert.Empty(t, out)
 }
 
-// newTestWorkoutLog has a tagged timed step split by a pause, an untagged timed step, and a skipped reps step.
+// newTestWorkoutLog has a tagged timed step split by a pause, an untagged timed step, a skipped reps step,
+// and a second round of the tagged step with its tags in a different order.
 func newTestWorkoutLog(userID int, workoutID, exerciseID *int) *database.NewWorkoutLog {
 	return &database.NewWorkoutLog{
 		WorkoutLog: database.TblUserWorkoutLog{
@@ -145,6 +146,23 @@ func newTestWorkoutLog(userID int, workoutID, exerciseID *int) *database.NewWork
 					Unit:         "kg",
 				},
 			},
+			{
+				Step: database.TblUserWorkoutStepLog{
+					ExerciseID:    exerciseID,
+					Name:          "Jacks",
+					Kind:          database.StepKindTimed,
+					SetNumber:     1,
+					Round:         2,
+					Step:          1,
+					TargetSeconds: 20,
+				},
+				Segments: []database.TimeSegment{{StartTime: ms(1_040_000), StopTime: ms(1_050_000)}},
+				Tags: []database.TblUserTag{
+					{Namespace: "cardio", Name: "jumping_jack"},
+					{Namespace: "workout", Name: "legs"},
+					{Namespace: "legs", Name: "cardio"},
+				},
+			},
 		},
 	}
 }
@@ -176,10 +194,10 @@ func testWorkoutLogLifecycle(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex
 	require.NoError(t, err)
 	require.NotZero(t, logID)
 
-	// One timespan per segment of the tagged step, none for the others.
+	// One timespan summing every step with the same tags, none for the untagged steps.
 	var spans []database.TaggedTimespan
 	require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &spans))
-	require.Len(t, spans, 3)
+	require.Len(t, spans, 2)
 
 	var workoutSpans []database.TaggedTimespan
 	for _, s := range spans {
@@ -187,20 +205,14 @@ func testWorkoutLogLifecycle(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex
 			workoutSpans = append(workoutSpans, s)
 		}
 	}
-	require.Len(t, workoutSpans, 2)
+	require.Len(t, workoutSpans, 1)
 	assert.ElementsMatch(
 		t,
 		[]string{"workout:legs", "legs:cardio", "cardio:jumping_jack"},
 		tagNames(workoutSpans[0].Tags),
 	)
-	assert.ElementsMatch(
-		t,
-		[]int64{1_000_000, 1_008_000},
-		[]int64{
-			workoutSpans[0].Timespan.StartTime.Time().UnixMilli(),
-			workoutSpans[1].Timespan.StartTime.Time().UnixMilli(),
-		},
-	)
+	assert.Equal(t, int64(1_000_000), workoutSpans[0].Timespan.StartTime.Time().UnixMilli())
+	assert.Equal(t, int64(1_030_000), workoutSpans[0].Timespan.StopTime.Time().UnixMilli())
 	assert.Nil(t, workoutSpans[0].Timespan.Note)
 
 	var logs []database.WorkoutLogWithSteps
@@ -220,11 +232,11 @@ func testWorkoutLogLifecycle(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex
 	assert.Equal(t, logs[0], single)
 
 	steps := logs[0].Steps
-	require.Len(t, steps, 3)
+	require.Len(t, steps, 4)
 	assert.Equal(
 		t,
-		[]string{"Jacks", "Rest", "Squat"},
-		[]string{steps[0].Name, steps[1].Name, steps[2].Name},
+		[]string{"Jacks", "Rest", "Squat", "Jacks"},
+		[]string{steps[0].Name, steps[1].Name, steps[2].Name, steps[3].Name},
 	)
 	// Actual seconds is the sum of the segments, and 0 for the skipped step.
 	assert.Equal(t, []int{20, 10, 0}, []int{steps[0].ActualSeconds, steps[1].ActualSeconds, steps[2].ActualSeconds})
@@ -248,7 +260,7 @@ func testWorkoutLogLifecycle(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex
 	assert.Equal(t, "Squat", logs[0].Steps[2].Name)
 
 	require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &spans))
-	assert.Len(t, spans, 3)
+	assert.Len(t, spans, 2)
 
 	// Deleting the exercise and workout keeps the log with null IDs.
 	require.NoError(t, db.DeleteUserExercise(ctx, userID, exID))
@@ -294,7 +306,7 @@ func testWorkoutLogLimitAndMissingRefs(t *testing.T, newTestDB NewTestDB, lock *
 	assert.Nil(t, logs[0].Steps[0].ExerciseID)
 
 	for _, l := range logs {
-		assert.Len(t, l.Steps, 3)
+		assert.Len(t, l.Steps, 4)
 	}
 }
 
@@ -367,7 +379,7 @@ func testWorkoutUserScoping(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 
 	var spans []database.TaggedTimespan
 	require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &spans))
-	assert.Len(t, spans, 2)
+	assert.Len(t, spans, 1)
 }
 
 func testWorkoutTagMergeAndDelete(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

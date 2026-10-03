@@ -197,7 +197,7 @@ type WorkoutLogWithSteps struct {
 
 // NewWorkoutLogStep is a step to save with its start/stop segments, in the order they happened.
 // The segments set the step's ActualSeconds and are not stored.
-// One timespan is created per segment with Tags, none when Tags is empty.
+// Steps with the same Tags share one timespan, see GroupWorkoutTimespans.
 type NewWorkoutLogStep struct {
 	Step     TblUserWorkoutStepLog `json:"step"`
 	Segments []TimeSegment         `json:"segments"`

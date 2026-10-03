@@ -362,13 +362,38 @@ func (db *PGDatabase) AddUserWorkoutLog(ctx context.Context, log *database.NewWo
 			}
 		}
 
+		for _, ts := range database.GroupWorkoutTimespans(userID, log.Steps) {
+
+			query = `
+				INSERT INTO PON.USER_TIMESPAN (USER_ID, START_TIME, STOP_TIME, NOTE)
+				VALUES (:user_id, :start_time, :stop_time, :note)
+				RETURNING ID
+			`
+
+			tsID, err := db.NamedInsertReturningIDTx(tx, query, &ts.Timespan)
+
+			if err != nil {
+				return err
+			}
+
+			if err := db.SetUserTimespanTagsTx(tx, userID, tsID, ts.Tags); err != nil {
+				return err
+			}
+
+			query = `INSERT INTO PON.USER_WORKOUTLOG_TIMESPAN (WORKOUTLOG_ID, TIMESPAN_ID) VALUES ($1, $2)`
+
+			if _, err := tx.Exec(query, id, tsID); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
 	return workoutlogID, err
 }
 
-// addWorkoutLogStepTx inserts one step of a workout log, and a timespan per segment when the step has tags.
+// addWorkoutLogStepTx inserts one step of a workout log.
 func (db *PGDatabase) addWorkoutLogStepTx(tx *sqlx.Tx, userID, workoutlogID int, s database.NewWorkoutLogStep) error {
 
 	step := s.Step
@@ -405,36 +430,6 @@ func (db *PGDatabase) addWorkoutLogStepTx(tx *sqlx.Tx, userID, workoutlogID int,
 		return err
 	}
 
-	if len(s.Tags) == 0 {
-		return nil
-	}
-
-	for _, seg := range s.Segments {
-
-		ts := database.TblUserTimespan{UserID: userID, StartTime: seg.StartTime, StopTime: seg.StopTime}
-
-		query = `
-			INSERT INTO PON.USER_TIMESPAN (USER_ID, START_TIME, STOP_TIME, NOTE)
-			VALUES (:user_id, :start_time, :stop_time, :note)
-			RETURNING ID
-		`
-
-		tsID, err := db.NamedInsertReturningIDTx(tx, query, &ts)
-
-		if err != nil {
-			return err
-		}
-
-		if err := db.SetUserTimespanTagsTx(tx, userID, tsID, s.Tags); err != nil {
-			return err
-		}
-
-		query = `INSERT INTO PON.USER_WORKOUTLOG_TIMESPAN (WORKOUTLOG_ID, TIMESPAN_ID) VALUES ($1, $2)`
-
-		if _, err := tx.Exec(query, workoutlogID, tsID); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
