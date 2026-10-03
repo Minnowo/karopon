@@ -39,6 +39,7 @@ export const AddSampleWorkout = async (
                 name: 'Tabata',
                 tags: [{namespace: 'sample_tabata', name: 'cardio'}],
                 rounds: 8,
+                betweenRoundsSeconds: 0,
                 steps: [
                     {exercise_id: jacks.exercise.id, kind: 'timed', seconds: 20, reps: 0, weight: 0, distance: 0, unit: ''},
                     {exercise_id: rest.exercise.id, kind: 'timed', seconds: 10, reps: 0, weight: 0, distance: 0, unit: ''},

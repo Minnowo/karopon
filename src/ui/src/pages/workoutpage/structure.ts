@@ -15,6 +15,7 @@ export type WorkoutSet = {
     name: string;
     tags: TblUserTag[];
     rounds: number;
+    betweenRoundsSeconds: number;
     steps: WorkoutStep[];
 };
 
@@ -69,13 +70,17 @@ export const NewWorkoutStep = (exerciseID: number): WorkoutStep => ({
     unit: '',
 });
 
-export const NewWorkoutSet = (): WorkoutSet => ({name: '', tags: [], rounds: 1, steps: []});
+export const NewWorkoutSet = (): WorkoutSet => ({name: '', tags: [], rounds: 1, betweenRoundsSeconds: 0, steps: []});
 
 export const ParseStructure = (s: string): WorkoutStructure => {
     try {
         const parsed = JSON.parse(s) as WorkoutStructure;
         if (parsed && Array.isArray(parsed.sets)) {
-            return {...parsed, cues: {...DEFAULT_CUES, ...parsed.cues}};
+            return {
+                ...parsed,
+                sets: parsed.sets.map((b) => ({...NewWorkoutSet(), ...b})),
+                cues: {...DEFAULT_CUES, ...parsed.cues},
+            };
         }
     } catch {
         // fall through

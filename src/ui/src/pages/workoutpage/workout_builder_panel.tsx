@@ -52,6 +52,9 @@ export const StructureSummary = (s: WorkoutStructure): string => {
             ms += s.cues.betweenSetsSeconds * 1000;
         }
         steps += b.rounds * b.steps.length;
+        if (b.steps.length > 0) {
+            ms += (b.rounds - 1) * b.betweenRoundsSeconds * 1000;
+        }
         for (const st of b.steps) {
             if (st.kind === 'timed') {
                 ms += b.rounds * st.seconds * 1000;
@@ -269,6 +272,17 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                         precision={0}
                         value={b.rounds}
                         onValueChange={(v) => updateSet(setIdx, (x) => ({...x, rounds: v}))}
+                    />
+                </label>
+                <label className="flex flex-col gap-1">
+                    Time between rounds (seconds)
+                    <NumberInput
+                        className="self-start"
+                        min={0}
+                        precision={0}
+                        value={b.betweenRoundsSeconds}
+                        disabled={b.rounds < 2}
+                        onValueChange={(v) => updateSet(setIdx, (x) => ({...x, betweenRoundsSeconds: v}))}
                     />
                 </label>
             </div>

@@ -163,7 +163,9 @@ export function Runner(p: RunnerProps) {
                 {st.between
                     ? run.index === 0
                         ? 'Get ready'
-                        : 'Next set'
+                        : st.round < 0
+                          ? 'Next set'
+                          : st.set_name || `Set ${st.set + 1}`
                     : `${st.set_name || `Set ${st.set + 1}`} - Round ${st.round + 1} of ${st.rounds}`}
             </p>
 
@@ -252,6 +254,7 @@ export function Runner(p: RunnerProps) {
                     if (x.between || x.round !== shownRound(x.set)) {
                         return null;
                     }
+                    const prev = run.steps[i - 1];
                     const pr = run.progress[i];
                     const status =
                         i === run.index
@@ -263,7 +266,7 @@ export function Runner(p: RunnerProps) {
                                 : '';
                     return (
                         <Fragment key={i}>
-                            {run.steps[i - 1]?.set !== x.set || run.steps[i - 1]?.round !== x.round ? (
+                            {!prev || prev.between || prev.set !== x.set || prev.round !== x.round ? (
                                 <h4 className={`px-2 ${x.set !== run.steps[0].set ? 'pt-3' : ''}`}>
                                     {x.set_name || `Set ${x.set + 1}`}
                                     {x.rounds > 1 ? ` (${x.round + 1}/${x.rounds})` : ''}

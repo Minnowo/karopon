@@ -13,7 +13,8 @@ export type RunStep = {
     // Tags for the timespan, empty when the step should not create one.
     tags: TblUserTag[];
     target: WorkoutStep;
-    // Wait between sets, not part of the workout and not logged.
+    // Wait before a set or round, not part of the workout and not logged.
+    // Waits before a set have round -1.
     between: boolean;
 };
 
@@ -63,13 +64,13 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
     const steps: RunStep[] = [];
     const structure = ParseStructure(w.workout.structure);
 
-    const gap = (b: WorkoutSet, setIdx: number, seconds: number): RunStep => ({
+    const gap = (b: WorkoutSet, setIdx: number, round: number, seconds: number): RunStep => ({
         exercise_id: 0,
-        name: b.name || `Set ${setIdx + 1}`,
+        name: round < 0 ? b.name || `Set ${setIdx + 1}` : `Round ${round + 1} of ${b.rounds}`,
         kind: 'timed',
         set: setIdx,
         set_name: b.name,
-        round: -1,
+        round,
         rounds: b.rounds,
         step: -1,
         tags: [],
@@ -80,6 +81,9 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
     structure.sets.forEach((b, setIdx) => {
         const setStart = steps.length;
         for (let round = 0; round < b.rounds; round++) {
+            if (round > 0 && b.betweenRoundsSeconds > 0 && steps.length > setStart) {
+                steps.push(gap(b, setIdx, round, b.betweenRoundsSeconds));
+            }
             b.steps.forEach((st, stepIdx) => {
                 const ex = exMap.get(st.exercise_id);
                 if (!ex) {
@@ -105,9 +109,9 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
             return;
         }
         if (setStart === 0) {
-            steps.unshift(gap(b, setIdx, LEAD_IN_SECONDS));
+            steps.unshift(gap(b, setIdx, -1, LEAD_IN_SECONDS));
         } else if (structure.cues.betweenSetsSeconds > 0) {
-            steps.splice(setStart, 0, gap(b, setIdx, structure.cues.betweenSetsSeconds));
+            steps.splice(setStart, 0, gap(b, setIdx, -1, structure.cues.betweenSetsSeconds));
         }
     });
 
@@ -232,7 +236,8 @@ export const CueEvents = (prev: RunState, next: RunState, prevNow: number, now: 
     if (next.index !== prev.index) {
         const step = next.steps[next.index];
         const before = next.index > prev.index ? next.steps[next.index - 1] : undefined;
-        const crossed = before !== undefined && (before.set !== step.set || before.between !== step.between);
+        const setGap = (x: RunStep) => x.between && x.round < 0;
+        const crossed = before !== undefined && (before.set !== step.set || setGap(before) || setGap(step));
         return [
             {
                 type: 'step',
