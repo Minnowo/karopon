@@ -6,6 +6,9 @@ import {CueSettings} from './structure';
 // e.g. "Push-ups, 12 reps" or "Squat, 8 reps, 60 kg".
 const spokenStep = (st: RunStep): string => {
     const t = st.target;
+    if (st.between) {
+        return `${st.name} starts in ${t.seconds} seconds`;
+    }
     switch (st.kind) {
         case 'timed':
             return `${st.name}, ${t.seconds} seconds`;
@@ -17,6 +20,8 @@ const spokenStep = (st: RunStep): string => {
             return `${st.name}, ${t.distance} ${t.unit}`.trim();
     }
 };
+
+const setName = (st: RunStep): string => st.set_name || `Set ${st.set + 1}`;
 
 // interrupt drops anything still being said, so the new line is on time.
 const speak = (text: string, interrupt: boolean): void => {
@@ -52,19 +57,47 @@ export const Cue = (e: CueEvent, cues: CueSettings): void => {
             }
             break;
         case 'start':
-        case 'step':
+        case 'step': {
             if (cues.beeps) {
                 PlayReminderSound('chime');
             }
+            const lines: string[] = [];
+            if (e.type === 'start' && cues.sayStep) {
+                lines.push('Workout begin');
+            }
+            if (e.type === 'step' && e.setEnded && cues.saySetEnd) {
+                lines.push(`${setName(e.setEnded)} complete`);
+            }
+            if (e.type === 'step' && e.setStarted && cues.saySetStart) {
+                lines.push(`Starting ${setName(e.step)}`);
+            }
             if (cues.sayStep) {
-                speak(spokenStep(e.step), true);
+                lines.push(spokenStep(e.step));
+            }
+            if (e.step.between && e.next && cues.sayNext) {
+                lines.push(`Next, ${e.next.name}`);
+            }
+            if (lines.length > 0) {
+                speak(lines.join('. '), true);
             }
             break;
-        case 'done':
+        }
+        case 'done': {
             if (cues.beeps) {
                 PlayReminderSound('ding');
             }
+            const lines: string[] = [];
+            if (cues.saySetEnd) {
+                lines.push(`${setName(e.last)} complete`);
+            }
+            if (cues.sayDone) {
+                lines.push('Workout complete');
+            }
+            if (lines.length > 0) {
+                speak(lines.join('. '), true);
+            }
             break;
+        }
     }
 };
 

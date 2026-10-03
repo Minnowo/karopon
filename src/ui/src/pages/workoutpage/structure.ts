@@ -21,13 +21,28 @@ export type WorkoutSet = {
 // What the runner plays for this workout.
 export type CueSettings = {
     beeps: boolean;
-    // Voice: the exercise as each step starts, the next exercise 5 seconds before, and 3, 2, 1.
     sayStep: boolean;
     sayNext: boolean;
+    nextSeconds: number;
     sayCountdown: boolean;
+    saySetStart: boolean;
+    saySetEnd: boolean;
+    sayDone: boolean;
+    // Wait between sets, 0 for none.
+    betweenSetsSeconds: number;
 };
 
-export const DEFAULT_CUES: CueSettings = {beeps: true, sayStep: true, sayNext: true, sayCountdown: true};
+export const DEFAULT_CUES: CueSettings = {
+    beeps: true,
+    sayStep: true,
+    sayNext: true,
+    nextSeconds: 5,
+    sayCountdown: true,
+    saySetStart: false,
+    saySetEnd: false,
+    sayDone: false,
+    betweenSetsSeconds: 0,
+};
 
 export type WorkoutStructure = {
     v: 1;

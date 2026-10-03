@@ -48,6 +48,9 @@ export const StructureSummary = (s: WorkoutStructure): string => {
     let ms = 0;
     let steps = 0;
     for (const b of s.sets) {
+        if (steps > 0 && b.steps.length > 0) {
+            ms += s.cues.betweenSetsSeconds * 1000;
+        }
         steps += b.rounds * b.steps.length;
         for (const st of b.steps) {
             if (st.kind === 'timed') {
@@ -58,11 +61,16 @@ export const StructureSummary = (s: WorkoutStructure): string => {
     return `${steps} steps, ${FormatDuration(ms)} timed`;
 };
 
-const CUE_OPTIONS: Array<{key: keyof CueSettings; label: string}> = [
+type BoolCue = {[K in keyof CueSettings]: CueSettings[K] extends boolean ? K : never}[keyof CueSettings];
+
+const CUE_OPTIONS: Array<{key: BoolCue; label: string}> = [
     {key: 'beeps', label: 'Beeps'},
     {key: 'sayStep', label: 'Say each exercise as it starts'},
-    {key: 'sayNext', label: 'Say the next exercise 5 seconds before'},
+    {key: 'sayNext', label: 'Say the next exercise before it starts'},
     {key: 'sayCountdown', label: 'Count down 3, 2, 1'},
+    {key: 'saySetStart', label: 'Say when a set starts'},
+    {key: 'saySetEnd', label: 'Say when a set completes'},
+    {key: 'sayDone', label: 'Say when the workout is complete'},
 ];
 
 export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
@@ -432,6 +440,27 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                             <span>{o.label}</span>
                         </label>
                     ))}
+                    <label className="flex flex-wrap items-center gap-2">
+                        Say the next exercise
+                        <NumberInput
+                            min={1}
+                            precision={0}
+                            value={structure.cues.nextSeconds}
+                            disabled={!structure.cues.sayNext}
+                            onValueChange={(v) => setStructure((s) => ({...s, cues: {...s.cues, nextSeconds: v}}))}
+                        />
+                        seconds before
+                    </label>
+                    <label className="flex flex-wrap items-center gap-2">
+                        Time between sets
+                        <NumberInput
+                            min={0}
+                            precision={0}
+                            value={structure.cues.betweenSetsSeconds}
+                            onValueChange={(v) => setStructure((s) => ({...s, cues: {...s.cues, betweenSetsSeconds: v}}))}
+                        />
+                        seconds
+                    </label>
                 </div>
 
                 {structure.sets.map(renderSet)}

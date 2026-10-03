@@ -1,5 +1,5 @@
 import {StepKind, ExerciseWithTags, NewWorkoutLog, TblUserTag, TimeSegment, WorkoutWithTags} from '../../api/types';
-import {CueSettings, ParseStructure, StepTags, WorkoutStep} from './structure';
+import {CueSettings, NewWorkoutStep, ParseStructure, StepTags, WorkoutSet, WorkoutStep} from './structure';
 
 export type RunStep = {
     exercise_id: number;
@@ -13,6 +13,8 @@ export type RunStep = {
     // Tags for the timespan, empty when the step should not create one.
     tags: TblUserTag[];
     target: WorkoutStep;
+    // Wait between sets, not part of the workout and not logged.
+    between: boolean;
 };
 
 export type StepProgress = {
@@ -41,18 +43,19 @@ export type RunState = {
     // Set when the run is over and the summary is showing.
     finished_at: number | null;
     completed: boolean;
+    // Opened but not started yet.
+    waiting: boolean;
     cues: CueSettings;
 };
 
-// How long before a timed step ends the next step is announced.
-const NEXT_CUE_MS = 5000;
+const LEAD_IN_SECONDS = 10;
 
 export type CueEvent =
-    | {type: 'start'; step: RunStep}
+    | {type: 'start'; step: RunStep; next: RunStep | null}
     | {type: 'next'; step: RunStep; next: RunStep}
     | {type: 'countdown'; step: RunStep; secondsLeft: 3 | 2 | 1}
-    | {type: 'step'; step: RunStep; next: RunStep | null}
-    | {type: 'done'};
+    | {type: 'step'; step: RunStep; next: RunStep | null; setEnded: RunStep | null; setStarted: boolean}
+    | {type: 'done'; last: RunStep};
 
 // Returns null when the workout has no runnable steps.
 export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now: number): RunState | null => {
@@ -60,7 +63,22 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
     const steps: RunStep[] = [];
     const structure = ParseStructure(w.workout.structure);
 
+    const gap = (b: WorkoutSet, setIdx: number, seconds: number): RunStep => ({
+        exercise_id: 0,
+        name: b.name || `Set ${setIdx + 1}`,
+        kind: 'timed',
+        set: setIdx,
+        set_name: b.name,
+        round: -1,
+        rounds: b.rounds,
+        step: -1,
+        tags: [],
+        target: {...NewWorkoutStep(0), seconds},
+        between: true,
+    });
+
     structure.sets.forEach((b, setIdx) => {
+        const setStart = steps.length;
         for (let round = 0; round < b.rounds; round++) {
             b.steps.forEach((st, stepIdx) => {
                 const ex = exMap.get(st.exercise_id);
@@ -79,8 +97,17 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
                     step: stepIdx,
                     tags: recordTime ? StepTags(w.tags, b.tags, ex.tags) : [],
                     target: st,
+                    between: false,
                 });
             });
+        }
+        if (steps.length === setStart) {
+            return;
+        }
+        if (setStart === 0) {
+            steps.unshift(gap(b, setIdx, LEAD_IN_SECONDS));
+        } else if (structure.cues.betweenSetsSeconds > 0) {
+            steps.splice(setStart, 0, gap(b, setIdx, structure.cues.betweenSetsSeconds));
         }
     });
 
@@ -94,14 +121,15 @@ export const StartRun = (w: WorkoutWithTags, exercises: ExerciseWithTags[], now:
         steps,
         index: 0,
         started_at: now,
-        paused_at: null,
         paused_ms: 0,
         furthest: 0,
         current: [],
-        segment_start: now,
+        segment_start: null,
+        paused_at: now,
         progress: steps.map(() => ({segments: [], actual_reps: 0, actual_weight: 0, actual_distance: 0})),
         finished_at: null,
         completed: false,
+        waiting: true,
         cues: structure.cues,
     };
 };
@@ -134,6 +162,15 @@ const enterStep = (s: RunState, i: number, now: number): RunState => {
         segment_start: s.paused_at === null ? now : null,
     };
 };
+
+export const Begin = (s: RunState, now: number): RunState => ({
+    ...s,
+    waiting: false,
+    started_at: now,
+    paused_at: null,
+    paused_ms: 0,
+    segment_start: now,
+});
 
 export const Pause = (s: RunState, now: number): RunState =>
     s.paused_at !== null ? s : {...s, current: closeSegment(s, now), segment_start: null, paused_at: now};
@@ -188,28 +225,44 @@ export const Tick = (s: RunState, now: number): RunState => {
 };
 
 // Sound cues for moving from prev at prevNow to next at now.
-export const CueEvents = (prev: RunState, next: RunState, prevNow: number, now: number): CueEvent[] => {
+export const CueEvents = (prev: RunState, next: RunState, prevNow: number, now: number, nextCueMs: number): CueEvent[] => {
     if (next.finished_at !== null) {
-        return prev.finished_at === null && next.completed ? [{type: 'done'}] : [];
+        return prev.finished_at === null && next.completed ? [{type: 'done', last: next.steps[next.steps.length - 1]}] : [];
     }
     if (next.index !== prev.index) {
-        return [{type: 'step', step: next.steps[next.index], next: next.steps[next.index + 1] ?? null}];
+        const step = next.steps[next.index];
+        const before = next.index > prev.index ? next.steps[next.index - 1] : undefined;
+        const crossed = before !== undefined && (before.set !== step.set || before.between !== step.between);
+        return [
+            {
+                type: 'step',
+                step,
+                next: next.steps[next.index + 1] ?? null,
+                setEnded: crossed && !before.between ? before : null,
+                setStarted: crossed && !step.between,
+            },
+        ];
     }
     const before = StepRemaining(prev, prevNow);
     const after = StepRemaining(next, now);
     if (before === null || after === null) {
         return [];
     }
+    const events: CueEvent[] = [];
     const upcoming = next.steps[next.index + 1];
-    if (upcoming && before > NEXT_CUE_MS && after <= NEXT_CUE_MS) {
-        return [{type: 'next', step: next.steps[next.index], next: upcoming}];
+    const step = next.steps[next.index];
+    // Steps shorter than the cue time get it at their midpoint.
+    const cueAt = Math.min(nextCueMs, (step.target.seconds * 1000) / 2);
+    if (upcoming && !step.between && before > cueAt && after <= cueAt) {
+        events.push({type: 'next', step: next.steps[next.index], next: upcoming});
     }
     for (const n of [3, 2, 1] as const) {
         if (before > n * 1000 && after <= n * 1000) {
-            return [{type: 'countdown', step: next.steps[next.index], secondsLeft: n}];
+            events.push({type: 'countdown', step: next.steps[next.index], secondsLeft: n});
+            break;
         }
     }
-    return [];
+    return events;
 };
 
 export const BuildWorkoutLog = (s: RunState, note: string): NewWorkoutLog => ({
@@ -225,7 +278,10 @@ export const BuildWorkoutLog = (s: RunState, note: string): NewWorkoutLog => ({
         completed: s.completed,
         note,
     },
-    steps: s.steps.slice(0, s.furthest + 1).map((st, i) => {
+    steps: s.steps.slice(0, s.furthest + 1).flatMap((st, i) => {
+        if (st.between) {
+            return [];
+        }
         const p = s.progress[i];
         return {
             step: {

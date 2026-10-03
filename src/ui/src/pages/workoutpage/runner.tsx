@@ -1,13 +1,16 @@
+import {Fragment} from 'preact';
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {StepKind, NewWorkoutLog} from '../../api/types';
 import {TagChip} from '../../components/tag_chip';
 import {NumberInput} from '../../components/number_input';
 import {FormatDuration} from '../../utils/time';
+import {UnlockAudioContext} from '../../utils/sound';
 import {DEFAULT_CUES, TargetText} from './structure';
 import {Cue, StopSpeaking, useWakeLock} from './cues';
 import {
     Actuals,
     Back,
+    Begin,
     BuildWorkoutLog,
     CompleteStep,
     CueEvents,
@@ -102,7 +105,7 @@ export function Runner(p: RunnerProps) {
     }, [running]);
 
     const apply = (next: RunState, at: number) => {
-        CueEvents(last.current.run, next, last.current.now, at).forEach((e) => Cue(e, cues));
+        CueEvents(last.current.run, next, last.current.now, at, cues.nextSeconds * 1000).forEach((e) => Cue(e, cues));
         last.current = {run: next, now: at};
         if (next !== run) {
             p.setRun(next);
@@ -122,6 +125,13 @@ export function Runner(p: RunnerProps) {
         apply(fn(Tick(run, at), at), at);
     };
 
+    const begin = () => {
+        // Inside the click, since some browsers only allow audio and speech after a user gesture.
+        UnlockAudioContext();
+        act(Begin);
+        Cue({type: 'start', step: run.steps[0], next: run.steps[1] ?? null}, cues);
+    };
+
     const discard = () => {
         if (confirm('Discard this workout? Nothing will be saved.')) {
             p.onDiscard();
@@ -136,6 +146,9 @@ export function Runner(p: RunnerProps) {
     const next = run.steps[run.index + 1];
     const remaining = StepRemaining(run, now);
     const paused = run.paused_at !== null;
+    // Each set is listed once, at the round it is on: done sets at their last, upcoming sets at their first.
+    const shownRound = (set: number) =>
+        set < st.set ? run.steps.find((x) => x.set === set)!.rounds - 1 : set === st.set ? Math.max(0, st.round) : 0;
 
     return (
         <div className="surface-1 flex flex-col items-center gap-4 text-center">
@@ -147,7 +160,11 @@ export function Runner(p: RunnerProps) {
             </div>
 
             <p>
-                {st.set_name || `Set ${st.set + 1}`} - Round {st.round + 1} of {st.rounds}
+                {st.between
+                    ? run.index === 0
+                        ? 'Get ready'
+                        : 'Next set'
+                    : `${st.set_name || `Set ${st.set + 1}`} - Round ${st.round + 1} of ${st.rounds}`}
             </p>
 
             <h1>{st.name}</h1>
@@ -169,7 +186,7 @@ export function Runner(p: RunnerProps) {
                 </>
             )}
 
-            {paused && <strong>Paused</strong>}
+            {paused && !run.waiting && <strong>Paused</strong>}
 
             {doneInput !== null ? (
                 <div className="flex flex-col items-center gap-2">
@@ -200,13 +217,19 @@ export function Runner(p: RunnerProps) {
 
             <small>{next ? `Next: ${stepTitle(next)}` : 'Last step'}</small>
 
-            <div className="flex flex-wrap justify-center gap-2">
-                <button disabled={run.index === 0} onClick={() => act(Back)}>
-                    Back
+            {run.waiting ? (
+                <button className="btn-success text-xl px-8" onClick={begin}>
+                    Start
                 </button>
-                <button onClick={() => act(paused ? Resume : Pause)}>{paused ? 'Resume' : 'Pause'}</button>
-                <button onClick={() => act(Skip)}>Skip</button>
-            </div>
+            ) : (
+                <div className="flex flex-wrap justify-center gap-2">
+                    <button disabled={run.index === 0} onClick={() => act(Back)}>
+                        Back
+                    </button>
+                    <button onClick={() => act(paused ? Resume : Pause)}>{paused ? 'Resume' : 'Pause'}</button>
+                    <button onClick={() => act(Skip)}>Skip</button>
+                </div>
+            )}
 
             <div className="flex flex-wrap justify-center gap-2">
                 <button className="btn-outlined-error" onClick={discard}>
@@ -226,7 +249,7 @@ export function Runner(p: RunnerProps) {
 
             <div className="w-full surface-2 flex flex-col text-left">
                 {run.steps.map((x, i) => {
-                    if (x.set !== st.set || x.round !== st.round) {
+                    if (x.between || x.round !== shownRound(x.set)) {
                         return null;
                     }
                     const pr = run.progress[i];
@@ -239,13 +262,20 @@ export function Runner(p: RunnerProps) {
                                 ? 'skipped'
                                 : '';
                     return (
-                        <div
-                            key={i}
-                            className={`flex justify-between gap-2 px-2 py-1 rounded-sm ${i === run.index ? 'bg-c-surface-container-4' : ''}`}
-                        >
-                            <span>{i === run.index ? <strong>{stepTitle(x)}</strong> : stepTitle(x)}</span>
-                            <small>{status}</small>
-                        </div>
+                        <Fragment key={i}>
+                            {run.steps[i - 1]?.set !== x.set || run.steps[i - 1]?.round !== x.round ? (
+                                <h4 className={`px-2 ${x.set !== run.steps[0].set ? 'pt-3' : ''}`}>
+                                    {x.set_name || `Set ${x.set + 1}`}
+                                    {x.rounds > 1 ? ` (${x.round + 1}/${x.rounds})` : ''}
+                                </h4>
+                            ) : null}
+                            <div
+                                className={`flex justify-between gap-2 px-2 py-1 rounded-sm ${i === run.index ? 'bg-c-surface-container-4' : ''}`}
+                            >
+                                <span>{i === run.index ? <strong>{stepTitle(x)}</strong> : stepTitle(x)}</span>
+                                <small>{status}</small>
+                            </div>
+                        </Fragment>
                     );
                 })}
             </div>
@@ -258,7 +288,8 @@ function RunSummary(p: RunnerProps) {
     const [note, setNote] = useState<string>('');
 
     const shown = run.steps.slice(0, run.furthest + 1);
-    const done = shown.filter((_, i) => run.progress[i].segments.length > 0).length;
+    const done = shown.filter((st, i) => !st.between && run.progress[i].segments.length > 0).length;
+    const total = shown.filter((st) => !st.between).length;
     const activeMs = (run.finished_at ?? run.started_at) - run.started_at - run.paused_ms;
 
     const setActuals = (i: number, a: Actuals) => {
@@ -272,13 +303,16 @@ function RunSummary(p: RunnerProps) {
             <div>
                 <h1>{run.completed ? 'Workout complete' : 'Workout ended early'}</h1>
                 <small>
-                    {run.name} - {FormatDuration(activeMs)} - {done} of {shown.length} steps done
+                    {run.name} - {FormatDuration(activeMs)} - {done} of {total} steps done
                     {run.paused_ms > 0 ? ` - paused ${FormatDuration(run.paused_ms)}` : ''}
                 </small>
             </div>
 
             <div className="flex flex-col gap-2">
                 {shown.map((st, i) => {
+                    if (st.between) {
+                        return null;
+                    }
                     const pr = run.progress[i];
                     const skipped = pr.segments.length === 0;
                     return (

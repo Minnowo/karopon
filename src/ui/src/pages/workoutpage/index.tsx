@@ -25,10 +25,8 @@ import {AddRestExercise, AddSampleWorkout, HasRestExercise} from './presets';
 import {ParseStructure} from './structure';
 import {RunState, StartRun} from './run_state';
 import {Runner} from './runner';
-import {Cue} from './cues';
 import {WorkoutLogPanel} from './history_panel';
 import {LocalClearWorkoutRun, LocalGetWorkoutRun, LocalStoreWorkoutRun} from '../../utils/localstate';
-import {UnlockAudioContext} from '../../utils/sound';
 
 type Tab = 'workouts' | 'exercises' | 'history';
 
@@ -158,9 +156,6 @@ export function WorkoutPage(state: BaseState) {
             setErrorMsg('This workout has no steps');
             return;
         }
-        UnlockAudioContext();
-        // Inside the click, since some browsers only allow audio and speech after a user gesture.
-        Cue({type: 'start', step: s.steps[0]}, s.cues);
         setRun(s);
     };
 
