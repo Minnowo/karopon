@@ -135,6 +135,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	)
 	t.Run("LoadUserEventLogTimeData", func(t *testing.T) { testLoadUserEventLogTimeData(t, newTestDB, &lock) })
 	t.Run("SetUserTimespanTags", func(t *testing.T) { testSetUserTimespanTags(t, newTestDB, &lock) })
+	t.Run("delete_tag_used_by_timespan", func(t *testing.T) { testDeleteTagUsedByTimespan(t, newTestDB, &lock) })
 	t.Run("dashboard_crud", func(t *testing.T) { testDashboardCRUD(t, newTestDB, &lock) })
 	t.Run("dashboard_multiple_per_user", func(t *testing.T) { testDashboardMultiplePerUser(t, newTestDB, &lock) })
 	t.Run("tag_color_crud", func(t *testing.T) { testTagColorCRUD(t, newTestDB, &lock) })

@@ -267,3 +267,28 @@ func testSetUserTimespanTags(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex
 	require.Len(t, tagged, 1)
 	assert.Len(t, tagged[0].Tags, 2)
 }
+
+func testDeleteTagUsedByTimespan(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
+
+	lock.Lock()
+	t.Cleanup(lock.Unlock)
+
+	ctx := t.Context()
+	db := newTestDB(t)
+
+	userID := getTestUser(t, db)
+
+	_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+		UserID:    userID,
+		StartTime: database.TimeMillis(time.Now()),
+		StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+	}, []database.TblUserTag{{Namespace: "workout", Name: "day1"}, {Namespace: "workout", Name: "legs"}})
+	require.NoError(t, err)
+
+	require.NoError(t, db.DeleteUserTag(ctx, userID, "workout", "day1"))
+
+	var spans []database.TaggedTimespan
+	require.NoError(t, db.LoadUserTimespansWithTags(ctx, userID, &spans))
+	require.Len(t, spans, 1)
+	assert.Equal(t, []string{"workout:legs"}, tagNames(spans[0].Tags))
+}

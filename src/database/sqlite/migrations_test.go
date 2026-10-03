@@ -521,4 +521,103 @@ func TestSqliteMigrations(t *testing.T) {
 		).Scan(&remaining))
 		assert.Equal(t, 0, remaining, "metric values should cascade-delete with their bodylog")
 	})
+
+	// 0013_goal_target_metric through 0018_user_custom_css: 11 -> 17
+	// Not individually asserted on; run here so state reaches version 17 for the 0019 test below.
+	t.Run("0013_through_0018", func(t *testing.T) {
+		_, err := database.RunUpMigrations(ctx, conn, 11, sqliteUpMigrations[12:18])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(17), ver)
+	})
+
+	// 0019_timespan_tag_delete_cascade: 17 -> 18
+	// Rebuilds PON_USER_TIMESPAN_TAG to add ON DELETE CASCADE on TAG_ID.
+	t.Run("0019_timespan_tag_delete_cascade", func(t *testing.T) {
+		insertID := func(query string, args ...any) int {
+			res, err := conn.ExecContext(ctx, query, args...)
+			require.NoError(t, err)
+			id, err := res.LastInsertId()
+			require.NoError(t, err)
+
+			return int(id)
+		}
+
+		tagA := insertID(`INSERT INTO PON_USER_TAG (USER_ID, NAMESPACE, NAME) VALUES (?, 'workout', 'day1')`, userID)
+		tagB := insertID(`INSERT INTO PON_USER_TAG (USER_ID, NAMESPACE, NAME) VALUES (?, 'workout', 'legs')`, userID)
+
+		span1 := insertID(`
+			INSERT INTO PON_USER_TIMESPAN (USER_ID, START_TIME, STOP_TIME)
+			VALUES (?, datetime('now'), datetime('now', '+1 hour'))`, userID)
+		span2 := insertID(`
+			INSERT INTO PON_USER_TIMESPAN (USER_ID, START_TIME, STOP_TIME)
+			VALUES (?, datetime('now'), datetime('now', '+1 hour'))`, userID)
+
+		for _, link := range [][2]int{{span1, tagA}, {span1, tagB}, {span2, tagA}} {
+			_, err := conn.ExecContext(ctx,
+				`INSERT INTO PON_USER_TIMESPAN_TAG (TIMESPAN_ID, TAG_ID) VALUES (?, ?)`, link[0], link[1])
+			require.NoError(t, err)
+		}
+
+		// Before migration, a tag in use by a timespan can't be deleted.
+		_, err := conn.ExecContext(ctx, `DELETE FROM PON_USER_TAG WHERE ID = ?`, tagA)
+		require.Error(t, err, "before migration, deleting a used tag must be rejected")
+
+		_, err = database.RunUpMigrations(ctx, conn, 17, sqliteUpMigrations[18:19])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(18), ver)
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM PON_USER_TIMESPAN_TAG_TMP LIMIT 1`)
+		require.Error(t, err, "PON_USER_TIMESPAN_TAG_TMP should have been renamed")
+
+		links := func() [][2]int {
+			rows, err := conn.QueryContext(ctx,
+				`SELECT TIMESPAN_ID, TAG_ID FROM PON_USER_TIMESPAN_TAG ORDER BY TIMESPAN_ID, TAG_ID`)
+			require.NoError(t, err)
+			defer rows.Close()
+
+			out := [][2]int{}
+			for rows.Next() {
+				var l [2]int
+				require.NoError(t, rows.Scan(&l[0], &l[1]))
+				out = append(out, l)
+			}
+			require.NoError(t, rows.Err())
+
+			return out
+		}
+
+		// Every link must survive the table rebuild.
+		assert.Equal(t, [][2]int{{span1, tagA}, {span1, tagB}, {span2, tagA}}, links())
+
+		// Deleting a used tag now removes only its links, and keeps the timespans.
+		_, err = conn.ExecContext(ctx, `DELETE FROM PON_USER_TAG WHERE ID = ?`, tagA)
+		require.NoError(t, err)
+		assert.Equal(t, [][2]int{{span1, tagB}}, links())
+
+		var spanCount int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM PON_USER_TIMESPAN WHERE ID IN (?, ?)`, span1, span2,
+		).Scan(&spanCount))
+		assert.Equal(t, 2, spanCount, "timespans must not be deleted with their tag")
+
+		// ON DELETE CASCADE from PON_USER_TIMESPAN must still remove the link rows.
+		_, err = conn.ExecContext(ctx, `DELETE FROM PON_USER_TIMESPAN WHERE ID = ?`, span1)
+		require.NoError(t, err)
+		assert.Empty(t, links())
+
+		// Both FKs must still be enforced after the table rebuild.
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_TIMESPAN_TAG (TIMESPAN_ID, TAG_ID) VALUES (?, 99999)`, span2)
+		require.Error(t, err, "FK violation on TAG_ID should be rejected")
+
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_TIMESPAN_TAG (TIMESPAN_ID, TAG_ID) VALUES (99999, ?)`, tagB)
+		require.Error(t, err, "FK violation on TIMESPAN_ID should be rejected")
+	})
 }
