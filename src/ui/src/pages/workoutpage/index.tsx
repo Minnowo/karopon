@@ -253,6 +253,7 @@ export function WorkoutPage(state: BaseState) {
                                     key={w.workout.id}
                                     exercises={exercises}
                                     workout={w}
+                                    addWorkout={addWorkout}
                                     updateWorkout={updateWorkout}
                                     deleteWorkout={deleteWorkout}
                                     startWorkout={startWorkout}

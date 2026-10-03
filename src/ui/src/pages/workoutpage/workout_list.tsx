@@ -11,6 +11,7 @@ type WorkoutEditPanelProps = {
     tagColors: Map<string, string>;
     exercises: ExerciseWithTags[];
     workout: WorkoutWithTags;
+    addWorkout: (w: WorkoutWithTags) => void;
     updateWorkout: (w: WorkoutWithTags) => void;
     deleteWorkout: (w: WorkoutWithTags) => void;
     startWorkout: (w: WorkoutWithTags) => void;
@@ -18,6 +19,7 @@ type WorkoutEditPanelProps = {
 
 export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
     const [showEdit, setShowEdit] = useState(false);
+    const [showCopy, setShowCopy] = useState(false);
 
     const summary = useMemo(() => StructureSummary(ParseStructure(p.workout.workout.structure)), [p.workout.workout.structure]);
 
@@ -36,6 +38,25 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
                     setShowEdit(false);
                 }}
                 onCancel={() => setShowEdit(false)}
+            />
+        );
+    }
+
+    if (showCopy) {
+        return (
+            <WorkoutBuilderPanel
+                namespaces={p.namespaces}
+                setNamespaces={p.setNamespaces}
+                tagColors={p.tagColors}
+                exercises={p.exercises}
+                title="Copy Workout"
+                submitLabel="Create"
+                initial={{...p.workout, workout: {...p.workout.workout, id: 0, name: `${p.workout.workout.name} (copy)`}}}
+                onSubmit={(w) => {
+                    p.addWorkout(w);
+                    setShowCopy(false);
+                }}
+                onCancel={() => setShowCopy(false)}
             />
         );
     }
@@ -62,6 +83,7 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
             <DropdownButton
                 actions={[
                     {label: 'Edit', onClick: () => setShowEdit(true)},
+                    {label: 'Copy', onClick: () => setShowCopy(true)},
                     {
                         label: 'Copy as Text',
                         onClick: () => void navigator.clipboard.writeText(WorkoutText(p.workout, p.exercises)),
