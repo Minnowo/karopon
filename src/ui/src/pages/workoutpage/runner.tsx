@@ -155,7 +155,8 @@ export function Runner(p: RunnerProps) {
             <div className="w-full flex justify-between">
                 <small>{run.name}</small>
                 <small>
-                    Step {run.index + 1} of {run.steps.length}
+                    Step {run.steps.slice(0, run.index).filter((x) => !x.between).length + 1} of{' '}
+                    {run.steps.filter((x) => !x.between).length}
                 </small>
             </div>
 
