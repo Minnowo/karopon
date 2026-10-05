@@ -25,6 +25,10 @@ const setName = (st: RunStep): string => st.set_name || `Set ${st.set + 1}`;
 
 // interrupt drops anything still being said, so the new line is on time.
 const speak = (text: string, interrupt: boolean): void => {
+    if (window.AndroidTts) {
+        window.AndroidTts.speak(text, interrupt);
+        return;
+    }
     if (!('speechSynthesis' in window)) {
         return;
     }
@@ -35,6 +39,10 @@ const speak = (text: string, interrupt: boolean): void => {
 };
 
 export const StopSpeaking = (): void => {
+    if (window.AndroidTts) {
+        window.AndroidTts.stop();
+        return;
+    }
     if ('speechSynthesis' in window) {
         speechSynthesis.cancel();
     }

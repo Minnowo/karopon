@@ -64,6 +64,8 @@ class MainActivity : ComponentActivity() {
 
     private val settingsState = mutableStateOf(AppSettings(ServerMode.LOCAL, ""))
 
+    lateinit var tts: TtsJsBridge
+
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
@@ -71,6 +73,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         settingsState.value = AppSettings.load(this)
+        tts = TtsJsBridge(this)
 
         setContent {
             MaterialTheme {
@@ -83,6 +86,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         LocalServer.stop()
+        tts.shutdown()
         super.onDestroy()
     }
 
@@ -235,6 +239,7 @@ private fun ServerWebView(
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 addJavascriptInterface(AlarmJsBridge(activity), "AndroidAlarms")
+                addJavascriptInterface(activity.tts, "AndroidTts")
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         swipeRefresh.isRefreshing = false

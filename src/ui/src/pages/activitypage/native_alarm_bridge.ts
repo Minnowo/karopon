@@ -2,18 +2,6 @@ import {useEffect, useRef} from 'preact/hooks';
 import {ReminderWithActivities} from '../../api/types';
 import {ComputeNextFireTime, ParseCronSchedule} from './schedule_window';
 
-type AndroidAlarmsBridge = {
-    schedule(id: number, whenMillis: number, title: string, body: string, isAlarm: boolean, sound: string): void;
-    cancel(id: number): void;
-};
-
-declare global {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- global augmentation requires interface
-    interface Window {
-        AndroidAlarms?: AndroidAlarmsBridge;
-    }
-}
-
 export const useSyncNativeAlarms = (reminders: ReminderWithActivities[]) => {
     const scheduledRef = useRef<Map<number, number>>(new Map());
 
