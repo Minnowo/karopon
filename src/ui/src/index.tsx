@@ -91,6 +91,7 @@ import {ActivityPage} from './pages/activitypage';
 import {WorkoutPage} from './pages/workoutpage';
 import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
 import {useSyncNativeAlarms} from './pages/activitypage/native_alarm_bridge';
+import {SyncAndroidTheme} from './platform/android';
 import {ErrorBoundary} from './components/error_boundary';
 
 export const App = () => {
@@ -319,6 +320,9 @@ export const App = () => {
         }
         el.textContent = css;
     }, [user?.custom_css]);
+
+    // After the two effects above, so it reads the final colors.
+    useLayoutEffect(SyncAndroidTheme, [user?.theme, user?.custom_css]);
 
     if (user === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;

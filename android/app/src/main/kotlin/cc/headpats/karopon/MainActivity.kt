@@ -40,14 +40,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import androidx.core.view.children
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.launch
@@ -56,6 +62,7 @@ import java.util.UUID
 private const val SERVER_PORT = 9070
 private const val LOCAL_URL = "http://127.0.0.1:$SERVER_PORT/"
 private const val SESSION_SECRET_KEY = "session_secret"
+private const val THEME_COLORS_KEY = "theme_colors"
 
 class MainActivity : ComponentActivity() {
 
@@ -66,6 +73,9 @@ class MainActivity : ComponentActivity() {
 
     lateinit var tts: TtsJsBridge
 
+    // Saved so the app opens in the last theme before the page has loaded.
+    private val themeColorsState = mutableStateOf<Map<String, Color>>(emptyMap())
+
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
@@ -73,10 +83,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         settingsState.value = AppSettings.load(this)
+        themeColorsState.value = parseWebThemeColors(
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(THEME_COLORS_KEY, null) ?: "",
+        )
         tts = TtsJsBridge(this)
 
         setContent {
-            MaterialTheme {
+            val colors by themeColorsState
+            val colorScheme = remember(colors) { webColorScheme(colors) }
+            SideEffect { applyStatusBarColor(colorScheme.surface) }
+
+            MaterialTheme(colorScheme = colorScheme) {
                 KaroponApp(this, urlState, settingsState.value, ::saveSettings)
             }
         }
@@ -131,6 +148,22 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !notificationManager.canUseFullScreenIntent()) {
             startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
         }
+    }
+
+    fun setWebThemeColors(json: String) {
+        val colors = parseWebThemeColors(json)
+        if (colors.isEmpty()) {
+            return
+        }
+
+        themeColorsState.value = colors
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(THEME_COLORS_KEY, json).apply()
+    }
+
+    private fun applyStatusBarColor(color: Color) {
+        window.statusBarColor = color.toArgb()
+        val insets = WindowCompat.getInsetsController(window, window.decorView)
+        insets.isAppearanceLightStatusBars = color.luminance() > 0.5f
     }
 
     private fun sessionSecret(): String {
@@ -240,6 +273,7 @@ private fun ServerWebView(
                 settings.domStorageEnabled = true
                 addJavascriptInterface(AlarmJsBridge(activity), "AndroidAlarms")
                 addJavascriptInterface(activity.tts, "AndroidTts")
+                addJavascriptInterface(ThemeJsBridge(activity), "AndroidTheme")
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         swipeRefresh.isRefreshing = false
