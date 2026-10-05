@@ -1,0 +1,88 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "src/**"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/android.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "src/**"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/android.yml"
+
+jobs:
+  build:
+    name: Lint and build
+    runs-on: ubuntu-latest
+
+    env:
+      # Keep in sync with docker/Dockerfile.android.build.
+      NDK_VERSION: "27.1.12297006"
+      GRADLE_VERSION: "8.9"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/ui/package-lock.json
+
+      # The Go server embeds src/ui/dist, which the app's native library is built from.
+      - name: Build UI
+        working-directory: src/ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install NDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "ndk;$NDK_VERSION" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      # --continue so a lint failure still produces the APKs, and vice versa.
+      - name: Lint and build
+        working-directory: android
+        run: gradle --console=plain --continue :app:lintDebug :app:assembleDebug
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: android/app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: karopon-debug-apks
+          path: android/app/build/outputs/apk/debug/*.apk
