@@ -65,6 +65,10 @@ android {
         compose = true
     }
 
+    lint {
+        textReport = true
+    }
+
     // The .so files here come from cross-compiling android/golib with Go
     // (buildGoServerLibrary task below), not from AGP's C++/NDK build.
     sourceSets {
