@@ -11,28 +11,50 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.children
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.launch
 import java.util.UUID
 
-private const val TAG = "MainActivity"
 private const val SERVER_PORT = 9070
-private const val PREFS_NAME = "karopon"
+private const val LOCAL_URL = "http://127.0.0.1:$SERVER_PORT/"
 private const val SESSION_SECRET_KEY = "session_secret"
 
 class MainActivity : ComponentActivity() {
@@ -40,47 +62,52 @@ class MainActivity : ComponentActivity() {
     // Holds the webview URL.
     private val urlState = mutableStateOf<String?>(null)
 
+    private val settingsState = mutableStateOf(AppSettings(ServerMode.LOCAL, ""))
+
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-
-    @Volatile
-    private var keepServerAlive = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        settingsState.value = AppSettings.load(this)
+
         setContent {
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    ServerWebView(this@MainActivity, urlState)
-                }
+                KaroponApp(this, urlState, settingsState.value, ::saveSettings)
             }
         }
 
-        Thread {
-            // keep restarting the server if it dies until the activity actually ends.
-            while (keepServerAlive) {
-                val code = GoServer.nativeStart(filesDir.absolutePath, SERVER_PORT, sessionSecret())
-                if (code == 0) {
-                    runOnUiThread { urlState.value = "http://127.0.0.1:$SERVER_PORT/" }
-                } else {
-                    Log.e(TAG, "go server failed to start, code=$code")
-                    break
-                }
-
-                GoServer.nativeWaitStopped()
-
-                if (keepServerAlive) {
-                    Log.w(TAG, "go server stopped unexpectedly, restarting")
-                }
-            }
-        }.start()
+        applyServerMode()
     }
 
     override fun onDestroy() {
-        keepServerAlive = false
-        GoServer.nativeStop()
+        LocalServer.stop()
         super.onDestroy()
+    }
+
+    private fun saveSettings(settings: AppSettings) {
+        settings.save(this)
+        settingsState.value = settings
+        applyServerMode()
+    }
+
+    private fun applyServerMode() {
+        val settings = settingsState.value
+        when (settings.serverMode) {
+            ServerMode.LOCAL -> LocalServer.start(filesDir.absolutePath, SERVER_PORT, sessionSecret()) {
+                runOnUiThread {
+                    if (settingsState.value.serverMode == ServerMode.LOCAL) {
+                        urlState.value = LOCAL_URL
+                    }
+                }
+            }
+
+            ServerMode.REMOTE -> {
+                LocalServer.stop()
+                urlState.value = settings.remoteUrl
+            }
+        }
     }
 
     fun ensureAlarmPermissions() {
@@ -112,22 +139,128 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun KaroponApp(
+    activity: MainActivity,
+    urlState: MutableState<String?>,
+    settings: AppSettings,
+    onSaveSettings: (AppSettings) -> Unit,
+) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Swiping only closes the drawer, so horizontal swipes still reach the web UI.
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            gesturesEnabled = drawerState.isOpen,
+            drawerContent = {
+                ModalDrawerSheet {
+                    Text(
+                        "Karopon",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Settings") },
+                        icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            showSettings = true
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                    )
+                }
+            },
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Karopon") },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                ServerWebView(
+                    activity,
+                    urlState,
+                    settings.refreshTriggerDp,
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                )
+            }
+        }
+
+        // Drawn over the webview rather than replacing it, so the page isn't reloaded on return.
+        if (showSettings) {
+            BackHandler { showSettings = false }
+            SettingsScreen(
+                settings = settings,
+                onSave = {
+                    onSaveSettings(it)
+                    showSettings = false
+                },
+                onBack = { showSettings = false },
+            )
+        }
+    }
+}
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-private fun ServerWebView(activity: MainActivity, urlState: MutableState<String?>) {
+private fun ServerWebView(
+    activity: MainActivity,
+    urlState: MutableState<String?>,
+    refreshTriggerDp: Int,
+    modifier: Modifier,
+) {
     val url by urlState
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         factory = { context ->
-            WebView(context).apply {
+            val swipeRefresh = SwipeRefreshLayout(context)
+            val webView = WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 addJavascriptInterface(AlarmJsBridge(activity), "AndroidAlarms")
-                webViewClient = WebViewClient()
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        swipeRefresh.isRefreshing = false
+                    }
+                }
                 webChromeClient = KaroponWebChromeClient(context)
             }
+            swipeRefresh.addView(webView)
+            swipeRefresh.setOnRefreshListener { webView.reload() }
+            swipeRefresh
         },
-        update = { webView -> url?.let { webView.loadUrl(it) } },
+        update = { swipeRefresh ->
+            // SwipeRefreshLayout adds its own spinner view as the first child.
+            val webView = swipeRefresh.children.first { it is WebView } as WebView
+
+            swipeRefresh.isEnabled = refreshTriggerDp > 0
+            val density = swipeRefresh.resources.displayMetrics.density
+            swipeRefresh.setDistanceToTriggerSync((refreshTriggerDp * density).toInt())
+
+            val target = url
+            // update can rerun on unrelated recompositions; only navigate when the URL changes.
+            if (target != null && webView.tag != target) {
+                webView.tag = target
+                webView.loadUrl(target)
+            }
+        },
     )
 }
 

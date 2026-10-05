@@ -121,12 +121,15 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 	// Clears shutdown/stopped once the serve loop exits for any reason, so a
 	// later nativeStart() doesn't see stale state from a server that already
 	// died, and nativeWaitStopped()'s caller can tell it's safe to restart.
+	// Skipped if a newer server has already been started in its place.
 	go func() {
 		<-stoppedCh
 
 		mu.Lock()
-		shutdown = nil
-		stopped = nil
+		if stopped == stoppedCh {
+			shutdown = nil
+			stopped = nil
+		}
 		mu.Unlock()
 	}()
 
