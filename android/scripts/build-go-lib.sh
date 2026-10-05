@@ -18,7 +18,7 @@ JNI_LIBS_DIR="$ANDROID_DIR/app/src/main/jniLibs"
 : "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME is not set}"
 : "${JAVA_HOME:?JAVA_HOME is not set (needed for jni.h)}"
 
-API_LEVEL=26
+API_LEVEL=27
 NDK_BIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
 # abi:GOARCH:clang-triple
