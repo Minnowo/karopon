@@ -1,17 +1,23 @@
 
 # Karopon
 
-Karopon is a food tracking application for managing nutrition, meals and calories.
-It focuses on making data-driven dietary management simple and intuitive.
+A personal tracking application for health, nutrition, fitness, and everyday life.
+
+Track meals, calories, nutrients, workouts, time, and custom health metrics.
+Includes tools for diabetes management, including blood sugar tracking and insulin calculations.
+
+Build charts, monitor progress, set goals, and create reminders.
 
 ## Features
 
-- Track meals, calories and macronutrients
-- Graphs to see your stats
-- Features for Type 1 Diabetics:
-  - Insulin calculation ([see formula here](./src/ui/src/utils/insulin.ts))
-  - Blood sugar entry
-  - Net carbs
+- Track meals, calories, and nutrients down to the gram
+- Track blood sugar, calculate and log insulin doses
+- Tag-based time tracking
+- Build Tabata workouts; track reps, time, weight, and distance
+- Track weight, body fat, blood pressure, and custom metrics
+- Set reminders for habits, breaks, and daily tasks
+- Build charts, track progress, and set goals
+- Export your data to TXT, JSON, or CSV
 
 ## Deployment
 
