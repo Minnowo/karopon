@@ -5,7 +5,6 @@ import (
 	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
-	"karopon/src/config"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
@@ -135,11 +134,6 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.UserReg.PutUserWithNewName(user.Name, &newUser.User)
-
-	// debugging only
-	if config.FakeAuth() {
-		*user = newUser.User
-	}
 
 	api.WriteJSONObj(w, newUser.User)
 }

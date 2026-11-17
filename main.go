@@ -203,12 +203,6 @@ func main() {
 						Required: false,
 					},
 					&cli.StringFlag{
-						Name:     "fake-auth-as-user",
-						Usage:    "Automatically authenticate as this user",
-						Sources:  cli.EnvVars("FAKE_AUTH_AS_USER"),
-						Required: false,
-					},
-					&cli.StringFlag{
 						Name: "session-secret",
 						Usage: "Secret key used to sign session tokens (HMAC-SHA256). " +
 							"If unset, a random key is generated and sessions will not survive a restart.",

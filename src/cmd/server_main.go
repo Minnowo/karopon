@@ -8,7 +8,6 @@ import (
 	"karopon/src/api/middleware"
 	"karopon/src/api/userreg"
 	v1 "karopon/src/api/v1"
-	"karopon/src/config"
 	"karopon/src/constants"
 	"karopon/src/database/connection"
 	"karopon/src/ui"
@@ -33,7 +32,6 @@ type ServerOptions struct {
 	DatabaseVendor string
 	DatabaseConn   string
 	SessionSecret  string //nolint:gosec // not a hardcoded credential, it's a config value supplied by the caller
-	FakeAuthUser   string
 
 	// DefaultUsername/DefaultPassword, if both set, seed a login via
 	// EnsureUser (no-op if that user already exists). Used by the Android
@@ -48,10 +46,6 @@ func StartServer(
 	ctx context.Context,
 	opts ServerOptions,
 ) (shutdown func(context.Context) error, waitForStop <-chan struct{}, err error) {
-
-	if opts.FakeAuthUser != "" {
-		config.SetFakeAuthUser(opts.FakeAuthUser)
-	}
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
 
@@ -151,10 +145,6 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 		DatabaseVendor: c.Value("database-vendor").(string),
 		DatabaseConn:   c.Value("database-conn").(string),
 		SessionSecret:  c.Value("session-secret").(string),
-	}
-
-	if fakeAuth, ok := c.Value("fake-auth-as-user").(string); ok {
-		opts.FakeAuthUser = fakeAuth
 	}
 
 	shutdown, shutdownWait, err := StartServer(ctx, opts)

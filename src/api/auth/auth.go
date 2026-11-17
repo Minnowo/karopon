@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"karopon/src/api/userreg"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
@@ -129,22 +128,6 @@ func RequireAuth() func(next http.Handler) http.Handler {
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-// FakeAuth can be used for debugging by always authenticating as the given user.
-func FakeAuth(user *database.TblUser, userReg *userreg.UserRegistry) func(next http.Handler) http.Handler {
-
-	logger.Debug().Str("user", user.Name).Msg("Registering fake auth")
-
-	return func(next http.Handler) http.Handler {
-
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			r = PutUser(r, user)
 
 			next.ServeHTTP(w, r)
 		})

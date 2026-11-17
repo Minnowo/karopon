@@ -1,12 +1,10 @@
 package v1
 
 import (
-	"context"
 	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
 	"karopon/src/api/ratelimit"
 	"karopon/src/api/userreg"
-	"karopon/src/config"
 	"karopon/src/database"
 
 	"github.com/rs/zerolog/log"
@@ -63,21 +61,6 @@ func (a *APIV1) Register(r *mux.Router) {
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.Cors)
 
-	if config.FakeAuth() {
-
-		var user database.TblUser
-
-		if err := a.Db.LoadUser(context.Background(), config.FakeAuthUser(), &user); err != nil {
-			log.Panic().
-				Err(err).
-				Str("username", config.FakeAuthUser()).
-				Msg("could not load user for fake auth")
-		}
-
-		log.Info().Str("username", user.Name).Msg("faking auth as user")
-
-		api.Use(auth.FakeAuth(&user, a.UserReg))
-	}
 	api.Use(auth.ParseAuth(a.UserReg))
 
 	api.HandleFunc("/login", a.api_login).Methods("POST")
