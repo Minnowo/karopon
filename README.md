@@ -85,11 +85,12 @@ This section explains how to set up Karopon for local development.
    make run
    ```
 
-5. Optional (recommended), use the `--fake-auth-as-user yourUser` flag so you don't need to login.
-   You can edit the [Makefile](./Makefile) and add this after the run command:
-   ```Makefile
-   run: format generate
-        LOG_LEVEL=debug go run $(SITE_SRC) run --fake-auth-as-user minno
+5. Optional (recommended for UI work), run against a local SQLite database with sample data
+   and a hot-reloading UI instead. Run each in its own terminal, then open http://127.0.0.1:5173
+   and log in as `dev` / `dev`:
+   ```sh
+   make dev-api
+   make dev-ui
    ```
 
 **NOTE**: Before you can run the backend, you MUST build the UI at least once, or ensure that `./src/ui/dist/static/main.js` and `./src/ui/dist/static/main.css` both exist.

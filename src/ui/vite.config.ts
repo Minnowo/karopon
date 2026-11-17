@@ -5,6 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [preact(), tailwindcss()],
+    // Dev server only: forward API calls to the Go server started by `make dev-api`.
+    server: {
+        proxy: {
+            '/api': 'http://127.0.0.1:9070',
+        },
+    },
     build: {
         rollupOptions: {
             input: {

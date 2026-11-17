@@ -72,7 +72,7 @@ export const TagChip = ({tag, color = 'var(--color-c-pink)', onRemove = undefine
                     aria-label={`Remove tag ${tag.namespace}:${tag.name}`}
                     onClick={() => onRemove()}
                 >
-                    ×
+                    {'\u00D7'}
                 </button>
             )}
         </span>

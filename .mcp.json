@@ -1,0 +1,19 @@
+{
+    "mcpServers": {
+        "playwright": {
+            "type": "stdio",
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "--init",
+                "--network",
+                "host",
+                "mcr.microsoft.com/playwright/mcp:v0.0.83",
+                "--viewport-size",
+                "1280x800"
+            ]
+        }
+    }
+}

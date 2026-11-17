@@ -5,9 +5,9 @@ import {TblUserTag} from '../api/types';
  * with at least one character before it.
  *
  * Examples:
- * - `"foo:bar"` → true
- * - `":bar"` → false
- * - `"foo"` → false
+ * - `"foo:bar"` -> true
+ * - `":bar"` -> false
+ * - `"foo"` -> false
  *
  * @param tagStr - The raw tag string to inspect
  * @returns True if a namespace is present, otherwise false
@@ -21,9 +21,9 @@ export const HasNamespace = (tagStr: string): boolean => {
  * A valid tag name must have characters on both sides of the `:` separator.
  *
  * Examples:
- * - `"foo:bar"` → true
- * - `"foo:"` → false
- * - `":bar"` → false
+ * - `"foo:bar"` -> true
+ * - `"foo:"` -> false
+ * - `":bar"` -> false
  *
  * @param tagStr - The raw tag string to inspect
  * @returns True if both namespace and tag name are present
@@ -52,8 +52,8 @@ export const TagToString = (tag: TblUserTag): string => {
  * is treated as the tag name and the namespace is set to an empty string.
  *
  * Examples:
- * - `"foo:bar"` → `{ namespace: "foo", name: "bar" }`
- * - `"bar"` → `{ namespace: "", name: "bar" }`
+ * - `"foo:bar"` -> `{ namespace: "foo", name: "bar" }`
+ * - `"bar"` -> `{ namespace: "", name: "bar" }`
  *
  * @param tagStr - The raw tag string to split
  * @returns A {@link TblUserTag} object derived from the string

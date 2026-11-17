@@ -332,7 +332,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                     setPhotos((prev) => prev.filter((_, j) => j !== i));
                                 }}
                             >
-                                ✕
+                                {'\u2715'}
                             </button>
                         </div>
                     ))}

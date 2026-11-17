@@ -55,7 +55,7 @@ function TimeRangePanel({
                     aria-expanded={expanded}
                     aria-label={expanded ? 'Close time range' : 'Edit time range'}
                 >
-                    {expanded ? '▾' : '▸'}
+                    {expanded ? '\u25BE' : '\u25B8'}
                 </button>
                 <h5 className="flex-1 wsnw overflow-hidden text-ellipsis">{range.name}</h5>
                 <DropdownButton
