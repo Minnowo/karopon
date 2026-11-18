@@ -40,7 +40,8 @@
             "RequestInit": "readonly",
             "fetch": "readonly",
             "Headers": "readonly",
-            "URL": "readonly"
+            "URL": "readonly",
+            "WakeLockSentinel": "readonly"
         },
         "rules": {
             "complexity": "off",

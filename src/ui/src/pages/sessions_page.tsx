@@ -1,5 +1,4 @@
 import {useEffect, useState} from 'preact/hooks';
-import {BaseState} from '../state/basestate';
 import {UserSession} from '../api/types';
 import {ApiDeleteUserSession, ApiGetUserSessions, ApiUpdateUserSession} from '../api/api';
 import {ErrorDiv} from '../components/error_div';
@@ -94,7 +93,7 @@ function SessionRow({
     );
 }
 
-export function SessionsPage(state: BaseState) {
+export function SessionsPage() {
     const [sessions, setSessions] = useState<UserSession[] | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

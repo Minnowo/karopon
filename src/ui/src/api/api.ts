@@ -305,12 +305,7 @@ export const ApiDeleteUserTag = (tag: TblUserTag): Promise<void> => {
     });
 };
 
-export const ApiUpdateUserTag = (
-    tag: TblUserTag,
-    newNamespace: string,
-    newName: string,
-    merge: boolean = false
-): Promise<void> => {
+export const ApiUpdateUserTag = (tag: TblUserTag, newNamespace: string, newName: string, merge = false): Promise<void> => {
     return fetchNone(`${ApiBase}/api/tag/update`, {
         headers: {
             'content-type': 'application/json',

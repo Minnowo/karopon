@@ -81,6 +81,69 @@ type RunnerProps = {
     onDiscard: () => void;
 };
 
+function RunSummary(p: RunnerProps) {
+    const {run} = p;
+    const [note, setNote] = useState<string>('');
+
+    const shown = run.steps.slice(0, run.furthest + 1);
+    const done = shown.filter((st, i) => !st.between && run.progress[i].segments.length > 0).length;
+    const total = shown.filter((st) => !st.between).length;
+    const activeMs = (run.finished_at ?? run.started_at) - run.started_at - run.paused_ms;
+
+    const setActuals = (i: number, a: Actuals) => {
+        const progress = [...run.progress];
+        progress[i] = {...progress[i], ...a};
+        p.setRun({...run, progress});
+    };
+
+    return (
+        <div className="surface-1 flex flex-col gap-4">
+            <div>
+                <h1>{run.completed ? 'Workout complete' : 'Workout ended early'}</h1>
+                <small>
+                    {run.name} - {FormatDuration(activeMs)} - {done} of {total} steps done
+                    {run.paused_ms > 0 ? ` - paused ${FormatDuration(run.paused_ms)}` : ''}
+                </small>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                {shown.map((st, i) => {
+                    if (st.between) {
+                        return null;
+                    }
+                    const pr = run.progress[i];
+                    const skipped = pr.segments.length === 0;
+                    return (
+                        <div key={i} className="flex flex-col gap-1">
+                            <div className="flex flex-wrap justify-between gap-2">
+                                <strong>{stepTitle(st)}</strong>
+                                <small>{skipped ? 'skipped' : FormatDuration(ProgressMs(pr))}</small>
+                            </div>
+                            {!skipped && st.kind !== 'timed' && (
+                                <ActualInputs kind={st.kind} value={pr} onChange={(a) => setActuals(i, a)} />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <label className="flex flex-col gap-1">
+                Note
+                <textarea rows={2} value={note} placeholder="Note (optional)" onInput={(e) => setNote(e.currentTarget.value)} />
+            </label>
+
+            <div className="flex justify-end gap-2">
+                <button className="btn-outlined-error" onClick={p.onDiscard}>
+                    Discard
+                </button>
+                <button className="btn-success" onClick={() => p.onSave(BuildWorkoutLog(run, note))}>
+                    Save
+                </button>
+            </div>
+        </div>
+    );
+}
+
 export function Runner(p: RunnerProps) {
     const {run} = p;
     const running = run.finished_at === null;
@@ -282,69 +345,6 @@ export function Runner(p: RunnerProps) {
                         </Fragment>
                     );
                 })}
-            </div>
-        </div>
-    );
-}
-
-function RunSummary(p: RunnerProps) {
-    const {run} = p;
-    const [note, setNote] = useState<string>('');
-
-    const shown = run.steps.slice(0, run.furthest + 1);
-    const done = shown.filter((st, i) => !st.between && run.progress[i].segments.length > 0).length;
-    const total = shown.filter((st) => !st.between).length;
-    const activeMs = (run.finished_at ?? run.started_at) - run.started_at - run.paused_ms;
-
-    const setActuals = (i: number, a: Actuals) => {
-        const progress = [...run.progress];
-        progress[i] = {...progress[i], ...a};
-        p.setRun({...run, progress});
-    };
-
-    return (
-        <div className="surface-1 flex flex-col gap-4">
-            <div>
-                <h1>{run.completed ? 'Workout complete' : 'Workout ended early'}</h1>
-                <small>
-                    {run.name} - {FormatDuration(activeMs)} - {done} of {total} steps done
-                    {run.paused_ms > 0 ? ` - paused ${FormatDuration(run.paused_ms)}` : ''}
-                </small>
-            </div>
-
-            <div className="flex flex-col gap-2">
-                {shown.map((st, i) => {
-                    if (st.between) {
-                        return null;
-                    }
-                    const pr = run.progress[i];
-                    const skipped = pr.segments.length === 0;
-                    return (
-                        <div key={i} className="flex flex-col gap-1">
-                            <div className="flex flex-wrap justify-between gap-2">
-                                <strong>{stepTitle(st)}</strong>
-                                <small>{skipped ? 'skipped' : FormatDuration(ProgressMs(pr))}</small>
-                            </div>
-                            {!skipped && st.kind !== 'timed' && (
-                                <ActualInputs kind={st.kind} value={pr} onChange={(a) => setActuals(i, a)} />
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-
-            <label className="flex flex-col gap-1">
-                Note
-                <textarea rows={2} value={note} placeholder="Note (optional)" onInput={(e) => setNote(e.currentTarget.value)} />
-            </label>
-
-            <div className="flex justify-end gap-2">
-                <button className="btn-outlined-error" onClick={p.onDiscard}>
-                    Discard
-                </button>
-                <button className="btn-success" onClick={() => p.onSave(BuildWorkoutLog(run, note))}>
-                    Save
-                </button>
             </div>
         </div>
     );

@@ -173,9 +173,9 @@ export function AddReminderPanel({
                                                 updateWindow(w.key, {dayOfWeek: parseInt(e.currentTarget.value, 10)})
                                             }
                                         >
-                                            {DAY_NAMES.map((name, i) => (
+                                            {DAY_NAMES.map((dayName, i) => (
                                                 <option key={i} value={i}>
-                                                    {name}
+                                                    {dayName}
                                                 </option>
                                             ))}
                                         </select>

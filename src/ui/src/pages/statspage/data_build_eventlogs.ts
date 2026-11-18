@@ -22,8 +22,8 @@ export const BuildEventLogChartData = (
 ): ChartData => {
     const buckets = new Map<number, {n: number; v: Float32Array}>();
 
-    for (let i = rows.length - 1; i >= 0; i--) {
-        const row = rows[i];
+    for (let r = rows.length - 1; r >= 0; r--) {
+        const row = rows[r];
 
         if (row.eventlog.user_time < rangeStartMs || row.eventlog.user_time > rangeEndMs) {
             continue;
