@@ -739,4 +739,54 @@ func TestPostgresMigrations(t *testing.T) {
 		).Scan(&remaining))
 		assert.Equal(t, 0, remaining, "metric values should cascade-delete with their bodylog")
 	})
+
+	// 0031_drop_user_photo: 29 -> 30
+	// Photo upload was removed; both photo tables are dropped with their rows,
+	// and the event logs they were linked to stay.
+	t.Run("0031_drop_user_photo", func(t *testing.T) {
+
+		// Bring the database up to the version just before this migration.
+		ver, err := database.RunUpMigrations(ctx, conn, 22, postgresUpMigrations[23:30])
+		require.NoError(t, err)
+		require.Equal(t, database.Version(29), ver)
+
+		var photoID int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`INSERT INTO pon.user_photo (user_id, data) VALUES ($1, '\x01') RETURNING id`, aliceUserID,
+		).Scan(&photoID))
+
+		var eventlogID int
+		require.NoError(t, conn.QueryRowContext(ctx, `
+			INSERT INTO pon.user_eventlog
+				(user_id, event_id, user_time, event,
+				 net_carbs, blood_glucose, insulin_sensitivity_factor,
+				 insulin_to_carb_ratio, blood_glucose_target,
+				 recommended_insulin_amount, actual_insulin_taken)
+			SELECT $1, id, NOW(), name, 0, 0, 0, 0, 0, 0, 0
+			FROM pon.user_event WHERE user_id = $1 LIMIT 1
+			RETURNING id`, aliceUserID,
+		).Scan(&eventlogID))
+
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO pon.user_eventlog_photo (eventlog_id, photo_id) VALUES ($1, $2)`, eventlogID, photoID)
+		require.NoError(t, err)
+
+		_, err = database.RunUpMigrations(ctx, conn, 29, postgresUpMigrations[30:31])
+		require.NoError(t, err)
+
+		ver, err = conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(30), ver)
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM pon.user_photo LIMIT 1`)
+		require.Error(t, err, "pon.user_photo must be dropped")
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM pon.user_eventlog_photo LIMIT 1`)
+		require.Error(t, err, "pon.user_eventlog_photo must be dropped")
+
+		var count int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM pon.user_eventlog WHERE id = $1`, eventlogID).Scan(&count))
+		assert.Equal(t, 1, count, "event logs that had photos must stay")
+	})
 }

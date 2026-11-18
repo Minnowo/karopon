@@ -451,16 +451,6 @@ type DB interface {
 	// DeleteUserTagColor removes the color mapping for the given namespace.
 	DeleteUserTagColors(ctx context.Context, userID int, namespace []string) error
 
-	///
-	/// User Photo Functions
-	///
-
-	// AddUserPhoto saves the photo blob for the given user and returns its ID.
-	AddUserPhoto(ctx context.Context, photo *TblUserPhoto) (int, error)
-
-	// AddUserEventLogPhotos creates mappings between an event log and a list of photo IDs.
-	AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error
-
 	// dayOffset is the user's DayTimeOffsetSeconds (see ParseRelativeTimeExpr) marking when
 	// their day starts; bucket boundaries for day/week/month/year groupings are shifted by
 	// this amount so they align with the user's perceived day rather than local midnight.

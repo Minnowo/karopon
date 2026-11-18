@@ -364,12 +364,6 @@ type TblUserTagColor struct {
 	Color     string `db:"color"     json:"color"`
 }
 
-type TblUserPhoto struct {
-	ID     int    `db:"id"      json:"id"`
-	UserID int    `db:"user_id" json:"user_id"`
-	Data   []byte `db:"data"    json:"-"`
-}
-
 // StepKind is an enum for how a workout step is done.
 type StepKind string
 

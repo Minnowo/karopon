@@ -620,4 +620,50 @@ func TestSqliteMigrations(t *testing.T) {
 			`INSERT INTO PON_USER_TIMESPAN_TAG (TIMESPAN_ID, TAG_ID) VALUES (99999, ?)`, tagB)
 		require.Error(t, err, "FK violation on TIMESPAN_ID should be rejected")
 	})
+
+	// 0020_drop_user_photo: 18 -> 19
+	// Photo upload was removed; both photo tables are dropped with their rows,
+	// and the event logs they were linked to stay.
+	t.Run("0020_drop_user_photo", func(t *testing.T) {
+
+		res, err := conn.ExecContext(ctx, `INSERT INTO PON_USER_PHOTO (USER_ID, DATA) VALUES (?, X'01')`, userID)
+		require.NoError(t, err)
+		photoID, err := res.LastInsertId()
+		require.NoError(t, err)
+
+		res, err = conn.ExecContext(ctx, `
+			INSERT INTO PON_USER_EVENTLOG
+				(USER_ID, EVENT_ID, USER_TIME, EVENT,
+				 NET_CARBS, BLOOD_GLUCOSE, INSULIN_SENSITIVITY_FACTOR,
+				 INSULIN_TO_CARB_RATIO, BLOOD_GLUCOSE_TARGET,
+				 RECOMMENDED_INSULIN_AMOUNT, ACTUAL_INSULIN_TAKEN)
+			SELECT ?, ID, datetime('now'), NAME, 0, 0, 0, 0, 0, 0, 0
+			FROM PON_USER_EVENT WHERE USER_ID = ? LIMIT 1`,
+			userID, userID)
+		require.NoError(t, err)
+		eventlogID, err := res.LastInsertId()
+		require.NoError(t, err)
+
+		_, err = conn.ExecContext(ctx,
+			`INSERT INTO PON_USER_EVENTLOG_PHOTO (EVENTLOG_ID, PHOTO_ID) VALUES (?, ?)`, eventlogID, photoID)
+		require.NoError(t, err)
+
+		_, err = database.RunUpMigrations(ctx, conn, 18, sqliteUpMigrations[19:20])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(19), ver)
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM PON_USER_PHOTO LIMIT 1`)
+		require.Error(t, err, "PON_USER_PHOTO must be dropped")
+
+		_, err = conn.ExecContext(ctx, `SELECT 1 FROM PON_USER_EVENTLOG_PHOTO LIMIT 1`)
+		require.Error(t, err, "PON_USER_EVENTLOG_PHOTO must be dropped")
+
+		var count int
+		require.NoError(t, conn.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM PON_USER_EVENTLOG WHERE ID = ?`, eventlogID).Scan(&count))
+		assert.Equal(t, 1, count, "event logs that had photos must stay")
+	})
 }

@@ -140,8 +140,6 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("dashboard_multiple_per_user", func(t *testing.T) { testDashboardMultiplePerUser(t, newTestDB, &lock) })
 	t.Run("tag_color_crud", func(t *testing.T) { testTagColorCRUD(t, newTestDB, &lock) })
 	t.Run("tag_color_user_isolation", func(t *testing.T) { testTagColorUserIsolation(t, newTestDB, &lock) })
-	t.Run("user_photo_add", func(t *testing.T) { testUserPhotoAdd(t, newTestDB, &lock) })
-	t.Run("user_eventlog_photo_mapping", func(t *testing.T) { testUserEventlogPhotoMapping(t, newTestDB, &lock) })
 	t.Run("activity_crud_1", func(t *testing.T) { testActivityCRUD1(t, newTestDB, &lock) })
 	t.Run("UpdateUserActivity", func(t *testing.T) { testUpdateUserActivity(t, newTestDB, &lock) })
 	t.Run("exercise_crud", func(t *testing.T) { testExerciseCRUD(t, newTestDB, &lock) })

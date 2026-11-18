@@ -20,7 +20,6 @@ import {ErrorDiv} from '../../components/error_div';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
 import {NumberInput} from '../../components/number_input';
-import {ApiUploadEventPhoto} from '../../api/api';
 import {TimeInput} from '../../components/time_input';
 
 type AddEventsPanelState = {
@@ -54,9 +53,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    type StagedPhoto = {url: string; file: File};
-    const [photos, setPhotos] = useState<StagedPhoto[]>([]);
-    const photoInputRef = useRef<HTMLInputElement>(null);
     const foods = useRef<TblUserFoodLogWithKey[]>([]);
     const trailingRows = Math.max(1, p.user.event_log_trailing_rows);
 
@@ -88,12 +84,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             setBloodSugar(fromEvent.eventlog.blood_glucose);
             setInsulinToCarbRatio(fromEvent.eventlog.insulin_to_carb_ratio);
             setInsulinTaken(fromEvent.eventlog.actual_insulin_taken);
-            setPhotos((prev) => {
-                for (const ph of prev) {
-                    URL.revokeObjectURL(ph.url);
-                }
-                return [];
-            });
             foods.current = new Array<TblUserFoodLogWithKey>(fromEvent.foodlogs.length + trailingRows);
             let i = 0;
             for (; i < fromEvent.foodlogs.length; i++) {
@@ -156,18 +146,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
 
         setSaving(true);
 
-        const photoIds: number[] = [];
-        for (const photo of photos) {
-            try {
-                const result = await ApiUploadEventPhoto(photo.file);
-                photoIds.push(result.id);
-            } catch {
-                setErrorMsg('Failed to upload photo');
-                setSaving(false);
-                return;
-            }
-        }
-
         p.createEvent({
             blood_glucose: bloodSugar,
             blood_glucose_target: p.user.target_blood_sugar,
@@ -176,7 +154,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             recommended_insulin_amount: insulin,
             actual_insulin_taken: insulinTaken,
             created_time: eventTime.getTime(),
-            photo_ids: photoIds,
             event: {
                 id: 0,
                 user_id: p.user.id,
@@ -293,51 +270,6 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     />
                 )}
             </div>
-
-            <div className="flex items-center gap-2">
-                <button tabindex={-1} type="button" disabled={saving} onClick={() => photoInputRef.current?.click()}>
-                    Add Photo
-                </button>
-
-                <input
-                    ref={photoInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    aria-label="Upload food photo"
-                    className="hidden"
-                    onChange={(e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0];
-                        if (file) {
-                            setPhotos((prev) => [...prev, {url: URL.createObjectURL(file), file}]);
-                        }
-                        (e.target as HTMLInputElement).value = '';
-                    }}
-                />
-            </div>
-
-            {photos.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {photos.map((photo, i) => (
-                        <div key={i} className="relative w-20 h-20 shrink-0">
-                            <img src={photo.url} alt="Food photo" className="w-20 h-20 object-cover rounded" />
-                            <button
-                                type="button"
-                                tabindex={-1}
-                                disabled={saving}
-                                aria-label="Remove photo"
-                                className="absolute top-0 right-0 bg-black/60 text-white rounded-bl px-1 text-xs leading-5"
-                                onClick={() => {
-                                    URL.revokeObjectURL(photo.url);
-                                    setPhotos((prev) => prev.filter((_, j) => j !== i));
-                                }}
-                            >
-                                {'\u2715'}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
 
             <div className="overflow-x-scroll surface-2 px-0 py-1">
                 <table className="w-full text-sm border-collapse table-borderless">

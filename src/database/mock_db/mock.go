@@ -563,14 +563,6 @@ func (p *BaseMockDB) DeleteUserTagColors(ctx context.Context, userID int, namesp
 	panic("not implemented")
 }
 
-func (p *BaseMockDB) AddUserPhoto(ctx context.Context, photo *database.TblUserPhoto) (int, error) {
-	panic("not implemented")
-}
-
-func (p *BaseMockDB) AddUserEventLogPhotos(ctx context.Context, eventlogID int, photoIDs []int) error {
-	panic("not implemented")
-}
-
 func (p *BaseMockDB) LoadUserTimeData(
 	ctx context.Context,
 	userID int,

@@ -127,7 +127,6 @@ export type CreateUserEventLog = {
     recommended_insulin_amount: number;
     actual_insulin_taken: number;
     created_time: number;
-    photo_ids: number[];
 };
 
 export type TblUserBodyLog = {
