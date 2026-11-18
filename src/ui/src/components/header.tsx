@@ -1,56 +1,26 @@
 import {useState, useEffect} from 'preact/hooks';
 import {TblUser} from '../api/types';
+import {DropdownButton} from './drop_down_button';
 
 type UserHeaderProps = {
     user: TblUser;
 };
 
+// UserHeader is the user's own menu: account pages and logout.
 export function UserHeader({user}: UserHeaderProps) {
-    const [showDropDown, setShowDropDown] = useState<boolean>(false);
-
     return (
-        <div
-            className="relative"
-            onFocusOut={(e) => {
-                const next = e.relatedTarget as Node | null;
-                if (!e.currentTarget.contains(next)) {
-                    setShowDropDown(false);
-                }
-            }}
-        >
-            <button
-                tabIndex={0}
-                type="button"
-                className="std-focus bg-transparent border-none rounded-none p-0 text-c-primary"
-                aria-haspopup="menu"
-                aria-expanded={showDropDown}
-                onClick={() => setShowDropDown(true)}
-            >
-                {user.name}
-            </button>
-            {showDropDown && (
-                <div className="flex flex-col absolute left-0 z-10 surface-1 p-2">
-                    <a href="#settings" onClick={() => setShowDropDown(false)}>
-                        Settings
-                    </a>
-                    <a href="#sessions" onClick={() => setShowDropDown(false)}>
-                        Sessions
-                    </a>
-                    <a href="#tags" onClick={() => setShowDropDown(false)}>
-                        Tags
-                    </a>
-                    <a href="#body-metrics" className="wsnw" onClick={() => setShowDropDown(false)}>
-                        Body Metrics
-                    </a>
-                    <a href="#data-export" className="wsnw" onClick={() => setShowDropDown(false)}>
-                        Data Export
-                    </a>
-                    <a href="#logout" onClick={() => setShowDropDown(false)}>
-                        logout
-                    </a>
-                </div>
-            )}
-        </div>
+        <DropdownButton
+            label={user.name}
+            buttonClassName="bg-transparent border-none rounded-none p-0 text-c-primary"
+            actions={[
+                {label: 'Settings', href: '#settings'},
+                {label: 'Sessions', href: '#sessions'},
+                {label: 'Tags', href: '#tags'},
+                {label: 'Body Metrics', href: '#body-metrics'},
+                {label: 'Data Export', href: '#data-export'},
+                {label: 'Log out', href: '#logout'},
+            ]}
+        />
     );
 }
 
