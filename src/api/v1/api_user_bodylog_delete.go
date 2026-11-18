@@ -15,7 +15,7 @@ func (a *APIV1) deleteUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,19 +26,24 @@ func (a *APIV1) deleteUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if event.ID <= 0 {
-		api.BadReq(w, "Bodylog ID should be > 0")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This body log could not be found. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if err := a.Db.DeleteUserBodyLog(r.Context(), user.ID, event.ID); err != nil {
 
-		api.ServerErr(w, "Unexpected error deleting the bodylog from the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The body log could not be deleted. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

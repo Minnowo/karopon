@@ -15,14 +15,14 @@ func (a *APIV1) newUserDashboard(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
 	var dashboard database.TblUserDashboard
 
 	if err := json.NewDecoder(r.Body).Decode(&dashboard); err != nil {
-		api.BadReq(w, "invalid request body")
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
@@ -32,7 +32,7 @@ func (a *APIV1) newUserDashboard(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to create user dashboard")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The dashboard could not be saved. Try again.")
 		return
 	}
 
@@ -46,14 +46,14 @@ func (a *APIV1) updateUserDashboard(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
 	var dashboard database.TblUserDashboard
 
 	if err := json.NewDecoder(r.Body).Decode(&dashboard); err != nil {
-		api.BadReq(w, "invalid request body")
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (a *APIV1) updateUserDashboard(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.UpdateUserDashboard(r.Context(), &dashboard); err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to update user dashboard")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The dashboard could not be saved. Try again.")
 		return
 	}
 
@@ -73,7 +73,7 @@ func (a *APIV1) deleteUserDashboard(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -82,13 +82,13 @@ func (a *APIV1) deleteUserDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		api.BadReq(w, "invalid request body")
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
 	if err := a.Db.DeleteUserDashboard(r.Context(), user.ID, req.ID); err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to delete user dashboard")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The dashboard could not be deleted. Try again.")
 		return
 	}
 

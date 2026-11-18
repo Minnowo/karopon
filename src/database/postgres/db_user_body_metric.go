@@ -28,7 +28,7 @@ func (db *PGDatabase) AddUserBodyMetric(ctx context.Context, metric *database.Tb
 
 	id, err := db.NamedInsertReturningID(ctx, query, metric)
 
-	return id, err
+	return id, alreadyExists(err)
 }
 
 // DeleteUserBodyMetric deletes a body metric definition and any logged values for it

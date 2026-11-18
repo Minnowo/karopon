@@ -18,6 +18,9 @@ type TagInputProps = {
     id?: string;
     // Leaves the text box and the chips' remove buttons out of the Tab order.
     skipTab?: boolean;
+    // Marks the text box as rejected; pair with errorId pointing at its FieldError.
+    invalid?: boolean;
+    errorId?: string;
 };
 
 export function TagInput({
@@ -32,6 +35,8 @@ export function TagInput({
     tagColors = undefined,
     id = undefined,
     skipTab = false,
+    invalid = false,
+    errorId = undefined,
 }: TagInputProps) {
     const [input, setInput] = useState('');
     const [open, setOpen] = useState<boolean>(false);
@@ -267,6 +272,8 @@ export function TagInput({
                     aria-expanded={listOpen}
                     aria-controls={listboxId}
                     aria-autocomplete="list"
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={invalid ? errorId : undefined}
                     aria-activedescendant={listOpen ? optionId(selectedIndex) : undefined}
                     onInput={(e) => {
                         const newVal = (e.target as HTMLInputElement).value;

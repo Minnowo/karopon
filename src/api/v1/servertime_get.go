@@ -17,7 +17,7 @@ func (a *APIV1) getServerTime(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.Unauthorized(w)
+		api.WriteNoUserProblem(w)
 		return
 	}
 

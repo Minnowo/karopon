@@ -1,20 +1,34 @@
-import {useState, useMemo, useRef, useEffect} from 'preact/hooks';
+import {useState, useMemo, useRef, useEffect, useId} from 'preact/hooks';
 import {TblDataSource, TblDataSourceFood, TblUserFood} from '../../api/types';
-import {ErrorDiv} from '../../components/error_div';
+import {ApiError} from '../../api/api';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {FieldError} from '../../components/field_error';
 import {DoRender} from '../../hooks/doRender';
 import {NumberInput} from '../../components/number_input';
 import {FoodSearchPanel} from './food_search_panel';
 
 type AddFoodPanelProps = {
     food: TblUserFood;
-    addFood: (food: TblUserFood) => void;
+    // Saves the food; rejects with an ApiError when the server refuses it.
+    addFood: (food: TblUserFood) => Promise<void>;
     onCancel: () => void;
     dataSources: TblDataSource[] | null;
     className?: string;
     readonly doRefresh: () => void;
 };
 export function AddFoodPanel({food, dataSources, addFood, onCancel, className, doRefresh}: AddFoodPanelProps) {
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
+    const [saving, setSaving] = useState<boolean>(false);
+    const baseId = useId();
+    const nameId = `${baseId}-name`;
+    const unitId = `${baseId}-unit`;
+    const portionId = `${baseId}-portion`;
+    const fieldIds = new Map<string, string>([
+        ['#/name', nameId],
+        ['#/unit', unitId],
+        ['#/portion', portionId],
+    ]);
 
     const foodRef = useRef<HTMLInputElement>(null);
     const tmpFood = useMemo<TblUserFood>(() => ({...food}), [food]);
@@ -24,29 +38,53 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
         foodRef.current?.focus();
     }, []);
 
-    const onSaveClick = () => {
+    // A new starting food (e.g. Copy on another food) makes old errors meaningless.
+    useEffect(() => {
         setErrorMsg(null);
+        setFieldErrors(new Map());
+    }, [food]);
 
-        const newFood = {...food, ...tmpFood};
-        newFood.name = newFood.name.trim();
-        newFood.unit = newFood.unit.trim();
+    // clearFieldError drops the error of a field the user is editing, so it stops reading as invalid.
+    const clearFieldError = (pointer: string) => {
+        setFieldErrors((prev) => {
+            if (!prev.has(pointer)) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.delete(pointer);
+            return next;
+        });
+    };
 
-        if (newFood.name === '') {
-            setErrorMsg('Food cannot have empty name');
+    const onSaveClick = () => {
+        // aria-disabled rather than disabled while saving, so the button keeps focus for keyboard users.
+        if (saving) {
             return;
         }
+        setErrorMsg(null);
+        setFieldErrors(new Map());
+        setSaving(true);
 
-        if (newFood.unit === '') {
-            setErrorMsg('Food unit cannot be empty');
-            return;
-        }
-
-        if (newFood.portion <= 0) {
-            setErrorMsg('Food portion must be a positive number');
-            return;
-        }
-
-        addFood(newFood);
+        addFood({...food, ...tmpFood})
+            .catch((e: unknown) => {
+                if (!(e instanceof ApiError)) {
+                    setErrorMsg(e instanceof Error ? e : String(e));
+                    return;
+                }
+                if (e.isUnauthorizedError()) {
+                    doRefresh();
+                }
+                const errs = e.fieldErrors();
+                setFieldErrors(errs);
+                setErrorMsg(e);
+                for (const [pointer, id] of fieldIds) {
+                    if (errs.has(pointer)) {
+                        document.getElementById(id)?.focus();
+                        break;
+                    }
+                }
+            })
+            .finally(() => setSaving(false));
     };
 
     const onChooseFood = (chosenFood: TblDataSourceFood) => {
@@ -132,39 +170,58 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                 </details>
             </div>
 
-            <ErrorDiv errorMsg={errorMsg} />
-
             <div className="flex flex-col gap-2">
                 <div className="flex flex-row flex-wrap gap-2">
-                    <input
-                        ref={foodRef}
-                        className="flex-auto"
-                        type="text"
-                        value={tmpFood.name}
-                        onInput={(e) => (tmpFood.name = e.currentTarget.value)}
-                        placeholder="Food Name"
-                        aria-label="Food Name"
-                    />
-                    <input
-                        className="flex-auto max-w-32"
-                        type="text"
-                        value={tmpFood.unit}
-                        onInput={(e) => (tmpFood.unit = e.currentTarget.value)}
-                        placeholder="Portion Unit"
-                        aria-label="Portion Unit"
-                    />
+                    <div className="flex flex-col flex-auto gap-1">
+                        <input
+                            ref={foodRef}
+                            id={nameId}
+                            type="text"
+                            value={tmpFood.name}
+                            onInput={(e) => {
+                                tmpFood.name = e.currentTarget.value;
+                                clearFieldError('#/name');
+                            }}
+                            placeholder="Food Name"
+                            aria-label="Food Name"
+                            aria-invalid={fieldErrors.has('#/name') || undefined}
+                            aria-describedby={fieldErrors.has('#/name') ? `${nameId}-error` : undefined}
+                        />
+                        <FieldError id={`${nameId}-error`} message={fieldErrors.get('#/name')} />
+                    </div>
+                    <div className="flex flex-col flex-auto max-w-32 gap-1">
+                        <input
+                            id={unitId}
+                            type="text"
+                            value={tmpFood.unit}
+                            onInput={(e) => {
+                                tmpFood.unit = e.currentTarget.value;
+                                clearFieldError('#/unit');
+                            }}
+                            placeholder="Portion Unit"
+                            aria-label="Portion Unit"
+                            aria-invalid={fieldErrors.has('#/unit') || undefined}
+                            aria-describedby={fieldErrors.has('#/unit') ? `${unitId}-error` : undefined}
+                        />
+                        <FieldError id={`${unitId}-error`} message={fieldErrors.get('#/unit')} />
+                    </div>
                 </div>
                 <NumberInput
+                    id={portionId}
                     className="w-full"
                     innerClassName="w-full"
                     min={0}
                     label={'Portion'}
                     value={tmpFood.portion}
+                    invalid={fieldErrors.has('#/portion')}
+                    errorId={`${portionId}-error`}
                     onValueChange={(portion: number) => {
                         tmpFood.portion = portion;
+                        clearFieldError('#/portion');
                         render();
                     }}
                 />
+                <FieldError id={`${portionId}-error`} message={fieldErrors.get('#/portion')} />
             </div>
 
             <div className="flex flex-wrap flex-col sm:flex-row justify-evenly gap-2">
@@ -218,9 +275,11 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                 />
             </div>
 
+            <ErrorDiv errorMsg={errorMsg} />
+
             <div className="flex justify-end gap-2">
                 <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" onClick={onSaveClick}>
+                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
                     Create Food
                 </button>
             </div>

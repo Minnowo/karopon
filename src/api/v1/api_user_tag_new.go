@@ -2,6 +2,8 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -16,7 +18,7 @@ func (a *APIV1) newUserTag(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +29,7 @@ func (a *APIV1) newUserTag(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -35,13 +37,8 @@ func (a *APIV1) newUserTag(w http.ResponseWriter, r *http.Request) {
 	tag.Namespace = strings.TrimSpace(tag.Namespace)
 	tag.Name = strings.TrimSpace(tag.Name)
 
-	if tag.Namespace == "" {
-		api.BadReq(w, "Tag namespace cannot be empty.")
-		return
-	}
-
-	if tag.Name == "" {
-		api.BadReq(w, "Tag name cannot be empty.")
+	if errs := validateTagParts(tag.Namespace, tag.Name, "#/namespace", "#/name"); len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -49,9 +46,18 @@ func (a *APIV1) newUserTag(w http.ResponseWriter, r *http.Request) {
 
 	id, err := a.Db.AddUserTag(r.Context(), &tag)
 
+	if errors.Is(err, database.ErrAlreadyExists) {
+		api.WriteAlreadyExistsProblem(w, api.FieldProblem{
+			Pointer: "#/name",
+			Detail:  fmt.Sprintf("You already have a tag called %s:%s.", tag.Namespace, tag.Name),
+		})
+
+		return
+	}
+
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error adding the tag to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The tag could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

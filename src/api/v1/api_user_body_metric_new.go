@@ -2,6 +2,8 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -16,7 +18,7 @@ func (a *APIV1) createUserBodyMetric(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +29,7 @@ func (a *APIV1) createUserBodyMetric(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -36,7 +38,11 @@ func (a *APIV1) createUserBodyMetric(w http.ResponseWriter, r *http.Request) {
 	metric.Unit = strings.TrimSpace(metric.Unit)
 
 	if metric.Name == "" {
-		api.BadReq(w, "Name cannot be empty")
+		api.WriteValidationProblem(
+			w,
+			[]api.FieldProblem{{Pointer: "#/name", Detail: "Enter a name for the body metric."}},
+		)
+
 		return
 	}
 
@@ -44,9 +50,18 @@ func (a *APIV1) createUserBodyMetric(w http.ResponseWriter, r *http.Request) {
 
 	id, err := a.Db.AddUserBodyMetric(r.Context(), &metric)
 
+	if errors.Is(err, database.ErrAlreadyExists) {
+		api.WriteAlreadyExistsProblem(w, api.FieldProblem{
+			Pointer: "#/name",
+			Detail:  fmt.Sprintf("You already have a body metric called %s. Use a different name.", metric.Name),
+		})
+
+		return
+	}
+
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error adding the body metric to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The body metric could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

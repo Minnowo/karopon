@@ -53,7 +53,7 @@ func (db *PGDatabase) AddUserGoal(ctx context.Context, userGoal *database.TblUse
 	id, err := db.NamedInsertReturningID(ctx, query, userGoal)
 
 	if err != nil {
-		return -1, err
+		return -1, alreadyExists(err)
 	}
 
 	return id, nil
@@ -75,5 +75,5 @@ func (db *PGDatabase) UpdateUserGoal(ctx context.Context, userGoal *database.Tbl
 
 	_, err := db.NamedExecContext(ctx, query, userGoal)
 
-	return err
+	return alreadyExists(err)
 }

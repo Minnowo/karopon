@@ -16,7 +16,7 @@ func (a *APIV1) updateUserActivity(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +27,7 @@ func (a *APIV1) updateUserActivity(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -36,23 +36,18 @@ func (a *APIV1) updateUserActivity(w http.ResponseWriter, r *http.Request) {
 	req.TagNamespace = strings.TrimSpace(req.TagNamespace)
 	req.TagName = strings.TrimSpace(req.TagName)
 
-	if len(req.Name) == 0 {
-		http.Error(w, "activity cannot have empty name", http.StatusBadRequest)
-		return
-	}
-
-	if len(req.TagNamespace) == 0 || len(req.TagName) == 0 {
-		http.Error(w, "activity must have a tag", http.StatusBadRequest)
-		return
-	}
-
-	if req.Duration <= 0 {
-		http.Error(w, "duration cannot be <= 0", http.StatusBadRequest)
-		return
-	}
-
 	if req.ID <= 0 {
-		http.Error(w, "activity ID should be > 0", http.StatusBadRequest)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This activity could not be found. Reload the page and try again.",
+		)
+
+		return
+	}
+
+	if errs := validateActivity(req.Name, req.TagNamespace, req.TagName, req.Duration); len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -61,7 +56,7 @@ func (a *APIV1) updateUserActivity(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to resolve tag for an activity")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The activity could not be saved. Try again.")
 
 		return
 	}
@@ -80,7 +75,7 @@ func (a *APIV1) updateUserActivity(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to update activity")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The activity could not be saved. Try again.")
 
 		return
 	}

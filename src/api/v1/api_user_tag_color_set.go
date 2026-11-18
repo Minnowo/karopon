@@ -25,25 +25,35 @@ func (a *APIV1) setUserTagColor(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
 	var colors []database.TblUserTagColor
 
 	if err := json.NewDecoder(r.Body).Decode(&colors); err != nil {
-		api.BadReq(w, "invalid request body")
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
 	for i := range colors {
 		if colors[i].Namespace == "" {
-			api.BadReq(w, "namespace must not be empty")
+			api.WriteStatusProblem(
+				w,
+				http.StatusBadRequest,
+				"The request could not be read. Reload the page and try again.",
+			)
+
 			return
 		}
 
 		if !isValidTagColor(colors[i].Color) {
-			api.BadReq(w, "color must be a hex color (#RGB or #RRGGBB) or a CSS variable name (--name)")
+			api.WriteStatusProblem(
+				w,
+				http.StatusBadRequest,
+				"Use a color like #ff8800 or a theme color like --primary.",
+			)
+
 			return
 		}
 
@@ -52,7 +62,7 @@ func (a *APIV1) setUserTagColor(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.SetUserTagColors(r.Context(), colors); err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to set user tag color")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The tag color could not be saved. Try again.")
 		return
 	}
 

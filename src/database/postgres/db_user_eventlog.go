@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"io"
 	"karopon/src/database"
 	"math"
@@ -36,7 +37,7 @@ func (db *PGDatabase) AddUserEventLogWith(
 			return err
 		}
 
-		for _, food := range foodlogs {
+		for i, food := range foodlogs {
 
 			food.UserID = event.UserID
 			food.Event = event.Event
@@ -44,6 +45,10 @@ func (db *PGDatabase) AddUserEventLogWith(
 			food.UserTime = event.UserTime
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
+
+			if errors.Is(err, database.ErrFoodPortionIsZero) {
+				return &database.FoodLogRowError{Index: i, Err: err}
+			}
 
 			if err != nil {
 				return err
@@ -262,7 +267,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 
 		eventlog.Eventlog.NetCarbs = 0
 
-		for _, food := range eventlog.Foodlogs {
+		for i, food := range eventlog.Foodlogs {
 
 			eventlog.Eventlog.NetCarbs = food.Carb - food.Fibre
 
@@ -272,6 +277,10 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 			food.EventLogID = eventlog.Eventlog.ID
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
+
+			if errors.Is(err, database.ErrFoodPortionIsZero) {
+				return &database.FoodLogRowError{Index: i, Err: err}
+			}
 
 			if err != nil {
 				return err

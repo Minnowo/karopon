@@ -1,7 +1,9 @@
-import {useEffect, useState} from 'preact/hooks';
+import {useEffect, useId, useState} from 'preact/hooks';
+import {ErrorText} from '../utils/error';
 import {UserSession} from '../api/types';
-import {ApiDeleteUserSession, ApiGetUserSessions, ApiUpdateUserSession} from '../api/api';
-import {ErrorDiv} from '../components/error_div';
+import {ApiDeleteUserSession, ApiError, ApiGetUserSessions, ApiUpdateUserSession} from '../api/api';
+import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
+import {FieldError} from '../components/field_error';
 import {FormatSmartTimestamp} from '../utils/date_utils';
 import {DropdownButton} from '../components/drop_down_button';
 
@@ -12,10 +14,14 @@ function SessionRow({
 }: {
     session: UserSession;
     onDelete: (session: UserSession) => void;
-    onUpdate: (session: UserSession, name: string) => void;
+    // Renames the session; rejects with an ApiError when the server refuses it.
+    onUpdate: (session: UserSession, name: string) => Promise<void>;
 }) {
     const [editing, setEditing] = useState(false);
     const [editName, setEditName] = useState('');
+    const [nameError, setNameError] = useState<string | undefined>(undefined);
+    const [saving, setSaving] = useState<boolean>(false);
+    const nameErrorId = `${useId()}-name-error`;
 
     const label = session.user_agent || 'Unknown device';
 
@@ -26,14 +32,25 @@ function SessionRow({
 
     const cancelEdit = () => {
         setEditing(false);
+        setNameError(undefined);
     };
 
     const saveEdit = () => {
-        if (!editName.trim()) {
+        if (saving) {
             return;
         }
-        onUpdate(session, editName.trim());
-        setEditing(false);
+        setNameError(undefined);
+        setSaving(true);
+        onUpdate(session, editName.trim())
+            .then(() => setEditing(false))
+            .catch((e: unknown) => {
+                if (e instanceof ApiError && e.fieldErrors().has('#/user_agent')) {
+                    setNameError(e.fieldErrors().get('#/user_agent'));
+                } else {
+                    setNameError(ErrorText(e));
+                }
+            })
+            .finally(() => setSaving(false));
     };
 
     return (
@@ -49,7 +66,12 @@ function SessionRow({
                         className="w-full"
                         value={editName}
                         aria-label="Session name"
-                        onInput={(e) => setEditName((e.target as HTMLInputElement).value)}
+                        aria-invalid={nameError !== undefined || undefined}
+                        aria-describedby={nameError !== undefined ? nameErrorId : undefined}
+                        onInput={(e) => {
+                            setEditName((e.target as HTMLInputElement).value);
+                            setNameError(undefined);
+                        }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 saveEdit();
@@ -60,9 +82,10 @@ function SessionRow({
                         }}
                         autoFocus
                     />
+                    <FieldError id={nameErrorId} message={nameError} />
                     <div className="flex justify-end gap-2">
                         <button onClick={cancelEdit}>Cancel</button>
-                        <button className="btn-success" onClick={saveEdit}>
+                        <button className="btn-success" aria-disabled={saving || undefined} onClick={saveEdit}>
                             Save
                         </button>
                     </div>
@@ -95,26 +118,25 @@ function SessionRow({
 
 export function SessionsPage() {
     const [sessions, setSessions] = useState<UserSession[] | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
     useEffect(() => {
         ApiGetUserSessions()
             .then(setSessions)
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch((e: Error) => setErrorMsg(e));
     }, []);
 
     const handleDelete = (session: UserSession) => {
         ApiDeleteUserSession(session)
             .then(() => setSessions((prev) => prev?.filter((s) => s.token_id !== session.token_id) ?? null))
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch((e: Error) => setErrorMsg(e));
     };
 
-    const handleUpdate = (session: UserSession, name: string) => {
-        ApiUpdateUserSession(session, name)
-            .then(() =>
-                setSessions((prev) => prev?.map((s) => (s.token_id === session.token_id ? {...s, user_agent: name} : s)) ?? null)
-            )
-            .catch((e: Error) => setErrorMsg(e.message));
+    // handleUpdate rejects with the API error so the session row can show it on its name field.
+    const handleUpdate = (session: UserSession, name: string): Promise<void> => {
+        return ApiUpdateUserSession(session, name).then(() =>
+            setSessions((prev) => prev?.map((s) => (s.token_id === session.token_id ? {...s, user_agent: name} : s)) ?? null)
+        );
     };
 
     return (

@@ -15,7 +15,7 @@ func (a *APIV1) addUserWorkout(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -24,13 +24,13 @@ func (a *APIV1) addUserWorkout(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if err := validateWorkout(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeWorkoutProblem(w, err)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (a *APIV1) addUserWorkout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to create a new workout")
-		api.ServerErr(w, "failed to create the workout in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The workout could not be saved. Try again.")
 
 		return
 	}

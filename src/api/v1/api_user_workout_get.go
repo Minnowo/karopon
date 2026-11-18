@@ -14,7 +14,7 @@ func (a *APIV1) getUserWorkouts(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -23,7 +23,11 @@ func (a *APIV1) getUserWorkouts(w http.ResponseWriter, r *http.Request) {
 	if err := a.Db.LoadUserWorkouts(r.Context(), user.ID, &out); err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user workouts")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your workouts could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

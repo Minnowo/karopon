@@ -19,7 +19,7 @@ import {
     UserTimeFormat,
 } from '../../api/types';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
-import {GetErrorHandler} from '../../utils/error';
+import {GetErrorHandler, RefreshOnUnauthorized} from '../../utils/error';
 import {AddActivityPanel} from './add_activity_panel';
 import {ActivityEditPanel} from './activity_edit_panel';
 import {AddReminderPanel} from './add_reminder_panel';
@@ -35,8 +35,9 @@ export const ActivityPage = (state: BaseState) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
 
-    const addActivity = (req: NewUserActivityRequest) => {
-        ApiNewUserActivity(req)
+    // addActivity and updateActivity reject with the API error so the form can show it.
+    const addActivity = (req: NewUserActivityRequest): Promise<void> => {
+        return ApiNewUserActivity(req)
             .then((activity) => {
                 const activityWithTag: ActivityWithTag = {
                     activity,
@@ -47,11 +48,11 @@ export const ActivityPage = (state: BaseState) => {
                 state.setActivities(activities);
                 setShowAddActivityPanel(false);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateActivity = (req: UpdateUserActivityRequest) => {
-        ApiUpdateUserActivity(req)
+    const updateActivity = (req: UpdateUserActivityRequest): Promise<void> => {
+        return ApiUpdateUserActivity(req)
             .then(() => {
                 const activities = state.activities.map((a) =>
                     a.activity.id === req.id
@@ -64,7 +65,7 @@ export const ActivityPage = (state: BaseState) => {
                 activities.sort((a, b) => a.activity.name.localeCompare(b.activity.name));
                 state.setActivities(activities);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteActivity = (activityWithTag: ActivityWithTag) => {
@@ -93,8 +94,8 @@ export const ActivityPage = (state: BaseState) => {
         sound: string,
         name: string,
         alarmMode: ReminderAlarmMode
-    ) => {
-        ApiNewUserReminder({
+    ): Promise<void> => {
+        return ApiNewUserReminder({
             reminder: {
                 id: 0,
                 enabled,
@@ -115,7 +116,7 @@ export const ActivityPage = (state: BaseState) => {
                 state.setReminders(reminders);
                 setShowAddReminderPanel(false);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const updateReminder = (
@@ -129,11 +130,11 @@ export const ActivityPage = (state: BaseState) => {
         sound: string,
         name: string,
         alarmMode: ReminderAlarmMode
-    ) => {
+    ): Promise<void> => {
         const existing = state.reminders.find((r) => r.reminder.id === reminderID);
 
         if (!existing) {
-            return;
+            return Promise.reject(new Error('This reminder could not be found. Reload the page and try again.'));
         }
 
         const updatedReminder = {
@@ -147,25 +148,24 @@ export const ActivityPage = (state: BaseState) => {
             alarm_mode: alarmMode,
         };
 
-        const ops = [ApiUpdateUserReminder(updatedReminder)];
+        // The reminder is saved first and shown at once; its activities follow, so a failure of the
+        // second request never leaves the list showing the old reminder.
+        const setInList = (activities: ActivityWithTag[]) =>
+            state.setReminders((old) =>
+                old.map((r) => (r.reminder.id === reminderID ? {reminder: updatedReminder, activities} : r))
+            );
 
-        if (activityIDsChanged) {
-            ops.push(ApiUpdateUserReminderActivities({reminder_id: reminderID, activity_ids: activityIDs}));
-        }
-
-        Promise.all(ops)
+        return ApiUpdateUserReminder(updatedReminder)
             .then(() => {
-                const linkedActivities = activityIDsChanged
-                    ? state.activities.filter((a) => activityIDs.includes(a.activity.id))
-                    : existing.activities;
-
-                state.setReminders(
-                    state.reminders.map((r) =>
-                        r.reminder.id === reminderID ? {reminder: updatedReminder, activities: linkedActivities} : r
-                    )
+                setInList(existing.activities);
+                if (!activityIDsChanged) {
+                    return;
+                }
+                return ApiUpdateUserReminderActivities({reminder_id: reminderID, activity_ids: activityIDs}).then(() =>
+                    setInList(state.activities.filter((a) => activityIDs.includes(a.activity.id)))
                 );
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteReminder = (reminderWithActivities: ReminderWithActivities) => {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"karopon/src/api"
 	"karopon/src/database"
 	"strconv"
 	"strings"
@@ -119,4 +120,44 @@ func normalizeReminderFields(r *database.TblUserReminder) error {
 	r.ActiveTimers = normalized
 
 	return nil
+}
+
+// reminderFieldProblems checks and normalizes r (see normalizeReminderFields)
+// and returns one field problem per field the user can fix, pointing under
+// prefix (for example "#/reminder/"). A non-nil error is a problem the user
+// cannot fix from the form (a malformed active_timers blob).
+func reminderFieldProblems(r *database.TblUserReminder, prefix string) ([]api.FieldProblem, error) {
+
+	var errs []api.FieldProblem
+
+	if r.IntervalMinutes <= 0 {
+		errs = append(
+			errs,
+			api.FieldProblem{Pointer: prefix + "interval_minutes", Detail: "Interval must be more than 0."},
+		)
+	}
+
+	err := normalizeReminderFields(r)
+
+	switch {
+	case err == nil:
+	case errors.Is(err, ErrReminderNameTooLong):
+		errs = append(errs, api.FieldProblem{
+			Pointer: prefix + "name",
+			Detail:  fmt.Sprintf("Use a name of at most %d characters.", maxReminderNameLength),
+		})
+	case errors.Is(err, ErrReminderSoundTooLong):
+		errs = append(errs, api.FieldProblem{Pointer: prefix + "sound", Detail: "Choose a sound from the list."})
+	case errors.Is(err, ErrReminderInvalidActivityMode):
+		errs = append(
+			errs,
+			api.FieldProblem{Pointer: prefix + "activity_mode", Detail: "Choose how activities are picked."},
+		)
+	case errors.Is(err, ErrReminderInvalidAlarmMode):
+		errs = append(errs, api.FieldProblem{Pointer: prefix + "alarm_mode", Detail: "Choose reminder or alarm."})
+	default:
+		return errs, err
+	}
+
+	return errs, nil
 }

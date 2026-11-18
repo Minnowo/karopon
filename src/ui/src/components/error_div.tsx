@@ -1,4 +1,7 @@
+// The alert box that shows an error to the user (docs/api-errors.md).
+
 import {ApiError} from '../api/api';
+import {NoServerMessage} from '../utils/error';
 
 export type ErrorDivMsg = Error[] | Error | string;
 
@@ -7,81 +10,54 @@ type ErrorDivProps = {
     className?: string;
 };
 
-function getUserFriendlyMessage(error: ErrorDivMsg): string {
+// userMessage returns the text to show for error.
+function userMessage(error: ErrorDivMsg): string {
     if (Array.isArray(error)) {
-        const messages = error.map(getUserFriendlyMessage);
-        const uniqueMessages = Array.from(new Set(messages));
-        return uniqueMessages.join('\n');
+        return Array.from(new Set(error.map(userMessage))).join('\n');
     }
-
     if (error instanceof ApiError) {
-        switch (error.status) {
-            case 400:
-                return 'The request(s) contains invalid or malformed data.';
-            case 401:
-                return 'Authentication is required to access this resource.';
-            case 403:
-                return 'The requested action(s) is not permitted with current permissions.';
-            case 404:
-                return 'The requested item(s) could not be found.';
-            case 409:
-                return 'There is a conflict with existing data preventing this action(s).';
-            case 422:
-                return 'Some field(s) in the request contain invalid or incomplete information.';
-            case 429:
-                return 'Request(s) are being sent too frequently and are being throttled.';
-            case 500:
-                return 'An internal server error occurred while processing the request(s).';
-            case 503:
-                return 'The service is temporarily unavailable due to maintenance or overload.';
-            default:
-                return 'An unexpected error occurred during the request(s).';
-        }
+        return error.userMessage() ?? NoServerMessage;
     }
-
     if (error instanceof Error) {
         return error.message || 'Something went wrong.';
     }
-
     return error || 'Something went wrong.';
 }
 
-function getDeveloperMessage(error: ErrorDivMsg): string | null {
-    if (Array.isArray(error)) {
-        return error.map(getDeveloperMessage).filter(Boolean).join('\n');
+// browserStack returns the stack trace of errors thrown in the browser, or null when there are none.
+function browserStack(error: ErrorDivMsg): string | null {
+    const errors = Array.isArray(error) ? error : [error];
+    const stacks: string[] = [];
+    for (const e of errors) {
+        if (e instanceof Error && !(e instanceof ApiError) && e.stack) {
+            stacks.push(e.stack);
+        }
     }
-
-    if (error instanceof ApiError) {
-        return error.message;
-    }
-
-    if (error instanceof Error) {
-        return error.stack || error.message || 'Unknown error';
-    }
-
-    return null;
+    return stacks.length > 0 ? stacks.join('\n\n') : null;
 }
 
+// ErrorDiv shows errorMsg as an alert, or nothing when it is null. Server errors show the
+// server's message only; an error thrown in the browser (a bug) also offers its stack trace,
+// which helps a bug report.
 export function ErrorDiv({errorMsg, className}: ErrorDivProps) {
     if (!errorMsg) {
         return null;
     }
 
-    const userMessage = getUserFriendlyMessage(errorMsg);
-    const devMessage = getDeveloperMessage(errorMsg);
+    const message = userMessage(errorMsg);
+    const stack = browserStack(errorMsg);
 
     return (
-        <details role="alert" className={`flex flex-col text-left text-c-error ${className ?? ''}`}>
-            <summary className="cursor-pointer">
-                <strong>{userMessage}</strong>
-                {devMessage && (
-                    <>
-                        &nbsp;<small>(click for dev info)</small>
-                    </>
-                )}
-            </summary>
-
-            {devMessage && <pre className="text-xs mt-1 whitespace-pre-wrap">{devMessage}</pre>}
-        </details>
+        <div role="alert" className={`flex flex-col text-left text-c-error ${className ?? ''}`}>
+            <strong>{message}</strong>
+            {stack !== null && (
+                <details>
+                    <summary className="cursor-pointer">
+                        <small>Technical details</small>
+                    </summary>
+                    <pre className="text-xs mt-1 whitespace-pre-wrap">{stack}</pre>
+                </details>
+            )}
+        </div>
     );
 }

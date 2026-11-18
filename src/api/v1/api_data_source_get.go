@@ -14,7 +14,7 @@ func (a *APIV1) getDataSources(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.Unauthorized(w)
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -23,7 +23,11 @@ func (a *APIV1) getDataSources(w http.ResponseWriter, r *http.Request) {
 	if err := a.Db.LoadDataSources(r.Context(), &dataSources); err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read data sources")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"The food data sources could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

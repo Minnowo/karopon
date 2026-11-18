@@ -18,7 +18,7 @@ func (a *APIV1) updateUserReminder(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -29,25 +29,39 @@ func (a *APIV1) updateUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if reminder.ID <= 0 {
-		http.Error(w, "reminder ID should be > 0", http.StatusBadRequest)
-		return
-	}
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This reminder could not be found. Reload the page and try again.",
+		)
 
-	if reminder.IntervalMinutes <= 0 {
-		http.Error(w, "interval_minutes cannot be <= 0", http.StatusBadRequest)
 		return
 	}
 
 	reminder.UserID = user.ID
 
-	if err := normalizeReminderFields(&reminder); err != nil {
-		api.BadReq(w, err.Error())
+	errs, err := reminderFieldProblems(&reminder, "#/")
+
+	if err != nil {
+
+		log.Debug().Err(err).Msg("reminder active timers rejected")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The reminder could not be read. Reload the page and try again.",
+		)
+
+		return
+	}
+
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -56,7 +70,7 @@ func (a *APIV1) updateUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to update reminder")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The reminder could not be saved. Try again.")
 
 		return
 	}

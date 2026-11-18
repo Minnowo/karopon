@@ -16,7 +16,7 @@ import {
 } from '../../api/api';
 import {ExerciseWithTags, NewWorkoutLog, UserTimeFormat, WorkoutLogWithSteps, WorkoutWithTags} from '../../api/types';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
-import {GetErrorHandler} from '../../utils/error';
+import {GetErrorHandler, RefreshOnUnauthorized} from '../../utils/error';
 import {FmtTagColor} from '../../utils/tags';
 import {AddExercisePanel, ExerciseEditPanel} from './exercise_panel';
 import {WorkoutBuilderPanel} from './workout_builder_panel';
@@ -66,19 +66,20 @@ export function WorkoutPage(state: BaseState) {
             .catch(handleErr);
     }, [handleErr]);
 
-    const addExercise = (e: ExerciseWithTags) => {
-        ApiNewUserExercise(e)
+    // The add and update saves reject with the API error so the form can show it.
+    const addExercise = (e: ExerciseWithTags): Promise<void> => {
+        return ApiNewUserExercise(e)
             .then((created) => {
                 setExercises((xs) => sortExercises([...xs, created]));
                 setShowAddPanel(false);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateExercise = (e: ExerciseWithTags) => {
-        ApiUpdateUserExercise(e)
+    const updateExercise = (e: ExerciseWithTags): Promise<void> => {
+        return ApiUpdateUserExercise(e)
             .then(() => setExercises((xs) => sortExercises(xs.map((x) => (x.exercise.id === e.exercise.id ? e : x)))))
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteExercise = (e: ExerciseWithTags) => {
@@ -95,19 +96,19 @@ export function WorkoutPage(state: BaseState) {
             .catch(handleErr);
     };
 
-    const addWorkout = (w: WorkoutWithTags) => {
-        ApiNewUserWorkout(w)
+    const addWorkout = (w: WorkoutWithTags): Promise<void> => {
+        return ApiNewUserWorkout(w)
             .then((created) => {
                 setWorkouts((ws) => sortWorkouts([...ws, created]));
                 setShowAddPanel(false);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateWorkout = (w: WorkoutWithTags) => {
-        ApiUpdateUserWorkout(w)
+    const updateWorkout = (w: WorkoutWithTags): Promise<void> => {
+        return ApiUpdateUserWorkout(w)
             .then(() => setWorkouts((ws) => sortWorkouts(ws.map((x) => (x.workout.id === w.workout.id ? w : x)))))
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteWorkout = (w: WorkoutWithTags) => {
@@ -148,6 +149,7 @@ export function WorkoutPage(state: BaseState) {
     const endRun = () => {
         LocalClearWorkoutRun();
         setRunState(null);
+        setErrorMsg(null);
     };
 
     const startWorkout = (w: WorkoutWithTags) => {
@@ -156,17 +158,19 @@ export function WorkoutPage(state: BaseState) {
             setErrorMsg('This workout has no steps');
             return;
         }
+        setErrorMsg(null);
         setRun(s);
     };
 
-    const saveRun = (log: NewWorkoutLog) => {
-        ApiNewUserWorkoutLog(log)
+    // saveRun rejects with the API error so the run summary can show it next to Save.
+    const saveRun = (log: NewWorkoutLog): Promise<void> => {
+        return ApiNewUserWorkoutLog(log)
             .then((created) => {
                 setLogs((ls) => [created, ...ls]);
                 endRun();
                 setTab('history');
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const updateLog = (log: WorkoutLogWithSteps) => {

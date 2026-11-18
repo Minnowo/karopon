@@ -19,7 +19,9 @@ var (
 	ErrUserDoesNotHaveThisID     = errors.New("ID does not exist")
 	ErrFoodPortionIsZero         = errors.New("food portion cannot be zero")
 	ErrTagAlreadyExists          = errors.New("a tag with the new namespace and name already exists")
-	ErrInvalidBodyMetric         = errors.New("body metric does not exist for this user")
+	// ErrAlreadyExists means a unique constraint rejected the write; the row would duplicate one the user has.
+	ErrAlreadyExists     = errors.New("already exists")
+	ErrInvalidBodyMetric = errors.New("body metric does not exist for this user")
 )
 
 // DB is interface for accessing and manipulating data in database.

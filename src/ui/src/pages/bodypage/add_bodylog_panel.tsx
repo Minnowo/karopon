@@ -1,5 +1,6 @@
-import {useState, useMemo} from 'preact/hooks';
-import {ErrorDiv} from '../../components/error_div';
+import {useState, useMemo, useEffect} from 'preact/hooks';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {ApiError} from '../../api/api';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserBodyMetric, UserBodyLog} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
@@ -8,7 +9,8 @@ import {JSX} from 'preact';
 type AddBodyPanelProps = {
     bodylog: UserBodyLog;
     bodyMetrics: TblUserBodyMetric[];
-    onCreate: (bodylog: UserBodyLog) => void;
+    // Saves the body log; rejects with an ApiError when the server refuses it.
+    onCreate: (bodylog: UserBodyLog) => Promise<void>;
     onCancel: () => void;
     title: string;
     saveButtonTitle: string;
@@ -27,7 +29,8 @@ export function AddBodyPanel({
     preserveTime = false,
     className = '',
 }: AddBodyPanelProps) {
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [saving, setSaving] = useState<boolean>(false);
 
     const render = DoRender();
 
@@ -43,6 +46,11 @@ export function AddBodyPanel({
         [bodylog, preserveTime]
     );
 
+    // A different starting body log (e.g. Copy while the panel is open) makes an old alert meaningless.
+    useEffect(() => {
+        setErrorMsg(null);
+    }, [bodylog]);
+
     const sortedMetrics = useMemo(() => [...bodyMetrics].sort((a, b) => a.name.localeCompare(b.name)), [bodyMetrics]);
 
     const valueForMetric = (metricID: number): number => tmpLog.metrics.find((m) => m.body_metric_id === metricID)?.value ?? 0;
@@ -54,26 +62,38 @@ export function AddBodyPanel({
         } else {
             tmpLog.metrics.push({bodylog_id: tmpLog.bodylog.id, body_metric_id: metricID, value});
         }
+        setErrorMsg(null);
         render();
     };
 
     const doSave = () => {
+        if (saving) {
+            return;
+        }
         setErrorMsg(null);
+        setSaving(true);
 
         const newLog: UserBodyLog = {
             bodylog: tmpLog.bodylog,
             metrics: tmpLog.metrics.filter((m) => m.value !== 0),
         };
 
-        onCreate(newLog);
+        onCreate(newLog)
+            .catch((e: unknown) => {
+                if (!(e instanceof ApiError)) {
+                    setErrorMsg(e instanceof Error ? e : String(e));
+                    return;
+                }
+                // "#/metrics" is about the values as a whole, not one field, so it goes in the alert.
+                setErrorMsg(e.fieldErrors().get('#/metrics') ?? e);
+            })
+            .finally(() => setSaving(false));
     };
 
     return (
         <>
             <div className={`surface-1 flex flex-col gap-4 ${className}`}>
                 <h2>{title}</h2>
-
-                <ErrorDiv errorMsg={errorMsg} />
 
                 <div className="flex flex-col gap-2 justify-between">
                     <div className="flex flex-col gap-2">
@@ -97,9 +117,11 @@ export function AddBodyPanel({
                         )}
                     </div>
 
+                    <ErrorDiv errorMsg={errorMsg} />
+
                     <div className="flex justify-end gap-2">
                         <button onClick={onCancel}>Cancel</button>
-                        <button className="btn-success" onClick={doSave}>
+                        <button className="btn-success" aria-disabled={saving || undefined} onClick={doSave}>
                             {saveButtonTitle}
                         </button>
                     </div>

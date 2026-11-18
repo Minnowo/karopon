@@ -16,7 +16,7 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -37,14 +37,23 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 		err = a.Db.LoadUserEventFoodLogsN(r.Context(), user.ID, n, &eventlogs)
 
 	} else {
-		api.ServerErr(w, "Query parameter 'n' could not be parsed as an integer")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user event logs and their food")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your events could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

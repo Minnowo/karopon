@@ -1,4 +1,5 @@
 import {useState} from 'preact/hooks';
+import {RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {ApiDeleteUserBodyMetric, ApiError, ApiNewUserBodyMetric} from '../../api/api';
 import {TblUserBodyMetric} from '../../api/types';
@@ -23,14 +24,14 @@ export const BodyMetricsPage = (state: BaseState) => {
         }
     };
 
-    const createMetric = (name: string, unit: string) => {
-        ApiNewUserBodyMetric({id: 0, user_id: state.user.id, name, unit})
+    const createMetric = (name: string, unit: string): Promise<void> => {
+        return ApiNewUserBodyMetric({id: 0, user_id: state.user.id, name, unit})
             .then((metric) => {
                 state.setBodyMetrics((old) => [...old, metric].sort((a, b) => a.name.localeCompare(b.name)));
                 setShowNewMetric(false);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteMetric = (metric: TblUserBodyMetric) => {

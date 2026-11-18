@@ -16,7 +16,7 @@ func (a *APIV1) deleteUserTag(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,7 +26,7 @@ func (a *APIV1) deleteUserTag(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
@@ -34,12 +34,22 @@ func (a *APIV1) deleteUserTag(w http.ResponseWriter, r *http.Request) {
 	tag.Name = strings.TrimSpace(tag.Name)
 
 	if tag.Namespace == "" {
-		api.BadReq(w, "Tag namespace cannot be empty.")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if tag.Name == "" {
-		api.BadReq(w, "Tag name cannot be empty.")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
@@ -54,7 +64,7 @@ func (a *APIV1) deleteUserTag(w http.ResponseWriter, r *http.Request) {
 			Str("name", tag.Name).
 			Msg("failed to delete tag")
 
-		api.ServerErr(w, "failed to delete the tag in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The tag could not be deleted. Try again.")
 
 		return
 	}

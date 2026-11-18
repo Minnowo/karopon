@@ -19,7 +19,7 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,18 +27,26 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&event)
 
-	event.Event.Name = strings.TrimSpace(event.Event.Name)
-
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
+	event.Event.Name = strings.TrimSpace(event.Event.Name)
+
+	var errs []api.FieldProblem
+
 	if len(event.Event.Name) == 0 {
-		http.Error(w, "event cannot have empty name", http.StatusBadRequest)
+		errs = append(errs, api.FieldProblem{Pointer: "#/event/name", Detail: "Enter a name for the event."})
+	}
+
+	errs = append(errs, validateFoodLogRows(event.Foods, "#/foods")...)
+
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -48,7 +56,7 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 
 		if !errors.Is(err, sql.ErrNoRows) {
 
-			api.ServerErr(w, "Unexpected error reading from the database")
+			api.WriteStatusProblem(w, http.StatusInternalServerError, "The event could not be saved. Try again.")
 			log.Error().
 				Err(err).
 				Str("event", event.Event.Name).
@@ -61,7 +69,7 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 		id, err := a.Db.AddUserEvent(r.Context(), &event.Event)
 		if err != nil {
 
-			api.ServerErr(w, "Unexpected error adding the event to the database")
+			api.WriteStatusProblem(w, http.StatusInternalServerError, "The event could not be saved. Try again.")
 			log.Error().
 				Err(err).
 				Str("event", event.Event.Name).
@@ -72,11 +80,6 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 		}
 
 		event.Event.ID = id
-	}
-
-	for _, food := range event.Foods {
-		food.Name = strings.TrimSpace(food.Name)
-		food.Unit = strings.TrimSpace(food.Unit)
 	}
 
 	var userEventLog database.TblUserEventLog
@@ -97,9 +100,16 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	id, err := a.Db.AddUserEventLogWith(r.Context(), &userEventLog, event.Foods)
 
+	var rowErr *database.FoodLogRowError
+
+	if errors.As(err, &rowErr) {
+		writeFoodLogRowProblem(w, rowErr, "#/foods")
+		return
+	}
+
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error finalizing the event to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The event could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Str("event", event.Event.Name).
@@ -113,9 +123,10 @@ func (a *APIV1) createUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.LoadUserEventFoodLog(r.Context(), user.ID, id, &eventlogwithfoodlog); err != nil {
 
-		api.ServerErr(
+		api.WriteStatusProblem(
 			w,
-			"The eventlog was created successfully! But, an unexpected error occurred reading it from the database.",
+			http.StatusInternalServerError,
+			"The event was saved, but could not be loaded back. Reload the page to see it.",
 		)
 
 		log.Error().

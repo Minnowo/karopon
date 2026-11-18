@@ -14,7 +14,7 @@ func (a *APIV1) getUserTagColors(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -22,7 +22,12 @@ func (a *APIV1) getUserTagColors(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.LoadUserTagColors(r.Context(), user.ID, &colors); err != nil {
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user tag colors")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your tag colors could not be loaded. Reload the page to try again.",
+		)
+
 		return
 	}
 

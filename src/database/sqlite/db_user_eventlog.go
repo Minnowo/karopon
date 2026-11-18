@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"errors"
 	"io"
 	"karopon/src/database"
 	"time"
@@ -35,7 +36,7 @@ func (db *SqliteDatabase) AddUserEventLogWith(
 			return err
 		}
 
-		for _, food := range foodlogs {
+		for i, food := range foodlogs {
 
 			food.UserID = event.UserID
 			food.Event = event.Event
@@ -43,6 +44,10 @@ func (db *SqliteDatabase) AddUserEventLogWith(
 			food.UserTime = event.UserTime
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
+
+			if errors.Is(err, database.ErrFoodPortionIsZero) {
+				return &database.FoodLogRowError{Index: i, Err: err}
+			}
 
 			if err != nil {
 				return err
@@ -265,7 +270,7 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 
 		eventlog.Eventlog.NetCarbs = 0
 
-		for _, food := range eventlog.Foodlogs {
+		for i, food := range eventlog.Foodlogs {
 
 			eventlog.Eventlog.NetCarbs = food.Carb - food.Fibre
 
@@ -275,6 +280,10 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 			food.EventLogID = eventlog.Eventlog.ID
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
+
+			if errors.Is(err, database.ErrFoodPortionIsZero) {
+				return &database.FoodLogRowError{Index: i, Err: err}
+			}
 
 			if err != nil {
 				return err

@@ -4,8 +4,10 @@ import {DoRender} from '../hooks/doRender';
 import {TblUpdateUser, TblUser, UserTimeFormat} from '../api/types';
 import {NumberInput} from '../components/number_input';
 import {CalorieFormula} from '../utils/calories';
-import {ApiUpdateUser} from '../api/api';
-import {ErrorDiv} from '../components/error_div';
+import {ApiError, ApiUpdateUser} from '../api/api';
+import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
+import {FieldError} from '../components/field_error';
+import {RefreshOnUnauthorized} from '../utils/error';
 
 export function SettingsPage(state: BaseState) {
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -18,8 +20,40 @@ export function SettingsPage(state: BaseState) {
     const confirmPasswordId = useId();
     const themeId = useId();
     const calorieMethodId = useId();
+    const customCssId = useId();
 
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
+    const [saving, setSaving] = useState<boolean>(false);
+
+    // Field ids by the server's JSON Pointer, in page order.
+    const fieldIds = new Map<string, string>([
+        ['#/user/name', usernameId],
+        ['#/new_password', newPasswordId],
+        ['#/user/custom_css', customCssId],
+        // Not a server field: the confirm password match is checked in this page.
+        ['confirm_password', confirmPasswordId],
+    ]);
+
+    // invalidProps returns the aria attributes for the field at pointer.
+    const invalidProps = (pointer: string) => ({
+        'aria-invalid': fieldErrors.has(pointer) || undefined,
+        'aria-describedby': fieldErrors.has(pointer) ? `${fieldIds.get(pointer)}-error` : undefined,
+    });
+
+    // errorFor renders the server's message for the field at pointer.
+    const errorFor = (pointer: string) => <FieldError id={`${fieldIds.get(pointer)}-error`} message={fieldErrors.get(pointer)} />;
+
+    const clearFieldError = (pointer: string) => {
+        setFieldErrors((prev) => {
+            if (!prev.has(pointer)) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.delete(pointer);
+            return next;
+        });
+    };
     const render = DoRender();
 
     useEffect(() => {
@@ -32,29 +66,17 @@ export function SettingsPage(state: BaseState) {
     }
 
     function save() {
+        if (saving) {
+            return;
+        }
         setErrorMsg(null);
+        setFieldErrors(new Map());
 
-        if (userRef.current.name.length > 20) {
-            setErrorMsg('Username must be less than 20 characters!');
-            return;
-        }
-        if (new Blob([userRef.current.custom_css]).size > 128 * 1024) {
-            setErrorMsg('Custom CSS must be less than 128 KB.');
-            return;
-        }
+        // The confirm field never reaches the server, so the match is checked here.
         if (newPassword !== confirmPassword) {
-            setErrorMsg('New password does not match the confirm password!');
+            setFieldErrors(new Map([['confirm_password', 'This does not match the new password. Type it again.']]));
+            document.getElementById(confirmPasswordId)?.focus();
             return;
-        }
-        if (newPassword !== '') {
-            if (newPassword.length > 72) {
-                setErrorMsg('Password must be less than 72 characters long.');
-                return;
-            }
-            if (newPassword.length < 1) {
-                setErrorMsg('Password must be at least 1 character long.');
-                return;
-            }
         }
 
         const uuser: TblUpdateUser = {
@@ -62,13 +84,30 @@ export function SettingsPage(state: BaseState) {
             new_password: newPassword,
         };
 
+        setSaving(true);
         ApiUpdateUser(uuser)
             .then((u: TblUser) => {
                 state.setUser(u);
                 setIsEditing(false);
                 setErrorMsg(null);
             })
-            .catch((e: Error) => setErrorMsg(e.message));
+            .catch(RefreshOnUnauthorized(state.doRefresh))
+            .catch((e: unknown) => {
+                if (!(e instanceof ApiError)) {
+                    setErrorMsg(e instanceof Error ? e : String(e));
+                    return;
+                }
+                const errs = e.fieldErrors();
+                setFieldErrors(errs);
+                setErrorMsg(e);
+                for (const [pointer, id] of fieldIds) {
+                    if (errs.has(pointer)) {
+                        document.getElementById(id)?.focus();
+                        break;
+                    }
+                }
+            })
+            .finally(() => setSaving(false));
     }
 
     return (
@@ -84,8 +123,6 @@ export function SettingsPage(state: BaseState) {
                 </button>
             </div>
 
-            <ErrorDiv errorMsg={errorMsg} />
-
             <div className="flex flex-col gap-1">
                 <label htmlFor={usernameId}>Username</label>
                 <input
@@ -94,8 +131,13 @@ export function SettingsPage(state: BaseState) {
                     type="text"
                     value={userRef.current.name}
                     disabled={!isEditing}
-                    onInput={(e) => update('name', (e.target as HTMLInputElement).value)}
+                    {...invalidProps('#/user/name')}
+                    onInput={(e) => {
+                        update('name', (e.target as HTMLInputElement).value);
+                        clearFieldError('#/user/name');
+                    }}
                 />
+                {errorFor('#/user/name')}
             </div>
 
             {isEditing && (
@@ -108,8 +150,13 @@ export function SettingsPage(state: BaseState) {
                             type="password"
                             maxlength={72}
                             value={newPassword}
-                            onInput={(e) => setNewPassword((e.target as HTMLInputElement).value)}
+                            {...invalidProps('#/new_password')}
+                            onInput={(e) => {
+                                setNewPassword((e.target as HTMLInputElement).value);
+                                clearFieldError('#/new_password');
+                            }}
                         />
+                        {errorFor('#/new_password')}
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor={confirmPasswordId}>Confirm Password</label>
@@ -119,8 +166,13 @@ export function SettingsPage(state: BaseState) {
                             type="password"
                             maxlength={72}
                             value={confirmPassword}
-                            onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
+                            {...invalidProps('confirm_password')}
+                            onInput={(e) => {
+                                setConfirmPassword((e.target as HTMLInputElement).value);
+                                clearFieldError('confirm_password');
+                            }}
                         />
+                        {errorFor('confirm_password')}
                     </div>
                 </>
             )}
@@ -260,17 +312,31 @@ export function SettingsPage(state: BaseState) {
             <label className="flex flex-col gap-1">
                 Custom CSS
                 <textarea
+                    id={customCssId}
                     className="font-mono"
                     rows={8}
                     disabled={!isEditing}
                     value={userRef.current.custom_css}
                     placeholder="Applied to every page as-is (optional). Add ?nocss to the URL to turn it off."
-                    onInput={(e) => update('custom_css', e.currentTarget.value)}
+                    {...invalidProps('#/user/custom_css')}
+                    onInput={(e) => {
+                        update('custom_css', e.currentTarget.value);
+                        clearFieldError('#/user/custom_css');
+                    }}
                 />
             </label>
+            {errorFor('#/user/custom_css')}
+
+            <ErrorDiv errorMsg={errorMsg} />
 
             {isEditing && (
-                <input className="w-full sm:ml-auto sm:max-w-32 btn-success" type="submit" value="Save Settings" onClick={save} />
+                <input
+                    className="w-full sm:ml-auto sm:max-w-32 btn-success"
+                    type="submit"
+                    value="Save Settings"
+                    aria-disabled={saving || undefined}
+                    onClick={save}
+                />
             )}
         </div>
     );

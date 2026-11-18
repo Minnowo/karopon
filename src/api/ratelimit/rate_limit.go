@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"karopon/src/api"
 	"net/http"
 	"sync"
 	"time"
@@ -95,7 +96,7 @@ func (rl *RateLimiter) Middleware(keyFn KeyFunc) func(http.Handler) http.Handler
 			}
 
 			if !rl.getEntry(key).Allow() {
-				http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+				api.WriteStatusProblem(w, http.StatusTooManyRequests, "Too many requests. Wait a moment and try again.")
 				return
 			}
 

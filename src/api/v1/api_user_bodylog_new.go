@@ -17,7 +17,7 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -28,8 +28,13 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
+		return
+	}
+
+	if len(entry.Metrics) == 0 {
+		api.WriteValidationProblem(w, []api.FieldProblem{{Pointer: "#/metrics", Detail: "Enter at least one value."}})
 		return
 	}
 
@@ -42,13 +47,18 @@ func (a *APIV1) createUserBodyLog(w http.ResponseWriter, r *http.Request) {
 	id, err := a.Db.AddUserBodyLogs(r.Context(), &entry)
 
 	if errors.Is(err, database.ErrInvalidBodyMetric) {
-		api.BadReq(w, "One or more of the given body metrics do not exist for this user")
+		api.WriteStatusProblem(
+			w,
+			http.StatusConflict,
+			"One of these body metrics no longer exists. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error finalizing the event to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The body log could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

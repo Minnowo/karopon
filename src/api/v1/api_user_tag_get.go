@@ -14,7 +14,7 @@ func (a *APIV1) getUserTags(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -22,7 +22,11 @@ func (a *APIV1) getUserTags(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.LoadUserTags(r.Context(), user.ID, &tags); err != nil {
 
-		api.ServerErr(w, "Unexpected error reading the tags from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your tags could not be loaded. Reload the page to try again.",
+		)
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

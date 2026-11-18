@@ -15,7 +15,7 @@ func (a *APIV1) updateUserReminderActivities(w http.ResponseWriter, r *http.Requ
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,13 +26,18 @@ func (a *APIV1) updateUserReminderActivities(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if req.ReminderID <= 0 {
-		http.Error(w, "reminder_id should be > 0", http.StatusBadRequest)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This reminder could not be found. Reload the page and try again.",
+		)
+
 		return
 	}
 
@@ -40,7 +45,11 @@ func (a *APIV1) updateUserReminderActivities(w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error updating the reminder's activities")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"The reminder's activities could not be saved. Try again.",
+		)
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

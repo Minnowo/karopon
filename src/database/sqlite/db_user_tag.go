@@ -17,7 +17,9 @@ func (db *SqliteDatabase) AddUserTag(ctx context.Context, tag *database.TblUserT
 		)
 	`
 
-	return db.NamedInsertGetLastRowID(ctx, query, tag)
+	id, err := db.NamedInsertGetLastRowID(ctx, query, tag)
+
+	return id, alreadyExists(err)
 }
 
 func (db *SqliteDatabase) GetOrCreateUserTag(ctx context.Context, userID int, namespace, name string) (int, error) {

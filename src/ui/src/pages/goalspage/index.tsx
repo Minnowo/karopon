@@ -1,4 +1,5 @@
 import {useRef, useState} from 'preact/hooks';
+import {RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {TblUserGoal} from '../../api/types';
 import {ApiDeleteUserGoal, ApiError, ApiNewUserGoal, ApiUpdateUserGoal} from '../../api/api';
@@ -29,23 +30,24 @@ export function GoalsPage(state: BaseState) {
         }
     };
 
-    const createGoal = (goal: TblUserGoal) => {
-        ApiNewUserGoal(goal)
+    // createGoal and updateGoal reject with the API error so the form can show it.
+    const createGoal = (goal: TblUserGoal): Promise<void> => {
+        return ApiNewUserGoal(goal)
             .then((g) => {
                 newGoal.current = NewTblUserGoal({target_value: 1500});
                 state.setGoals((oldGoals) => [g, ...oldGoals]);
                 setShowNewGoalPanel(false);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateGoal = (goal: TblUserGoal) => {
-        ApiUpdateUserGoal(goal)
+    const updateGoal = (goal: TblUserGoal): Promise<void> => {
+        return ApiUpdateUserGoal(goal)
             .then((updated) => {
                 state.setGoals((oldGoals) => oldGoals.map((g) => (g.id === updated.id ? updated : g)));
                 setEditingGoal(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const deleteGoal = (goal: TblUserGoal) => {

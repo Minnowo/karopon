@@ -1,7 +1,9 @@
-import {useState} from 'preact/hooks';
+import {useId, useState} from 'preact/hooks';
 import {ActivityWithTag, ReminderActivityMode, ReminderAlarmMode} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {FieldError} from '../../components/field_error';
+import {ApiError} from '../../api/api';
 import {TimeInput} from '../../components/time_input';
 import {PlayReminderSound, SOUND_OPTIONS} from '../../utils/sound';
 import {
@@ -33,7 +35,8 @@ type AddReminderPanelProps = {
     title?: string;
     submitLabel?: string;
     initial?: NewReminder;
-    onCreate: (reminder: NewReminder) => void;
+    // Saves the reminder; rejects with an ApiError when the server refuses it.
+    onCreate: (reminder: NewReminder) => Promise<void>;
     onCancel: () => void;
     className?: string;
 };
@@ -60,7 +63,24 @@ export function AddReminderPanel({
     const [windows, setWindows] = useState<Array<ScheduleWindow & {key: number}>>(() =>
         ParseCronSchedule(initial?.cron ?? '').map((w) => ({...w, key: nextRowKey++}))
     );
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    // Server field errors keyed by field ("name", "interval_minutes"); create and update nest them differently.
+    const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
+    const [saving, setSaving] = useState<boolean>(false);
+    const baseId = useId();
+    const nameId = `${baseId}-name`;
+    const intervalId = `${baseId}-interval`;
+
+    const clearFieldError = (field: string) => {
+        setFieldErrors((prev) => {
+            if (!prev.has(field)) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.delete(field);
+            return next;
+        });
+    };
 
     const toggleActivity = (id: number) => {
         setActivityIDs((old) => (old.includes(id) ? old.filter((x) => x !== id) : [...old, id]));
@@ -83,13 +103,18 @@ export function AddReminderPanel({
     };
 
     const onSaveClick = () => {
-        if (name.trim().length === 0) {
-            setErrorMsg('Name cannot be empty');
+        if (saving) {
             return;
         }
+        setErrorMsg(null);
+        setFieldErrors(new Map());
 
-        if (intervalMinutes <= 0) {
-            setErrorMsg('Interval must be a positive number');
+        // Checked here, not on the server: the server cannot require a name on update because
+        // reminders made before names existed have an empty one, and the windows only exist in this
+        // form (they become the cron string).
+        if (name.trim() === '') {
+            setFieldErrors(new Map([['name', 'Enter a name for the reminder.']]));
+            document.getElementById(nameId)?.focus();
             return;
         }
 
@@ -105,6 +130,7 @@ export function AddReminderPanel({
             }
         }
 
+        setSaving(true);
         onCreate({
             enabled,
             intervalMinutes,
@@ -114,26 +140,49 @@ export function AddReminderPanel({
             sound,
             name: name.trim(),
             alarmMode,
-        });
+        })
+            .catch((e: unknown) => {
+                if (!(e instanceof ApiError)) {
+                    setErrorMsg(e instanceof Error ? e : String(e));
+                    return;
+                }
+                const errs = new Map<string, string>();
+                for (const [pointer, detail] of e.fieldErrors()) {
+                    errs.set(pointer.replace(/^#\/(reminder\/)?/, ''), detail);
+                }
+                setFieldErrors(errs);
+                setErrorMsg(e);
+                if (errs.has('name')) {
+                    document.getElementById(nameId)?.focus();
+                } else if (errs.has('interval_minutes')) {
+                    document.getElementById(intervalId)?.focus();
+                }
+            })
+            .finally(() => setSaving(false));
     };
 
     return (
         <div className={`surface-1 flex flex-col gap-4 ${className}`}>
             <h2>{title}</h2>
 
-            <ErrorDiv errorMsg={errorMsg} />
-
             <div className="flex flex-col gap-2">
                 <label className="flex flex-col gap-1">
                     Name
                     <input
+                        id={nameId}
                         type="text"
                         placeholder="Time to move"
                         value={name}
                         required
-                        onInput={(e) => setName(e.currentTarget.value)}
+                        aria-invalid={fieldErrors.has('name') || undefined}
+                        aria-describedby={fieldErrors.has('name') ? `${nameId}-error` : undefined}
+                        onInput={(e) => {
+                            setName(e.currentTarget.value);
+                            clearFieldError('name');
+                        }}
                     />
                 </label>
+                <FieldError id={`${nameId}-error`} message={fieldErrors.get('name')} />
 
                 <label className="flex items-center gap-2">
                     <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.currentTarget.checked)} />
@@ -146,8 +195,15 @@ export function AddReminderPanel({
                     label={'Interval (min)'}
                     min={1}
                     value={intervalMinutes}
-                    onValueChange={setIntervalMinutes}
+                    id={intervalId}
+                    invalid={fieldErrors.has('interval_minutes')}
+                    errorId={`${intervalId}-error`}
+                    onValueChange={(v) => {
+                        setIntervalMinutes(v);
+                        clearFieldError('interval_minutes');
+                    }}
                 />
+                <FieldError id={`${intervalId}-error`} message={fieldErrors.get('interval_minutes')} />
 
                 <div className="surface-2 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -274,9 +330,11 @@ export function AddReminderPanel({
                 </div>
             </div>
 
+            <ErrorDiv errorMsg={errorMsg} />
+
             <div className="flex justify-end gap-2">
                 <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" onClick={onSaveClick}>
+                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
                     {submitLabel}
                 </button>
             </div>

@@ -9,7 +9,7 @@ type ActivityEditPanelProps = {
     setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     activityWithTag: ActivityWithTag;
-    updateActivity: (req: UpdateUserActivityRequest) => void;
+    updateActivity: (req: UpdateUserActivityRequest) => Promise<void>;
     deleteActivity: (activityWithTag: ActivityWithTag) => void;
 };
 
@@ -39,10 +39,7 @@ export function ActivityEditPanel({
                     duration: activity.duration,
                     note: activity.note,
                 }}
-                onCreate={(req) => {
-                    updateActivity({id: activity.id, ...req});
-                    setShowEdit(false);
-                }}
+                onCreate={(req) => updateActivity({id: activity.id, ...req}).then(() => setShowEdit(false))}
                 onCancel={() => setShowEdit(false)}
             />
         );

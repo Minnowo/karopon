@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"karopon/src/api"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
@@ -134,7 +135,7 @@ func RequireAuth() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			if !IsAuthed(r) {
-				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				api.WriteNoUserProblem(w)
 				return
 			}
 

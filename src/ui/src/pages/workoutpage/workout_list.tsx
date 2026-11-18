@@ -11,8 +11,8 @@ type WorkoutEditPanelProps = {
     tagColors: Map<string, string>;
     exercises: ExerciseWithTags[];
     workout: WorkoutWithTags;
-    addWorkout: (w: WorkoutWithTags) => void;
-    updateWorkout: (w: WorkoutWithTags) => void;
+    addWorkout: (w: WorkoutWithTags) => Promise<void>;
+    updateWorkout: (w: WorkoutWithTags) => Promise<void>;
     deleteWorkout: (w: WorkoutWithTags) => void;
     startWorkout: (w: WorkoutWithTags) => void;
 };
@@ -33,10 +33,7 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
                 title="Edit Workout"
                 submitLabel="Save"
                 initial={p.workout}
-                onSubmit={(w) => {
-                    p.updateWorkout(w);
-                    setShowEdit(false);
-                }}
+                onSubmit={(w) => p.updateWorkout(w).then(() => setShowEdit(false))}
                 onCancel={() => setShowEdit(false)}
             />
         );
@@ -52,10 +49,7 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
                 title="Copy Workout"
                 submitLabel="Create"
                 initial={{...p.workout, workout: {...p.workout.workout, id: 0, name: `${p.workout.workout.name} (copy)`}}}
-                onSubmit={(w) => {
-                    p.addWorkout(w);
-                    setShowCopy(false);
-                }}
+                onSubmit={(w) => p.addWorkout(w).then(() => setShowCopy(false))}
                 onCancel={() => setShowCopy(false)}
             />
         );

@@ -91,3 +91,13 @@
 .no-summary-arrow summary::-webkit-details-marker {
     display: none;
 }
+
+/* A field the server rejected (aria-invalid, see components/field_error.tsx).
+   ponkotsu has no invalid state yet; move this upstream when it gets one.
+   The wrapper case covers composite fields like NumberInput. */
+input[aria-invalid='true'],
+select[aria-invalid='true'],
+textarea[aria-invalid='true'],
+.input-like:has([aria-invalid='true']) {
+    border-color: var(--color-c-error);
+}

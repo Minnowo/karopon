@@ -1,6 +1,25 @@
 import {Dispatch, StateUpdater, useId, useRef} from 'preact/hooks';
 import {GetApiBase, IsCrossOrigin, SetApiBase, SetAuthToken} from '../api/api';
+import {Problem, ProblemContentType} from '../api/types_problem';
 import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
+
+// loginFailureMessage returns the server's message for a failed login: the
+// problem detail when there is one, else the body text.
+async function loginFailureMessage(res: Response): Promise<string> {
+    const text = await res.text();
+    if (!(res.headers.get('content-type') ?? '').trim().toLowerCase().startsWith(ProblemContentType)) {
+        return text;
+    }
+    try {
+        const problem = JSON.parse(text) as Problem;
+        if (typeof problem.detail === 'string' && problem.detail !== '') {
+            return problem.detail;
+        }
+    } catch {
+        return text;
+    }
+    return 'Logging in failed. Try again.';
+}
 
 type Props = {
     error: ErrorDivMsg | null;
@@ -33,7 +52,7 @@ export function LoginDialog({error, setErrorMsg, doRefresh}: Props) {
             });
 
             if (!res.ok) {
-                setErrorMsg(await res.text());
+                setErrorMsg(await loginFailureMessage(res));
             } else {
                 if (wantToken) {
                     const js: {token: string; expires: number} = await res.json();

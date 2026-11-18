@@ -23,7 +23,7 @@ func (a *APIV1) getUserSessions(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.Unauthorized(w)
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -32,7 +32,11 @@ func (a *APIV1) getUserSessions(w http.ResponseWriter, r *http.Request) {
 	if err := a.Db.LoadUserSessions(r.Context(), user.ID, &sessions); err != nil {
 
 		log.Error().Err(err).Int("userID", user.ID).Msg("failed to load user sessions")
-		api.ServerErr(w, "failed to load sessions")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your sessions could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

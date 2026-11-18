@@ -1,4 +1,5 @@
 import {useCallback, useLayoutEffect, useMemo, useState} from 'preact/hooks';
+import {RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {
     ApiError,
@@ -69,24 +70,25 @@ export const TagsPage = (state: BaseState) => {
             .catch(handleErr);
     };
 
-    const createTag = (ns: string, nm: string) => {
-        ApiNewUserTag({namespace: ns, name: nm})
+    // createTag and saveEdit reject with the API error so the form can show it.
+    const createTag = (ns: string, nm: string): Promise<void> => {
+        return ApiNewUserTag({namespace: ns, name: nm})
             .then((tag) => {
                 setAllTags((old) => [...old, tag].sort((a, b) => TagToString(a).localeCompare(TagToString(b))));
                 setShowNewTag(false);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const saveEdit = (tag: TblUserTag, ns: string, nm: string, merge: boolean) => {
+    const saveEdit = (tag: TblUserTag, ns: string, nm: string, merge: boolean): Promise<void> => {
         if (tag.namespace === ns && tag.name === nm) {
             // no actual update to perform
             setEditingTag(null);
             setErrorMsg(null);
-            return;
+            return Promise.resolve();
         }
-        ApiUpdateUserTag(tag, ns, nm, merge)
+        return ApiUpdateUserTag(tag, ns, nm, merge)
             .then(() => {
                 if (merge) {
                     // The old tag is deleted server-side; its usages moved onto the existing tag at (ns, nm).
@@ -121,7 +123,7 @@ export const TagsPage = (state: BaseState) => {
                 setEditingTag(null);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const updateTagColors = (newTagColors: Record<string, string>) => {

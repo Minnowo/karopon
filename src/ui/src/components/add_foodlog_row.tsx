@@ -1,7 +1,8 @@
-import {useEffect, useRef} from 'preact/hooks';
+import {useEffect, useId, useRef} from 'preact/hooks';
 import {TblUser, TblUserFood, TblUserFoodLog} from '../api/types';
 import {FuzzySearch} from './select_list';
 import {NumberInput} from './number_input';
+import {FieldError} from './field_error';
 import {CalculateCalories, Str2CalorieFormula} from '../utils/calories';
 
 type AddFoodlogPanelRowState = {
@@ -12,6 +13,9 @@ type AddFoodlogPanelRowState = {
     deleteSelf: () => void;
     showNetCarb?: boolean;
     showCalories?: boolean;
+    // Messages from the server for this row's name and amount, if it rejected them.
+    nameError?: string;
+    portionError?: string;
 };
 
 export function AddFoodlogPanelRow({
@@ -22,7 +26,12 @@ export function AddFoodlogPanelRow({
     deleteSelf,
     showNetCarb = true,
     showCalories = true,
+    nameError = undefined,
+    portionError = undefined,
 }: AddFoodlogPanelRowState) {
+    const baseId = useId();
+    const nameErrorId = `${baseId}-name-error`;
+    const portionErrorId = `${baseId}-portion-error`;
     // This only holds the base carb, fat, protein, fibre when the portion is 1.
     // We use this to scale by the portion, but still let the user type manually.
     const foodTemplate = useRef<TblUserFoodLog>({name: food.name} as TblUserFoodLog);
@@ -62,6 +71,8 @@ export function AddFoodlogPanelRow({
                         className="w-full min-w-48 my-1 sm:mr-1"
                         placeholder="Food Name"
                         noResultsText="New Food"
+                        invalid={nameError !== undefined}
+                        errorId={nameErrorId}
                         onSelect={(newFood: TblUserFood | null) => {
                             if (!newFood) {
                                 // The user may be creating a new food.
@@ -82,6 +93,7 @@ export function AddFoodlogPanelRow({
                             render();
                         }}
                     />
+                    <FieldError id={nameErrorId} message={nameError} />
                 </td>
                 <td className="pr-1 py-0">
                     <NumberInput
@@ -91,6 +103,8 @@ export function AddFoodlogPanelRow({
                         label={food.unit}
                         value={food.portion}
                         labelOnLeftSide={false}
+                        invalid={portionError !== undefined}
+                        errorId={portionErrorId}
                         onValueChange={(v) => {
                             food.portion = v;
                             if (foodTemplate.current.id > 0) {
@@ -102,6 +116,7 @@ export function AddFoodlogPanelRow({
                             render();
                         }}
                     />
+                    <FieldError id={portionErrorId} message={portionError} />
                 </td>
                 <td className="pr-2 py-0 text-right"> {food.fat.toFixed(1)} </td>
                 <td className="pr-2 py-0 text-right"> {food.carb.toFixed(1)} </td>

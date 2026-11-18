@@ -17,7 +17,7 @@ func (db *SqliteDatabase) AddUserFood(ctx context.Context, food *database.TblUse
 
 	id, err := db.NamedInsertGetLastRowID(ctx, query, food)
 
-	return id, err
+	return id, alreadyExists(err)
 }
 
 func (db *SqliteDatabase) AddUserFoods(ctx context.Context, foods []database.TblUserFood) error {
@@ -58,7 +58,7 @@ func (db *SqliteDatabase) UpdateUserFood(ctx context.Context, food *database.Tbl
 
 	_, err := db.NamedExecContext(ctx, query, food)
 
-	return err
+	return alreadyExists(err)
 }
 
 func (db *SqliteDatabase) DeleteUserFood(ctx context.Context, userID int, foodID int) error {

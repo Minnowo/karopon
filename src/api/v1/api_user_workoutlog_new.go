@@ -15,7 +15,7 @@ func (a *APIV1) addUserWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -24,13 +24,13 @@ func (a *APIV1) addUserWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if err := validateNewWorkoutLog(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeWorkoutProblem(w, err)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (a *APIV1) addUserWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to create a new workout log")
-		api.ServerErr(w, "failed to create the workout log in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The workout log could not be saved. Try again.")
 
 		return
 	}
@@ -51,7 +51,11 @@ func (a *APIV1) addUserWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	if err := a.Db.LoadUserWorkoutLog(r.Context(), user.ID, id, &out); err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Int("workoutlogID", id).Msg("failed to read a new workout log")
-		api.ServerErr(w, "the workout log was saved, but failed to read it back")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"The workout log was saved, but could not be loaded back. Reload the page to see it.",
+		)
 
 		return
 	}

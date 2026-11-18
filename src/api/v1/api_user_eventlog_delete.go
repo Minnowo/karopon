@@ -15,7 +15,7 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,13 +26,18 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if eventlog.ID <= 0 {
-		http.Error(w, "eventlog ID should be > 0", http.StatusBadRequest)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This event could not be found. Reload the page and try again.",
+		)
+
 		return
 	}
 
@@ -45,7 +50,7 @@ func (a *APIV1) deleteUserEventLog(w http.ResponseWriter, r *http.Request) {
 			Str("user", user.Name).
 			Int("eventlog", eventlog.ID).
 			Msg("failed to delete user eventlog")
-		api.ServerErr(w, "Failed while deleting from the database.")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The event could not be deleted. Try again.")
 
 		return
 	}

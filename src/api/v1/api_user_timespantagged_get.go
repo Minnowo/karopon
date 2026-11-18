@@ -16,7 +16,7 @@ func (a *APIV1) getUserTimespansTagged(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +27,12 @@ func (a *APIV1) getUserTimespansTagged(w http.ResponseWriter, r *http.Request) {
 	if limit := r.URL.Query().Get("n"); limit == "" {
 		n = user.TimespanHistoryFetchLimit
 	} else if n, err = strconv.Atoi(limit); err != nil {
-		api.ServerErr(w, "Query parameter 'n' could not be parsed as an integer")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
@@ -39,7 +44,11 @@ func (a *APIV1) getUserTimespansTagged(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.LoadUserTimespansWithTagsN(r.Context(), user.ID, n, &timespans); err != nil {
 
-		api.ServerErr(w, "Unexpected error reading the tags from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your timers could not be loaded. Reload the page to try again.",
+		)
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

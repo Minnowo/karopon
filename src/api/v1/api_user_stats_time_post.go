@@ -26,7 +26,7 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -34,19 +34,29 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Debug().Err(err).Msg("Invalid json.")
-		api.BadReq(w, "invalid JSON")
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
 	groupBy := database.GroupBy(req.GroupBy)
 	if !groupBy.IsValid() {
-		api.BadReq(w, "invalid groupby")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This chart's settings are not valid. Edit the chart and save it again.",
+		)
+
 		return
 	}
 
 	aggregation := database.AggregationFunc(req.AggregateFunc)
 	if !aggregation.IsValid() {
-		api.BadReq(w, "invalid aggregate")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This chart's settings are not valid. Edit the chart and save it again.",
+		)
+
 		return
 	}
 
@@ -59,13 +69,23 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 
 	startTime, err := database.ParseRelativeTimeExpr(req.Start, adjustedNow, shift)
 	if err != nil {
-		api.BadReq(w, "invalid start expression")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The chart's start time could not be understood. Edit the chart's time range.",
+		)
+
 		return
 	}
 
 	endTime, err := database.ParseRelativeTimeExpr(req.End, adjustedNow, shift)
 	if err != nil {
-		api.BadReq(w, "invalid end expression")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The chart's end time could not be understood. Edit the chart's time range.",
+		)
+
 		return
 	}
 
@@ -94,7 +114,11 @@ func (a *APIV1) postStatsTime(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Error().Err(err).Msg("")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"The chart could not be loaded. Reload the page to try again.",
+		)
 	} else {
 		api.WriteJSONArr(w, data)
 	}

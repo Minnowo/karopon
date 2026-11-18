@@ -1,10 +1,12 @@
-import {Dispatch, StateUpdater, useMemo, useState} from 'preact/hooks';
+import {Dispatch, StateUpdater, useId, useMemo, useState} from 'preact/hooks';
 import {ExerciseWithTags, StepKind, StepKindValues, TblUserTag, WorkoutWithTags} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
 import {NumberInput} from '../../components/number_input';
 import {FuzzySearch} from '../../components/select_list';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {FieldError} from '../../components/field_error';
+import {ApiError} from '../../api/api';
 import {DownArrow, UpArrow} from '../../components/svg';
 import {FormatDuration} from '../../utils/time';
 import {
@@ -28,7 +30,8 @@ type WorkoutBuilderPanelProps = {
     title: string;
     submitLabel: string;
     initial?: WorkoutWithTags;
-    onSubmit: (w: WorkoutWithTags) => void;
+    // Saves; rejects with an ApiError when the server refuses it.
+    onSubmit: (w: WorkoutWithTags) => Promise<void>;
     onCancel: () => void;
     className?: string;
 };
@@ -84,7 +87,10 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
         p.initial ? ParseStructure(p.initial.workout.structure) : {...EmptyStructure(), sets: [NewWorkoutSet()]}
     );
     const [queries, setQueries] = useState<string[]>([]);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [nameError, setNameError] = useState<string | undefined>(undefined);
+    const [saving, setSaving] = useState<boolean>(false);
+    const nameId = `${useId()}-name`;
 
     const exerciseMap = useMemo(() => new Map(p.exercises.map((e) => [e.exercise.id, e])), [p.exercises]);
 
@@ -104,12 +110,13 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
         });
 
     const onSaveClick = () => {
-        const trimmedName = name.trim();
-
-        if (trimmedName === '') {
-            setErrorMsg('Workout cannot have an empty name');
+        if (saving) {
             return;
         }
+        setErrorMsg(null);
+        setNameError(undefined);
+        setSaving(true);
+        const trimmedName = name.trim();
 
         p.onSubmit({
             workout: {
@@ -120,7 +127,20 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 structure: StringifyStructure(structure),
             },
             tags,
-        });
+        })
+            .catch((e: unknown) => {
+                if (!(e instanceof ApiError)) {
+                    setErrorMsg(e instanceof Error ? e : String(e));
+                    return;
+                }
+                const fieldError = e.fieldErrors().get('#/workout/name');
+                setNameError(fieldError);
+                setErrorMsg(e);
+                if (fieldError !== undefined) {
+                    document.getElementById(nameId)?.focus();
+                }
+            })
+            .finally(() => setSaving(false));
     };
 
     const renderTargets = (setIdx: number, stepIdx: number, st: WorkoutStep) => {
@@ -404,17 +424,22 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 </div>
             </details>
 
-            <ErrorDiv errorMsg={errorMsg} />
-
             <div className="flex flex-col gap-2">
                 <input
                     className="w-full"
                     type="text"
+                    id={nameId}
                     value={name}
-                    onInput={(e) => setName(e.currentTarget.value)}
+                    onInput={(e) => {
+                        setName(e.currentTarget.value);
+                        setNameError(undefined);
+                    }}
                     placeholder="Workout Name (e.g. Leg Day)"
                     aria-label="Workout Name"
+                    aria-invalid={nameError !== undefined || undefined}
+                    aria-describedby={nameError !== undefined ? `${nameId}-error` : undefined}
                 />
+                <FieldError id={`${nameId}-error`} message={nameError} />
 
                 <div className="flex flex-col gap-1">
                     <label>Workout Tags</label>
@@ -486,9 +511,11 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
                 <small>{StructureSummary(structure)}</small>
             </div>
 
+            <ErrorDiv errorMsg={errorMsg} />
+
             <div className="flex justify-end gap-2">
                 <button onClick={p.onCancel}>Cancel</button>
-                <button className="btn-success" onClick={onSaveClick}>
+                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
                     {p.submitLabel}
                 </button>
             </div>

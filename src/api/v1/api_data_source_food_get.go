@@ -17,7 +17,7 @@ func (a *APIV1) getDataSourceFood(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.Unauthorized(w)
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,24 +27,34 @@ func (a *APIV1) getDataSourceFood(w http.ResponseWriter, r *http.Request) {
 	var queryString string
 
 	if idStr, ok := vars["id"]; !ok {
-		api.BadReq(w, "No data source ID given, specify the ID of the data source you wish to query.")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	} else if id, err := strconv.Atoi(idStr); err != nil {
-		api.BadReq(w, "Data source ID is not a valid number.")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	} else {
 		dataSourceID = id
 	}
 
 	if queryStr, ok := vars["query"]; !ok {
-		api.BadReq(w, "No query string given, specify the query for the data source.")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "Enter something to search for.")
 		return
 	} else {
 		queryString = strings.TrimSpace(queryStr)
 	}
 
 	if len(queryString) <= 0 || len(queryString) > 255 {
-		api.BadReq(w, "The query string is an invalid length.")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "Search for something between 1 and 255 characters long.")
 		return
 	}
 
@@ -58,7 +68,7 @@ func (a *APIV1) getDataSourceFood(w http.ResponseWriter, r *http.Request) {
 			Int("dataSourceID", dataSourceID).
 			Str("query", queryString).
 			Msg("failed to read data source food")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The search failed. Try again.")
 
 		return
 	}

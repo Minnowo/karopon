@@ -15,7 +15,7 @@ func (a *APIV1) updateUserTimespanTags(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,7 +26,7 @@ func (a *APIV1) updateUserTimespanTags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -37,7 +37,7 @@ func (a *APIV1) updateUserTimespanTags(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error updating the timespan")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The timer's tags could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

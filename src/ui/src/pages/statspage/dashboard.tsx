@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {ErrorText} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {CHART_LABELS, ChartType, DashboardCard, NewDashboardCard, UserDashboard} from './common';
 import {DashboardCardComponent} from './dashboard_card';
@@ -94,7 +95,7 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
             await onUpdate({id: dashboard.id, name, cards: nextCards});
             return true;
         } catch (e) {
-            setSaveError(e instanceof Error ? e.message : `An unknown error occurred: ${e}`);
+            setSaveError(ErrorText(e));
             return false;
         } finally {
             setSaving(false);

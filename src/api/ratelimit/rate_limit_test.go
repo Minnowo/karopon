@@ -1,6 +1,9 @@
+// Tests for the rate limiter and its middleware in rate_limit.go.
+
 package ratelimit
 
 import (
+	"karopon/src/api"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -117,4 +120,21 @@ func TestKeyByIP_RemoteAddr(t *testing.T) {
 	req.RemoteAddr = "192.168.1.1:12345"
 
 	assert.Equal(t, "192.168.1.1", ByIPAddressFromTrustedProxy(req))
+}
+
+func TestMiddlewareAnswersProblem(t *testing.T) {
+
+	rl := NewRateLimiter(rate.Every(time.Hour), 1)
+	handler := rl.Middleware(func(r *http.Request) string { return "k" })(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+	)
+
+	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	assert.Equal(t, http.StatusTooManyRequests, rr.Code)
+	assert.Equal(t, api.ProblemContentType, rr.Header().Get("Content-Type"))
+	assert.Contains(t, rr.Body.String(), `"detail":`)
 }

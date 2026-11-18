@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -16,7 +17,7 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,35 +28,51 @@ func (a *APIV1) updateUserEventFoodLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
+
+		return
+	}
+
+	if ueflog.Eventlog.ID <= 0 {
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This event could not be found. Reload the page and try again.",
+		)
 
 		return
 	}
 
 	ueflog.Eventlog.Event = strings.TrimSpace(ueflog.Eventlog.Event)
 
+	var errs []api.FieldProblem
+
 	if len(ueflog.Eventlog.Event) == 0 {
-		http.Error(w, "Event name not be empty", http.StatusBadRequest)
-		return
+		errs = append(errs, api.FieldProblem{Pointer: "#/eventlog/event", Detail: "Enter a name for the event."})
 	}
 
-	if ueflog.Eventlog.ID <= 0 {
-		http.Error(w, "eventlog ID should be > 0", http.StatusBadRequest)
+	errs = append(errs, validateFoodLogRows(ueflog.Foodlogs, "#/foodlogs")...)
+
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
 	ueflog.Eventlog.UserID = user.ID
-	for _, food := range ueflog.Foodlogs {
-		food.Name = strings.TrimSpace(food.Name)
-		food.Unit = strings.TrimSpace(food.Unit)
-	}
 
 	err = a.Db.UpdateUserEventFoodLog(r.Context(), &ueflog)
 
+	var rowErr *database.FoodLogRowError
+
+	if errors.As(err, &rowErr) {
+		writeFoodLogRowProblem(w, rowErr, "#/foodlogs")
+		return
+	}
+
 	if err != nil {
 
-		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user event log")
-		api.ServerErr(w, "failed while reading from the database")
+		log.Warn().Err(err).Str("user", user.Name).Msg("failed to update user event log")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The event could not be saved. Try again.")
 
 		return
 	}

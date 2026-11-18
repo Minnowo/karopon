@@ -15,7 +15,7 @@ func (a *APIV1) deleteUserGoal(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,19 +26,19 @@ func (a *APIV1) deleteUserGoal(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if goal.ID <= 0 {
-		api.BadReq(w, "ID should be > 0")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "This goal could not be found. Reload the page and try again.")
 		return
 	}
 
 	if err := a.Db.DeleteUserGoal(r.Context(), user.ID, goal.ID); err != nil {
 
-		api.ServerErr(w, "Unexpected error deleting the goal from the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The goal could not be deleted. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

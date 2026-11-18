@@ -15,7 +15,7 @@ func (a *APIV1) getUserWorkoutLogs(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +27,12 @@ func (a *APIV1) getUserWorkoutLogs(w http.ResponseWriter, r *http.Request) {
 		var err error
 
 		if n, err = strconv.Atoi(limit); err != nil {
-			http.Error(w, "query parameter 'n' could not be parsed as an integer", http.StatusBadRequest)
+			api.WriteStatusProblem(
+				w,
+				http.StatusBadRequest,
+				"The request could not be read. Reload the page and try again.",
+			)
+
 			return
 		}
 	}
@@ -37,7 +42,11 @@ func (a *APIV1) getUserWorkoutLogs(w http.ResponseWriter, r *http.Request) {
 	if err := a.Db.LoadUserWorkoutLogsN(r.Context(), user.ID, n, &out); err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user workout logs")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your workout history could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

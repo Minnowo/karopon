@@ -16,7 +16,7 @@ func (a *APIV1) getUserEvent(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,14 +26,24 @@ func (a *APIV1) getUserEvent(w http.ResponseWriter, r *http.Request) {
 	log.Debug().Any("vars", vars).Msg("get user event")
 
 	if !ok {
-		api.BadReq(w, "no event id given")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	eventID, err := strconv.Atoi(eventIDStr)
 
 	if err != nil {
-		api.BadReq(w, "event id is not a valid number")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 	var event database.TblUserEvent
@@ -47,7 +57,11 @@ func (a *APIV1) getUserEvent(w http.ResponseWriter, r *http.Request) {
 			Str("user", user.Name).
 			Int("event_id", eventID).
 			Msg("failed to read user event")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your events could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}
@@ -60,7 +74,7 @@ func (a *APIV1) getUserEvents(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -71,7 +85,11 @@ func (a *APIV1) getUserEvents(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user events log")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your events could not be loaded. Reload the page to try again.",
+		)
 
 		return
 	}

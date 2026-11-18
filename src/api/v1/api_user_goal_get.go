@@ -14,7 +14,7 @@ func (a *APIV1) getUserGoals(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -22,7 +22,11 @@ func (a *APIV1) getUserGoals(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.Db.LoadUserGoals(r.Context(), user.ID, &goals); err != nil {
 
-		api.ServerErr(w, "Unexpected error reading the goals from the database")
+		api.WriteStatusProblem(
+			w,
+			http.StatusInternalServerError,
+			"Your goals could not be loaded. Reload the page to try again.",
+		)
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

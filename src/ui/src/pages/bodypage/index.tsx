@@ -1,4 +1,5 @@
 import {BaseState} from '../../state/basestate';
+import {RefreshOnUnauthorized} from '../../utils/error';
 import {useState} from 'preact/hooks';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {UserBodyLog} from '../../api/types';
@@ -38,8 +39,9 @@ export function BodyPage(state: BaseState) {
         }
     };
 
-    const addBodyLog = (bodylog: UserBodyLog) => {
-        ApiNewUserBodyLog(bodylog)
+    // addBodyLog and updateBodyLog reject with the API error so the panel can show it.
+    const addBodyLog = (bodylog: UserBodyLog): Promise<void> => {
+        return ApiNewUserBodyLog(bodylog)
             .then((log: UserBodyLog) => {
                 state.setBodyLogs((e) => [log, ...(e === null ? [] : e)]);
 
@@ -47,17 +49,17 @@ export function BodyPage(state: BaseState) {
                 setShowNewEventPanel(false);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateBodyLog = (bodylog: UserBodyLog) => {
-        ApiUpdateUserBodyLog(bodylog)
+    const updateBodyLog = (bodylog: UserBodyLog): Promise<void> => {
+        return ApiUpdateUserBodyLog(bodylog)
             .then((updated: UserBodyLog) => {
                 state.setBodyLogs((e) => e.map((x) => (x.bodylog.id === updated.bodylog.id ? updated : x)));
                 setEditLog(null);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const copyBodyLog = (bodylog: UserBodyLog) => {

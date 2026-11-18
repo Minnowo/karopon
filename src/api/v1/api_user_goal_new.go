@@ -2,11 +2,12 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
 	"net/http"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -16,7 +17,7 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,34 +28,13 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
-	if !goal.Aggregation().IsValid() {
-		api.BadReq(w, "Aggregation type is invalid.")
-		return
-	}
-
-	if !goal.TargetColumn().IsValid() {
-		api.BadReq(w, "TargetColumn is invalid.")
-		return
-	}
-
-	col := goal.TargetColumn()
-	if (col == database.TargetColumnBodyMetric || col == database.TargetColumnTime) && goal.TargetMetric == "" {
-		api.BadReq(w, "TargetMetric is required for this TargetColumn.")
-		return
-	}
-
-	if !goal.Comparison().IsValid() {
-		api.BadReq(w, "Comparison type is invalid.")
-		return
-	}
-
-	if _, _, err := goal.TimeRange(time.Now(), 0); err != nil {
-		api.BadReq(w, "Time expression is invalid.")
+	if errs := validateGoal(&goal); len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -62,9 +42,18 @@ func (a *APIV1) newUserGoal(w http.ResponseWriter, r *http.Request) {
 
 	id, err := a.Db.AddUserGoal(r.Context(), &goal)
 
+	if errors.Is(err, database.ErrAlreadyExists) {
+		api.WriteAlreadyExistsProblem(w, api.FieldProblem{
+			Pointer: "#/name",
+			Detail:  fmt.Sprintf("You already have a goal called %s. Use a different name.", goal.Name),
+		})
+
+		return
+	}
+
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error adding the goal to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The goal could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

@@ -2,13 +2,15 @@ package v1
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/constants"
 	"karopon/src/database"
 	"net/http"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
@@ -24,7 +26,7 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.Unauthorized(w)
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -35,7 +37,7 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -49,56 +51,109 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 		newUser.User.SessionExpireTimeSeconds = int64(time.Hour * time.Duration(24*365*1))
 	}
 
-	if len(newUser.User.Name) > constants.MAX_USERNAME_LENGTH {
-		api.BadReqf(w, "Username must be less than %d characters.", constants.MAX_USERNAME_LENGTH)
-		return
-	}
-
-	if len(newUser.User.CustomCSS) > constants.MAX_CUSTOM_CSS_SIZE {
-		api.BadReqf(w, "Custom CSS must be less than %d KB.", constants.MAX_CUSTOM_CSS_SIZE/constants.KB)
-		return
-	}
+	newUser.User.Name = strings.TrimSpace(newUser.User.Name)
 
 	if newUser.User.MiscSettings == "" {
 		newUser.User.MiscSettings = "{}"
 	}
 
-	if len(newUser.User.MiscSettings) > constants.MAX_MISC_SETTINGS_SIZE {
-		api.BadReqf(w, "Misc settings must be less than %d KB.", constants.MAX_MISC_SETTINGS_SIZE/constants.KB)
+	// Misc settings are written by the app, not typed by the user, so a bad blob means a stale page.
+	if len(newUser.User.MiscSettings) > constants.MAX_MISC_SETTINGS_SIZE ||
+		!json.Valid([]byte(newUser.User.MiscSettings)) {
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"Your settings could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
-	if !json.Valid([]byte(newUser.User.MiscSettings)) {
-		api.BadReq(w, "Misc settings must be valid JSON.")
+	var errs []api.FieldProblem
+
+	switch {
+	case len(newUser.User.Name) == 0:
+		errs = append(errs, api.FieldProblem{Pointer: "#/user/name", Detail: "Enter a user name."})
+	case utf8.RuneCountInString(newUser.User.Name) > constants.MAX_USERNAME_LENGTH:
+		errs = append(errs, api.FieldProblem{
+			Pointer: "#/user/name",
+			Detail:  fmt.Sprintf("Use a user name of at most %d characters.", constants.MAX_USERNAME_LENGTH),
+		})
+	}
+
+	if len(newUser.User.CustomCSS) > constants.MAX_CUSTOM_CSS_SIZE {
+		errs = append(errs, api.FieldProblem{
+			Pointer: "#/user/custom_css",
+			Detail:  fmt.Sprintf("Keep custom CSS under %d KB.", constants.MAX_CUSTOM_CSS_SIZE/constants.KB),
+		})
+	}
+
+	// An empty new password means "keep the current one".
+	if newUser.NewPassword != "" {
+		switch {
+		case len(newUser.NewPassword) > constants.MAX_USER_PASSWORD_LENGTH:
+			errs = append(errs, api.FieldProblem{
+				Pointer: "#/new_password",
+				Detail: fmt.Sprintf(
+					"Use a shorter password: at most %d bytes (letters outside A-Z can take up to 4 bytes each).",
+					constants.MAX_USER_PASSWORD_LENGTH,
+				),
+			})
+		case len(newUser.NewPassword) < constants.MIN_PASSWORD_LENGTH:
+			errs = append(errs, api.FieldProblem{
+				Pointer: "#/new_password",
+				Detail:  fmt.Sprintf("Use a password of at least %d characters.", constants.MIN_PASSWORD_LENGTH),
+			})
+		}
+	}
+
+	// The name is only looked up when it is otherwise fine, and a taken name is reported with the
+	// other field problems, so the user sees everything at once.
+	nameTaken := false
+
+	if len(newUser.User.Name) > 0 && utf8.RuneCountInString(newUser.User.Name) <= constants.MAX_USERNAME_LENGTH {
+
+		taken, err := a.Db.UsernameTaken(r.Context(), user.ID, newUser.User.Name)
+
+		if err != nil {
+
+			log.Warn().
+				Err(err).
+				Int("userID", user.ID).
+				Str("nameChecking", newUser.User.Name).
+				Msg("Error checking if username exists")
+			api.WriteStatusProblem(w, http.StatusInternalServerError, "Your settings could not be saved. Try again.")
+
+			return
+		}
+
+		nameTaken = taken
+	}
+
+	takenProblem := api.FieldProblem{Pointer: "#/user/name", Detail: "That user name is taken. Choose another one."}
+
+	if nameTaken && len(errs) == 0 {
+		api.WriteAlreadyExistsProblem(w, takenProblem)
+		return
+	}
+
+	if nameTaken {
+		errs = append([]api.FieldProblem{takenProblem}, errs...)
+	}
+
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
 	if newUser.NewPassword != "" {
 
-		if len(newUser.NewPassword) > constants.MAX_USER_PASSWORD_LENGTH {
-
-			api.BadReqf(
-				w,
-				"The password is too long. It must be less than %d characters.",
-				constants.MAX_USER_PASSWORD_LENGTH,
-			)
-
-			return
-		}
-		if len(newUser.NewPassword) < constants.MIN_PASSWORD_LENGTH {
-			api.BadReqf(w, "The password must be at least %d characters.", constants.MIN_PASSWORD_LENGTH)
-			return
-		}
-
 		pass, err := bcrypt.GenerateFromPassword([]byte(newUser.NewPassword), bcrypt.DefaultCost)
 
 		if err != nil {
 
-			if errors.Is(err, bcrypt.ErrPasswordTooLong) {
-				api.BadReq(w, "The password is too long. It must be less than 72 characters.")
-			} else {
-				api.ServerErr(w, "Error while hashing the user password")
-			}
+			log.Warn().Err(err).Int("userID", user.ID).Msg("Error hashing the new password")
+			api.WriteStatusProblem(w, http.StatusInternalServerError, "The password could not be changed. Try again.")
 
 			return
 		}
@@ -107,28 +162,10 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 		newUser.User.Password = pass
 	}
 
-	if taken, err := a.Db.UsernameTaken(r.Context(), user.ID, newUser.User.Name); err != nil {
-
-		log.Warn().
-			Err(err).
-			Int("userID", user.ID).
-			Str("nameChecking", newUser.User.Name).
-			Msg("Error checking if username exists")
-		api.ServerErr(w, "Database error checking if username was taken.")
-
-		return
-
-	} else if taken {
-
-		api.ServerErr(w, "The username is already taken by another user.")
-
-		return
-	}
-
 	if err := a.Db.UpdateUser(r.Context(), &newUser.User); err != nil {
 
 		log.Warn().Err(err).Int("userID", user.ID).Msg("Error while updating user")
-		api.ServerErr(w, "Error while updating user.")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "Your settings could not be saved. Try again.")
 
 		return
 	}

@@ -17,7 +17,9 @@ func (db *PGDatabase) AddUserTag(ctx context.Context, tag *database.TblUserTag) 
 		) RETURNING id
 	`
 
-	return db.NamedInsertReturningID(ctx, query, tag)
+	id, err := db.NamedInsertReturningID(ctx, query, tag)
+
+	return id, alreadyExists(err)
 }
 
 func (db *PGDatabase) GetOrCreateUserTag(ctx context.Context, userID int, namespace, name string) (int, error) {

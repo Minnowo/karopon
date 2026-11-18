@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -29,7 +30,7 @@ func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -39,7 +40,7 @@ func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 		return
 	}
 
@@ -49,23 +50,36 @@ func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
 	req.NewName = strings.TrimSpace(req.NewName)
 
 	if req.Namespace == "" || req.Name == "" {
-		api.BadReq(w, "Original namespace and name cannot be empty.")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "This tag could not be found. Reload the page and try again.")
 		return
 	}
 
-	if req.NewNamespace == "" || req.NewName == "" {
-		api.BadReq(w, "New namespace and name cannot be empty.")
+	if errs := validateTagParts(req.NewNamespace, req.NewName, "#/new_namespace", "#/new_name"); len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
+
 	if req.Namespace == req.NewNamespace && req.Name == req.NewName {
-		api.BadReq(w, "The new name and namespace match the old name and namespace.")
+		api.WriteValidationProblem(w, []api.FieldProblem{{
+			Pointer: "#/new_name",
+			Detail:  "Change the namespace or the name to rename the tag.",
+		}})
+
 		return
 	}
 
 	err = a.Db.UpdateUserTag(r.Context(), user.ID, req.Namespace, req.Name, req.NewNamespace, req.NewName, req.Merge)
 
 	if errors.Is(err, database.ErrTagAlreadyExists) {
-		api.BadReq(w, "A tag with the new namespace and name already exists.")
+		api.WriteAlreadyExistsProblem(w, api.FieldProblem{
+			Pointer: "#/new_name",
+			Detail: fmt.Sprintf(
+				"You already have a tag called %s:%s. Tick merge to combine the two tags.",
+				req.NewNamespace,
+				req.NewName,
+			),
+		})
+
 		return
 	}
 
@@ -77,7 +91,7 @@ func (a *APIV1) updateUserTag(w http.ResponseWriter, r *http.Request) {
 			Str("namespace", req.Namespace).
 			Str("name", req.Name).
 			Msg("failed to update tag")
-		api.ServerErr(w, "failed to update the tag in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The tag could not be saved. Try again.")
 
 		return
 	}

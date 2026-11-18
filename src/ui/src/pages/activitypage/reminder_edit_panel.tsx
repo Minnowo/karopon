@@ -20,7 +20,7 @@ type ReminderEditPanelProps = {
         sound: string,
         name: string,
         alarmMode: ReminderAlarmMode
-    ) => void;
+    ) => Promise<void>;
     deleteReminder: (reminderWithActivities: ReminderWithActivities) => void;
 };
 
@@ -74,7 +74,7 @@ export function ReminderEditPanel({
                     const sortedNew = [...activityIDs].sort();
                     const activityIDsChanged = JSON.stringify(sortedInitial) !== JSON.stringify(sortedNew);
 
-                    updateReminder(
+                    return updateReminder(
                         reminder.id,
                         enabled,
                         intervalMinutes,
@@ -85,8 +85,7 @@ export function ReminderEditPanel({
                         sound,
                         name,
                         alarmMode
-                    );
-                    setShowEdit(false);
+                    ).then(() => setShowEdit(false));
                 }}
                 onCancel={() => setShowEdit(false)}
             />

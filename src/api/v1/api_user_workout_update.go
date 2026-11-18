@@ -16,7 +16,7 @@ func (a *APIV1) updateUserWorkout(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -25,18 +25,23 @@ func (a *APIV1) updateUserWorkout(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if req.Workout.ID <= 0 {
-		http.Error(w, "workout ID should be > 0", http.StatusBadRequest)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This workout could not be found. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if err := validateWorkout(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeWorkoutProblem(w, err)
 		return
 	}
 
@@ -45,14 +50,14 @@ func (a *APIV1) updateUserWorkout(w http.ResponseWriter, r *http.Request) {
 	err := a.Db.UpdateUserWorkout(r.Context(), &req.Workout, req.Tags)
 
 	if errors.Is(err, database.ErrUserDoesNotHaveThisID) {
-		http.Error(w, "workout does not exist", http.StatusBadRequest)
+		api.WriteStatusProblem(w, http.StatusConflict, "This workout no longer exists. Reload the page and try again.")
 		return
 	}
 
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to update workout")
-		api.ServerErr(w, "failed while writing to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The workout could not be saved. Try again.")
 
 		return
 	}

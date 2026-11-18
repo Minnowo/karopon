@@ -15,7 +15,7 @@ func (a *APIV1) deleteUserReminder(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,13 +26,18 @@ func (a *APIV1) deleteUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
 
 	if reminder.ID <= 0 {
-		http.Error(w, "reminder has an invalid ID <= 0", http.StatusBadRequest)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"This reminder could not be found. Reload the page and try again.",
+		)
+
 		return
 	}
 
@@ -41,7 +46,7 @@ func (a *APIV1) deleteUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Int("reminderID", reminder.ID).Msg("failed to delete reminder")
-		api.ServerErr(w, "failed to delete the reminder in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The reminder could not be deleted. Try again.")
 
 		return
 	}

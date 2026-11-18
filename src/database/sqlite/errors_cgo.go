@@ -3,6 +3,7 @@
 package sqlite
 
 import (
+	"errors"
 	"strings"
 
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -23,4 +24,17 @@ func (e SQLiteErrorCode) Is(err error) bool {
 	}
 
 	return false
+}
+
+// isUniqueViolation reports whether err is SQLITE_CONSTRAINT_UNIQUE (2067,
+// https://www.sqlite.org/rescode.html) from mattn/go-sqlite3.
+func isUniqueViolation(err error) bool {
+
+	var sqliteErr sqlite3.Error
+
+	if !errors.As(err, &sqliteErr) {
+		return false
+	}
+
+	return sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique
 }

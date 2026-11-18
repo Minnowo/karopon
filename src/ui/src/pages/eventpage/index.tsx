@@ -1,4 +1,5 @@
 import {useState} from 'preact/hooks';
+import {RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {CreateUserEventLog, TblUserFoodLog, UpdateUserEventLog, UserEventFoodLog} from '../../api/types';
 import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
@@ -28,18 +29,20 @@ export const EventsPage = (state: BaseState) => {
         }
     };
 
-    const onCreateEvent = (eventlog: CreateUserEventLog) => {
-        ApiNewEventLog(eventlog)
+    // onCreateEvent saves a new event. It rejects with the API error so the panel can show it.
+    const onCreateEvent = (eventlog: CreateUserEventLog): Promise<void> => {
+        return ApiNewEventLog(eventlog)
             .then((newEventlog: UserEventFoodLog) => {
                 state.setEventLogs((e) => [newEventlog, ...(e === null ? [] : e)]);
                 setNewEvent(UserEventFoodLogFactory.empty());
                 setShowNewEventPanel(false);
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const onUpdateEvent = (eventlogId: number, eventlog: CreateUserEventLog) => {
+    // onUpdateEvent saves an edited event. It rejects with the API error so the panel can show it.
+    const onUpdateEvent = (eventlogId: number, eventlog: CreateUserEventLog): Promise<void> => {
         const updateEventLog: UpdateUserEventLog = {
             eventlog: {
                 // server ignores these
@@ -61,7 +64,7 @@ export const EventsPage = (state: BaseState) => {
             foodlogs: eventlog.foods as TblUserFoodLog[],
         };
 
-        ApiUpdateUserEventLog(updateEventLog)
+        return ApiUpdateUserEventLog(updateEventLog)
             .then((newEventlog: UserEventFoodLog) => {
                 state.setEventLogs((e: UserEventFoodLog[]) =>
                     e.map((log: UserEventFoodLog) => {
@@ -75,7 +78,7 @@ export const EventsPage = (state: BaseState) => {
                 setEditEvent(UserEventFoodLogFactory.empty());
                 setErrorMsg(null);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const onDeleteEvent = (eventlog: UserEventFoodLog) => {

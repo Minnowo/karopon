@@ -16,7 +16,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +27,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -37,8 +37,14 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 		tag.Timespan.Note = &trimmed
 	}
 
-	if tag.Timespan.StartTime.Time().After(tag.Timespan.StartTime.Time()) {
-		tag.Timespan.StartTime, tag.Timespan.StopTime = tag.Timespan.StopTime, tag.Timespan.StartTime
+	// A running timer has no stop time yet (zero); only a set stop time can be out of order.
+	if !tag.Timespan.StopTime.Time().IsZero() && tag.Timespan.StartTime.Time().After(tag.Timespan.StopTime.Time()) {
+		api.WriteValidationProblem(w, []api.FieldProblem{{
+			Pointer: "#/timespan/stop_time",
+			Detail:  "The end time is before the start time. Change one of them.",
+		}})
+
+		return
 	}
 
 	tag.Timespan.UserID = user.ID
@@ -47,7 +53,7 @@ func (a *APIV1) newUserTimespan(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error adding the timespan to the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The timer could not be saved. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

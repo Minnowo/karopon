@@ -17,7 +17,7 @@ func (a *APIV1) getUserNamespaceTagSearch(w http.ResponseWriter, r *http.Request
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -26,12 +26,17 @@ func (a *APIV1) getUserNamespaceTagSearch(w http.ResponseWriter, r *http.Request
 	limitString := strings.TrimSpace(r.URL.Query().Get("n"))
 
 	if len(namespace) <= 0 || len(namespace) > 128 {
-		api.BadReq(w, "The namespace string is an invalid length.")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The request could not be read. Reload the page and try again.",
+		)
+
 		return
 	}
 
 	if len(queryString) > 128 {
-		api.BadReq(w, "The query string is an invalid length.")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "Search for at most 128 characters.")
 		return
 	}
 
@@ -51,7 +56,7 @@ func (a *APIV1) getUserNamespaceTagSearch(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 
-		api.ServerErr(w, "Unexpected error reading the tags from the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The tag search failed. Try again.")
 		log.Error().
 			Err(err).
 			Int("userid", user.ID).

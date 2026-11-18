@@ -10,7 +10,7 @@ import {AddFoodPanel} from './add_food_panel';
 import {TblUserFoodFactory} from '../../api/factories';
 import {NumberInput} from '../../components/number_input';
 import {FoodBuilderPanel} from './food_builder_panel';
-import {GetErrorHandler} from '../../utils/error';
+import {GetErrorHandler, RefreshOnUnauthorized} from '../../utils/error';
 
 export const FoodPage = (state: BaseState) => {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
@@ -23,15 +23,14 @@ export const FoodPage = (state: BaseState) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
 
-    const addNewFood = (setPanelState: Dispatch<StateUpdater<boolean>>, food: TblUserFood) => {
-        ApiNewUserFood(food)
-            .then((newFood) => {
-                const foods = [...state.foods, ...[newFood]];
-                foods.sort((a, b) => a.name.localeCompare(b.name));
-                state.setFoods(foods);
-                setPanelState(false);
-            })
-            .catch(handleErr);
+    // addNewFood saves food and closes its panel. It rejects with the API error so the panel can show it.
+    const addNewFood = (setPanelState: Dispatch<StateUpdater<boolean>>, food: TblUserFood): Promise<void> => {
+        return ApiNewUserFood(food).then((newFood) => {
+            const foods = [...state.foods, ...[newFood]];
+            foods.sort((a, b) => a.name.localeCompare(b.name));
+            state.setFoods(foods);
+            setPanelState(false);
+        });
     };
 
     const deleteFood = (food: TblUserFood) => {
@@ -45,8 +44,9 @@ export const FoodPage = (state: BaseState) => {
         }
     };
 
-    const updateFood = (food: TblUserFood) => {
-        ApiUpdateUserFood(food)
+    // updateFood saves an edited food. It rejects with the API error so the edit panel can show it.
+    const updateFood = (food: TblUserFood): Promise<void> => {
+        return ApiUpdateUserFood(food)
             .then(() => {
                 const foods = [...state.foods];
                 for (let i = 0; i < foods.length; i++) {
@@ -65,7 +65,7 @@ export const FoodPage = (state: BaseState) => {
                 foods.sort((a, b) => a.name.localeCompare(b.name));
                 state.setFoods(foods);
             })
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const searchChange = (e: JSX.TargetedEvent<HTMLInputElement, Event>) => {
@@ -113,7 +113,9 @@ export const FoodPage = (state: BaseState) => {
                     className="mb-4"
                     user={state.user}
                     foods={state.foods}
-                    addFood={(f) => addNewFood(setShowBuildFoodPanel, f)}
+                    addFood={(f) => {
+                        addNewFood(setShowBuildFoodPanel, f).catch(handleErr);
+                    }}
                     onCancel={() => setShowBuildFoodPanel(false)}
                 />
             )}

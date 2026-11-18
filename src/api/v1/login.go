@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/api/userreg"
@@ -9,6 +10,7 @@ import (
 	"karopon/src/database"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/rs/zerolog/log"
 )
@@ -37,11 +39,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(constants.MAX_LOGIN_FORM_SIZE); err != nil {
 
 		log.Debug().Err(err).Msg("failed to get multipartReader")
-		api.BadReqf(
-			w,
-			"Failed to parse the given form data, the size must be less than %d bytes.",
-			constants.MAX_LOGIN_FORM_SIZE,
-		)
+		api.WriteStatusProblem(w, http.StatusBadRequest, "The login could not be read. Reload the page and try again.")
 
 		return
 	}
@@ -53,26 +51,39 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 	log.Info().Str("username", username).Str("tokenType", tokenType).Msg("Handling login call")
 
 	if username == "" || password == "" {
-		api.BadReq(w, "The username or password cannot be empty.")
+		api.WriteStatusProblem(w, http.StatusBadRequest, "Enter your user name and password.")
 		return
 	}
 
-	if len(username) > constants.MAX_USERNAME_LENGTH {
-		api.BadReqf(w, "Username is too long, it should be less than %d characters.", constants.MAX_USERNAME_LENGTH)
+	if utf8.RuneCountInString(username) > constants.MAX_USERNAME_LENGTH {
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			fmt.Sprintf("User names are at most %d characters. Check your user name.", constants.MAX_USERNAME_LENGTH),
+		)
+
 		return
 	}
 
 	if len(password) < constants.MIN_PASSWORD_LENGTH {
-		api.BadReqf(w, "Password is too short, it should be longer than %d characters.", constants.MIN_PASSWORD_LENGTH)
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			fmt.Sprintf("Passwords are at least %d characters. Check your password.", constants.MIN_PASSWORD_LENGTH),
+		)
+
 		return
 	}
 
 	if len(password) > constants.MAX_USER_PASSWORD_LENGTH {
 
-		api.BadReqf(
+		api.WriteStatusProblem(
 			w,
-			"Password is too long, it should be shorter than %d characters.",
-			constants.MAX_USER_PASSWORD_LENGTH,
+			http.StatusBadRequest,
+			fmt.Sprintf(
+				"Passwords are at most %d characters. Check your password.",
+				constants.MAX_USER_PASSWORD_LENGTH,
+			),
 		)
 
 		return
@@ -84,13 +95,9 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 
 		if errors.Is(err, userreg.ErrUserDoesNotExist) ||
 			errors.Is(err, userreg.ErrUserPasswordDoesNotMatch) {
-			api.Done(w, http.StatusUnauthorized, "The username or password is incorrect.")
+			api.WriteStatusProblem(w, http.StatusUnauthorized, "The user name or password is not right. Try again.")
 		} else {
-			api.Done(
-				w,
-				http.StatusInternalServerError,
-				"An unknown error happened while logging in, please try again later.",
-			)
+			api.WriteStatusProblem(w, http.StatusInternalServerError, "Logging in failed. Try again in a moment.")
 		}
 
 		return

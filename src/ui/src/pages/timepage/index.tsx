@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'preact/hooks';
+import {PageErrorMessage} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {
     ApiDeleteUserTimespan,
@@ -32,7 +33,7 @@ export function TimespansPage(state: BaseState) {
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
-            setErrorMsg(e);
+            setErrorMsg(PageErrorMessage(e) ?? e);
             if (e.isUnauthorizedError()) {
                 state.doRefresh();
             }
@@ -101,7 +102,8 @@ export function TimespansPage(state: BaseState) {
         const newTimespan = {
             id: ts.timespan.id,
             start_time: ts.timespan.start_time,
-            stop_time: new Date().getTime(),
+            // A timer started on a device whose clock is ahead would otherwise stop before it started.
+            stop_time: Math.max(Date.now(), ts.timespan.start_time),
             note: ts.timespan.note,
         } as TblUserTimespan;
         updateTimespan(newTimespan);

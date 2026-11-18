@@ -16,7 +16,7 @@ func (a *APIV1) addUserReminder(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,13 +27,8 @@ func (a *APIV1) addUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
-		return
-	}
-
-	if req.Reminder.IntervalMinutes <= 0 {
-		http.Error(w, "interval_minutes cannot be <= 0", http.StatusBadRequest)
 		return
 	}
 
@@ -44,8 +39,28 @@ func (a *APIV1) addUserReminder(w http.ResponseWriter, r *http.Request) {
 		req.Reminder.LastActivityAt = database.TimeMillis(time.Now())
 	}
 
-	if err := normalizeReminderFields(&req.Reminder); err != nil {
-		api.BadReq(w, err.Error())
+	errs, err := reminderFieldProblems(&req.Reminder, "#/reminder/")
+
+	// Only new reminders need a name: reminders made before names existed have
+	// an empty one and must still be updatable (e.g. by the reminder prompt).
+	if len(req.Reminder.Name) == 0 {
+		errs = append(errs, api.FieldProblem{Pointer: "#/reminder/name", Detail: "Enter a name for the reminder."})
+	}
+
+	if err != nil {
+
+		log.Debug().Err(err).Msg("reminder active timers rejected")
+		api.WriteStatusProblem(
+			w,
+			http.StatusBadRequest,
+			"The reminder could not be read. Reload the page and try again.",
+		)
+
+		return
+	}
+
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -54,7 +69,7 @@ func (a *APIV1) addUserReminder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to create a new reminder")
-		api.ServerErr(w, "failed to create the reminder in the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The reminder could not be saved. Try again.")
 
 		return
 	}

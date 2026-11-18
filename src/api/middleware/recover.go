@@ -1,7 +1,10 @@
+// Panic recovery middleware.
+
 package middleware
 
 import (
 	"errors"
+	"karopon/src/api"
 	"net/http"
 	"runtime/debug"
 
@@ -14,6 +17,8 @@ import (
 func Recoverer(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		tracked := &startedWriter{ResponseWriter: w}
 
 		defer func() {
 
@@ -39,11 +44,41 @@ func Recoverer(next http.Handler) http.Handler {
 				Bytes("stack", debug.Stack()).
 				Msgf("recovering from panic: %v", rvr)
 
-			if r.Header.Get("Connection") != "Upgrade" {
-				w.WriteHeader(http.StatusInternalServerError)
+			// A response that already started cannot be replaced; adding to it would corrupt it.
+			if r.Header.Get("Connection") != "Upgrade" && !tracked.started {
+				api.WriteStatusProblem(
+					w,
+					http.StatusInternalServerError,
+					"Something went wrong on the server. Try again.",
+				)
 			}
 		}()
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(tracked, r)
 	})
+}
+
+// startedWriter records whether the handler wrote a status or any body.
+type startedWriter struct {
+	http.ResponseWriter
+
+	started bool
+}
+
+// WriteHeader implements http.ResponseWriter.
+func (w *startedWriter) WriteHeader(status int) {
+	w.started = true
+	w.ResponseWriter.WriteHeader(status)
+}
+
+// Write implements http.ResponseWriter.
+func (w *startedWriter) Write(b []byte) (int, error) {
+	w.started = true
+
+	return w.ResponseWriter.Write(b)
+}
+
+// Unwrap lets http.ResponseController reach the underlying writer (flush, hijack, deadlines).
+func (w *startedWriter) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
 }

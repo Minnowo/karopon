@@ -138,7 +138,8 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
             return;
         }
 
-        const updatedTimespan = {...running.timespan, stop_time: Date.now()};
+        // A timer started on a device whose clock is ahead would otherwise stop before it started.
+        const updatedTimespan = {...running.timespan, stop_time: Math.max(Date.now(), running.timespan.start_time)};
 
         ApiUpdateUserTimespan(updatedTimespan)
             .then(() => {
@@ -171,7 +172,8 @@ const ReminderPromptCard = ({state, dueReminder, session}: ReminderPromptCardPro
                 return Promise.resolve();
             }
 
-            const updatedTimespan = {...running.timespan, stop_time: now};
+            // A timer started on a device whose clock is ahead would otherwise stop before it started.
+            const updatedTimespan = {...running.timespan, stop_time: Math.max(now, running.timespan.start_time)};
 
             return ApiUpdateUserTimespan(updatedTimespan).then(() => {
                 state.setTimespans((old) =>

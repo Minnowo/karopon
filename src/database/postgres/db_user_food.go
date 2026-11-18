@@ -18,7 +18,7 @@ func (db *PGDatabase) AddUserFood(ctx context.Context, food *database.TblUserFoo
 
 	id, err := db.NamedInsertReturningID(ctx, query, food)
 
-	return id, err
+	return id, alreadyExists(err)
 }
 
 func (db *PGDatabase) AddUserFoods(ctx context.Context, foods []database.TblUserFood) error {
@@ -59,7 +59,7 @@ func (db *PGDatabase) UpdateUserFood(ctx context.Context, food *database.TblUser
 
 	_, err := db.NamedExecContext(ctx, query, food)
 
-	return err
+	return alreadyExists(err)
 }
 
 func (db *PGDatabase) DeleteUserFood(ctx context.Context, userID int, foodID int) error {

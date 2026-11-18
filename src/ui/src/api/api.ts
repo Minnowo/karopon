@@ -41,13 +41,16 @@ import {StatsTimeRequest, TimespanTagDurationPoint} from './types_stats_time';
 import {BodyLogStatsTimeRequest, BodyLogMetricPoint} from './types_stats_bodylog';
 import {MacronutrientPoint, MacroStatsRequest} from './types_stats_macros';
 import {EventLogPoint, EventLogStatsRequest} from './types_stats_eventlogs';
+import {Problem, ProblemContentType, ProblemTypeAlreadyExists, ProblemTypeValidation} from './types_problem';
 
 export class ApiError extends Error {
     public readonly status: number;
     public readonly url: string;
     public readonly method: string;
+    // The problem details body, or null when the response was not one (e.g. a proxy's error page).
+    public readonly problem: Problem | null;
 
-    constructor(status: number, statusText: string, url: string, method: string) {
+    constructor(status: number, statusText: string, url: string, method: string, problem: Problem | null = null) {
         const message = `[${method}] [${status}] [${url}] ${statusText.trim()}`;
 
         super(message);
@@ -56,12 +59,38 @@ export class ApiError extends Error {
         this.status = status;
         this.url = url;
         this.method = method;
+        this.problem = problem;
 
         Object.setPrototypeOf(this, new.target.prototype);
     }
 
     public isUnauthorizedError(): boolean {
         return this.status === 401;
+    }
+
+    // The message the server wrote for the user, or null if it sent none.
+    public userMessage(): string | null {
+        if (this.problem === null || typeof this.problem.detail !== 'string' || this.problem.detail === '') {
+            return null;
+        }
+        return this.problem.detail;
+    }
+
+    // Field messages keyed by JSON Pointer ("#/portion"); empty unless the problem type defines field errors.
+    public fieldErrors(): Map<string, string> {
+        const out = new Map<string, string>();
+        if (this.problem === null || !Array.isArray(this.problem.errors)) {
+            return out;
+        }
+        if (this.problem.type !== ProblemTypeValidation && this.problem.type !== ProblemTypeAlreadyExists) {
+            return out;
+        }
+        for (const e of this.problem.errors) {
+            if (typeof e === 'object' && e !== null && typeof e.pointer === 'string' && typeof e.detail === 'string') {
+                out.set(e.pointer, e.detail);
+            }
+        }
+        return out;
     }
 }
 
@@ -91,8 +120,28 @@ const apiFetch = (path: string, args?: RequestInit) => {
 };
 
 const throwFailureReason = async (r: Response, path: string, args?: RequestInit): Promise<never> => {
+    const method = args?.method ?? 'GET';
     const reason = await r.text();
-    throw new ApiError(r.status, reason, path, args?.method ?? 'GET');
+
+    const contentType = (r.headers.get('content-type') ?? '').trim().toLowerCase();
+    if (!contentType.startsWith(ProblemContentType)) {
+        throw new ApiError(r.status, reason, path, method);
+    }
+
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(reason);
+    } catch {
+        throw new ApiError(r.status, reason, path, method);
+    }
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new ApiError(r.status, reason, path, method);
+    }
+
+    const problem = parsed as Problem;
+    const detail = typeof problem.detail === 'string' ? problem.detail : undefined;
+    const title = typeof problem.title === 'string' ? problem.title : '';
+    throw new ApiError(r.status, detail ?? title, path, method, {...problem, detail, title});
 };
 
 const fetchNone = async (path: string, args?: RequestInit): Promise<void> => {

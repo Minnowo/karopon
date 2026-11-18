@@ -1,6 +1,7 @@
 import {Fragment} from 'preact';
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {StepKind, NewWorkoutLog} from '../../api/types';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TagChip} from '../../components/tag_chip';
 import {NumberInput} from '../../components/number_input';
 import {FormatDuration} from '../../utils/time';
@@ -77,13 +78,27 @@ type RunnerProps = {
     run: RunState;
     setRun: (s: RunState) => void;
     tagColors: Map<string, string>;
-    onSave: (log: NewWorkoutLog) => void;
+    // Saves the log; rejects with the error so the summary can show it next to Save.
+    onSave: (log: NewWorkoutLog) => Promise<void>;
     onDiscard: () => void;
 };
 
 function RunSummary(p: RunnerProps) {
     const {run} = p;
     const [note, setNote] = useState<string>('');
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+    const [saving, setSaving] = useState<boolean>(false);
+
+    const save = () => {
+        if (saving) {
+            return;
+        }
+        setErrorMsg(null);
+        setSaving(true);
+        p.onSave(BuildWorkoutLog(run, note))
+            .catch((e: unknown) => setErrorMsg(e instanceof Error ? e : String(e)))
+            .finally(() => setSaving(false));
+    };
 
     const shown = run.steps.slice(0, run.furthest + 1);
     const done = shown.filter((st, i) => !st.between && run.progress[i].segments.length > 0).length;
@@ -132,11 +147,13 @@ function RunSummary(p: RunnerProps) {
                 <textarea rows={2} value={note} placeholder="Note (optional)" onInput={(e) => setNote(e.currentTarget.value)} />
             </label>
 
+            <ErrorDiv errorMsg={errorMsg} />
+
             <div className="flex justify-end gap-2">
                 <button className="btn-outlined-error" onClick={p.onDiscard}>
                     Discard
                 </button>
-                <button className="btn-success" onClick={() => p.onSave(BuildWorkoutLog(run, note))}>
+                <button className="btn-success" aria-disabled={saving || undefined} onClick={save}>
                     Save
                 </button>
             </div>

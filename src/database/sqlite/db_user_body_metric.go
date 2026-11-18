@@ -29,7 +29,9 @@ func (db *SqliteDatabase) AddUserBodyMetric(ctx context.Context, metric *databas
 		VALUES (:USER_ID, :NAME, :UNIT)
 	`
 
-	return db.NamedInsertGetLastRowID(ctx, query, metric)
+	id, err := db.NamedInsertGetLastRowID(ctx, query, metric)
+
+	return id, alreadyExists(err)
 }
 
 // DeleteUserBodyMetric deletes a body metric definition and any logged values for it

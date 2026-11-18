@@ -2,6 +2,8 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
@@ -16,7 +18,7 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 	user := auth.GetUser(r)
 
 	if user == nil {
-		api.BadReq(w, "no user session available")
+		api.WriteNoUserProblem(w)
 		return
 	}
 
@@ -27,7 +29,7 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Debug().Err(err).Msg("invalid json")
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		api.WriteUnreadableProblem(w)
 
 		return
 	}
@@ -35,18 +37,27 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 	food.Name = strings.TrimSpace(food.Name)
 	food.Unit = strings.TrimSpace(food.Unit)
 
-	if len(food.Name) == 0 {
-		http.Error(w, "food cannot have empty name", http.StatusBadRequest)
+	if food.ID <= 0 {
+		api.WriteStatusProblem(w, http.StatusBadRequest, "This food could not be found. Reload the page and try again.")
 		return
+	}
+
+	var errs []api.FieldProblem
+
+	if len(food.Name) == 0 {
+		errs = append(errs, api.FieldProblem{Pointer: "#/name", Detail: "Enter a name for the food."})
+	}
+
+	if len(food.Unit) == 0 {
+		errs = append(errs, api.FieldProblem{Pointer: "#/unit", Detail: "Enter a unit, such as g or cups."})
 	}
 
 	if food.Portion <= 0 {
-		http.Error(w, "portion cannot be <= 0", http.StatusBadRequest)
-		return
+		errs = append(errs, api.FieldProblem{Pointer: "#/portion", Detail: "Portion must be more than 0."})
 	}
 
-	if food.ID <= 0 {
-		http.Error(w, "food ID should be > 0", http.StatusBadRequest)
+	if len(errs) > 0 {
+		api.WriteValidationProblem(w, errs)
 		return
 	}
 
@@ -55,10 +66,23 @@ func (a *APIV1) updateUserFood(w http.ResponseWriter, r *http.Request) {
 
 	err = a.Db.UpdateUserFood(r.Context(), &food)
 
+	if errors.Is(err, database.ErrAlreadyExists) {
+		api.WriteAlreadyExistsProblem(w, api.FieldProblem{
+			Pointer: "#/name",
+			Detail: fmt.Sprintf(
+				"You already have %s measured in %s. Change the name or the unit.",
+				food.Name,
+				food.Unit,
+			),
+		})
+
+		return
+	}
+
 	if err != nil {
 
 		log.Warn().Err(err).Str("user", user.Name).Msg("failed to read user food log")
-		api.ServerErr(w, "failed while reading from the database")
+		api.WriteStatusProblem(w, http.StatusInternalServerError, "The food could not be saved. Try again.")
 
 		return
 	}

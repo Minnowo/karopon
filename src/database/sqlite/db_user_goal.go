@@ -52,7 +52,7 @@ func (db *SqliteDatabase) AddUserGoal(ctx context.Context, userGoal *database.Tb
 	id, err := db.NamedInsertGetLastRowID(ctx, query, userGoal)
 
 	if err != nil {
-		return -1, err
+		return -1, alreadyExists(err)
 	}
 
 	return id, nil
@@ -74,5 +74,5 @@ func (db *SqliteDatabase) UpdateUserGoal(ctx context.Context, userGoal *database
 
 	_, err := db.NamedExecContext(ctx, query, userGoal)
 
-	return err
+	return alreadyExists(err)
 }

@@ -4,9 +4,11 @@
 package sqlite
 
 import (
+	"errors"
 	"strings"
 
 	sqlite3 "modernc.org/sqlite"
+	sqlite3lib "modernc.org/sqlite/lib"
 )
 
 var (
@@ -23,4 +25,17 @@ func (e SQLiteErrorCode) Is(err error) bool {
 	}
 
 	return false
+}
+
+// isUniqueViolation reports whether err is SQLITE_CONSTRAINT_UNIQUE (2067,
+// https://www.sqlite.org/rescode.html) from modernc.org/sqlite.
+func isUniqueViolation(err error) bool {
+
+	var sqliteErr *sqlite3.Error
+
+	if !errors.As(err, &sqliteErr) {
+		return false
+	}
+
+	return sqliteErr.Code() == sqlite3lib.SQLITE_CONSTRAINT_UNIQUE
 }

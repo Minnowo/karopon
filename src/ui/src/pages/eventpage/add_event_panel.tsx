@@ -1,4 +1,4 @@
-import {useCallback, useLayoutEffect, useRef, useState} from 'preact/hooks';
+import {useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {
     CreateUserEventLog,
     InsertUserFoodLog,
@@ -16,11 +16,19 @@ import {TblUserFoodLogFactory} from '../../api/factories';
 import {CalcInsulin} from '../../utils/insulin';
 import {CalculateCalories, Str2CalorieFormula} from '../../utils/calories';
 import {FormatSmartTimestamp} from '../../utils/date_utils';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {FieldError} from '../../components/field_error';
+import {ApiError} from '../../api/api';
 import {DAY_IN_MS, TimeLocalMS} from '../../utils/time';
 import {AddFoodlogPanelRow} from '../../components/add_foodlog_row';
 import {NumberInput} from '../../components/number_input';
 import {TimeInput} from '../../components/time_input';
+
+// RowErrors holds the server's messages for one food row.
+type RowErrors = {
+    name?: string;
+    portion?: string;
+};
 
 type AddEventsPanelState = {
     dialogTitle: string;
@@ -30,7 +38,8 @@ type AddEventsPanelState = {
     events: TblUserEvent[];
     eventlogs: UserEventFoodLog[];
     fromEvent: UserEventFoodLog;
-    createEvent: (e: CreateUserEventLog) => void;
+    // Saves the event; rejects with an ApiError when the server refuses it.
+    createEvent: (e: CreateUserEventLog) => Promise<void>;
     onCancel: () => void;
     copyDate?: boolean;
 };
@@ -51,8 +60,14 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     const [bloodSugar, setBloodSugar] = useState<number>(p.fromEvent.eventlog.blood_glucose);
     const [insulinToCarbRatio, setInsulinToCarbRatio] = useState<number>(p.fromEvent.eventlog.insulin_to_carb_ratio);
     const [insulinTaken, setInsulinTaken] = useState<number>(p.fromEvent.eventlog.actual_insulin_taken);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [saving, setSaving] = useState(false);
+    // Server field errors: the event name, and per food row keyed by the row's key.
+    const [eventNameError, setEventNameError] = useState<string | undefined>(undefined);
+    const [rowErrors, setRowErrors] = useState<Map<number, RowErrors>>(new Map());
+    const focusFirstInvalid = useRef<boolean>(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const eventNameErrorId = `${useId()}-event-name-error`;
     const foods = useRef<TblUserFoodLogWithKey[]>([]);
     const trailingRows = Math.max(1, p.user.event_log_trailing_rows);
 
@@ -99,6 +114,10 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     useLayoutEffect(() => {
         setEventTime(p.copyDate ? new Date(p.fromEvent.eventlog.user_time) : new Date());
         setFromLastEvent(p.fromEvent);
+        // A different starting event (e.g. Copy while the panel is open) makes old errors meaningless.
+        setErrorMsg(null);
+        setEventNameError(undefined);
+        setRowErrors(new Map());
     }, [p.fromEvent, p.copyDate, setFromLastEvent]);
 
     const totals = (() => {
@@ -136,17 +155,71 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         Str2CalorieFormula(p.user.caloric_calc_method)
     ).toFixed(0);
 
-    const onCreateClick = async () => {
-        setErrorMsg(null);
-
-        if (event.trim() === '') {
-            setErrorMsg('Event name should not be empty');
+    // After the server rejects fields, move focus to the first one it marked.
+    useEffect(() => {
+        if (!focusFirstInvalid.current) {
             return;
         }
+        focusFirstInvalid.current = false;
+        rootRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    }, [eventNameError, rowErrors]);
 
+    const clearRowError = (key: number) => {
+        setRowErrors((prev) => {
+            if (!prev.has(key)) {
+                return prev;
+            }
+            const next = new Map(prev);
+            next.delete(key);
+            return next;
+        });
+    };
+
+    // showServerErrors puts the server's field errors on the event name and on the rows they came from.
+    // sentKeys[i] is the key of the row sent as foods[i]; empty rows are not sent.
+    const showServerErrors = (e: ApiError, sentKeys: number[]) => {
+        let nameError: string | undefined;
+        const rows = new Map<number, RowErrors>();
+        for (const [pointer, detail] of e.fieldErrors()) {
+            if (pointer === '#/event/name' || pointer === '#/eventlog/event') {
+                nameError = detail;
+                continue;
+            }
+            const m = /^#\/(?:foods|foodlogs)\/(\d+)\/(name|portion)$/.exec(pointer);
+            if (m === null) {
+                continue;
+            }
+            const index = Number(m[1]);
+            if (index < 0 || index >= sentKeys.length) {
+                continue;
+            }
+            const key = sentKeys[index];
+            const row = rows.get(key) ?? {};
+            if (m[2] === 'name') {
+                row.name = detail;
+            } else {
+                row.portion = detail;
+            }
+            rows.set(key, row);
+        }
+        focusFirstInvalid.current = nameError !== undefined || rows.size > 0;
+        setEventNameError(nameError);
+        setRowErrors(rows);
+    };
+
+    const onCreateClick = async () => {
+        if (saving) {
+            return;
+        }
+        setErrorMsg(null);
+        setEventNameError(undefined);
+        setRowErrors(new Map());
         setSaving(true);
 
-        p.createEvent({
+        const sent = foods.current.filter((x) => x.name.trim().length > 0);
+        const sentKeys = sent.map((x) => x.key);
+
+        const save = p.createEvent({
             blood_glucose: bloodSugar,
             blood_glucose_target: p.user.target_blood_sugar,
             insulin_sensitivity_factor: p.user.insulin_sensitivity_factor,
@@ -159,23 +232,32 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 user_id: p.user.id,
                 name: event.trim(),
             },
-            foods: foods.current
-                .map((x: TblUserFoodLog): InsertUserFoodLog => {
-                    return {
-                        name: x.name.trim(),
-                        event: x.event.trim(),
-                        unit: x.unit.trim(),
-                        portion: x.portion,
-                        protein: x.protein,
-                        carb: x.carb,
-                        fibre: x.fibre,
-                        fat: x.fat,
-                    };
-                })
-                .filter((x) => x.name.length > 0),
+            foods: sent.map((x: TblUserFoodLog): InsertUserFoodLog => {
+                return {
+                    name: x.name.trim(),
+                    event: x.event.trim(),
+                    unit: x.unit.trim(),
+                    portion: x.portion,
+                    protein: x.protein,
+                    carb: x.carb,
+                    fibre: x.fibre,
+                    fat: x.fat,
+                };
+            }),
         });
 
-        setSaving(false);
+        try {
+            await save;
+        } catch (e: unknown) {
+            if (e instanceof ApiError) {
+                showServerErrors(e, sentKeys);
+                setErrorMsg(e);
+            } else {
+                setErrorMsg(e instanceof Error ? e : String(e));
+            }
+        } finally {
+            setSaving(false);
+        }
     };
 
     const buildTableHead = () => {
@@ -215,41 +297,49 @@ export function AddEventsPanel(p: AddEventsPanelState) {
     };
 
     return (
-        <div className="w-full surface-1 flex flex-col gap-2">
+        <div ref={rootRef} className="w-full surface-1 flex flex-col gap-2">
             <div className="flex w-full justify-between items-center gap-2">
                 <h2>{p.dialogTitle}</h2>
                 <small>{FormatSmartTimestamp(eventTime.getTime())}</small>
                 <span />
             </div>
 
-            <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex flex-col sm:flex-row w-full gap-2">
-                <FuzzySearch<TblUserEvent>
-                    query={event}
-                    onQueryChange={setEvent}
-                    data={p.events}
-                    dataDisplayStr={(d: TblUserEvent) => d.name}
-                    dataSearchStr={(d: TblUserEvent) => d.name}
-                    className="w-full"
-                    placeholder="Event Name"
-                    noResultsText="New Event"
-                    onSelect={(evnt: TblUserEvent | null) => {
-                        if (!evnt) {
-                            return;
-                        }
-                        setEvent(evnt.name);
+            <div className="flex flex-col sm:flex-row sm:items-start w-full gap-2">
+                <div className="w-full flex flex-col gap-1">
+                    <FuzzySearch<TblUserEvent>
+                        query={event}
+                        onQueryChange={(q) => {
+                            setEvent(q);
+                            setEventNameError(undefined);
+                        }}
+                        data={p.events}
+                        dataDisplayStr={(d: TblUserEvent) => d.name}
+                        dataSearchStr={(d: TblUserEvent) => d.name}
+                        className="w-full"
+                        placeholder="Event Name"
+                        noResultsText="New Event"
+                        invalid={eventNameError !== undefined}
+                        errorId={eventNameErrorId}
+                        onSelect={(evnt: TblUserEvent | null) => {
+                            if (!evnt) {
+                                return;
+                            }
+                            setEvent(evnt.name);
 
-                        if (p.user.fill_eventlog_from_last) {
-                            for (const lastEvt of p.eventlogs) {
-                                if (lastEvt.eventlog.event === evnt.name) {
-                                    setFromLastEvent(lastEvt);
-                                    break;
+                            if (p.user.fill_eventlog_from_last) {
+                                for (const lastEvt of p.eventlogs) {
+                                    if (lastEvt.eventlog.event === evnt.name) {
+                                        setFromLastEvent(lastEvt);
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                    }}
-                    autofocus={p.fromEvent.eventlog.event.trim() === ''}
-                />
+                        }}
+                        autofocus={p.fromEvent.eventlog.event.trim() === ''}
+                    />
+
+                    <FieldError id={eventNameErrorId} message={eventNameError} />
+                </div>
 
                 <TimeInput
                     skipTabIndex={true}
@@ -283,11 +373,17 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                                     user={p.user}
                                     foods={p.foods}
                                     food={food}
-                                    render={renderWithTrailing}
+                                    render={() => {
+                                        clearRowError(food.key);
+                                        renderWithTrailing();
+                                    }}
                                     deleteSelf={() => {
+                                        clearRowError(food.key);
                                         foods.current.splice(index, 1);
                                         renderWithTrailing();
                                     }}
+                                    nameError={rowErrors.get(food.key)?.name}
+                                    portionError={rowErrors.get(food.key)?.portion}
                                 />
                             );
                         })}
@@ -335,9 +431,11 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                     />
                 </div>
             )}
+            <ErrorDiv errorMsg={errorMsg} />
+
             <div className="flex justify-between sm:justify-end gap-2">
                 <button onClick={p.onCancel}>Cancel</button>
-                <button className="btn-success" onClick={onCreateClick} disabled={saving}>
+                <button className="btn-success" onClick={onCreateClick} aria-disabled={saving || undefined}>
                     {saving ? 'Saving...' : p.saveButtonTitle}
                 </button>
             </div>

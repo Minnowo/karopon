@@ -12,6 +12,9 @@ type FuzzySearchProps<T> = {
     className?: string;
     noResultsText?: string;
     autofocus?: boolean;
+    // Marks the input as rejected; pair with errorId pointing at its FieldError.
+    invalid?: boolean;
+    errorId?: string;
 };
 
 export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
@@ -178,6 +181,8 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                 aria-expanded={open}
                 aria-controls={listboxId}
                 aria-autocomplete="list"
+                aria-invalid={p.invalid || undefined}
+                aria-describedby={p.invalid ? p.errorId : undefined}
                 aria-activedescendant={open && selectedIndex !== null ? optionId(selectedIndex) : undefined}
                 onInput={(e) => {
                     const val = (e.target as HTMLInputElement).value;

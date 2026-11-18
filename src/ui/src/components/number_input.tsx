@@ -18,6 +18,9 @@ type FloatInputProps = {
     max?: number;
     disabled?: boolean;
     labelOnLeftSide?: boolean;
+    // Marks the field as rejected; pair with errorId pointing at its FieldError.
+    invalid?: boolean;
+    errorId?: string;
 };
 
 const NUMBER_REGEX = /^-?\d*(?:\.\d*)?$/;
@@ -37,6 +40,8 @@ export function NumberInput({
     innerClassName = 'w-16',
     buttonClassName = '',
     innerTabIndex = undefined,
+    invalid = false,
+    errorId = undefined,
 }: FloatInputProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const generatedId = useId();
@@ -106,6 +111,8 @@ export function NumberInput({
                 className={`${innerClassName} pl-2 pr-0 border-none focus:outline-none`}
                 type="text"
                 inputMode="decimal"
+                aria-invalid={invalid || undefined}
+                aria-describedby={invalid ? errorId : undefined}
                 disabled={disabled}
                 value={text}
                 onFocusIn={() => (isEditing.current = true)}
