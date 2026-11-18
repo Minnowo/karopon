@@ -789,4 +789,56 @@ func TestPostgresMigrations(t *testing.T) {
 			`SELECT COUNT(*) FROM pon.user_eventlog WHERE id = $1`, eventlogID).Scan(&count))
 		assert.Equal(t, 1, count, "event logs that had photos must stay")
 	})
+
+	// 0032_recompute_net_carbs: 30 -> 31
+	// Editing an event used to store only its last food's net carbs; every event
+	// log's net_carbs is recomputed from its food logs.
+	t.Run("0032_recompute_net_carbs", func(t *testing.T) {
+
+		newEventlog := func(netCarbs float64) int {
+			var id int
+			require.NoError(t, conn.QueryRowContext(ctx, `
+				INSERT INTO pon.user_eventlog
+					(user_id, event_id, user_time, event,
+					 net_carbs, blood_glucose, insulin_sensitivity_factor,
+					 insulin_to_carb_ratio, blood_glucose_target,
+					 recommended_insulin_amount, actual_insulin_taken)
+				SELECT $1, id, NOW(), name, $2, 0, 0, 0, 0, 0, 0
+				FROM pon.user_event WHERE user_id = $1 LIMIT 1
+				RETURNING id`, aliceUserID, netCarbs,
+			).Scan(&id))
+
+			return id
+		}
+
+		edited := newEventlog(12)
+		empty := newEventlog(5)
+
+		for _, food := range [][2]float64{{30, 2}, {20, 8}} {
+			_, err := conn.ExecContext(ctx, `
+				INSERT INTO pon.user_foodlog
+					(user_id, eventlog_id, user_time, name, event, unit, portion, protein, carb, fibre, fat)
+				VALUES ($1, $2, NOW(), 'Rice', 'Lunch', 'g', 1, 0, $3, $4, 0)`,
+				aliceUserID, edited, food[0], food[1])
+			require.NoError(t, err)
+		}
+
+		_, err := database.RunUpMigrations(ctx, conn, 30, postgresUpMigrations[31:32])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(31), ver)
+
+		netCarbs := func(id int) float64 {
+			var v float64
+			require.NoError(t, conn.QueryRowContext(ctx,
+				`SELECT net_carbs FROM pon.user_eventlog WHERE id = $1`, id).Scan(&v))
+
+			return v
+		}
+
+		assert.InDelta(t, 40, netCarbs(edited), 0.001, "sum of carb - fibre over the food logs")
+		assert.InDelta(t, 0, netCarbs(empty), 0.001, "no food logs means no net carbs")
+	})
 }

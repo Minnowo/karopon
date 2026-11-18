@@ -48,6 +48,7 @@ func runDbTests(t *testing.T, newTestDB NewTestDB) {
 	t.Run("already_exists", func(t *testing.T) { testAlreadyExists(t, newTestDB, &lock) })
 	t.Run("event_and_eventlog", func(t *testing.T) { testEventAndEventlog(t, newTestDB, &lock) })
 	t.Run("food_log_row_error", func(t *testing.T) { testFoodLogRowError(t, newTestDB, &lock) })
+	t.Run("eventlog_update_net_carbs", func(t *testing.T) { testEventLogUpdateNetCarbs(t, newTestDB, &lock) })
 	t.Run("datasource_and_similar_search", func(t *testing.T) { testDataSourceAndSimilarSearch(t, newTestDB, &lock) })
 	t.Run("exports_do_not_error", func(t *testing.T) { testExportsDoNotError(t, newTestDB, &lock) })
 	t.Run("with_tx_commits", func(t *testing.T) { testWithTxCommits(t, newTestDB, &lock) })

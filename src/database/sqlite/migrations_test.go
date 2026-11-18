@@ -666,4 +666,58 @@ func TestSqliteMigrations(t *testing.T) {
 			`SELECT COUNT(*) FROM PON_USER_EVENTLOG WHERE ID = ?`, eventlogID).Scan(&count))
 		assert.Equal(t, 1, count, "event logs that had photos must stay")
 	})
+
+	// 0021_recompute_net_carbs: 19 -> 20
+	// Editing an event used to store only its last food's net carbs; every event
+	// log's NET_CARBS is recomputed from its food logs.
+	t.Run("0021_recompute_net_carbs", func(t *testing.T) {
+
+		newEventlog := func(netCarbs float64) int64 {
+			res, err := conn.ExecContext(ctx, `
+				INSERT INTO PON_USER_EVENTLOG
+					(USER_ID, EVENT_ID, USER_TIME, EVENT,
+					 NET_CARBS, BLOOD_GLUCOSE, INSULIN_SENSITIVITY_FACTOR,
+					 INSULIN_TO_CARB_RATIO, BLOOD_GLUCOSE_TARGET,
+					 RECOMMENDED_INSULIN_AMOUNT, ACTUAL_INSULIN_TAKEN)
+				SELECT ?, ID, datetime('now'), NAME, ?, 0, 0, 0, 0, 0, 0
+				FROM PON_USER_EVENT WHERE USER_ID = ? LIMIT 1`,
+				userID, netCarbs, userID)
+			require.NoError(t, err)
+			id, err := res.LastInsertId()
+			require.NoError(t, err)
+
+			return id
+		}
+
+		// Stored wrong (only the last food), and an event with no food at all.
+		edited := newEventlog(12)
+		empty := newEventlog(5)
+
+		for _, food := range [][2]float64{{30, 2}, {20, 8}} {
+			_, err := conn.ExecContext(ctx, `
+				INSERT INTO PON_USER_FOODLOG
+					(USER_ID, EVENTLOG_ID, USER_TIME, NAME, EVENT, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT)
+				VALUES (?, ?, datetime('now'), 'Rice', 'Lunch', 'g', 1, 0, ?, ?, 0)`,
+				userID, edited, food[0], food[1])
+			require.NoError(t, err)
+		}
+
+		_, err := database.RunUpMigrations(ctx, conn, 19, sqliteUpMigrations[20:21])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(20), ver)
+
+		netCarbs := func(id int64) float64 {
+			var v float64
+			require.NoError(t, conn.QueryRowContext(ctx,
+				`SELECT NET_CARBS FROM PON_USER_EVENTLOG WHERE ID = ?`, id).Scan(&v))
+
+			return v
+		}
+
+		assert.InDelta(t, 40, netCarbs(edited), 0.001, "sum of carb - fibre over the food logs")
+		assert.InDelta(t, 0, netCarbs(empty), 0.001, "no food logs means no net carbs")
+	})
 }

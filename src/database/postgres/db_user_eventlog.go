@@ -269,7 +269,7 @@ func (db *PGDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *data
 
 		for i, food := range eventlog.Foodlogs {
 
-			eventlog.Eventlog.NetCarbs = food.Carb - food.Fibre
+			eventlog.Eventlog.NetCarbs += food.Carb - food.Fibre
 
 			food.UserID = eventlog.Eventlog.UserID
 			food.UserTime = eventlog.Eventlog.UserTime

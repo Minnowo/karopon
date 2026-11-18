@@ -272,7 +272,7 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 
 		for i, food := range eventlog.Foodlogs {
 
-			eventlog.Eventlog.NetCarbs = food.Carb - food.Fibre
+			eventlog.Eventlog.NetCarbs += food.Carb - food.Fibre
 
 			food.UserID = eventlog.Eventlog.UserID
 			food.UserTime = eventlog.Eventlog.UserTime
