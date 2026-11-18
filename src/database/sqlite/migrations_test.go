@@ -357,7 +357,7 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.Equal(t, 70.0, targetValue)
 
 		// After migration, bob must be able to reuse alice's goal name.
-		res, err = conn.ExecContext(ctx, `
+		_, err = conn.ExecContext(ctx, `
 			INSERT INTO PON_USER_GOAL
 				(USER_ID, NAME, TARGET_VALUE, TARGET_COL, AGGREGATION_TYPE, VALUE_COMPARISON, TIME_EXPR)
 			VALUES (?, 'Daily Weight', 80, 'weight_kg', 'AVG', 'GREATER_THAN', 'DAILY')`,

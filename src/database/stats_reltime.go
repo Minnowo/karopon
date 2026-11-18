@@ -54,6 +54,7 @@ func ParseRelativeTimeExpr(expr string, now time.Time, shift time.Duration) (tim
 		for base.Weekday() != time.Monday {
 			base = base.AddDate(0, 0, -1)
 		}
+
 		return base.AddDate(0, 0, n*7), nil
 
 	case "m":

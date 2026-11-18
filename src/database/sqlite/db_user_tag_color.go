@@ -33,7 +33,7 @@ func (db *SqliteDatabase) SetUserTagColors(ctx context.Context, colors []databas
 			return err
 		}
 
-		for i := range len(colors) {
+		for i := range colors {
 
 			_, err := stmt.Exec(colors[i])
 

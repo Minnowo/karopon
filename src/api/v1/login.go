@@ -33,6 +33,7 @@ func (a *APIV1) api_login(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, constants.MAX_LOGIN_FORM_SIZE)
 
+	//nolint:gosec // G120 false positive: the body is capped by MaxBytesReader on the line above.
 	if err := r.ParseMultipartForm(constants.MAX_LOGIN_FORM_SIZE); err != nil {
 
 		log.Debug().Err(err).Msg("failed to get multipartReader")

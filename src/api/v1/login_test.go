@@ -281,6 +281,7 @@ func TestLogout_WithUser_WithCookie_ExpiresToken(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, "/api/logout", nil)
 	require.NoError(t, err)
+	//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 	req.AddCookie(&http.Cookie{Name: constants.SESSION_COOKIE, Value: token.String()})
 	req = auth.PutUser(req, user)
 

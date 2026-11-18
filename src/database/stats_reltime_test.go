@@ -16,6 +16,7 @@ func mustParse(t *testing.T, expr string, now time.Time, shift time.Duration) ti
 	t.Helper()
 	got, err := ParseRelativeTimeExpr(expr, now, shift)
 	require.NoError(t, err)
+
 	return got
 }
 

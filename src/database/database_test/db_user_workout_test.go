@@ -15,6 +15,7 @@ func tagNames(tags []database.TblUserTag) []string {
 	for i, t := range tags {
 		out[i] = t.Namespace + ":" + t.Name
 	}
+
 	return out
 }
 

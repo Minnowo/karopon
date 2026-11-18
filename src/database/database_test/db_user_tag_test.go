@@ -238,6 +238,7 @@ func testUpdateUserTagMerge(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex)
 			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
 		}, tags)
 		require.NoError(t, err)
+
 		return id
 	}
 

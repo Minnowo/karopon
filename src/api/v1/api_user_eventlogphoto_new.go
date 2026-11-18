@@ -21,6 +21,7 @@ func (a *APIV1) createUserEventLogPhoto(w http.ResponseWriter, r *http.Request) 
 
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
+	//nolint:gosec // G120 false positive: the body is capped by MaxBytesReader above.
 	err := r.ParseMultipartForm(10 << 20)
 
 	if err != nil {

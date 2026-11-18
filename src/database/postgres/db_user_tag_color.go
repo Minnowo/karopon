@@ -30,7 +30,7 @@ func (db *PGDatabase) SetUserTagColors(ctx context.Context, colors []database.Tb
 			return err
 		}
 
-		for i := range len(colors) {
+		for i := range colors {
 
 			_, err := stmt.Exec(colors[i])
 

@@ -278,6 +278,7 @@ func testLoadUserTimeDataAggregations(t *testing.T, newTestDB NewTestDB, lock *s
 			&points,
 		))
 		require.Len(t, points, 1)
+
 		return points[0].DurationMilli
 	}
 

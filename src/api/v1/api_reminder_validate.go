@@ -2,10 +2,21 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"karopon/src/database"
 	"strconv"
 	"strings"
+)
+
+var (
+	ErrReminderTooManyTimers       = errors.New("active_timers tracks too many activities")
+	ErrReminderTimerActivityID     = errors.New("active_timers key is not a valid activity ID")
+	ErrReminderTimerTimespanID     = errors.New("active_timers value must be a positive timespan ID")
+	ErrReminderNameTooLong         = errors.New("reminder name is too long")
+	ErrReminderInvalidActivityMode = errors.New("activity_mode must be one of 'random' or 'all'")
+	ErrReminderInvalidAlarmMode    = errors.New("alarm_mode must be one of 'reminder' or 'alarm'")
+	ErrReminderSoundTooLong        = errors.New("reminder sound name is too long")
 )
 
 // maxActiveTimers caps how many concurrent activity timers a single reminder can
@@ -29,7 +40,7 @@ func normalizeActiveTimers(raw string) (string, error) {
 	}
 
 	if len(parsed) > maxActiveTimers {
-		return "", fmt.Errorf("active_timers cannot track more than %d activities at once", maxActiveTimers)
+		return "", fmt.Errorf("%w: at most %d", ErrReminderTooManyTimers, maxActiveTimers)
 	}
 
 	normalized := make(map[int]int, len(parsed))
@@ -39,11 +50,11 @@ func normalizeActiveTimers(raw string) (string, error) {
 		activityID, err := strconv.Atoi(k)
 
 		if err != nil || activityID <= 0 {
-			return "", fmt.Errorf("active_timers key %q is not a valid activity ID", k)
+			return "", fmt.Errorf("%w: %q", ErrReminderTimerActivityID, k)
 		}
 
 		if timespanID <= 0 {
-			return "", fmt.Errorf("active_timers value for activity %d must be a positive timespan ID", activityID)
+			return "", fmt.Errorf("%w: activity %d", ErrReminderTimerTimespanID, activityID)
 		}
 
 		normalized[activityID] = timespanID
@@ -72,7 +83,7 @@ func normalizeReminderFields(r *database.TblUserReminder) error {
 	r.Name = strings.TrimSpace(r.Name)
 
 	if len(r.Name) > maxReminderNameLength {
-		return fmt.Errorf("name must be at most %d characters", maxReminderNameLength)
+		return fmt.Errorf("%w: at most %d characters", ErrReminderNameTooLong, maxReminderNameLength)
 	}
 
 	switch r.ActivityMode {
@@ -80,7 +91,7 @@ func normalizeReminderFields(r *database.TblUserReminder) error {
 		r.ActivityMode = "random"
 	case "random", "all":
 	default:
-		return fmt.Errorf("activity_mode must be one of 'random' or 'all', got %q", r.ActivityMode)
+		return fmt.Errorf("%w, got %q", ErrReminderInvalidActivityMode, r.ActivityMode)
 	}
 
 	switch r.AlarmMode {
@@ -88,11 +99,11 @@ func normalizeReminderFields(r *database.TblUserReminder) error {
 		r.AlarmMode = "reminder"
 	case "reminder", "alarm":
 	default:
-		return fmt.Errorf("alarm_mode must be one of 'reminder' or 'alarm', got %q", r.AlarmMode)
+		return fmt.Errorf("%w, got %q", ErrReminderInvalidAlarmMode, r.AlarmMode)
 	}
 
 	if len(r.Sound) > maxSoundLength {
-		return fmt.Errorf("sound must be at most %d characters", maxSoundLength)
+		return fmt.Errorf("%w: at most %d characters", ErrReminderSoundTooLong, maxSoundLength)
 	}
 
 	if r.Sound == "" {

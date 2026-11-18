@@ -17,13 +17,11 @@ func CmdExportCsv(ctx context.Context, c *cli.Command) error {
 	vendorStr := c.Value("database-vendor").(string)
 	outputFolder := c.Value("output-folder").(string)
 
-	conn, err := connection.ConnectStr(context.Background(), vendorStr, dbconn)
+	conn, err := connection.ConnectStr(ctx, vendorStr, dbconn)
 
 	if err != nil {
 		return err
 	}
-
-	ctx = context.Background()
 
 	if err := conn.Migrate(ctx); err != nil {
 		return err

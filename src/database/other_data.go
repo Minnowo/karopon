@@ -95,32 +95,32 @@ type SetUserReminderActivitiesRequest struct {
 }
 
 type BodyLogMetricPoint struct {
-	Metric string     `json:"metric" db:"metric"`
-	Bucket TimeMillis `json:"bucket" db:"bucket"`
-	Value  float64    `json:"value"  db:"value"`
+	Metric string     `db:"metric" json:"metric"`
+	Bucket TimeMillis `db:"bucket" json:"bucket"`
+	Value  float64    `db:"value"  json:"value"`
 }
 
 type TimespanTagDurationPoint struct {
-	Tag           string     `json:"tag"            db:"tag"`
-	Bucket        TimeMillis `json:"bucket"         db:"bucket"`
-	DurationMilli int64      `json:"duration_milli" db:"duration_milli"`
+	Tag           string     `db:"tag"            json:"tag"`
+	Bucket        TimeMillis `db:"bucket"         json:"bucket"`
+	DurationMilli int64      `db:"duration_milli" json:"duration_milli"`
 }
 
 type MacronutrientPoint struct {
-	Bucket  TimeMillis `json:"bucket"   db:"bucket"`
-	Carb    float64    `json:"carb"     db:"carb"`
-	NetCarb float64    `json:"net_carb" db:"net_carb"`
-	Fat     float64    `json:"fat"      db:"fat"`
-	Fibre   float64    `json:"fibre"    db:"fibre"`
-	Protein float64    `json:"protein"  db:"protein"`
-	Calorie float64    `json:"calorie"  db:"calorie"`
+	Bucket  TimeMillis `db:"bucket"   json:"bucket"`
+	Carb    float64    `db:"carb"     json:"carb"`
+	NetCarb float64    `db:"net_carb" json:"net_carb"`
+	Fat     float64    `db:"fat"      json:"fat"`
+	Fibre   float64    `db:"fibre"    json:"fibre"`
+	Protein float64    `db:"protein"  json:"protein"`
+	Calorie float64    `db:"calorie"  json:"calorie"`
 }
 
 type EventLogPoint struct {
-	Bucket                   TimeMillis `json:"bucket"                     db:"bucket"`
-	BloodGlucose             float64    `json:"blood_glucose"              db:"blood_glucose"`
-	RecommendedInsulinAmount float64    `json:"recommended_insulin_amount" db:"recommended_insulin_amount"`
-	ActualInsulinTaken       float64    `json:"actual_insulin_taken"       db:"actual_insulin_taken"`
+	Bucket                   TimeMillis `db:"bucket"                     json:"bucket"`
+	BloodGlucose             float64    `db:"blood_glucose"              json:"blood_glucose"`
+	RecommendedInsulinAmount float64    `db:"recommended_insulin_amount" json:"recommended_insulin_amount"`
+	ActualInsulinTaken       float64    `db:"actual_insulin_taken"       json:"actual_insulin_taken"`
 }
 
 func ValueToString(val any) string {

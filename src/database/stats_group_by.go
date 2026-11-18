@@ -17,7 +17,7 @@ const (
 	GroupByMonth  GroupBy = "MONTH"
 	GroupByYear   GroupBy = "YEAR"
 
-	// GroupByOne means to group everything into the same bucket
+	// GroupByOne means to group everything into the same bucket.
 	GroupByOne GroupBy = "ONE"
 )
 

@@ -26,10 +26,12 @@ type TokenProvider interface {
 
 var logger = log4zero.Get("auth-middleware")
 
+// secure is off so a self-hosted server works over plain http.
 // todo: make this a server setting?
 const secure bool = false
 
 func ExpireAuthToken(w http.ResponseWriter) {
+	//nolint:gosec // G124: Secure is off on purpose, see the secure constant.
 	http.SetCookie(w, &http.Cookie{
 		Expires:  time.Unix(0, 0),
 		Path:     "/",
@@ -37,8 +39,10 @@ func ExpireAuthToken(w http.ResponseWriter) {
 		Value:    "",
 		MaxAge:   -1,
 		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	})
+	//nolint:gosec // G124: Secure is off on purpose, see the secure constant.
 	http.SetCookie(w, &http.Cookie{
 		Expires:  time.Unix(0, 0),
 		Path:     "/",
@@ -46,25 +50,30 @@ func ExpireAuthToken(w http.ResponseWriter) {
 		Value:    "",
 		MaxAge:   -1,
 		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	})
 }
 
 func SetAuthToken(w http.ResponseWriter, token string, expires time.Time) {
+	//nolint:gosec // G124: Secure is off on purpose, see the secure constant.
 	http.SetCookie(w, &http.Cookie{
 		Path:     "/",
 		Name:     sessionCookie,
 		Value:    token,
 		Expires:  expires,
 		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	})
+	//nolint:gosec // G124: Secure is off on purpose, see the secure constant.
 	http.SetCookie(w, &http.Cookie{
 		Path:     "/",
 		Name:     sessionValidCookie,
 		Value:    "peko!",
 		Expires:  expires,
 		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: false,
 	})
 }

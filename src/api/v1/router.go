@@ -3,7 +3,6 @@ package v1
 import (
 	"karopon/src/api/auth"
 	"karopon/src/api/middleware"
-	"karopon/src/api/ratelimit"
 	"karopon/src/api/userreg"
 	"karopon/src/database"
 
@@ -13,11 +12,9 @@ import (
 )
 
 type APIV1 struct {
-	Db        database.DB
-	UserReg   *userreg.UserRegistry
-	rateLimit *ratelimit.RateLimiter
-	router    *mux.Router
-	exit      chan bool
+	Db      database.DB
+	UserReg *userreg.UserRegistry
+	router  *mux.Router
 }
 
 func (a *APIV1) check() {
@@ -32,25 +29,10 @@ func (a *APIV1) check() {
 func (a *APIV1) Init() {
 
 	a.check()
-
-	// a.rateLimit = ratelimit.NewRateLimiter(rate.Every(time.Second), 10)
-
-	// go func() {
-	// 	ticker := time.NewTicker(a.rateLimit.IdleTTL)
-	// 	defer ticker.Stop()
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			a.rateLimit.CleanIdle()
-	// 		case <-a.exit:
-	// 			return
-	// 		}
-	// 	}
-	// }()
 }
 
+// Deinit is part of the api.API interface; v1 holds nothing that needs releasing.
 func (a *APIV1) Deinit() {
-	// close(a.exit)
 }
 
 func (a *APIV1) Register(r *mux.Router) {

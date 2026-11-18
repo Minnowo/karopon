@@ -104,10 +104,12 @@ func TestAuthMiddleware(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/no-require-auth2", nil)
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{
 			Name:  sessionCookie,
 			Value: authToken,
 		})
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{
 			Name:  sessionValidCookie,
 			Value: authToken,
@@ -136,10 +138,12 @@ func TestAuthMiddleware(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/yes-require-auth", nil)
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{
 			Name:  sessionCookie,
 			Value: authToken,
 		})
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{
 			Name:  sessionValidCookie,
 			Value: authToken,
@@ -152,6 +156,21 @@ func TestAuthMiddleware(t *testing.T) {
 		assert.Equal(http.StatusOK, rr.Result().StatusCode, "expected unauthorized")
 	})
 
+}
+
+// Session cookies must carry SameSite=Lax so cross-site POSTs cannot ride on a login.
+func TestAuthCookiesSameSiteLax(t *testing.T) {
+
+	rr := httptest.NewRecorder()
+	SetAuthToken(rr, "token", time.Now().Add(time.Hour))
+	ExpireAuthToken(rr)
+
+	cookies := rr.Result().Cookies()
+	assert.Len(t, cookies, 4)
+
+	for _, c := range cookies {
+		assert.Equal(t, http.SameSiteLaxMode, c.SameSite, "cookie %s", c.Name)
+	}
 }
 
 func TestGetToken(t *testing.T) {
@@ -183,7 +202,9 @@ func TestGetToken(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: validToken})
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{Name: sessionValidCookie, Value: "peko!"})
 
 		handler(validToken).ServeHTTP(rr, req)
@@ -202,7 +223,9 @@ func TestGetToken(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "bad_token"})
+		//nolint:gosec // G124: a request cookie in a test; Secure/HttpOnly/SameSite only apply to Set-Cookie.
 		req.AddCookie(&http.Cookie{Name: sessionValidCookie, Value: "peko!"})
 
 		handler("").ServeHTTP(rr, req)
