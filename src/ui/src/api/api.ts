@@ -194,8 +194,9 @@ export const ApiGetUserEventLog = (): Promise<TblUserEventLog[]> => {
     return fetchJson(`${ApiBase}/api/eventlogs`);
 };
 
-export const ApiGetUserEventFoodLog = (n = -1): Promise<UserEventFoodLog[]> => {
-    return fetchJson(`${ApiBase}/api/eventfoodlogs?n=${n}`);
+// n is the most to return (-1: all), newest first, after skipping offset.
+export const ApiGetUserEventFoodLog = (n = -1, offset = 0): Promise<UserEventFoodLog[]> => {
+    return fetchJson(`${ApiBase}/api/eventfoodlogs?n=${n}&offset=${offset}`);
 };
 
 export const ApiGetUserBodyLog = (): Promise<UserBodyLog[]> => {
@@ -224,8 +225,9 @@ export const ApiGetUserNamespacesTags = (namespace: string, search: string): Pro
     return fetchJson(`${ApiBase}/api/tags/search?namespace=${encodedNamespace}&s=${encodedSearch}&limit=30`);
 };
 
-export const ApiGetUserTimespans = (n = -1): Promise<TaggedTimespan[]> => {
-    return fetchJson(`${ApiBase}/api/timespans/tagged?n=${n}`);
+// n is the most to return (-1: all), newest first, after skipping offset.
+export const ApiGetUserTimespans = (n = -1, offset = 0): Promise<TaggedTimespan[]> => {
+    return fetchJson(`${ApiBase}/api/timespans/tagged?n=${n}&offset=${offset}`);
 };
 
 export const ApiGetDataSources = (): Promise<TblDataSource[]> => {

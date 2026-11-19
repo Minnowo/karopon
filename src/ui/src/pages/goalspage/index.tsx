@@ -7,13 +7,13 @@ import {GoalCreationPanel} from './add_goal_panel';
 import {NewTblUserGoal} from '../../api/factories';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {GoalPanel} from './goal_panel';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 
 export function GoalsPage(state: BaseState) {
     const [showNewGoalPanel, setShowNewGoalPanel] = useState<boolean>(false);
     const [editingGoal, setEditingGoal] = useState<TblUserGoal | null>(null);
     const newGoal = useRef<TblUserGoal>(NewTblUserGoal({target_value: 1500}));
-    const [numberToShow, setNumberToShow] = useState<number>(15);
+    const paging = useListPaging({total: state.goals.length});
 
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
@@ -70,7 +70,6 @@ export function GoalsPage(state: BaseState) {
                 >
                     New Goal
                 </button>
-                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -91,32 +90,36 @@ export function GoalsPage(state: BaseState) {
                 {state.goals.length === 0 ? (
                     <h3 className="text-center py-32">No goals found.</h3>
                 ) : (
-                    state.goals
-                        .slice(0, numberToShow)
-                        .map((g: TblUserGoal) =>
-                            editingGoal?.id === g.id ? (
-                                <GoalCreationPanel
-                                    key={g.id}
-                                    userGoal={editingGoal}
-                                    onCreated={createGoal}
-                                    onUpdated={updateGoal}
-                                    onCancel={() => setEditingGoal(null)}
-                                    bodyMetrics={state.bodyMetrics}
-                                    namespaces={state.namespaces}
-                                    setNamespaces={state.setNamespaces}
-                                />
-                            ) : (
-                                <GoalPanel
-                                    key={g.id}
-                                    goal={g}
-                                    dayOffsetSeconds={state.user.day_time_offset_seconds}
-                                    editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
-                                    deleteGoal={deleteGoal}
-                                />
-                            )
-                        )
+                    <div ref={paging.listRef} className="contents">
+                        {state.goals
+                            .slice(0, paging.shown)
+                            .map((g: TblUserGoal) =>
+                                editingGoal?.id === g.id ? (
+                                    <GoalCreationPanel
+                                        key={g.id}
+                                        userGoal={editingGoal}
+                                        onCreated={createGoal}
+                                        onUpdated={updateGoal}
+                                        onCancel={() => setEditingGoal(null)}
+                                        bodyMetrics={state.bodyMetrics}
+                                        namespaces={state.namespaces}
+                                        setNamespaces={state.setNamespaces}
+                                    />
+                                ) : (
+                                    <GoalPanel
+                                        key={g.id}
+                                        goal={g}
+                                        dayOffsetSeconds={state.user.day_time_offset_seconds}
+                                        editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
+                                        deleteGoal={deleteGoal}
+                                    />
+                                )
+                            )}
+                    </div>
                 )}
             </div>
+
+            <LoadMore paging={paging} itemsName="goals" />
         </>
     );
 }

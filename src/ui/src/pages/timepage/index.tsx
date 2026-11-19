@@ -4,6 +4,7 @@ import {BaseState} from '../../state/basestate';
 import {
     ApiDeleteUserTimespan,
     ApiError,
+    ApiGetUserTimespans,
     ApiNewUserTimespan,
     ApiUpdateUserTimespan,
     ApiUpdateUserTimespanTags,
@@ -14,15 +15,29 @@ import {TimerPanel} from './timer_panel';
 import {ActiveTimerPanel} from './active_timers_panel';
 import {AddTimerPanel} from './add_timer_panel';
 import {NewTaggedTimespan} from '../../api/factories';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 
 export function TimespansPage(state: BaseState) {
     const [showNewTimespan, setShowNewTimespan] = useState(false);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [tmpTimer, setTmpTimer] = useState<TaggedTimespan>(NewTaggedTimespan());
-    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const runningTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time === 0), [state.timespans]);
+    const stoppedTimers = useMemo(() => state.timespans.filter((ts) => ts.timespan.stop_time !== 0), [state.timespans]);
+    const paging = useListPaging({
+        total: stoppedTimers.length,
+        loaded: state.timespans.length,
+        firstFetchSize: state.user.timespan_history_fetch_limit,
+        onUnauthorized: state.doRefresh,
+        fetchOlder: (n: number) =>
+            ApiGetUserTimespans(n, state.timespans.length).then((older: TaggedTimespan[]) => {
+                state.setTimespans((t: TaggedTimespan[]) => {
+                    const have = new Set(t.map((x) => x.timespan.id));
+                    return [...t, ...older.filter((x) => !have.has(x.timespan.id))];
+                });
+                return older.length;
+            }),
+    });
     const tagColorMap = useMemo(() => {
         const m = new Map();
         for (const c of state.tagColors) {
@@ -145,8 +160,6 @@ export function TimespansPage(state: BaseState) {
                 >
                     New Timer
                 </button>
-
-                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -183,10 +196,8 @@ export function TimespansPage(state: BaseState) {
                 {state.timespans.length === 0 ? (
                     <h3 className="text-center py-32">No timespans found.</h3>
                 ) : (
-                    state.timespans
-                        .filter((ts) => ts.timespan.stop_time !== 0)
-                        .slice(0, numberToShow)
-                        .map((ts: TaggedTimespan) => (
+                    <div ref={paging.listRef} className="contents">
+                        {stoppedTimers.slice(0, paging.shown).map((ts: TaggedTimespan) => (
                             <TimerPanel
                                 key={ts.timespan.id}
                                 timeformat={state.user.time_format as UserTimeFormat}
@@ -201,9 +212,12 @@ export function TimespansPage(state: BaseState) {
                                 deleteTimer={deleteTimer}
                                 stopTimer={stopTimer}
                             />
-                        ))
+                        ))}
+                    </div>
                 )}
             </div>
+
+            <LoadMore paging={paging} itemsName="timers" />
         </>
     );
 }

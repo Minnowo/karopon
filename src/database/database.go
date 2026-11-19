@@ -188,7 +188,7 @@ type DB interface {
 
 	// Read at most n event logs and their food into the given array.
 	// Returns an error or nil.
-	LoadUserEventFoodLogsN(ctx context.Context, userID int, n int, eflogs *[]UserEventFoodLog) error
+	LoadUserEventFoodLogsN(ctx context.Context, userID int, n int, offset int, eflogs *[]UserEventFoodLog) error
 
 	// Update the given eventlog, removing the foodlogs and creating new ones from this struct.
 	// The given struct is updated with proper EventID, FoodID, and UserTime.
@@ -321,7 +321,7 @@ type DB interface {
 	LoadUserTimespans(ctx context.Context, userID int, out *[]TblUserTimespan) error
 	LoadUserTimespansN(ctx context.Context, userID int, n int, out *[]TblUserTimespan) error
 	LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]TaggedTimespan) error
-	LoadUserTimespansWithTagsN(ctx context.Context, userID int, n int, out *[]TaggedTimespan) error
+	LoadUserTimespansWithTagsN(ctx context.Context, userID int, n int, offset int, out *[]TaggedTimespan) error
 
 	// SetUserTimespanTags removes all tags from the timestamp and sets the given tags onto it.
 	// Any tags that do not exist are created for the given userID.

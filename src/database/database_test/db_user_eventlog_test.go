@@ -222,14 +222,23 @@ func testLoadUserEventFoodLogsN(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 	eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Snack"})
 	require.NoError(t, err)
 
+	// Same user time on every log, so paging relies on the ID tiebreak.
+	ids := make([]int, 0, 3)
+
 	for range 3 {
-		_, err = db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
+		id, err := db.AddUserEventLogWith(ctx, &database.TblUserEventLog{UserID: userID, EventID: eventID}, nil)
 		require.NoError(t, err)
+		ids = append(ids, id)
 	}
 
-	var eflogs []database.UserEventFoodLog
-	require.NoError(t, db.LoadUserEventFoodLogsN(ctx, userID, 2, &eflogs))
-	assert.Len(t, eflogs, 2)
+	var first, second []database.UserEventFoodLog
+	require.NoError(t, db.LoadUserEventFoodLogsN(ctx, userID, 2, 0, &first))
+	require.NoError(t, db.LoadUserEventFoodLogsN(ctx, userID, 2, 2, &second))
+	require.Len(t, first, 2)
+	require.Len(t, second, 1)
+
+	got := []int{first[0].Eventlog.ID, first[1].Eventlog.ID, second[0].Eventlog.ID}
+	assert.Equal(t, []int{ids[2], ids[1], ids[0]}, got)
 }
 
 func testUpdateUserEventFoodLog(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

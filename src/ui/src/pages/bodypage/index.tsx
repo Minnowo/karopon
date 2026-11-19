@@ -6,7 +6,7 @@ import {UserBodyLog} from '../../api/types';
 import {AddBodyPanel} from './add_bodylog_panel';
 import {ApiDeleteUserBodyLog, ApiError, ApiNewUserBodyLog, ApiUpdateUserBodyLog} from '../../api/api';
 import {BodyLogPanel} from './bodylog_panel';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 
 const EMPTY_LOG: UserBodyLog = {
     bodylog: {
@@ -22,7 +22,7 @@ export function BodyPage(state: BaseState) {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
     const [editLog, setEditLog] = useState<UserBodyLog | null>(null);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
-    const [numberToShow, setNumberToShow] = useState<number>(15);
+    const paging = useListPaging({total: state.bodylogs.length});
 
     const [tmpLog, setTmpLog] = useState<UserBodyLog>(EMPTY_LOG);
 
@@ -84,8 +84,6 @@ export function BodyPage(state: BaseState) {
                 <button disabled={showNewEventPanel} onClick={() => setShowNewEventPanel(true)}>
                     New Event
                 </button>
-
-                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -108,9 +106,9 @@ export function BodyPage(state: BaseState) {
                     <small>Try adding a new body log!</small>
                 </div>
             ) : (
-                <div className="flex flex-col gap-4">
+                <div ref={paging.listRef} className="flex flex-col gap-4">
                     {state.bodylogs
-                        .slice(0, numberToShow)
+                        .slice(0, paging.shown)
                         .map((log: UserBodyLog) =>
                             editLog?.bodylog.id === log.bodylog.id ? (
                                 <AddBodyPanel
@@ -137,6 +135,8 @@ export function BodyPage(state: BaseState) {
                         )}
                 </div>
             )}
+
+            <LoadMore paging={paging} itemsName="body logs" />
         </>
     );
 }

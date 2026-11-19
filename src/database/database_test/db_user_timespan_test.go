@@ -179,18 +179,28 @@ func testLoadUserTimespansWithTagsN(t *testing.T, newTestDB NewTestDB, lock *syn
 
 	userID := getTestUser(t, db)
 
+	// Same start time on every timer, so paging relies on the ID tiebreak.
+	start := time.Now()
+	ids := make([]int, 0, 3)
+
 	for range 3 {
-		_, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
+		id, err := db.AddUserTimespan(ctx, &database.TblUserTimespan{
 			UserID:    userID,
-			StartTime: database.TimeMillis(time.Now()),
-			StopTime:  database.TimeMillis(time.Now().Add(time.Hour)),
+			StartTime: database.TimeMillis(start),
+			StopTime:  database.TimeMillis(start.Add(time.Hour)),
 		}, nil)
 		require.NoError(t, err)
+		ids = append(ids, id)
 	}
 
-	var tagged []database.TaggedTimespan
-	require.NoError(t, db.LoadUserTimespansWithTagsN(ctx, userID, 2, &tagged))
-	assert.Len(t, tagged, 2)
+	var first, second []database.TaggedTimespan
+	require.NoError(t, db.LoadUserTimespansWithTagsN(ctx, userID, 2, 0, &first))
+	require.NoError(t, db.LoadUserTimespansWithTagsN(ctx, userID, 2, 2, &second))
+	require.Len(t, first, 2)
+	require.Len(t, second, 1)
+
+	got := []int{first[0].Timespan.ID, first[1].Timespan.ID, second[0].Timespan.ID}
+	assert.Equal(t, []int{ids[2], ids[1], ids[0]}, got)
 }
 
 func testLoadUserTimespansWithTagsPermissionCheck(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {

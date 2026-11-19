@@ -2,19 +2,32 @@ import {useState} from 'preact/hooks';
 import {RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {CreateUserEventLog, TblUserFoodLog, UpdateUserEventLog, UserEventFoodLog} from '../../api/types';
-import {ApiDeleteUserEventLog, ApiError, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
+import {ApiDeleteUserEventLog, ApiError, ApiGetUserEventFoodLog, ApiNewEventLog, ApiUpdateUserEventLog} from '../../api/api';
 import {AddEventsPanel} from './add_event_panel';
 import {UserEventFoodLogFactory} from '../../api/factories';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {EventPanel} from './event_panel';
 
 export const EventsPage = (state: BaseState) => {
     const [showNewEventPanel, setShowNewEventPanel] = useState<boolean>(false);
-    const [numberToShow, setNumberToShow] = useState<number>(15);
     const [newEvent, setNewEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
     const [editEvent, setEditEvent] = useState<UserEventFoodLog>(UserEventFoodLogFactory.empty());
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+
+    const paging = useListPaging({
+        total: state.eventlogs.length,
+        firstFetchSize: state.user.event_history_fetch_limit,
+        onUnauthorized: state.doRefresh,
+        fetchOlder: (n: number) =>
+            ApiGetUserEventFoodLog(n, state.eventlogs.length).then((older: UserEventFoodLog[]) => {
+                state.setEventLogs((e: UserEventFoodLog[]) => {
+                    const have = new Set(e.map((x) => x.eventlog.id));
+                    return [...e, ...older.filter((x) => !have.has(x.eventlog.id))];
+                });
+                return older.length;
+            }),
+    });
 
     const handleErr = (e: unknown) => {
         if (e instanceof ApiError) {
@@ -107,8 +120,6 @@ export const EventsPage = (state: BaseState) => {
                 >
                     New Event
                 </button>
-
-                <NumberInput label={'Show Last'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -134,49 +145,53 @@ export const EventsPage = (state: BaseState) => {
                         <small>Try adding something to wake it up!</small>
                     </div>
                 )}
-                {state.eventlogs.slice(0, numberToShow).map((foodGroup: UserEventFoodLog) =>
-                    editEvent.eventlog.id === foodGroup.eventlog.id ? (
-                        <AddEventsPanel
-                            key={`e-${editEvent.eventlog.id}`}
-                            copyDate={true}
-                            dialogTitle={`Edit Event`}
-                            saveButtonTitle={'Update Event'}
-                            user={state.user}
-                            foods={state.foods}
-                            events={state.events}
-                            eventlogs={state.eventlogs}
-                            fromEvent={editEvent}
-                            createEvent={(n: CreateUserEventLog) => onUpdateEvent(foodGroup.eventlog.id, n)}
-                            onCancel={() => setEditEvent(UserEventFoodLogFactory.empty())}
-                        />
-                    ) : (
-                        <EventPanel
-                            key={foodGroup.eventlog.id}
-                            user={state.user}
-                            foodGroup={foodGroup}
-                            actions={[
-                                {
-                                    label: 'Copy',
-                                    onClick: () => {
-                                        setNewEvent(foodGroup);
-                                        setShowNewEventPanel(true);
-                                        window.scrollTo({top: 0, behavior: 'smooth'});
+                <div ref={paging.listRef} className="contents">
+                    {state.eventlogs.slice(0, paging.shown).map((foodGroup: UserEventFoodLog) =>
+                        editEvent.eventlog.id === foodGroup.eventlog.id ? (
+                            <AddEventsPanel
+                                key={`e-${editEvent.eventlog.id}`}
+                                copyDate={true}
+                                dialogTitle={`Edit Event`}
+                                saveButtonTitle={'Update Event'}
+                                user={state.user}
+                                foods={state.foods}
+                                events={state.events}
+                                eventlogs={state.eventlogs}
+                                fromEvent={editEvent}
+                                createEvent={(n: CreateUserEventLog) => onUpdateEvent(foodGroup.eventlog.id, n)}
+                                onCancel={() => setEditEvent(UserEventFoodLogFactory.empty())}
+                            />
+                        ) : (
+                            <EventPanel
+                                key={foodGroup.eventlog.id}
+                                user={state.user}
+                                foodGroup={foodGroup}
+                                actions={[
+                                    {
+                                        label: 'Copy',
+                                        onClick: () => {
+                                            setNewEvent(foodGroup);
+                                            setShowNewEventPanel(true);
+                                            window.scrollTo({top: 0, behavior: 'smooth'});
+                                        },
                                     },
-                                },
-                                {
-                                    label: 'Edit',
-                                    onClick: () => setEditEvent(foodGroup),
-                                },
-                                {
-                                    label: 'Delete',
-                                    dangerous: true,
-                                    onClick: () => onDeleteEvent(foodGroup),
-                                },
-                            ]}
-                        />
-                    )
-                )}
+                                    {
+                                        label: 'Edit',
+                                        onClick: () => setEditEvent(foodGroup),
+                                    },
+                                    {
+                                        label: 'Delete',
+                                        dangerous: true,
+                                        onClick: () => onDeleteEvent(foodGroup),
+                                    },
+                                ]}
+                            />
+                        )
+                    )}
+                </div>
             </div>
+
+            <LoadMore paging={paging} itemsName="events" />
         </>
     );
 };

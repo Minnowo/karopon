@@ -94,13 +94,14 @@ func (db *PGDatabase) LoadUserTimespansN(
 }
 
 func (db *PGDatabase) LoadUserTimespansWithTags(ctx context.Context, userID int, out *[]database.TaggedTimespan) error {
-	return db.LoadUserTimespansWithTagsN(ctx, userID, math.MaxInt, out)
+	return db.LoadUserTimespansWithTagsN(ctx, userID, math.MaxInt, 0, out)
 }
 
 func (db *PGDatabase) LoadUserTimespansWithTagsN(
 	ctx context.Context,
 	userID int,
 	n int,
+	offset int,
 	out *[]database.TaggedTimespan,
 ) error {
 
@@ -134,11 +135,11 @@ func (db *PGDatabase) LoadUserTimespansWithTagsN(
 		)
 		WHERE ut.USER_ID = $1
 		GROUP BY ut.ID, ut.USER_ID, ut.CREATED, ut.START_TIME, ut.STOP_TIME, ut.NOTE
-		ORDER BY ut.START_TIME DESC
-		LIMIT $2;
+		ORDER BY ut.START_TIME DESC, ut.ID DESC
+		LIMIT $2 OFFSET $3;
 	`
 
-	err := db.SelectContext(ctx, &results, query, userID, n)
+	err := db.SelectContext(ctx, &results, query, userID, n, offset)
 
 	if err != nil {
 		return err

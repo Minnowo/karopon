@@ -220,6 +220,7 @@ func (p *BaseMockDB) LoadUserEventFoodLogsN(
 	ctx context.Context,
 	userID int,
 	n int,
+	offset int,
 	eflogs *[]database.UserEventFoodLog,
 ) error {
 	panic("not implemented")
@@ -400,6 +401,7 @@ func (p *BaseMockDB) LoadUserTimespansWithTagsN(
 	ctx context.Context,
 	userID int,
 	n int,
+	offset int,
 	out *[]database.TaggedTimespan,
 ) error {
 	panic("not implemented")

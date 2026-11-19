@@ -4,9 +4,7 @@ import (
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
-	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 )
@@ -20,13 +18,11 @@ func (a *APIV1) getUserTimespansTagged(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var n int
-	var err error
 	var timespans []database.TaggedTimespan
 
-	if limit := r.URL.Query().Get("n"); limit == "" {
-		n = user.TimespanHistoryFetchLimit
-	} else if n, err = strconv.Atoi(limit); err != nil {
+	n, offset, err := parseListPage(r, user.TimespanHistoryFetchLimit)
+
+	if err != nil {
 		api.WriteStatusProblem(
 			w,
 			http.StatusBadRequest,
@@ -36,13 +32,7 @@ func (a *APIV1) getUserTimespansTagged(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if n == 0 {
-		n = user.TimespanHistoryFetchLimit
-	} else if n < 0 {
-		n = math.MaxInt
-	}
-
-	if err := a.Db.LoadUserTimespansWithTagsN(r.Context(), user.ID, n, &timespans); err != nil {
+	if err := a.Db.LoadUserTimespansWithTagsN(r.Context(), user.ID, n, offset, &timespans); err != nil {
 
 		api.WriteStatusProblem(
 			w,

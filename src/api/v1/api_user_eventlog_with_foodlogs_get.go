@@ -4,9 +4,7 @@ import (
 	"karopon/src/api"
 	"karopon/src/api/auth"
 	"karopon/src/database"
-	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 )
@@ -20,23 +18,11 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var n int
-	var err error
 	var eventlogs []database.UserEventFoodLog
 
-	if limit := r.URL.Query().Get("n"); limit == "" {
-		err = a.Db.LoadUserEventFoodLogs(r.Context(), user.ID, &eventlogs)
-	} else if n, err = strconv.Atoi(limit); err == nil {
+	n, offset, err := parseListPage(r, user.EventHistoryFetchLimit)
 
-		if n == 0 {
-			n = user.EventHistoryFetchLimit
-		} else if n < 0 {
-			n = math.MaxInt
-		}
-
-		err = a.Db.LoadUserEventFoodLogsN(r.Context(), user.ID, n, &eventlogs)
-
-	} else {
+	if err != nil {
 		api.WriteStatusProblem(
 			w,
 			http.StatusBadRequest,
@@ -45,6 +31,8 @@ func (a *APIV1) getUserEventFoodLogs(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	err = a.Db.LoadUserEventFoodLogsN(r.Context(), user.ID, n, offset, &eventlogs)
 
 	if err != nil {
 
