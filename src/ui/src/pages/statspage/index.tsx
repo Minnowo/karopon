@@ -26,7 +26,7 @@ export function StatsPage(state: BaseState) {
         }
         setAdding(true);
         setAddError(null);
-        ApiNewDashboard(name || DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards))
+        ApiNewDashboard(name, JSON.stringify(DEFAULT_DASHBOARD.cards))
             .then((db) => {
                 const newIndex = state.dashboards.length;
                 state.setDashboards([...state.dashboards, db]);

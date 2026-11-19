@@ -1,4 +1,6 @@
-import {useState} from 'preact/hooks';
+import {useEffect, useId, useRef, useState} from 'preact/hooks';
+import {ApiError} from '../../api/api';
+import {FieldError} from '../../components/field_error';
 import {EditorDialog} from '../../components/editor_dialog';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 
@@ -24,6 +26,17 @@ export function AddEditDashboardPanel({
     onCancel,
 }: DashboardSettingsPanelProps) {
     const [name, setName] = useState(initialName);
+    const nameErrorId = `${useId()}-name-error`;
+    // The server checks the name; its message goes on the field.
+    const nameError = error instanceof ApiError ? error.fieldErrors().get('#/name') : undefined;
+    const nameRef = useRef<HTMLInputElement>(null);
+
+    // A rejected name takes focus, like the other forms.
+    useEffect(() => {
+        if (nameError !== undefined) {
+            nameRef.current?.focus();
+        }
+    }, [error, nameError]);
 
     return (
         <EditorDialog
@@ -36,12 +49,16 @@ export function AddEditDashboardPanel({
             <label className="flex flex-col gap-1">
                 Name
                 <input
+                    ref={nameRef}
                     type="text"
                     value={name}
                     onInput={(e) => setName((e.target as HTMLInputElement).value)}
                     placeholder="View name"
+                    aria-invalid={nameError !== undefined || undefined}
+                    aria-describedby={nameError !== undefined ? nameErrorId : undefined}
                 />
             </label>
+            <FieldError id={nameErrorId} message={nameError} />
             <ErrorDiv errorMsg={error} />
         </EditorDialog>
     );

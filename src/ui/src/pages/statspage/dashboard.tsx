@@ -5,7 +5,7 @@ import {CHART_LABELS, ChartType, DashboardCard, NewDashboardCard, UserDashboard}
 import {DashboardCardComponent} from './dashboard_card';
 import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 import {TblUserDashboard} from '../../api/types';
-import {ErrorDiv} from '../../components/error_div';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {DropdownButton} from '../../components/drop_down_button';
 
 type DashboardProps = {
@@ -59,6 +59,9 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
     const [renaming, setRenaming] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+    // The last save's error as thrown, so the rename dialog can put a name error on its field.
+    const lastSaveError = useRef<unknown>(null);
+    const [renameError, setRenameError] = useState<ErrorDivMsg | null>(null);
 
     // Card components seed their form state from the card prop at mount and never
     // resync, so throwing away working state has to remount them. Bumping this
@@ -95,6 +98,7 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
             await onUpdate({id: dashboard.id, name, cards: nextCards});
             return true;
         } catch (e) {
+            lastSaveError.current = e;
             setSaveError(ErrorText(e));
             return false;
         } finally {
@@ -198,9 +202,13 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
     };
 
     const handleRename = async (name: string) => {
+        setRenameError(null);
         if (await persist(cards, name)) {
             setRenaming(false);
+            return;
         }
+        const e = lastSaveError.current;
+        setRenameError(e instanceof Error ? e : String(e));
     };
 
     return (
@@ -229,7 +237,13 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
 
                 <DropdownButton
                     actions={[
-                        {label: 'Rename View', onClick: () => setRenaming(true)},
+                        {
+                            label: 'Rename View',
+                            onClick: () => {
+                                setRenameError(null);
+                                setRenaming(true);
+                            },
+                        },
                         {
                             label: 'Delete View',
                             dangerous: true,
@@ -245,7 +259,7 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
                     initialName={dashboard.name}
                     confirmLabel="Save"
                     saving={saving}
-                    error={saveError}
+                    error={renameError}
                     onConfirm={handleRename}
                     onCancel={() => setRenaming(false)}
                 />
