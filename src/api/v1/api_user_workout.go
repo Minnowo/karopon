@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"karopon/src/database"
 	"strings"
 )
@@ -12,6 +13,8 @@ var (
 	ErrWorkoutEmptyName                  = errors.New("workout cannot have an empty name")
 	ErrWorkoutStructureTooLarge          = errors.New("workout structure is too large")
 	ErrWorkoutStructureInvalidJSON       = errors.New("workout structure must be valid JSON")
+	ErrWorkoutNoSets                     = errors.New("workout must have at least one set")
+	ErrWorkoutEmptySet                   = errors.New("workout set must have at least one step")
 	ErrWorkoutLogEmptyName               = errors.New("workout log cannot have an empty name")
 	ErrWorkoutLogStopsBeforeStart        = errors.New("workout log stops before it starts")
 	ErrWorkoutLogNegativePause           = errors.New("workout log paused time cannot be negative")
@@ -21,6 +24,32 @@ var (
 	ErrWorkoutLogStepInvalidPosition     = errors.New("workout log step set, round, and step must be >= 1")
 	ErrWorkoutLogSegmentStopsBeforeStart = errors.New("workout log step segment stops before it starts")
 )
+
+// WorkoutSetError reports a problem with one set of a workout's structure.
+// Set is the set's number as the user sees it, starting at 1; Err is the
+// cause (for example ErrWorkoutEmptySet), reachable with errors.Is.
+type WorkoutSetError struct {
+	Set int
+	Err error
+}
+
+// Error implements error.
+func (e *WorkoutSetError) Error() string {
+	return fmt.Sprintf("set %d: %v", e.Set, e.Err)
+}
+
+// Unwrap returns the cause, so errors.Is sees through the set error.
+func (e *WorkoutSetError) Unwrap() error {
+	return e.Err
+}
+
+// workoutStructureCounts is the part of a workout's structure blob the server
+// checks: its sets and the steps in each. The rest belongs to the UI.
+type workoutStructureCounts struct {
+	Sets []struct {
+		Steps []json.RawMessage `json:"steps"`
+	} `json:"sets"`
+}
 
 // maxWorkoutStructureLen caps the size of a workout's structure blob.
 const maxWorkoutStructureLen = 256 * 1024
@@ -68,8 +97,25 @@ func validateWorkout(w *database.WorkoutWithTags) error {
 		return ErrWorkoutStructureTooLarge
 	}
 
-	if w.Workout.Structure != "" && !json.Valid([]byte(w.Workout.Structure)) {
+	// An empty workout has nothing to run, so it needs a set with a step.
+	if w.Workout.Structure == "" {
+		return ErrWorkoutNoSets
+	}
+
+	var counts workoutStructureCounts
+
+	if err := json.Unmarshal([]byte(w.Workout.Structure), &counts); err != nil {
 		return ErrWorkoutStructureInvalidJSON
+	}
+
+	if len(counts.Sets) == 0 {
+		return ErrWorkoutNoSets
+	}
+
+	for i, set := range counts.Sets {
+		if len(set.Steps) == 0 {
+			return &WorkoutSetError{Set: i + 1, Err: ErrWorkoutEmptySet}
+		}
 	}
 
 	return nil

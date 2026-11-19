@@ -4,6 +4,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"karopon/src/api"
 	"net/http"
 )
@@ -37,6 +38,23 @@ func writeWorkoutProblem(w http.ResponseWriter, err error) {
 			w,
 			http.StatusUnprocessableEntity,
 			"This workout is too large to save. Remove some steps and try again.",
+		)
+	case errors.Is(err, ErrWorkoutNoSets):
+		api.WriteStatusProblem(
+			w,
+			http.StatusUnprocessableEntity,
+			"This workout is empty. Add a set with at least one step.",
+		)
+	case errors.Is(err, ErrWorkoutEmptySet):
+		set := 0
+		var setErr *WorkoutSetError
+		if errors.As(err, &setErr) {
+			set = setErr.Set
+		}
+		api.WriteStatusProblem(
+			w,
+			http.StatusUnprocessableEntity,
+			fmt.Sprintf("Set %d has no steps. Add a step to it or remove the set.", set),
 		)
 	case errors.Is(err, ErrWorkoutStructureInvalidJSON):
 		api.WriteStatusProblem(w, http.StatusBadRequest, reload)

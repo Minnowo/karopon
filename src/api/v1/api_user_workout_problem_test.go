@@ -24,6 +24,8 @@ func TestWriteWorkoutProblem(t *testing.T) {
 		{ErrWorkoutLogNoSteps, http.StatusUnprocessableEntity, ""},
 		{ErrWorkoutStructureTooLarge, http.StatusUnprocessableEntity, ""},
 		{ErrWorkoutStructureInvalidJSON, http.StatusBadRequest, ""},
+		{ErrWorkoutNoSets, http.StatusUnprocessableEntity, ""},
+		{&WorkoutSetError{Set: 2, Err: ErrWorkoutEmptySet}, http.StatusUnprocessableEntity, ""},
 		{ErrWorkoutLogEmptyName, http.StatusBadRequest, ""},
 		{ErrWorkoutLogStopsBeforeStart, http.StatusBadRequest, ""},
 		{ErrWorkoutLogNegativePause, http.StatusBadRequest, ""},
@@ -55,4 +57,12 @@ func TestWriteWorkoutProblem(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWorkoutEmptySetProblemNamesTheSet(t *testing.T) {
+
+	rr := httptest.NewRecorder()
+	writeWorkoutProblem(rr, &WorkoutSetError{Set: 2, Err: ErrWorkoutEmptySet})
+
+	assert.Contains(t, decodeProblem(t, rr).Detail, "Set 2")
 }
