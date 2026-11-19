@@ -9,6 +9,8 @@ type FloatInputProps = {
     innerTabIndex?: number;
     id?: string;
     label?: string;
+    // The input's name for screen readers when there is no visible label.
+    ariaLabel?: string;
     value: number;
     onValueChange: (value: number) => void;
     numberList?: number[];
@@ -30,6 +32,7 @@ export function NumberInput({
     onValueChange,
     id = undefined,
     label = undefined,
+    ariaLabel = undefined,
     step = 1,
     precision = 3,
     min = -Infinity,
@@ -111,6 +114,7 @@ export function NumberInput({
                 className={`${innerClassName} pl-2 pr-0 border-none focus:outline-none`}
                 type="text"
                 inputMode="decimal"
+                aria-label={label ? undefined : ariaLabel}
                 aria-invalid={invalid || undefined}
                 aria-describedby={invalid ? errorId : undefined}
                 disabled={disabled}
@@ -142,7 +146,7 @@ export function NumberInput({
                     disabled={disabled}
                     onStep={() => stepBy(1)}
                     className="h-full select-none px-1 pt-0.5 pb-0 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-5"
-                    ariaLabel={label ? `Increase ${label}` : 'Increase value'}
+                    ariaLabel={`Increase ${label || ariaLabel || 'value'}`}
                 >
                     {UpArrow}
                 </HoldButton>
@@ -151,7 +155,7 @@ export function NumberInput({
                     disabled={disabled}
                     onStep={() => stepBy(-1)}
                     className="h-full select-none px-1 pt-0 pb-0.5 leading-none border-none text-xs bg-transparent hover:bg-c-surface-container-5"
-                    ariaLabel={label ? `Decrease ${label}` : 'Decrease value'}
+                    ariaLabel={`Decrease ${label || ariaLabel || 'value'}`}
                 >
                     {DownArrow}
                 </HoldButton>

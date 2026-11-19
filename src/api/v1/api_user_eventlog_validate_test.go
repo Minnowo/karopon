@@ -68,7 +68,7 @@ func TestUpdateEventLogReportsEveryProblem(t *testing.T) {
 	assert.Nil(t, db.savedFoods, "nothing may be saved when validation fails")
 }
 
-func TestEventLogZeroPortionIsLeftToTheDatabase(t *testing.T) {
+func TestEventLogZeroPortionIsAllowed(t *testing.T) {
 
 	db := &eventLogMockDB{}
 	rr := sendAsUser(t, db.newHandler(), `{"event":{"name":"Lunch"},"foods":[{"name":"Rice","unit":"g","portion":0}]}`)
@@ -77,9 +77,25 @@ func TestEventLogZeroPortionIsLeftToTheDatabase(t *testing.T) {
 	require.Len(t, db.savedFoods, 1)
 }
 
-func TestEventLogRowErrorPointsAtTheRow(t *testing.T) {
+func TestEventLogRowWithoutUnitIsRejected(t *testing.T) {
 
-	rowErr := &database.FoodLogRowError{Index: 1, Err: database.ErrFoodPortionIsZero}
+	db := &eventLogMockDB{}
+	rr := sendAsUser(
+		t,
+		db.newHandler(),
+		`{"event":{"name":"Lunch"},"foods":[{"name":"Rice","unit":"g","portion":1},{"name":"Typed","unit":" ","portion":1},`+
+			`{"name":"","unit":"","portion":1}]}`,
+	)
+
+	require.Equal(t, http.StatusUnprocessableEntity, rr.Code)
+	// A row with no name reports only the name.
+	assert.Equal(t, []string{"#/foods/1/unit", "#/foods/2/name"}, problemPointers(t, rr))
+	assert.Nil(t, db.savedFoods, "nothing may be saved when validation fails")
+}
+
+func TestEventLogUnsavedFoodPointsAtTheRowName(t *testing.T) {
+
+	rowErr := &database.FoodLogRowError{Index: 1, Err: database.ErrFoodNotFound}
 
 	db := &eventLogMockDB{rowErr: rowErr}
 	rr := sendAsUser(
@@ -88,14 +104,14 @@ func TestEventLogRowErrorPointsAtTheRow(t *testing.T) {
 		`{"event":{"name":"Lunch"},"foods":[{"name":"Rice","unit":"g","portion":1},{"name":"New","unit":"g","portion":0}]}`,
 	)
 	require.Equal(t, http.StatusUnprocessableEntity, rr.Code)
-	assert.Equal(t, []string{"#/foods/1/portion"}, problemPointers(t, rr))
+	assert.Equal(t, []string{"#/foods/1/name"}, problemPointers(t, rr))
 
 	db = &eventLogMockDB{rowErr: rowErr}
 	rr = sendAsUser(t, db.updateHandler(),
 		`{"eventlog":{"id":4,"event":"Lunch"},"foodlogs":[{"name":"Rice","unit":"g","portion":1},`+
 			`{"name":"New","unit":"g","portion":0}]}`)
 	require.Equal(t, http.StatusUnprocessableEntity, rr.Code)
-	assert.Equal(t, []string{"#/foodlogs/1/portion"}, problemPointers(t, rr))
+	assert.Equal(t, []string{"#/foodlogs/1/name"}, problemPointers(t, rr))
 }
 
 // eventLogMockDB keeps the food rows it was asked to save.

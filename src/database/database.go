@@ -17,8 +17,9 @@ import (
 var (
 	ErrInvalidSessionTokenLength = errors.New("user session token must be 32 length")
 	ErrUserDoesNotHaveThisID     = errors.New("ID does not exist")
-	ErrFoodPortionIsZero         = errors.New("food portion cannot be zero")
-	ErrTagAlreadyExists          = errors.New("a tag with the new namespace and name already exists")
+	// ErrFoodNotFound means a food row of an event names a food the user has not saved.
+	ErrFoodNotFound     = errors.New("food not found")
+	ErrTagAlreadyExists = errors.New("a tag with the new namespace and name already exists")
 	// ErrAlreadyExists means a unique constraint rejected the write; the row would duplicate one the user has.
 	ErrAlreadyExists     = errors.New("already exists")
 	ErrInvalidBodyMetric = errors.New("body metric does not exist for this user")
@@ -201,7 +202,8 @@ type DB interface {
 	// Add the given TblUserFoodLog to the database.
 	// Sets the UserTime, FoodID, and EventID, on the given food
 	// If the EventID is null or 0, loads or creates the event based off the name.
-	// Loads or creates the given food.
+	// Looks up the saved food by user, name and unit; returns ErrFoodNotFound
+	// when the user has no such food (foods are never created here).
 	// Returns the TblUserFoodLog ID or an error.
 	AddUserFoodLogTx(tx *sqlx.Tx, food *TblUserFoodLog) (int, error)
 

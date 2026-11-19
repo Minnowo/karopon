@@ -25,35 +25,8 @@ func (db *PGDatabase) AddUserFoodLogTx(tx *sqlx.Tx, food *database.TblUserFoodLo
 		switch {
 
 		case errors.Is(err, sql.ErrNoRows):
-			log.Debug().Msg("got error no rows")
-
-			query = `INSERT INTO PON.USER_FOOD ` +
-				`(USER_ID, NAME, UNIT, PORTION, PROTEIN, CARB, FIBRE, FAT) VALUES ` +
-				`(:user_id, :name, :unit, :portion, :protein, :carb, :fibre, :fat) ` +
-				`RETURNING ID;`
-
-			if food.Portion == 0 {
-				return -1, database.ErrFoodPortionIsZero
-			}
-
-			newFood := database.TblUserFood{
-				UserID:  food.UserID,
-				Name:    food.Name,
-				Unit:    food.Unit,
-				Portion: food.Portion,
-				Protein: food.Protein,
-				Carb:    food.Carb,
-				Fibre:   food.Fibre,
-				Fat:     food.Fat,
-			}
-			newFood.Scale()
-
-			if id, err := db.NamedInsertReturningIDTx(tx, query, newFood); err != nil {
-				return -1, err
-			} else {
-				food.FoodID = &id
-				log.Debug().Int("id", *food.FoodID).Msg("created new food")
-			}
+			// Foods are made on the foods page; an event only uses saved ones.
+			return -1, database.ErrFoodNotFound
 
 		case err != nil:
 			return -1, err

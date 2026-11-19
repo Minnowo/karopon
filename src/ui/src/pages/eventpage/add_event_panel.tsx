@@ -185,7 +185,7 @@ export function AddEventsPanel(p: AddEventsPanelState) {
                 nameError = detail;
                 continue;
             }
-            const m = /^#\/(?:foods|foodlogs)\/(\d+)\/(name|portion)$/.exec(pointer);
+            const m = /^#\/(?:foods|foodlogs)\/(\d+)\/(name|unit|portion)$/.exec(pointer);
             if (m === null) {
                 continue;
             }
@@ -195,7 +195,8 @@ export function AddEventsPanel(p: AddEventsPanelState) {
             }
             const key = sentKeys[index];
             const row = rows.get(key) ?? {};
-            if (m[2] === 'name') {
+            // The unit comes from the picked food, so its error shows on the name.
+            if (m[2] === 'name' || m[2] === 'unit') {
                 row.name = detail;
             } else {
                 row.portion = detail;

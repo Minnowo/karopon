@@ -31,6 +31,14 @@ func getTestUser2(t *testing.T, db database.DB) int {
 	return userID
 }
 
+// addTestFood saves a food for userID. An event's food rows must name a saved
+// food (database.ErrFoodNotFound), so tests that log food save it first.
+func addTestFood(t *testing.T, db database.DB, userID int, name, unit string) {
+
+	_, err := db.AddUserFood(t.Context(), &database.TblUserFood{UserID: userID, Name: name, Unit: unit, Portion: 1})
+	require.NoError(t, err)
+}
+
 func runDbTests(t *testing.T, newTestDB NewTestDB) {
 
 	// Prevent any db tests from running at the same time,

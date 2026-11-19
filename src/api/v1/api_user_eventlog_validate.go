@@ -28,10 +28,16 @@ func validateFoodLogRows(foods []database.TblUserFoodLog, prefix string) []api.F
 				Pointer: fmt.Sprintf("%s/%d/name", prefix, i),
 				Detail:  "Enter a food name.",
 			})
+		} else if len(foods[i].Unit) == 0 {
+			// The unit comes from the saved food the row was picked from, so
+			// an empty one means the row names no saved food.
+			errs = append(errs, api.FieldProblem{
+				Pointer: fmt.Sprintf("%s/%d/unit", prefix, i),
+				Detail:  foodNotSavedDetail,
+			})
 		}
 
-		// A zero portion of a known food is allowed; a new food with a zero
-		// portion is rejected by the database as a FoodLogRowError.
+		// A zero portion is allowed: the row is kept with no nutrients.
 		if foods[i].Portion < 0 {
 			errs = append(errs, api.FieldProblem{
 				Pointer: fmt.Sprintf("%s/%d/portion", prefix, i),
@@ -43,11 +49,16 @@ func validateFoodLogRows(foods []database.TblUserFoodLog, prefix string) []api.F
 	return errs
 }
 
-// writeFoodLogRowProblem answers a database FoodLogRowError as a validation
-// problem on that row's portion. prefix is as for validateFoodLogRows.
+// foodNotSavedDetail is the message for a food row that names no saved food:
+// an event only uses foods made on the foods page.
+const foodNotSavedDetail = "Pick a saved food from the list. To use a new food, add it on the Foods page first."
+
+// writeFoodLogRowProblem answers a database FoodLogRowError (the row names no
+// saved food) as a validation problem on that row's name. prefix is as for
+// validateFoodLogRows.
 func writeFoodLogRowProblem(w http.ResponseWriter, rowErr *database.FoodLogRowError, prefix string) {
 	api.WriteValidationProblem(w, []api.FieldProblem{{
-		Pointer: fmt.Sprintf("%s/%d/portion", prefix, rowErr.Index),
-		Detail:  "Enter an amount for this new food.",
+		Pointer: fmt.Sprintf("%s/%d/name", prefix, rowErr.Index),
+		Detail:  foodNotSavedDetail,
 	}})
 }

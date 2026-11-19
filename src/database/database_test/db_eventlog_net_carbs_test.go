@@ -20,6 +20,8 @@ func testEventLogUpdateNetCarbs(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 	ctx := t.Context()
 	db := newTestDB(t)
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Rice", "g")
+	addTestFood(t, db, userID, "Beans", "g")
 
 	eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Lunch"})
 	require.NoError(t, err)

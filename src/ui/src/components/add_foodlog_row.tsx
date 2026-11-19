@@ -70,12 +70,12 @@ export function AddFoodlogPanelRow({
                         dataSearchStr={(d: TblUserFood) => d.name}
                         className="w-full min-w-48 my-1 sm:mr-1"
                         placeholder="Food Name"
-                        noResultsText="New Food"
+                        noResultsText="No saved food found"
                         invalid={nameError !== undefined}
                         errorId={nameErrorId}
                         onSelect={(newFood: TblUserFood | null) => {
                             if (!newFood) {
-                                // The user may be creating a new food.
+                                // No saved food picked; the server rejects a food that is not saved.
                                 food.name = foodTemplate.current.name;
                                 return;
                             }
@@ -100,7 +100,10 @@ export function AddFoodlogPanelRow({
                         innerClassName="w-full min-w-[5ch]"
                         precision={1}
                         min={0}
-                        label={food.unit}
+                        label={food.unit || undefined}
+                        ariaLabel="Amount"
+                        // The unit comes from the picked saved food; without one there is nothing to measure.
+                        disabled={!food.unit}
                         value={food.portion}
                         labelOnLeftSide={false}
                         invalid={portionError !== undefined}

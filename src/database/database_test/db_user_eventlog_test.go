@@ -18,6 +18,7 @@ func testEventAndEventlog(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	ctx := t.Context()
 	db := newTestDB(t)
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Toast", "g")
 
 	event := &database.TblUserEvent{
 		UserID: userID,
@@ -159,6 +160,7 @@ func testLoadUserEventFoodLog(t *testing.T, newTestDB NewTestDB, lock *sync.Mute
 	db := newTestDB(t)
 
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Egg", "g")
 
 	eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Breakfast"})
 	require.NoError(t, err)
@@ -250,6 +252,8 @@ func testUpdateUserEventFoodLog(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 	db := newTestDB(t)
 
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Egg", "g")
+	addTestFood(t, db, userID, "Milk", "ml")
 
 	eventID, err := db.AddUserEvent(ctx, &database.TblUserEvent{UserID: userID, Name: "Dinner"})
 	require.NoError(t, err)

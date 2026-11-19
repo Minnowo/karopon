@@ -22,6 +22,7 @@ func testLoadUserMacrosTimeData(t *testing.T, newTestDB NewTestDB, lock *sync.Mu
 	db := newTestDB(t)
 
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Food", "g")
 
 	event := &database.TblUserEvent{UserID: userID, Name: "Dinner"}
 	eventID, err := db.AddUserEvent(ctx, event)
@@ -103,6 +104,7 @@ func testLoadUserMacrosTimeDataAtwaterNoFibre(t *testing.T, newTestDB NewTestDB,
 	db := newTestDB(t)
 
 	userID := getTestUser(t, db)
+	addTestFood(t, db, userID, "Food", "g")
 
 	event := &database.TblUserEvent{UserID: userID, Name: "Dinner"}
 	eventID, err := db.AddUserEvent(ctx, event)

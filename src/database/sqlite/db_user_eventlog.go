@@ -45,7 +45,7 @@ func (db *SqliteDatabase) AddUserEventLogWith(
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
 
-			if errors.Is(err, database.ErrFoodPortionIsZero) {
+			if errors.Is(err, database.ErrFoodNotFound) {
 				return &database.FoodLogRowError{Index: i, Err: err}
 			}
 
@@ -288,7 +288,7 @@ func (db *SqliteDatabase) UpdateUserEventFoodLog(ctx context.Context, eventlog *
 
 			id, err := db.AddUserFoodLogTx(tx, &food)
 
-			if errors.Is(err, database.ErrFoodPortionIsZero) {
+			if errors.Is(err, database.ErrFoodNotFound) {
 				return &database.FoodLogRowError{Index: i, Err: err}
 			}
 

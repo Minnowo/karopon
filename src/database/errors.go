@@ -11,7 +11,7 @@ var (
 
 // FoodLogRowError reports that one food row of an event log could not be
 // saved. Index is the row's position in the slice that was passed in; Err is
-// the cause (for example ErrFoodPortionIsZero), reachable with errors.Is.
+// the cause (for example ErrFoodNotFound), reachable with errors.Is.
 type FoodLogRowError struct {
 	Index int
 	Err   error

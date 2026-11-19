@@ -31,10 +31,11 @@ func testFoodLogRowError(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 
 	rows := func() []database.TblUserFoodLog {
 		return []database.TblUserFoodLog{
-			// A zero portion of a known food has always been allowed.
+			// A zero portion of a saved food is allowed.
 			{Name: "Rice", Unit: "g", Portion: 0},
-			// A new food needs a portion to scale its nutrients by.
-			{Name: "Brand New Food", Unit: "g", Portion: 0},
+			// A food the user has not saved is rejected; foods are made on
+			// the foods page, never by an event.
+			{Name: "Brand New Food", Unit: "g", Portion: 1},
 		}
 	}
 
@@ -44,7 +45,7 @@ func testFoodLogRowError(t *testing.T, newTestDB NewTestDB, lock *sync.Mutex) {
 	_, err = db.AddUserEventLogWith(ctx, log, rows())
 	require.ErrorAs(t, err, &rowErr, "create")
 	assert.Equal(t, 1, rowErr.Index)
-	assert.ErrorIs(t, err, database.ErrFoodPortionIsZero)
+	assert.ErrorIs(t, err, database.ErrFoodNotFound)
 
 	// The known food alone saves fine, and gives an event log to update.
 	logID, err := db.AddUserEventLogWith(ctx, log, rows()[:1])
