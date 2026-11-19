@@ -9,7 +9,6 @@ import (
 	"karopon/src/database"
 	"net/http"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/rs/zerolog/log"
@@ -46,11 +45,6 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 	newUser.User.Created = user.Created
 	newUser.User.Password = user.Password
 
-	if newUser.User.SessionExpireTimeSeconds <= 0 {
-		// 1 years should be good enough
-		newUser.User.SessionExpireTimeSeconds = int64(time.Hour * time.Duration(24*365*1))
-	}
-
 	newUser.User.Name = strings.TrimSpace(newUser.User.Name)
 
 	if newUser.User.MiscSettings == "" {
@@ -80,6 +74,8 @@ func (a *APIV1) updateUser(w http.ResponseWriter, r *http.Request) {
 			Detail:  fmt.Sprintf("Use a user name of at most %d characters.", constants.MAX_USERNAME_LENGTH),
 		})
 	}
+
+	errs = append(errs, settingsNumberProblems(&newUser.User)...)
 
 	if len(newUser.User.CustomCSS) > constants.MAX_CUSTOM_CSS_SIZE {
 		errs = append(errs, api.FieldProblem{

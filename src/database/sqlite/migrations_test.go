@@ -720,4 +720,73 @@ func TestSqliteMigrations(t *testing.T) {
 		assert.InDelta(t, 40, netCarbs(edited), 0.001, "sum of carb - fibre over the food logs")
 		assert.InDelta(t, 0, netCarbs(empty), 0.001, "no food logs means no net carbs")
 	})
+	// 0022_fix_session_expire: 20 -> 21
+	// A session length of 0 or less was saved as a nanosecond count that made
+	// every login create an expired session; lengths outside 1 hour to 10 years
+	// are reset to 10 days, and valid ones are kept.
+	t.Run("0022_fix_session_expire", func(t *testing.T) {
+
+		lengths := map[string]int64{"len_zero": 0, "len_negative": -5, "len_huge": 31536000000000000, "len_ok": 7200}
+		for name, seconds := range lengths {
+			_, err := conn.ExecContext(
+				ctx,
+				`INSERT INTO PON_USER (NAME, PASSWORD, SESSION_EXPIRE_TIME_SECONDS) VALUES (?, X'01', ?)`,
+				name,
+				seconds,
+			)
+			require.NoError(t, err)
+		}
+
+		_, err := database.RunUpMigrations(ctx, conn, 20, sqliteUpMigrations[21:22])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(21), ver)
+
+		want := map[string]int64{"len_zero": 864000, "len_negative": 864000, "len_huge": 864000, "len_ok": 7200}
+		for name, seconds := range want {
+			var got int64
+			require.NoError(t, conn.QueryRowContext(ctx,
+				`SELECT SESSION_EXPIRE_TIME_SECONDS FROM PON_USER WHERE NAME = ?`, name).Scan(&got))
+			assert.Equal(t, seconds, got, name)
+		}
+	})
+	// 0023_fix_settings_ranges: 21 -> 22
+	// Settings numbers outside the ranges the server now accepts are reset to
+	// the defaults; values inside them are kept.
+	t.Run("0023_fix_settings_ranges", func(t *testing.T) {
+
+		insert := func(name string, vals [6]float64) {
+			_, err := conn.ExecContext(ctx, `
+				INSERT INTO PON_USER (NAME, PASSWORD, TARGET_BLOOD_SUGAR, INSULIN_SENSITIVITY_FACTOR,
+					EVENT_LOG_TRAILING_ROWS, EVENT_HISTORY_FETCH_LIMIT, TIMESPAN_HISTORY_FETCH_LIMIT, DAY_TIME_OFFSET_SECONDS)
+				VALUES (?, X'01', ?, ?, ?, ?, ?, ?)`,
+				name, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5])
+			require.NoError(t, err)
+		}
+
+		insert("set_bad", [6]float64{-5, 0, -1, 0, 5000, -3600})
+		insert("set_ok", [6]float64{110, 40, 5, 200, 300, 7200})
+
+		_, err := database.RunUpMigrations(ctx, conn, 21, sqliteUpMigrations[22:23])
+		require.NoError(t, err)
+
+		ver, err := conn.GetVersion(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, database.Version(22), ver)
+
+		read := func(name string) [6]float64 {
+			var v [6]float64
+			require.NoError(t, conn.QueryRowContext(ctx, `
+				SELECT TARGET_BLOOD_SUGAR, INSULIN_SENSITIVITY_FACTOR, EVENT_LOG_TRAILING_ROWS,
+					EVENT_HISTORY_FETCH_LIMIT, TIMESPAN_HISTORY_FETCH_LIMIT, DAY_TIME_OFFSET_SECONDS
+				FROM PON_USER WHERE NAME = ?`, name).Scan(&v[0], &v[1], &v[2], &v[3], &v[4], &v[5]))
+
+			return v
+		}
+
+		assert.Equal(t, [6]float64{5.6, 3, 3, 50, 50, 0}, read("set_bad"))
+		assert.Equal(t, [6]float64{110, 40, 5, 200, 300, 7200}, read("set_ok"))
+	})
 }

@@ -3,6 +3,7 @@ package userreg
 import (
 	"context"
 	"errors"
+	"karopon/src/constants"
 	"karopon/src/database"
 	"sync"
 	"time"
@@ -64,7 +65,12 @@ func (u *UserRegistry) NewToken(
 
 	var token AccessToken
 
-	expires := time.Now().Add(time.Second * time.Duration(max(60, sessionExpireTime)))
+	// Clamped, so a bad stored value can never make an already expired session.
+	sessionSeconds := min(
+		max(sessionExpireTime, constants.MIN_SESSION_EXPIRE_SECONDS),
+		constants.MAX_SESSION_EXPIRE_SECONDS,
+	)
+	expires := time.Now().Add(time.Second * time.Duration(sessionSeconds))
 
 	token.New(u.hmacKey)
 	tokenHash := token.Hash()

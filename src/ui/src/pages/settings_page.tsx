@@ -9,6 +9,18 @@ import {ErrorDiv, ErrorDivMsg} from '../components/error_div';
 import {FieldError} from '../components/field_error';
 import {RefreshOnUnauthorized} from '../utils/error';
 
+// The settings numbers the server checks (api_user_settings_validate.go), in page order.
+const SETTINGS_NUMBERS = [
+    'target_blood_sugar',
+    'insulin_sensitivity_factor',
+    'event_log_trailing_rows',
+    'event_history_fetch_limit',
+    'timespan_history_fetch_limit',
+    'session_expire_time_seconds',
+    'day_time_offset_seconds',
+] as const;
+type SettingsNumber = (typeof SETTINGS_NUMBERS)[number];
+
 export function SettingsPage(state: BaseState) {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [newPassword, setNewPassword] = useState<string>('');
@@ -21,6 +33,9 @@ export function SettingsPage(state: BaseState) {
     const themeId = useId();
     const calorieMethodId = useId();
     const customCssId = useId();
+    // One id per settings number, keyed by its JSON name.
+    const numberIdBase = useId();
+    const numberId = (field: string) => `${numberIdBase}-${field}`;
 
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
@@ -30,6 +45,7 @@ export function SettingsPage(state: BaseState) {
     const fieldIds = new Map<string, string>([
         ['#/user/name', usernameId],
         ['#/new_password', newPasswordId],
+        ...SETTINGS_NUMBERS.map((field): [string, string] => [`#/user/${field}`, numberId(field)]),
         ['#/user/custom_css', customCssId],
         // Not a server field: the confirm password match is checked in this page.
         ['confirm_password', confirmPasswordId],
@@ -39,6 +55,13 @@ export function SettingsPage(state: BaseState) {
     const invalidProps = (pointer: string) => ({
         'aria-invalid': fieldErrors.has(pointer) || undefined,
         'aria-describedby': fieldErrors.has(pointer) ? `${fieldIds.get(pointer)}-error` : undefined,
+    });
+
+    // numberProps gives a settings number its id and its server error state.
+    const numberProps = (field: SettingsNumber) => ({
+        id: numberId(field),
+        invalid: fieldErrors.has(`#/user/${field}`),
+        errorId: `${numberId(field)}-error`,
     });
 
     // errorFor renders the server's message for the field at pointer.
@@ -64,6 +87,12 @@ export function SettingsPage(state: BaseState) {
         userRef.current[key] = value;
         render();
     }
+
+    // updateNumber sets a settings number and drops the error it had.
+    const updateNumber = (field: SettingsNumber, value: number) => {
+        update(field, value);
+        clearFieldError(`#/user/${field}`);
+    };
 
     function save() {
         if (saving) {
@@ -180,68 +209,79 @@ export function SettingsPage(state: BaseState) {
             {state.user.show_diabetes && (
                 <>
                     <NumberInput
+                        {...numberProps('target_blood_sugar')}
                         className="w-full input-like"
                         innerClassName="w-full text-right"
                         label="Target Blood Sugar"
                         value={userRef.current.target_blood_sugar}
-                        onValueChange={(value: number) => update('target_blood_sugar', value)}
+                        onValueChange={(value: number) => updateNumber('target_blood_sugar', value)}
                         disabled={!isEditing}
                     />
+                    {errorFor('#/user/target_blood_sugar')}
                     <NumberInput
+                        {...numberProps('insulin_sensitivity_factor')}
                         className="w-full input-like"
                         innerClassName="w-full text-right"
                         label="Insulin Sensitivity Factor"
                         value={userRef.current.insulin_sensitivity_factor}
-                        onValueChange={(value: number) => update('insulin_sensitivity_factor', value)}
+                        onValueChange={(value: number) => updateNumber('insulin_sensitivity_factor', value)}
                         disabled={!isEditing}
                     />
+                    {errorFor('#/user/insulin_sensitivity_factor')}
                 </>
             )}
             <NumberInput
+                {...numberProps('event_log_trailing_rows')}
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Event Log Trailing Rows"
                 value={userRef.current.event_log_trailing_rows}
-                onValueChange={(value: number) => update('event_log_trailing_rows', value)}
+                onValueChange={(value: number) => updateNumber('event_log_trailing_rows', value)}
                 disabled={!isEditing}
-                min={1}
                 step={1}
             />
+            {errorFor('#/user/event_log_trailing_rows')}
             <NumberInput
+                {...numberProps('event_history_fetch_limit')}
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Event History Fetch Limit"
                 value={userRef.current.event_history_fetch_limit}
-                onValueChange={(value: number) => update('event_history_fetch_limit', value)}
+                onValueChange={(value: number) => updateNumber('event_history_fetch_limit', value)}
                 disabled={!isEditing}
             />
+            {errorFor('#/user/event_history_fetch_limit')}
             <NumberInput
+                {...numberProps('timespan_history_fetch_limit')}
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Timespan History Fetch Limit"
                 value={userRef.current.timespan_history_fetch_limit}
-                onValueChange={(value: number) => update('timespan_history_fetch_limit', value)}
+                onValueChange={(value: number) => updateNumber('timespan_history_fetch_limit', value)}
                 disabled={!isEditing}
             />
+            {errorFor('#/user/timespan_history_fetch_limit')}
             <NumberInput
+                {...numberProps('session_expire_time_seconds')}
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Session Expire Time (in Hours)"
                 value={userRef.current.session_expire_time_seconds / (60 * 60)}
-                onValueChange={(value: number) => update('session_expire_time_seconds', value * 60 * 60)}
+                onValueChange={(value: number) => updateNumber('session_expire_time_seconds', Math.round(value * 60 * 60))}
                 disabled={!isEditing}
             />
+            {errorFor('#/user/session_expire_time_seconds')}
             <NumberInput
+                {...numberProps('day_time_offset_seconds')}
                 className="w-full input-like"
                 innerClassName="w-full text-right"
                 label="Day Start Offset (in Hours)"
                 value={userRef.current.day_time_offset_seconds / (60 * 60)}
-                onValueChange={(value: number) => update('day_time_offset_seconds', value * 60 * 60)}
+                onValueChange={(value: number) => updateNumber('day_time_offset_seconds', Math.round(value * 60 * 60))}
                 disabled={!isEditing}
-                min={0}
-                max={23}
                 step={1}
             />
+            {errorFor('#/user/day_time_offset_seconds')}
 
             <label className="flex items-center gap-2 cursor-pointer">
                 <input

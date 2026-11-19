@@ -322,3 +322,29 @@ func TestPutUserWithNewName(t *testing.T) {
 		t.Fatal("new name should exist")
 	}
 }
+
+// A bad stored session length must never make an already expired session:
+// 0 or less used to be saved as a nanosecond count that overflowed here.
+func TestNewTokenClampsSessionLength(t *testing.T) {
+
+	reg := NewRegistry(newSessionMock(&database.TblUser{ID: 1, Name: "alice"}), testHMACKey)
+	now := time.Now()
+
+	cases := []struct {
+		stored  int64
+		atLeast time.Duration
+		atMost  time.Duration
+	}{
+		{0, time.Hour - time.Minute, time.Hour + time.Minute},
+		{-5, time.Hour - time.Minute, time.Hour + time.Minute},
+		{31536000000000000, 10*365*24*time.Hour - time.Hour, 10*365*24*time.Hour + time.Hour},
+		{864000, 10*24*time.Hour - time.Minute, 10*24*time.Hour + time.Minute},
+	}
+
+	for _, c := range cases {
+		_, expires, err := reg.NewToken(t.Context(), 1, c.stored, "test")
+		assert.NoError(t, err)
+		assert.True(t, expires.After(now.Add(c.atLeast)), "stored %d: expires %v", c.stored, expires)
+		assert.True(t, expires.Before(now.Add(c.atMost)), "stored %d: expires %v", c.stored, expires)
+	}
+}
