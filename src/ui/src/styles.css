@@ -14,6 +14,10 @@
 
     --text-chart: 14px;
     --text-chart-sm: 12px;
+
+    /* MD3 "expanded" window class (https://m3.material.io/foundations/layout/breakpoints/overview): from
+       here up the navigation is a rail, below it a bottom bar. */
+    --breakpoint-expanded: 840px;
 }
 
 @layer base {
@@ -119,5 +123,118 @@ textarea[aria-invalid='true'],
 
     [role='tab'][aria-selected='true'] {
         @apply border-c-primary text-c-primary;
+    }
+}
+
+/*
+ * Navigation (components/navigation.tsx,
+ * https://m3.material.io/components/navigation-bar/guidelines and
+ * https://m3.material.io/components/navigation-rail/guidelines). In the phone bar an item is an icon in a box
+ * with the label below; in the rail it is a full-width row, icon then label.
+ * Corners are rounded-sm like ponkotsu buttons, not MD3 pills. The current
+ * page gets a filled icon and the primary color (user's choice
+ * over MD3's secondary-container).
+ */
+@layer components {
+    .nav-bar {
+        @apply fixed inset-x-0 bottom-0 z-30 bg-c-surface-container-2 expanded:hidden;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-bar ul {
+        @apply flex;
+    }
+    .nav-bar li {
+        @apply flex flex-1;
+    }
+
+    /* The rail is a column of list rows beside the page, not pinned to the
+       window edge: it scrolls with nothing and stays in view (sticky). */
+    .nav-rail {
+        @apply sticky top-0 hidden h-screen w-56 shrink-0 flex-col justify-between pt-12 pb-6 pl-4 expanded:flex;
+    }
+    .nav-rail ul {
+        @apply flex flex-col gap-1;
+    }
+
+    .nav-item {
+        @apply flex flex-1 flex-col items-center gap-1 rounded-none border-0 bg-transparent px-0 pt-3 pb-4 text-sm
+            text-c-on-surface-variant;
+        box-shadow: none;
+    }
+    .nav-rail .nav-item {
+        @apply flex-row gap-3 rounded-sm px-4 py-3 text-base;
+    }
+    .nav-rail .nav-item:hover {
+        @apply bg-c-on-surface-hover-tint;
+    }
+    /* The account menu button at the bottom of the rail: a row like the
+       pages, full width, so it is as easy to hit. */
+    .nav-rail .nav-account {
+        @apply w-full;
+    }
+    .nav-rail .nav-indicator {
+        @apply h-auto w-auto bg-transparent;
+    }
+    .nav-item:hover {
+        text-decoration: none;
+        background: transparent;
+    }
+    .nav-item[aria-current='page'] {
+        @apply text-c-on-surface;
+    }
+
+    .nav-indicator {
+        @apply flex h-8 w-16 items-center justify-center rounded-sm;
+    }
+    .nav-bar .nav-item:hover .nav-indicator {
+        @apply bg-c-on-surface-hover-tint;
+    }
+    /* The current page is marked with the primary color: the icon pill in the
+       bar, the whole row in the rail. */
+    .nav-bar .nav-item[aria-current='page'] .nav-indicator,
+    .nav-rail .nav-item[aria-current='page'],
+    .nav-rail .nav-item[aria-current='page'] .nav-indicator {
+        @apply bg-c-primary text-c-on-primary;
+    }
+    .nav-rail .nav-item[aria-current='page']:hover {
+        @apply bg-c-primary-hover;
+    }
+
+    /* The More sheet: a modal <dialog> anchored to the bottom of the window. */
+    .nav-sheet {
+        @apply mx-0 mt-auto mb-0 max-h-[80vh] w-full max-w-none rounded-b-none text-c-on-surface;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+    .nav-sheet::backdrop {
+        @apply bg-black/40;
+    }
+    .nav-sheet-item {
+        @apply flex items-center gap-3 rounded-sm px-2 py-3 text-c-on-surface;
+    }
+    /* List items show keyboard focus with the hover fill, not an outline. */
+    .nav-sheet-item:hover,
+    .nav-sheet-item:focus-visible {
+        @apply bg-c-on-surface-hover-tint outline-none;
+        text-decoration: none;
+    }
+    .nav-sheet-item[aria-current='page'] {
+        @apply bg-c-primary text-c-on-primary;
+    }
+    .nav-sheet-item[aria-current='page']:hover,
+    .nav-sheet-item[aria-current='page']:focus-visible {
+        @apply bg-c-primary-hover text-c-on-primary;
+    }
+
+    /* Skip link: hidden until it gets keyboard focus. */
+    .skip-link {
+        @apply fixed top-2 left-2 z-40 -translate-y-24 rounded-sm bg-c-primary px-3 py-2 text-c-on-primary focus:translate-y-0;
+    }
+}
+
+/* Below the expanded width the bar covers the bottom of the window; keep a
+   focused or scrolled-to element above it (WCAG 2.4.11). */
+@media (width < 840px) {
+    html {
+        scroll-padding-bottom: 6rem;
     }
 }

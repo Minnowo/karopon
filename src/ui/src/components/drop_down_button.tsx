@@ -1,6 +1,7 @@
 // A button that opens a menu of actions or links, following the WAI-ARIA menu button
 // pattern (https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/).
 
+import {ComponentChildren} from 'preact';
 import {useEffect, useId, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {ThreeVertDots} from './svg';
 
@@ -23,6 +24,9 @@ type DropdownProps = {
     actions: DropdownButtonAction[];
     // Visible button text. Without it the button shows three dots named "More actions".
     label?: string;
+    // Shown before the label; decorative, the label names the button.
+    icon?: ComponentChildren;
+    // Classes for the wrapper; replaces its default h-fit w-fit.
     className?: string;
     buttonClassName?: string;
 };
@@ -41,6 +45,7 @@ type MenuPlacement = {
 export function DropdownButton({
     actions,
     label = undefined,
+    icon = undefined,
     className,
     buttonClassName = 'w-8 h-8 p-0 m-0 border-none bg-transparent hover:bg-c-surface-container-2',
 }: DropdownProps) {
@@ -196,7 +201,7 @@ export function DropdownButton({
         `${action.dangerous ? 'text-c-error' : 'text-c-on-surface'} ${action.disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
 
     return (
-        <div className={`h-fit w-fit ${className ?? ''}`}>
+        <div className={className ?? 'h-fit w-fit'}>
             <button
                 id={triggerId}
                 ref={triggerRef}
@@ -209,7 +214,14 @@ export function DropdownButton({
                 onClick={() => (open ? closeMenu(true) : openMenu(0))}
                 onKeyDown={onTriggerKeyDown}
             >
-                {label === undefined ? ThreeVertDots : label}
+                {label === undefined ? (
+                    ThreeVertDots
+                ) : (
+                    <>
+                        {icon}
+                        {label}
+                    </>
+                )}
             </button>
 
             {open && (

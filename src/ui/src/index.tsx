@@ -7,7 +7,7 @@ import './styles.css';
 
 import {render} from 'preact';
 
-import {Header} from './components/header.jsx';
+import {Navigation, PageTitle} from './components/navigation';
 import {LoginDialog, LoginPage} from './pages/login_page.jsx';
 import {StatsPage} from './pages/statspage';
 
@@ -330,449 +330,475 @@ export const App = () => {
     // After the two effects above, so it reads the final colors.
     useLayoutEffect(SyncAndroidTheme, [user?.theme, user?.custom_css]);
 
+    useEffect(() => {
+        document.title = user === null ? 'Log in - Karopon' : PageTitle(hashRoute);
+    }, [hashRoute, user]);
+
     if (user === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;
     }
 
     return (
-        <main className="pt-12 pb-16 px-4 sm:px-8 md:px-16">
-            <>
-                {/* need this inside a component to prevent a remount of the router when this changes */}
-                {hasAuthCookie ? (
-                    <ErrorDiv errorMsg={errorMsg} />
-                ) : (
-                    <div className="flex flex-col justify-center items-center py-4 mb-4">
-                        <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
-                        <strong>Your session has expired, please login again.</strong>
+        <>
+            {/* The routes are hash links, so the skip link moves focus itself instead of changing the hash. */}
+            <a
+                className="skip-link"
+                href="#main-content"
+                onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('main-content')?.focus();
+                }}
+            >
+                Skip to content
+            </a>
+
+            {/* On wide windows the rail and the page sit side by side, centered as one group.
+                The page keeps sm:px-8 there (32px from the rail); its max width is 800 + 2 * 32. */}
+            <div className="expanded:flex expanded:justify-center">
+                <Navigation user={user} route={hashRoute} />
+
+                <main
+                    id="main-content"
+                    tabIndex={-1}
+                    className="pt-12 pb-28 px-4 sm:px-8 md:max-expanded:px-16 expanded:pb-16 expanded:min-w-0 expanded:max-w-[864px] expanded:flex-1"
+                >
+                    <>
+                        {/* need this inside a component to prevent a remount of the router when this changes */}
+                        {hasAuthCookie ? (
+                            <ErrorDiv errorMsg={errorMsg} />
+                        ) : (
+                            <div className="flex flex-col justify-center items-center py-4 mb-4">
+                                <LoginDialog error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />
+                                <strong>Your session has expired, please login again.</strong>
+                            </div>
+                        )}
+                    </>
+
+                    <ReminderPromptPanel
+                        user={user}
+                        setUser={setUser}
+                        foods={foods}
+                        setFoods={setFoods}
+                        events={events}
+                        setEvents={setEvents}
+                        eventlogs={eventlogs}
+                        setEventLogs={setEventLogsWithFoodlogs}
+                        goals={goals}
+                        setGoals={setGoals}
+                        bodylogs={bodylogs}
+                        bodyMetrics={bodyMetrics}
+                        dataSources={dataSources}
+                        setBodyLogs={setBodyLogs}
+                        setBodyMetrics={setBodyMetrics}
+                        namespaces={namespaces}
+                        setNamespaces={setNamespaces}
+                        timespans={timespans}
+                        setTimespans={setTimespans}
+                        dashboards={dashboards}
+                        setDashboards={setDashboards}
+                        tagColors={tagColors}
+                        setTagColors={setTagColors}
+                        activities={activities}
+                        setActivities={setActivities}
+                        reminders={reminders}
+                        setReminders={setReminders}
+                        setErrorMsg={setErrorMsg}
+                        doRefresh={doRefresh}
+                    />
+
+                    <div className="m-auto md:max-w-[800px]">
+                        {(() => {
+                            switch (hashRoute) {
+                                case '#logout':
+                                    return <LogoutPage />;
+                                default:
+                                case FOOD_LOG_ROUTE:
+                                case FOOD_LIBRARY_ROUTE:
+                                    return (
+                                        <FoodAreaPage
+                                            route={hashRoute}
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            dataSources={dataSources}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#body':
+                                    return (
+                                        <BodyPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#goals':
+                                    return (
+                                        <GoalsPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#stats':
+                                    return (
+                                        <StatsPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#activity':
+                                    return (
+                                        <ActivityPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case WORKOUT_ROUTE:
+                                case WORKOUT_EXERCISES_ROUTE:
+                                case WORKOUT_HISTORY_ROUTE:
+                                    return (
+                                        <WorkoutPage
+                                            route={hashRoute}
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#tags':
+                                    return (
+                                        <TagsPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#body-metrics':
+                                    return (
+                                        <BodyMetricsPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#time':
+                                    return (
+                                        <TimespansPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#data-export':
+                                    return (
+                                        <DataExportPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            dataSources={dataSources}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                                case '#sessions':
+                                    return <SessionsPage />;
+                                case '#settings':
+                                    return (
+                                        <SettingsPage
+                                            user={user}
+                                            setUser={setUser}
+                                            foods={foods}
+                                            setFoods={setFoods}
+                                            events={events}
+                                            setEvents={setEvents}
+                                            eventlogs={eventlogs}
+                                            setEventLogs={setEventLogsWithFoodlogs}
+                                            goals={goals}
+                                            setGoals={setGoals}
+                                            bodylogs={bodylogs}
+                                            bodyMetrics={bodyMetrics}
+                                            dataSources={dataSources}
+                                            setBodyLogs={setBodyLogs}
+                                            setBodyMetrics={setBodyMetrics}
+                                            namespaces={namespaces}
+                                            setNamespaces={setNamespaces}
+                                            timespans={timespans}
+                                            setTimespans={setTimespans}
+                                            dashboards={dashboards}
+                                            setDashboards={setDashboards}
+                                            tagColors={tagColors}
+                                            setTagColors={setTagColors}
+                                            activities={activities}
+                                            setActivities={setActivities}
+                                            reminders={reminders}
+                                            setReminders={setReminders}
+                                            setErrorMsg={setErrorMsg}
+                                            doRefresh={doRefresh}
+                                        />
+                                    );
+                            }
+                        })()}
                     </div>
-                )}
-            </>
-
-            <ReminderPromptPanel
-                user={user}
-                setUser={setUser}
-                foods={foods}
-                setFoods={setFoods}
-                events={events}
-                setEvents={setEvents}
-                eventlogs={eventlogs}
-                setEventLogs={setEventLogsWithFoodlogs}
-                goals={goals}
-                setGoals={setGoals}
-                bodylogs={bodylogs}
-                bodyMetrics={bodyMetrics}
-                dataSources={dataSources}
-                setBodyLogs={setBodyLogs}
-                setBodyMetrics={setBodyMetrics}
-                namespaces={namespaces}
-                setNamespaces={setNamespaces}
-                timespans={timespans}
-                setTimespans={setTimespans}
-                dashboards={dashboards}
-                setDashboards={setDashboards}
-                tagColors={tagColors}
-                setTagColors={setTagColors}
-                activities={activities}
-                setActivities={setActivities}
-                reminders={reminders}
-                setReminders={setReminders}
-                setErrorMsg={setErrorMsg}
-                doRefresh={doRefresh}
-            />
-
-            <Header user={user} />
-
-            <div className="m-auto md:max-w-[800px]">
-                {(() => {
-                    switch (hashRoute) {
-                        case '#logout':
-                            return <LogoutPage />;
-                        default:
-                        case FOOD_LOG_ROUTE:
-                        case FOOD_LIBRARY_ROUTE:
-                            return (
-                                <FoodAreaPage
-                                    route={hashRoute}
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    dataSources={dataSources}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#body':
-                            return (
-                                <BodyPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#goals':
-                            return (
-                                <GoalsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#stats':
-                            return (
-                                <StatsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#activity':
-                            return (
-                                <ActivityPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case WORKOUT_ROUTE:
-                        case WORKOUT_EXERCISES_ROUTE:
-                        case WORKOUT_HISTORY_ROUTE:
-                            return (
-                                <WorkoutPage
-                                    route={hashRoute}
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#tags':
-                            return (
-                                <TagsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#body-metrics':
-                            return (
-                                <BodyMetricsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#time':
-                            return (
-                                <TimespansPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#data-export':
-                            return (
-                                <DataExportPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    dataSources={dataSources}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#sessions':
-                            return <SessionsPage />;
-                        case '#settings':
-                            return (
-                                <SettingsPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    dataSources={dataSources}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                    }
-                })()}
+                </main>
             </div>
-        </main>
+        </>
     );
 };
 
