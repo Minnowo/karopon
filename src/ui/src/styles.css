@@ -101,3 +101,23 @@ textarea[aria-invalid='true'],
 .input-like:has([aria-invalid='true']) {
     border-color: var(--color-c-error);
 }
+
+/*
+ * Primary tabs (components/tabs.tsx, https://m3.material.io/components/tabs/guidelines): equal
+ * width, no fill or border, a divider under the row (on the tab list) and an
+ * underline plus primary color on the active tab. In the components layer so
+ * it overrides the base button style, including its focus border and ring;
+ * the std-focus outline still shows keyboard focus.
+ */
+@layer components {
+    [role='tab'] {
+        @apply flex-1 rounded-none border-0 border-b-[3px] border-transparent bg-transparent px-4 py-3
+            text-c-on-surface-variant
+            hover:bg-c-on-surface-hover-tint active:bg-c-on-surface-focus-tint;
+        box-shadow: none;
+    }
+
+    [role='tab'][aria-selected='true'] {
+        @apply border-c-primary text-c-primary;
+    }
+}

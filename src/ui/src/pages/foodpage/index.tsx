@@ -8,7 +8,7 @@ import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {JSX} from 'preact/jsx-runtime';
 import {AddFoodPanel} from './add_food_panel';
 import {TblUserFoodFactory} from '../../api/factories';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 import {FoodBuilderPanel} from './food_builder_panel';
 import {GetErrorHandler, RefreshOnUnauthorized} from '../../utils/error';
 
@@ -17,7 +17,6 @@ export const FoodPage = (state: BaseState) => {
     const [search, setSearch] = useState<string>('');
     const [showAddFoodPanel, setShowAddFoodPanel] = useState<boolean>(false);
     const [showBuildFoodPanel, setShowBuildFoodPanel] = useState<boolean>(false);
-    const [numberToShow, setNumberToShow] = useState<number>(15);
     const [baseFood, setBaseFood] = useState<TblUserFood>(TblUserFoodFactory.empty());
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,6 +67,9 @@ export const FoodPage = (state: BaseState) => {
             .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
+    const shownFoods = state.foods.filter((x: TblUserFood) => x.name.toLowerCase().includes(search));
+    const paging = useListPaging({total: shownFoods.length});
+
     const searchChange = (e: JSX.TargetedEvent<HTMLInputElement, Event>) => {
         setSearch(e.currentTarget.value.toLowerCase());
     };
@@ -92,7 +94,6 @@ export const FoodPage = (state: BaseState) => {
                 >
                     Build Food
                 </button>
-                <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -130,12 +131,8 @@ export const FoodPage = (state: BaseState) => {
                         <small>Try giving it some food!</small>
                     </div>
                 ) : (
-                    state.foods
-                        .filter((x: TblUserFood) => {
-                            return x.name.toLowerCase().includes(search);
-                        })
-                        .slice(0, numberToShow)
-                        .map((food: TblUserFood) => {
+                    <div ref={paging.listRef} className="contents">
+                        {shownFoods.slice(0, paging.shown).map((food: TblUserFood) => {
                             return (
                                 <FoodEditPanel
                                     key={food.id}
@@ -150,9 +147,12 @@ export const FoodPage = (state: BaseState) => {
                                     }}
                                 />
                             );
-                        })
+                        })}
+                    </div>
                 )}
             </div>
+
+            <LoadMore paging={paging} itemsName="foods" order="alphabetical" />
         </>
     );
 };

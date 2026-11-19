@@ -112,11 +112,13 @@ type LoadMoreProps = {
     paging: ListPaging;
     // The plural name of the items, such as "events".
     itemsName: string;
+    // How the list is sorted, for the count line: newest first (logs) or A to Z.
+    order?: 'newest' | 'alphabetical';
 };
 
 // LoadMore is the control under a paged list: how many are shown, and the
 // field and button to show more.
-export function LoadMore({paging, itemsName}: LoadMoreProps) {
+export function LoadMore({paging, itemsName, order = 'newest'}: LoadMoreProps) {
     const {shown, amount, setAmount, hasMore, busy, error, loadMore, statusRef, total} = paging;
 
     // A list that fits in the first page needs neither a count nor a button.
@@ -129,7 +131,11 @@ export function LoadMore({paging, itemsName}: LoadMoreProps) {
     return (
         <div className="flex flex-col items-center gap-2 my-4">
             <p ref={statusRef} tabIndex={-1} role="status">
-                <small>{hasMore ? `Showing the newest ${visible} ${itemsName}.` : `Showing all ${visible} ${itemsName}.`}</small>
+                <small>
+                    {hasMore
+                        ? `Showing the ${order === 'newest' ? 'newest' : 'first'} ${visible} ${itemsName}.`
+                        : `Showing all ${visible} ${itemsName}.`}
+                </small>
             </p>
 
             <ErrorDiv errorMsg={error} />

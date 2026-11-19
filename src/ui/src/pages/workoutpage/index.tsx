@@ -27,26 +27,37 @@ import {RunState, StartRun} from './run_state';
 import {Runner} from './runner';
 import {WorkoutLogPanel} from './history_panel';
 import {LocalClearWorkoutRun, LocalGetWorkoutRun, LocalStoreWorkoutRun} from '../../utils/localstate';
+import {Tabs} from '../../components/tabs';
 
-type Tab = 'workouts' | 'exercises' | 'history';
+export const WORKOUT_ROUTE = '#workout';
+export const WORKOUT_EXERCISES_ROUTE = '#workout/exercises';
+export const WORKOUT_HISTORY_ROUTE = '#workout/history';
 
-const TABS: Array<{value: Tab; label: string}> = [
-    {value: 'workouts', label: 'Workouts'},
-    {value: 'exercises', label: 'Exercises'},
-    {value: 'history', label: 'History'},
+const WORKOUT_TABS = [
+    {href: WORKOUT_ROUTE, label: 'Workouts'},
+    {href: WORKOUT_EXERCISES_ROUTE, label: 'Exercises'},
+    {href: WORKOUT_HISTORY_ROUTE, label: 'History'},
 ];
+
+type WorkoutPageProps = BaseState & {
+    // The hash route that opened the page; picks the tab.
+    route: string;
+};
 
 const sortExercises = (e: ExerciseWithTags[]) => [...e].sort((a, b) => a.exercise.name.localeCompare(b.exercise.name));
 const sortWorkouts = (w: WorkoutWithTags[]) => [...w].sort((a, b) => a.workout.name.localeCompare(b.workout.name));
 
-export function WorkoutPage(state: BaseState) {
-    const [tab, setTab] = useState<Tab>('workouts');
+export function WorkoutPage({route, ...state}: WorkoutPageProps) {
+    const tab = WORKOUT_TABS.some((t) => t.href === route) ? route : WORKOUT_ROUTE;
     const [exercises, setExercises] = useState<ExerciseWithTags[]>([]);
     const [workouts, setWorkouts] = useState<WorkoutWithTags[]>([]);
     const [logs, setLogs] = useState<WorkoutLogWithSteps[]>([]);
     const [run, setRunState] = useState<RunState | null>(LocalGetWorkoutRun);
     const [showAddPanel, setShowAddPanel] = useState<boolean>(false);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+
+    // A panel opened on one tab does not follow to another.
+    useEffect(() => setShowAddPanel(false), [tab]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleErr = useCallback(GetErrorHandler(setErrorMsg, state.doRefresh), [state.doRefresh]);
@@ -168,7 +179,7 @@ export function WorkoutPage(state: BaseState) {
             .then((created) => {
                 setLogs((ls) => [created, ...ls]);
                 endRun();
-                setTab('history');
+                window.location.hash = WORKOUT_HISTORY_ROUTE;
             })
             .catch(RefreshOnUnauthorized(state.doRefresh));
     };
@@ -200,124 +211,110 @@ export function WorkoutPage(state: BaseState) {
     }
 
     return (
-        <>
-            <div className="flex justify-evenly my-4">
-                {TABS.map((t) => (
-                    <button
-                        key={t.value}
-                        className={tab === t.value ? 'font-bold' : ''}
-                        aria-pressed={tab === t.value}
-                        onClick={() => {
-                            setTab(t.value);
-                            setShowAddPanel(false);
-                        }}
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
+        <div className="pt-4">
+            <Tabs label="Workout" tabs={WORKOUT_TABS} selected={tab}>
+                <ErrorDiv errorMsg={errorMsg} />
 
-            <ErrorDiv errorMsg={errorMsg} />
+                {tab === WORKOUT_ROUTE && (
+                    <>
+                        <div className="flex justify-evenly mb-4">
+                            <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
+                                New Workout
+                            </button>
+                        </div>
 
-            {tab === 'workouts' && (
-                <>
-                    <div className="flex justify-evenly mb-4">
-                        <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
-                            New Workout
-                        </button>
-                    </div>
-
-                    {showAddPanel && (
-                        <WorkoutBuilderPanel
-                            {...tagProps}
-                            className="mb-4"
-                            exercises={exercises}
-                            title="Workout Builder"
-                            submitLabel="Create"
-                            onSubmit={addWorkout}
-                            onCancel={() => setShowAddPanel(false)}
-                        />
-                    )}
-
-                    <div className="flex flex-col gap-4">
-                        {workouts.length === 0 ? (
-                            <div className="flex flex-col items-start gap-2">
-                                <p>No workouts have been created yet.</p>
-                                <button onClick={addSample}>Add Sample Workout</button>
-                            </div>
-                        ) : (
-                            workouts.map((w) => (
-                                <WorkoutEditPanel
-                                    {...tagProps}
-                                    key={w.workout.id}
-                                    exercises={exercises}
-                                    workout={w}
-                                    addWorkout={addWorkout}
-                                    updateWorkout={updateWorkout}
-                                    deleteWorkout={deleteWorkout}
-                                    startWorkout={startWorkout}
-                                />
-                            ))
-                        )}
-                    </div>
-                </>
-            )}
-
-            {tab === 'exercises' && (
-                <>
-                    <div className="flex justify-evenly mb-4">
-                        <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
-                            New Exercise
-                        </button>
-                        {!HasRestExercise(exercises) && <button onClick={addRest}>Add Rest Exercise</button>}
-                    </div>
-
-                    {showAddPanel && (
-                        <AddExercisePanel
-                            {...tagProps}
-                            className="mb-4"
-                            title="Create New Exercise"
-                            submitLabel="Create"
-                            onSubmit={addExercise}
-                            onCancel={() => setShowAddPanel(false)}
-                        />
-                    )}
-
-                    <div className="flex flex-col gap-4">
-                        {exercises.length === 0 ? (
-                            <p>No exercises have been created yet.</p>
-                        ) : (
-                            exercises.map((e) => (
-                                <ExerciseEditPanel
-                                    {...tagProps}
-                                    key={e.exercise.id}
-                                    exercise={e}
-                                    updateExercise={updateExercise}
-                                    deleteExercise={deleteExercise}
-                                />
-                            ))
-                        )}
-                    </div>
-                </>
-            )}
-
-            {tab === 'history' && (
-                <div className="flex flex-col gap-4">
-                    {logs.length === 0 ? (
-                        <p>No workouts have been logged yet.</p>
-                    ) : (
-                        logs.map((l) => (
-                            <WorkoutLogPanel
-                                key={l.workoutlog.id}
-                                log={l}
-                                hour12={state.user.time_format === UserTimeFormat.Hour12}
-                                updateLog={updateLog}
-                                deleteLog={deleteLog}
+                        {showAddPanel && (
+                            <WorkoutBuilderPanel
+                                {...tagProps}
+                                className="mb-4"
+                                exercises={exercises}
+                                title="Workout Builder"
+                                submitLabel="Create"
+                                onSubmit={addWorkout}
+                                onCancel={() => setShowAddPanel(false)}
                             />
-                        ))
-                    )}
-                </div>
-            )}
-        </>
+                        )}
+
+                        <div className="flex flex-col gap-4">
+                            {workouts.length === 0 ? (
+                                <div className="flex flex-col items-start gap-2">
+                                    <p>No workouts have been created yet.</p>
+                                    <button onClick={addSample}>Add Sample Workout</button>
+                                </div>
+                            ) : (
+                                workouts.map((w) => (
+                                    <WorkoutEditPanel
+                                        {...tagProps}
+                                        key={w.workout.id}
+                                        exercises={exercises}
+                                        workout={w}
+                                        addWorkout={addWorkout}
+                                        updateWorkout={updateWorkout}
+                                        deleteWorkout={deleteWorkout}
+                                        startWorkout={startWorkout}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {tab === WORKOUT_EXERCISES_ROUTE && (
+                    <>
+                        <div className="flex justify-evenly mb-4">
+                            <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
+                                New Exercise
+                            </button>
+                            {!HasRestExercise(exercises) && <button onClick={addRest}>Add Rest Exercise</button>}
+                        </div>
+
+                        {showAddPanel && (
+                            <AddExercisePanel
+                                {...tagProps}
+                                className="mb-4"
+                                title="Create New Exercise"
+                                submitLabel="Create"
+                                onSubmit={addExercise}
+                                onCancel={() => setShowAddPanel(false)}
+                            />
+                        )}
+
+                        <div className="flex flex-col gap-4">
+                            {exercises.length === 0 ? (
+                                <p>No exercises have been created yet.</p>
+                            ) : (
+                                exercises.map((e) => (
+                                    <ExerciseEditPanel
+                                        {...tagProps}
+                                        key={e.exercise.id}
+                                        exercise={e}
+                                        updateExercise={updateExercise}
+                                        deleteExercise={deleteExercise}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {tab === WORKOUT_HISTORY_ROUTE && (
+                    <div className="flex flex-col gap-4">
+                        {logs.length === 0 ? (
+                            <p>No workouts have been logged yet.</p>
+                        ) : (
+                            logs.map((l) => (
+                                <WorkoutLogPanel
+                                    key={l.workoutlog.id}
+                                    log={l}
+                                    hour12={state.user.time_format === UserTimeFormat.Hour12}
+                                    updateLog={updateLog}
+                                    deleteLog={deleteLog}
+                                />
+                            ))
+                        )}
+                    </div>
+                )}
+            </Tabs>
+        </div>
     );
 }

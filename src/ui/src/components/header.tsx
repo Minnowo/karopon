@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'preact/hooks';
 import {TblUser} from '../api/types';
+import {OLD_FOOD_ROUTES} from '../pages/foodareapage';
 import {DropdownButton} from './drop_down_button';
 
 type UserHeaderProps = {
@@ -37,22 +38,15 @@ export function Header(state: HeaderState) {
     }, []);
 
     const css = 'font-bold';
+    const isWorkout = currentHash === '#workout' || currentHash.startsWith('#workout/');
+    // The food page is also the start page, shown for an empty or unknown hash.
+    const isFood =
+        currentHash === '' || currentHash === '#food' || currentHash.startsWith('#food/') || currentHash in OLD_FOOD_ROUTES;
     return (
         <header>
             <div className="w-full flex flex-wrap gap-3">
-                <a
-                    className={currentHash === '#events' ? css : ''}
-                    aria-current={currentHash === '#events' ? 'page' : undefined}
-                    href="#events"
-                >
-                    events
-                </a>
-                <a
-                    className={currentHash === '#foods' ? css : ''}
-                    aria-current={currentHash === '#foods' ? 'page' : undefined}
-                    href="#foods"
-                >
-                    foods
+                <a className={isFood ? css : ''} aria-current={isFood ? 'page' : undefined} href="#food">
+                    food
                 </a>
                 <a
                     className={currentHash === '#time' ? css : ''}
@@ -89,11 +83,7 @@ export function Header(state: HeaderState) {
                 >
                     activity
                 </a>
-                <a
-                    className={currentHash === '#workout' ? css : ''}
-                    aria-current={currentHash === '#workout' ? 'page' : undefined}
-                    href="#workout"
-                >
+                <a className={isWorkout ? css : ''} aria-current={isWorkout ? 'page' : undefined} href="#workout">
                     workout
                 </a>
                 <div className="ml-auto mr-10 flex items-center">

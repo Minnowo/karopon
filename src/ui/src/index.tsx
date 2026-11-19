@@ -9,7 +9,6 @@ import {render} from 'preact';
 
 import {Header} from './components/header.jsx';
 import {LoginDialog, LoginPage} from './pages/login_page.jsx';
-import {FoodPage} from './pages/foodpage';
 import {StatsPage} from './pages/statspage';
 
 import {useCallback, useEffect, useLayoutEffect, useState} from 'preact/hooks';
@@ -47,7 +46,7 @@ import {
     ApiGetUserReminders,
 } from './api/api';
 import {LogoutPage} from './pages/logout_page.js';
-import {EventsPage} from './pages/eventpage';
+import {FOOD_LOG_ROUTE, FOOD_LIBRARY_ROUTE, FoodAreaPage, OLD_FOOD_ROUTES} from './pages/foodareapage';
 import {SettingsPage} from './pages/settings_page.js';
 import {
     LocalGetBodyLogs,
@@ -88,7 +87,7 @@ import {TimespansPage} from './pages/timepage';
 import {DataExportPage} from './pages/exportpage';
 import {SessionsPage} from './pages/sessions_page';
 import {ActivityPage} from './pages/activitypage';
-import {WorkoutPage} from './pages/workoutpage';
+import {WORKOUT_EXERCISES_ROUTE, WORKOUT_HISTORY_ROUTE, WORKOUT_ROUTE, WorkoutPage} from './pages/workoutpage';
 import {ReminderPromptPanel} from './pages/activitypage/reminder_prompt_panel';
 import {useSyncNativeAlarms} from './pages/activitypage/native_alarm_bridge';
 import {SyncAndroidTheme} from './platform/android';
@@ -120,7 +119,14 @@ export const App = () => {
     useSyncNativeAlarms(reminders);
 
     useLayoutEffect(() => {
-        const updateFunc = () => setHashRoute(window.location.hash);
+        const updateFunc = () => {
+            const moved = OLD_FOOD_ROUTES[window.location.hash];
+            if (moved !== undefined) {
+                // Replace, not push, so Back does not return to the old route.
+                window.history.replaceState(null, '', moved);
+            }
+            setHashRoute(window.location.hash);
+        };
 
         updateFunc();
         window.addEventListener('hashchange', updateFunc);
@@ -382,9 +388,11 @@ export const App = () => {
                         case '#logout':
                             return <LogoutPage />;
                         default:
-                        case '#events':
+                        case FOOD_LOG_ROUTE:
+                        case FOOD_LIBRARY_ROUTE:
                             return (
-                                <EventsPage
+                                <FoodAreaPage
+                                    route={hashRoute}
                                     user={user}
                                     setUser={setUser}
                                     foods={foods}
@@ -399,40 +407,6 @@ export const App = () => {
                                     setBodyMetrics={setBodyMetrics}
                                     goals={goals}
                                     setGoals={setGoals}
-                                    namespaces={namespaces}
-                                    setNamespaces={setNamespaces}
-                                    timespans={timespans}
-                                    setTimespans={setTimespans}
-                                    dashboards={dashboards}
-                                    setDashboards={setDashboards}
-                                    tagColors={tagColors}
-                                    setTagColors={setTagColors}
-                                    activities={activities}
-                                    setActivities={setActivities}
-                                    reminders={reminders}
-                                    setReminders={setReminders}
-                                    dataSources={dataSources}
-                                    setErrorMsg={setErrorMsg}
-                                    doRefresh={doRefresh}
-                                />
-                            );
-                        case '#foods':
-                            return (
-                                <FoodPage
-                                    user={user}
-                                    setUser={setUser}
-                                    foods={foods}
-                                    setFoods={setFoods}
-                                    events={events}
-                                    setEvents={setEvents}
-                                    eventlogs={eventlogs}
-                                    setEventLogs={setEventLogsWithFoodlogs}
-                                    goals={goals}
-                                    setGoals={setGoals}
-                                    bodylogs={bodylogs}
-                                    bodyMetrics={bodyMetrics}
-                                    setBodyLogs={setBodyLogs}
-                                    setBodyMetrics={setBodyMetrics}
                                     namespaces={namespaces}
                                     setNamespaces={setNamespaces}
                                     timespans={timespans}
@@ -586,9 +560,12 @@ export const App = () => {
                                     doRefresh={doRefresh}
                                 />
                             );
-                        case '#workout':
+                        case WORKOUT_ROUTE:
+                        case WORKOUT_EXERCISES_ROUTE:
+                        case WORKOUT_HISTORY_ROUTE:
                             return (
                                 <WorkoutPage
+                                    route={hashRoute}
                                     user={user}
                                     setUser={setUser}
                                     foods={foods}
