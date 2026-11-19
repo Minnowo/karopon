@@ -48,36 +48,7 @@ import {
 import {LogoutPage} from './pages/logout_page.js';
 import {FOOD_LOG_ROUTE, FOOD_LIBRARY_ROUTE, FoodAreaPage, OLD_FOOD_ROUTES} from './pages/foodareapage';
 import {SettingsPage} from './pages/settings_page.js';
-import {
-    LocalGetBodyLogs,
-    LocalGetBodyMetrics,
-    LocalGetDashboards,
-    LocalGetDataSources,
-    LocalGetEventLogs,
-    LocalGetEvents,
-    LocalGetFoods,
-    LocalGetGoals,
-    LocalGetNamespaces,
-    LocalGetTimespans,
-    LocalGetUser,
-    LocalStoreBodyLogs,
-    LocalStoreBodyMetrics,
-    LocalStoreDashboards,
-    LocalStoreTagColors,
-    LocalGetTagColors,
-    LocalStoreDataSources,
-    LocalStoreEventLogs,
-    LocalStoreEvents,
-    LocalStoreFoods,
-    LocalStoreGoals,
-    LocalStoreNamespaces,
-    LocalStoreTimespans,
-    LocalStoreUser,
-    LocalGetActivities,
-    LocalStoreActivities,
-    LocalGetReminders,
-    LocalStoreReminders,
-} from './utils/localstate';
+import {LocalDropOldDataCache} from './utils/localstate';
 import {ErrorDiv, ErrorDivMsg} from './components/error_div';
 import {BodyPage} from './pages/bodypage';
 import {GoalsPage} from './pages/goalspage';
@@ -98,25 +69,30 @@ export const App = () => {
     const hasAuthCookie = HasAuth();
 
     const [hashRoute, setHashRoute] = useState<string>(window.location.hash);
-    const [user, setUser] = useState<TblUser | null>(LocalGetUser());
-    const [foods, setFoods] = useState<TblUserFood[]>(LocalGetFoods() ?? []);
-    const [events, setEvents] = useState<TblUserEvent[]>(LocalGetEvents() ?? []);
-    const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[]>(LocalGetEventLogs() ?? []);
-    const [goals, setGoals] = useState<TblUserGoal[]>(LocalGetGoals() ?? []);
-    const [bodylogs, setBodyLogs] = useState<UserBodyLog[]>(LocalGetBodyLogs() ?? []);
-    const [bodyMetrics, setBodyMetrics] = useState<TblUserBodyMetric[]>(LocalGetBodyMetrics() ?? []);
-    const [namespaces, setNamespaces] = useState<string[]>(LocalGetNamespaces() ?? []);
-    const [timespans, setTimespans] = useState<TaggedTimespan[]>(LocalGetTimespans() ?? []);
-    const [dashboards, setDashboards] = useState<TblUserDashboard[]>(LocalGetDashboards() ?? []);
-    const [tagColors, setTagColors] = useState<TblUserTagColor[]>(LocalGetTagColors() ?? []);
-    const [activities, setActivities] = useState<ActivityWithTag[]>(LocalGetActivities() ?? []);
-    const [reminders, setReminders] = useState<ReminderWithActivities[]>(LocalGetReminders() ?? []);
-    const [dataSources, setDataSources] = useState<TblDataSource[]>(LocalGetDataSources() ?? []);
+    const [user, setUser] = useState<TblUser | null>(null);
+    // False until the server has answered whether there is a session, so a
+    // reload shows "Loading" rather than the login page.
+    const [sessionChecked, setSessionChecked] = useState<boolean>(false);
+    const [foods, setFoods] = useState<TblUserFood[]>([]);
+    const [events, setEvents] = useState<TblUserEvent[]>([]);
+    const [eventlogs, setEventLogsWithFoodlogs] = useState<UserEventFoodLog[]>([]);
+    const [goals, setGoals] = useState<TblUserGoal[]>([]);
+    const [bodylogs, setBodyLogs] = useState<UserBodyLog[]>([]);
+    const [bodyMetrics, setBodyMetrics] = useState<TblUserBodyMetric[]>([]);
+    const [namespaces, setNamespaces] = useState<string[]>([]);
+    const [timespans, setTimespans] = useState<TaggedTimespan[]>([]);
+    const [dashboards, setDashboards] = useState<TblUserDashboard[]>([]);
+    const [tagColors, setTagColors] = useState<TblUserTagColor[]>([]);
+    const [activities, setActivities] = useState<ActivityWithTag[]>([]);
+    const [reminders, setReminders] = useState<ReminderWithActivities[]>([]);
+    const [dataSources, setDataSources] = useState<TblDataSource[]>([]);
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [refresh, setRefresh] = useState<number>(0);
     const doRefresh = useCallback(() => setRefresh((x) => x + 1), []);
 
     useSyncNativeAlarms(reminders);
+
+    useEffect(LocalDropOldDataCache, []);
 
     useLayoutEffect(() => {
         const updateFunc = () => {
@@ -133,84 +109,6 @@ export const App = () => {
 
         return () => window.removeEventListener('hashchange', updateFunc);
     }, []);
-
-    useLayoutEffect(() => {
-        if (user !== null) {
-            LocalStoreUser(user);
-        }
-    }, [user]);
-
-    useLayoutEffect(() => {
-        if (foods !== null) {
-            LocalStoreFoods(foods);
-        }
-    }, [foods]);
-
-    useLayoutEffect(() => {
-        if (events !== null) {
-            LocalStoreEvents(events);
-        }
-    }, [events]);
-
-    useLayoutEffect(() => {
-        if (eventlogs !== null) {
-            LocalStoreEventLogs(eventlogs);
-        }
-    }, [eventlogs]);
-
-    useLayoutEffect(() => {
-        if (goals !== null) {
-            LocalStoreGoals(goals);
-        }
-    }, [goals]);
-
-    useLayoutEffect(() => {
-        if (bodylogs !== null) {
-            LocalStoreBodyLogs(bodylogs);
-        }
-    }, [bodylogs]);
-
-    useLayoutEffect(() => {
-        if (bodyMetrics !== null) {
-            LocalStoreBodyMetrics(bodyMetrics);
-        }
-    }, [bodyMetrics]);
-
-    useLayoutEffect(() => {
-        if (namespaces !== null) {
-            LocalStoreNamespaces(namespaces);
-        }
-    }, [namespaces]);
-
-    useLayoutEffect(() => {
-        if (timespans !== null) {
-            LocalStoreTimespans(timespans);
-        }
-    }, [timespans]);
-
-    useLayoutEffect(() => {
-        if (dashboards !== null) {
-            LocalStoreDashboards(dashboards);
-        }
-    }, [dashboards]);
-
-    useLayoutEffect(() => {
-        if (tagColors !== null) {
-            LocalStoreTagColors(tagColors);
-        }
-    }, [tagColors]);
-
-    useLayoutEffect(() => {
-        if (activities !== null) {
-            LocalStoreActivities(activities);
-        }
-    }, [activities]);
-
-    useLayoutEffect(() => {
-        if (reminders !== null) {
-            LocalStoreReminders(reminders);
-        }
-    }, [reminders]);
 
     useEffect(() => {
         // request proper permissions for notification / web audio api in advance, if we actually need it.
@@ -257,12 +155,6 @@ export const App = () => {
     }, [reminders]);
 
     useLayoutEffect(() => {
-        if (dataSources !== null) {
-            LocalStoreDataSources(dataSources);
-        }
-    }, [dataSources]);
-
-    useLayoutEffect(() => {
         ApiWhoAmI()
             .then((me) => {
                 setUser(me);
@@ -300,7 +192,8 @@ export const App = () => {
                     }
                 });
             })
-            .catch(setErrorMsg);
+            .catch(setErrorMsg)
+            .finally(() => setSessionChecked(true));
     }, [refresh]);
 
     useLayoutEffect(() => {
@@ -333,6 +226,14 @@ export const App = () => {
     useEffect(() => {
         document.title = user === null ? 'Log in - Karopon' : PageTitle(hashRoute);
     }, [hashRoute, user]);
+
+    if (user === null && !sessionChecked) {
+        return (
+            <main className="pt-32 text-center">
+                <p role="status">Loading...</p>
+            </main>
+        );
+    }
 
     if (user === null) {
         return <LoginPage error={errorMsg} setErrorMsg={setErrorMsg} doRefresh={doRefresh} />;

@@ -1,37 +1,33 @@
-import type {
-    TblUser,
-    TblUserFood,
-    TblUserEvent,
-    UserEventFoodLog,
-    UserBodyLog,
-    TblUserBodyMetric,
-    TblDataSource,
-    TblUserGoal,
-    TaggedTimespan,
-    TblUserDashboard,
-    TblUserTagColor,
-    ActivityWithTag,
-    ReminderWithActivities,
-} from '../api/types';
+// What the app keeps in localStorage: only state
+// that has no other home. The remote server address and its token (the
+// Android app's remote mode) and a workout run in progress, so a reload does
+// not lose it. User data is not cached here; the app loads it from the server
+// on every start.
+
 import type {RunState} from '../pages/workoutpage/run_state';
 
-const LOCAL_STORAGE_KEY_USER = 'user';
-const LOCAL_STORAGE_KEY_EVENTS = 'events';
-const LOCAL_STORAGE_KEY_FOODS = 'foods';
-const LOCAL_STORAGE_KEY_EVENTLOGS = 'eventlogs';
-const LOCAL_STORAGE_KEY_GOALS = 'goals';
-const LOCAL_STORAGE_KEY_BODYLOGS = 'bodylogs';
-const LOCAL_STORAGE_KEY_BODY_METRICS = 'body_metrics';
-const LOCAL_STORAGE_KEY_NAMESPACES = 'namespaces';
-const LOCAL_STORAGE_KEY_TIMESPANS = 'timespans';
-const LOCAL_STORAGE_KEY_DASHBOARDS = 'dashboards';
-const LOCAL_STORAGE_KEY_TAG_COLORS = 'tag_colors';
-const LOCAL_STORAGE_KEY_DATA_SOURCES = 'datasources';
-const LOCAL_STORAGE_KEY_ACTIVITIES = 'activities';
-const LOCAL_STORAGE_KEY_REMINDERS = 'reminders';
 const LOCAL_STORAGE_KEY_WORKOUT_RUN = 'workout_run';
 const LOCAL_STORAGE_KEY_REMOTE = 'remote';
 const LOCAL_STORAGE_KEY_REMOTE_TOKEN = 'remote_token';
+
+// Keys of the data cache this app used to keep; removed from storage on start
+// so old browsers and phones do not keep the copies.
+const OLD_DATA_CACHE_KEYS = [
+    'user',
+    'events',
+    'foods',
+    'eventlogs',
+    'goals',
+    'bodylogs',
+    'body_metrics',
+    'namespaces',
+    'timespans',
+    'dashboards',
+    'tag_colors',
+    'datasources',
+    'activities',
+    'reminders',
+];
 
 const store = (key: string, obj: string) => {
     try {
@@ -54,68 +50,26 @@ const load = <T>(key: string, loadRaw = false): T | null => {
     }
     return null;
 };
+const remove = (keys: string[]) => {
+    try {
+        for (const key of keys) {
+            localStorage.removeItem(key);
+        }
+    } catch {}
+};
+
 export const LocalStoreServerToken = (token: string) => store(LOCAL_STORAGE_KEY_REMOTE_TOKEN, token);
 export const LocalStoreServer = (server: string) => store(LOCAL_STORAGE_KEY_REMOTE, server);
-export const LocalStoreUser = (user: TblUser) => store(LOCAL_STORAGE_KEY_USER, JSON.stringify(user));
-export const LocalStoreEvents = (events: TblUserEvent[]) => store(LOCAL_STORAGE_KEY_EVENTS, JSON.stringify(events));
-export const LocalStoreFoods = (foods: TblUserFood[]) => store(LOCAL_STORAGE_KEY_FOODS, JSON.stringify(foods));
-export const LocalStoreEventLogs = (logs: UserEventFoodLog[]) => store(LOCAL_STORAGE_KEY_EVENTLOGS, JSON.stringify(logs));
-export const LocalStoreGoals = (goals: TblUserGoal[]) => store(LOCAL_STORAGE_KEY_GOALS, JSON.stringify(goals));
-export const LocalStoreBodyLogs = (logs: UserBodyLog[]) => store(LOCAL_STORAGE_KEY_BODYLOGS, JSON.stringify(logs));
-export const LocalStoreBodyMetrics = (metrics: TblUserBodyMetric[]) =>
-    store(LOCAL_STORAGE_KEY_BODY_METRICS, JSON.stringify(metrics));
-export const LocalStoreNamespaces = (namespaces: string[]) => store(LOCAL_STORAGE_KEY_NAMESPACES, JSON.stringify(namespaces));
-export const LocalStoreTimespans = (timespans: TaggedTimespan[]) => store(LOCAL_STORAGE_KEY_TIMESPANS, JSON.stringify(timespans));
-export const LocalStoreDashboards = (cards: TblUserDashboard[]) => store(LOCAL_STORAGE_KEY_DASHBOARDS, JSON.stringify(cards));
-export const LocalStoreTagColors = (colors: TblUserTagColor[]) => store(LOCAL_STORAGE_KEY_TAG_COLORS, JSON.stringify(colors));
-export const LocalStoreDataSources = (ds: TblDataSource[]) => store(LOCAL_STORAGE_KEY_DATA_SOURCES, JSON.stringify(ds));
-export const LocalStoreActivities = (activities: ActivityWithTag[]) =>
-    store(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(activities));
-export const LocalStoreReminders = (reminders: ReminderWithActivities[]) =>
-    store(LOCAL_STORAGE_KEY_REMINDERS, JSON.stringify(reminders));
-
 export const LocalGetServerToken = () => load<string>(LOCAL_STORAGE_KEY_REMOTE_TOKEN, true);
 export const LocalGetServer = () => load<string>(LOCAL_STORAGE_KEY_REMOTE, true);
-export const LocalGetUser = () => load<TblUser>(LOCAL_STORAGE_KEY_USER);
-export const LocalGetEvents = () => load<TblUserEvent[]>(LOCAL_STORAGE_KEY_EVENTS);
-export const LocalGetFoods = () => load<TblUserFood[]>(LOCAL_STORAGE_KEY_FOODS);
-export const LocalGetEventLogs = () => load<UserEventFoodLog[]>(LOCAL_STORAGE_KEY_EVENTLOGS);
-export const LocalGetGoals = () => load<TblUserGoal[]>(LOCAL_STORAGE_KEY_GOALS);
-export const LocalGetBodyLogs = () => load<UserBodyLog[]>(LOCAL_STORAGE_KEY_BODYLOGS);
-export const LocalGetBodyMetrics = () => load<TblUserBodyMetric[]>(LOCAL_STORAGE_KEY_BODY_METRICS);
-export const LocalGetNamespaces = () => load<string[]>(LOCAL_STORAGE_KEY_NAMESPACES);
-export const LocalGetTimespans = () => load<TaggedTimespan[]>(LOCAL_STORAGE_KEY_TIMESPANS);
-export const LocalGetDashboards = () => load<TblUserDashboard[]>(LOCAL_STORAGE_KEY_DASHBOARDS);
-export const LocalGetTagColors = () => load<TblUserTagColor[]>(LOCAL_STORAGE_KEY_TAG_COLORS);
-export const LocalGetDataSources = () => load<TblDataSource[]>(LOCAL_STORAGE_KEY_DATA_SOURCES);
-export const LocalGetActivities = () => load<ActivityWithTag[]>(LOCAL_STORAGE_KEY_ACTIVITIES);
-export const LocalGetReminders = () => load<ReminderWithActivities[]>(LOCAL_STORAGE_KEY_REMINDERS);
 
 export const LocalStoreWorkoutRun = (run: RunState) => store(LOCAL_STORAGE_KEY_WORKOUT_RUN, JSON.stringify(run));
 export const LocalGetWorkoutRun = () => load<RunState>(LOCAL_STORAGE_KEY_WORKOUT_RUN);
-export const LocalClearWorkoutRun = () => {
-    try {
-        localStorage.removeItem(LOCAL_STORAGE_KEY_WORKOUT_RUN);
-    } catch {}
-};
+export const LocalClearWorkoutRun = () => remove([LOCAL_STORAGE_KEY_WORKOUT_RUN]);
 
-export const LocalClearAll = () => {
-    try {
-        // clear user specific stuff
-        localStorage.removeItem(LOCAL_STORAGE_KEY_USER);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_FOODS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_EVENTLOGS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_GOALS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_BODYLOGS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_BODY_METRICS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_NAMESPACES);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_TIMESPANS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_DASHBOARDS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_TAG_COLORS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_ACTIVITIES);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_REMINDERS);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_WORKOUT_RUN);
-        localStorage.removeItem(LOCAL_STORAGE_KEY_REMOTE_TOKEN);
-    } catch {}
-};
+// LocalDropOldDataCache removes the data cache older versions kept.
+export const LocalDropOldDataCache = () => remove(OLD_DATA_CACHE_KEYS);
+
+// LocalClearAll forgets everything tied to the signed-in user (on log out).
+export const LocalClearAll = () =>
+    remove([...OLD_DATA_CACHE_KEYS, LOCAL_STORAGE_KEY_WORKOUT_RUN, LOCAL_STORAGE_KEY_REMOTE_TOKEN]);
