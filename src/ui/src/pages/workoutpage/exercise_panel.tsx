@@ -1,4 +1,5 @@
 import {Dispatch, StateUpdater, useId, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ExerciseWithTags, TblUserTag} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
@@ -21,7 +22,6 @@ type AddExercisePanelProps = TagProps & {
     // Saves; rejects with an ApiError when the server refuses it.
     onSubmit: (e: ExerciseWithTags) => Promise<void>;
     onCancel: () => void;
-    className?: string;
 };
 
 export function AddExercisePanel({
@@ -33,7 +33,6 @@ export function AddExercisePanel({
     initial,
     onSubmit,
     onCancel,
-    className = '',
 }: AddExercisePanelProps) {
     const [name, setName] = useState<string>(initial?.exercise.name ?? '');
     const [tags, setTags] = useState<TblUserTag[]>(initial?.tags ?? []);
@@ -72,9 +71,7 @@ export function AddExercisePanel({
     };
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
-            <h2>{title}</h2>
-
+        <EditorDialog title={title} saveLabel={submitLabel} saving={saving} onSave={onSaveClick} onClose={onCancel}>
             <div className="flex flex-col gap-2">
                 <input
                     className="w-full"
@@ -116,14 +113,7 @@ export function AddExercisePanel({
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                    {submitLabel}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 }
 
@@ -143,39 +133,38 @@ export function ExerciseEditPanel({
 }: ExerciseEditPanelProps) {
     const [showEdit, setShowEdit] = useState(false);
 
-    if (showEdit) {
-        return (
-            <AddExercisePanel
-                namespaces={namespaces}
-                setNamespaces={setNamespaces}
-                tagColors={tagColors}
-                title="Edit Exercise"
-                submitLabel="Save"
-                initial={exercise}
-                onSubmit={(e) => updateExercise(e).then(() => setShowEdit(false))}
-                onCancel={() => setShowEdit(false)}
-            />
-        );
-    }
-
     return (
-        <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1 flex flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                    <h2>{exercise.exercise.name}</h2>
-                    {exercise.tags.map((t) => (
-                        <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={tagColors.get(t.namespace)} />
-                    ))}
+        <>
+            <div className="w-full surface-1 flex items-center gap-2">
+                <div className="flex-1 flex flex-col gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h2>{exercise.exercise.name}</h2>
+                        {exercise.tags.map((t) => (
+                            <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={tagColors.get(t.namespace)} />
+                        ))}
+                    </div>
+                    {exercise.exercise.note && <small>{exercise.exercise.note}</small>}
                 </div>
-                {exercise.exercise.note && <small>{exercise.exercise.note}</small>}
+                <DropdownButton
+                    actions={[
+                        {label: 'Edit', onClick: () => setShowEdit(true)},
+                        {label: 'Copy as Text', onClick: () => void navigator.clipboard.writeText(ExerciseText(exercise))},
+                        {label: 'Delete', dangerous: true, onClick: () => deleteExercise(exercise)},
+                    ]}
+                />
             </div>
-            <DropdownButton
-                actions={[
-                    {label: 'Edit', onClick: () => setShowEdit(true)},
-                    {label: 'Copy as Text', onClick: () => void navigator.clipboard.writeText(ExerciseText(exercise))},
-                    {label: 'Delete', dangerous: true, onClick: () => deleteExercise(exercise)},
-                ]}
-            />
-        </div>
+            {showEdit && (
+                <AddExercisePanel
+                    namespaces={namespaces}
+                    setNamespaces={setNamespaces}
+                    tagColors={tagColors}
+                    title="Edit Exercise"
+                    submitLabel="Save"
+                    initial={exercise}
+                    onSubmit={(e) => updateExercise(e).then(() => setShowEdit(false))}
+                    onCancel={() => setShowEdit(false)}
+                />
+            )}
+        </>
     );
 }

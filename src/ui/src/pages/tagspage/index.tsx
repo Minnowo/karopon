@@ -14,7 +14,7 @@ import {TblUserTag, TblUserTagColor} from '../../api/types';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TagToString} from '../../utils/tags';
 import {DropdownButton} from '../../components/drop_down_button';
-import {NumberInput} from '../../components/number_input';
+import {LoadMore, useListPaging} from '../../components/load_more';
 import {TagColorPanel} from './tag_color_panel';
 import {AddTagPanel} from './add_tag_panel';
 
@@ -22,7 +22,6 @@ export const TagsPage = (state: BaseState) => {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [search, setSearch] = useState('');
     const [allTags, setAllTags] = useState<TblUserTag[]>([]);
-    const [numberToShow, setNumberToShow] = useState<number>(15);
 
     const [showNewTag, setShowNewTag] = useState(false);
     const [showColorPanel, setShowColorPanel] = useState(false);
@@ -58,6 +57,7 @@ export const TagsPage = (state: BaseState) => {
         }
         return allTags.filter((t) => t.namespace.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
     }, [allTags, search]);
+    const paging = useListPaging({total: filteredTags.length});
 
     const deleteTag = (tag: TblUserTag) => {
         if (!confirm(`Delete tag "${TagToString(tag)}"?`)) {
@@ -126,7 +126,8 @@ export const TagsPage = (state: BaseState) => {
             .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
-    const updateTagColors = (newTagColors: Record<string, string>) => {
+    // updateTagColors saves the colors. It rejects with the API error so the dialog can show it.
+    const updateTagColors = (newTagColors: Record<string, string>): Promise<void> => {
         const toSet: TblUserTagColor[] = [];
         const toDelete: string[] = [];
 
@@ -161,17 +162,15 @@ export const TagsPage = (state: BaseState) => {
             );
         }
 
-        Promise.all(ops)
+        return Promise.all(ops)
             .then(() => setShowColorPanel(false))
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     return (
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    disabled={showNewTag}
-                    className="px-3 py-1"
                     onClick={() => {
                         setShowNewTag(true);
                         setErrorMsg(null);
@@ -179,10 +178,7 @@ export const TagsPage = (state: BaseState) => {
                 >
                     New Tag
                 </button>
-                <button disabled={showColorPanel} className="px-3 py-1" onClick={() => setShowColorPanel(true)}>
-                    Tag Colors
-                </button>
-                <NumberInput label={'Show'} min={1} step={5} value={numberToShow} onValueChange={setNumberToShow} />
+                <button onClick={() => setShowColorPanel(true)}>Tag Colors</button>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
@@ -209,30 +205,31 @@ export const TagsPage = (state: BaseState) => {
                 />
             </div>
 
-            <div className="flex flex-col gap-2">
+            {editingTag !== null && (
+                <AddTagPanel
+                    key={TagToString(editingTag)}
+                    initialNamespace={editingTag.namespace}
+                    initialName={editingTag.name}
+                    title="Edit Tag"
+                    submitLabel="Save"
+                    showMergeOption
+                    onCreate={(ns, nm, merge) => saveEdit(editingTag, ns, nm, merge)}
+                    onCancel={() => {
+                        setEditingTag(null);
+                        setErrorMsg(null);
+                    }}
+                />
+            )}
+
+            <div ref={paging.listRef} className="flex flex-col gap-2">
                 {filteredTags.length === 0 ? (
                     <p>{allTags.length === 0 ? 'No tags found.' : 'No tags match your search.'}</p>
                 ) : (
-                    filteredTags.slice(0, numberToShow).map((t: TblUserTag) => {
+                    filteredTags.slice(0, paging.shown).map((t: TblUserTag) => {
                         const tagStr = TagToString(t);
-                        const isEditing = editingTag?.namespace === t.namespace && editingTag?.name === t.name;
-                        return isEditing ? (
-                            <AddTagPanel
-                                key={tagStr}
-                                initialNamespace={t.namespace}
-                                initialName={t.name}
-                                title="Edit Tag"
-                                submitLabel="Save"
-                                showMergeOption
-                                onCreate={(ns, nm, merge) => saveEdit(t, ns, nm, merge)}
-                                onCancel={() => {
-                                    setEditingTag(null);
-                                    setErrorMsg(null);
-                                }}
-                            />
-                        ) : (
+                        return (
                             <div key={tagStr} className="surface-1 flex items-center gap-2">
-                                <span className="flex-1 text-sm">{tagStr}</span>
+                                <span className="flex-1">{tagStr}</span>
                                 <DropdownButton
                                     actions={[
                                         {label: 'Edit', onClick: () => setEditingTag(t)},
@@ -244,6 +241,8 @@ export const TagsPage = (state: BaseState) => {
                     })
                 )}
             </div>
+
+            <LoadMore paging={paging} itemsName="tags" order="alphabetical" />
         </>
     );
 };

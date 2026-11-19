@@ -112,7 +112,6 @@ export const EventsPage = (state: BaseState) => {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    disabled={showNewEventPanel}
                     onClick={() => {
                         setShowNewEventPanel(true);
                         setNewEvent(UserEventFoodLogFactory.empty());
@@ -138,7 +137,23 @@ export const EventsPage = (state: BaseState) => {
                 />
             )}
 
-            <div className={`w-full flex flex-col gap-4 ${showNewEventPanel && 'mt-4'}`}>
+            {editEvent.eventlog.id !== 0 && (
+                <AddEventsPanel
+                    key={`e-${editEvent.eventlog.id}`}
+                    copyDate={true}
+                    dialogTitle={'Edit Event'}
+                    saveButtonTitle={'Update Event'}
+                    user={state.user}
+                    foods={state.foods}
+                    events={state.events}
+                    eventlogs={state.eventlogs}
+                    fromEvent={editEvent}
+                    createEvent={(n: CreateUserEventLog) => onUpdateEvent(editEvent.eventlog.id, n)}
+                    onCancel={() => setEditEvent(UserEventFoodLogFactory.empty())}
+                />
+            )}
+
+            <div className="w-full flex flex-col gap-4">
                 {state.eventlogs.length === 0 && (
                     <div className="text-center py-32">
                         <h3>Shhh... the list is taking a nap right now.</h3>
@@ -146,48 +161,31 @@ export const EventsPage = (state: BaseState) => {
                     </div>
                 )}
                 <div ref={paging.listRef} className="contents">
-                    {state.eventlogs.slice(0, paging.shown).map((foodGroup: UserEventFoodLog) =>
-                        editEvent.eventlog.id === foodGroup.eventlog.id ? (
-                            <AddEventsPanel
-                                key={`e-${editEvent.eventlog.id}`}
-                                copyDate={true}
-                                dialogTitle={`Edit Event`}
-                                saveButtonTitle={'Update Event'}
-                                user={state.user}
-                                foods={state.foods}
-                                events={state.events}
-                                eventlogs={state.eventlogs}
-                                fromEvent={editEvent}
-                                createEvent={(n: CreateUserEventLog) => onUpdateEvent(foodGroup.eventlog.id, n)}
-                                onCancel={() => setEditEvent(UserEventFoodLogFactory.empty())}
-                            />
-                        ) : (
-                            <EventPanel
-                                key={foodGroup.eventlog.id}
-                                user={state.user}
-                                foodGroup={foodGroup}
-                                actions={[
-                                    {
-                                        label: 'Copy',
-                                        onClick: () => {
-                                            setNewEvent(foodGroup);
-                                            setShowNewEventPanel(true);
-                                            window.scrollTo({top: 0, behavior: 'smooth'});
-                                        },
+                    {state.eventlogs.slice(0, paging.shown).map((foodGroup: UserEventFoodLog) => (
+                        <EventPanel
+                            key={foodGroup.eventlog.id}
+                            user={state.user}
+                            foodGroup={foodGroup}
+                            actions={[
+                                {
+                                    label: 'Copy',
+                                    onClick: () => {
+                                        setNewEvent(foodGroup);
+                                        setShowNewEventPanel(true);
                                     },
-                                    {
-                                        label: 'Edit',
-                                        onClick: () => setEditEvent(foodGroup),
-                                    },
-                                    {
-                                        label: 'Delete',
-                                        dangerous: true,
-                                        onClick: () => onDeleteEvent(foodGroup),
-                                    },
-                                ]}
-                            />
-                        )
-                    )}
+                                },
+                                {
+                                    label: 'Edit',
+                                    onClick: () => setEditEvent(foodGroup),
+                                },
+                                {
+                                    label: 'Delete',
+                                    dangerous: true,
+                                    onClick: () => onDeleteEvent(foodGroup),
+                                },
+                            ]}
+                        />
+                    ))}
                 </div>
             </div>
 

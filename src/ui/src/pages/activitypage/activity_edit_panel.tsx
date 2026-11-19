@@ -24,44 +24,43 @@ export function ActivityEditPanel({
     const [showEdit, setShowEdit] = useState(false);
     const {activity, tag} = activityWithTag;
 
-    if (showEdit) {
-        return (
-            <AddActivityPanel
-                namespaces={namespaces}
-                setNamespaces={setNamespaces}
-                tagColors={tagColors}
-                title="Edit Break Activity"
-                submitLabel="Save"
-                initial={{
-                    name: activity.name,
-                    tag_namespace: tag.namespace,
-                    tag_name: tag.name,
-                    duration: activity.duration,
-                    note: activity.note,
-                }}
-                onCreate={(req) => updateActivity({id: activity.id, ...req}).then(() => setShowEdit(false))}
-                onCancel={() => setShowEdit(false)}
-            />
-        );
-    }
-
     return (
-        <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1 flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                    <h2>{activity.name}</h2>
-                    <TagChip tag={tag} color={tagColors?.get(tag.namespace)} />
+        <>
+            <div className="w-full surface-1 flex items-center gap-2">
+                <div className="flex-1 flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                        <h2>{activity.name}</h2>
+                        <TagChip tag={tag} color={tagColors?.get(tag.namespace)} />
+                    </div>
+                    <small>
+                        {activity.duration} min{activity.note ? ` - ${activity.note}` : ''}
+                    </small>
                 </div>
-                <small>
-                    {activity.duration} min{activity.note ? ` - ${activity.note}` : ''}
-                </small>
+                <DropdownButton
+                    actions={[
+                        {label: 'Edit', onClick: () => setShowEdit(true)},
+                        {label: 'Delete', dangerous: true, onClick: () => deleteActivity(activityWithTag)},
+                    ]}
+                />
             </div>
-            <DropdownButton
-                actions={[
-                    {label: 'Edit', onClick: () => setShowEdit(true)},
-                    {label: 'Delete', dangerous: true, onClick: () => deleteActivity(activityWithTag)},
-                ]}
-            />
-        </div>
+            {showEdit && (
+                <AddActivityPanel
+                    namespaces={namespaces}
+                    setNamespaces={setNamespaces}
+                    tagColors={tagColors}
+                    title="Edit Break Activity"
+                    submitLabel="Save"
+                    initial={{
+                        name: activity.name,
+                        tag_namespace: tag.namespace,
+                        tag_name: tag.name,
+                        duration: activity.duration,
+                        note: activity.note,
+                    }}
+                    onCreate={(req) => updateActivity({id: activity.id, ...req}).then(() => setShowEdit(false))}
+                    onCancel={() => setShowEdit(false)}
+                />
+            )}
+        </>
     );
 }

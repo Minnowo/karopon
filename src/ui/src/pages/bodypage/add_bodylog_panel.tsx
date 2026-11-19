@@ -1,5 +1,6 @@
 import {useState, useMemo, useEffect} from 'preact/hooks';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ApiError} from '../../api/api';
 import {DoRender} from '../../hooks/doRender';
 import {TblUserBodyMetric, UserBodyLog} from '../../api/types';
@@ -16,7 +17,6 @@ type AddBodyPanelProps = {
     saveButtonTitle: string;
     preserveTime?: boolean;
     actionButtons?: JSX.Element[];
-    className?: string;
 };
 
 export function AddBodyPanel({
@@ -27,7 +27,6 @@ export function AddBodyPanel({
     title,
     saveButtonTitle,
     preserveTime = false,
-    className = '',
 }: AddBodyPanelProps) {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [saving, setSaving] = useState<boolean>(false);
@@ -91,42 +90,31 @@ export function AddBodyPanel({
     };
 
     return (
-        <>
-            <div className={`surface-1 flex flex-col gap-4 ${className}`}>
-                <h2>{title}</h2>
-
-                <div className="flex flex-col gap-2 justify-between">
-                    <div className="flex flex-col gap-2">
-                        {sortedMetrics.length === 0 ? (
-                            <small>
-                                No body metrics defined yet. Add some from the <a href="#body-metrics">Body Metrics</a> page.
-                            </small>
-                        ) : (
-                            sortedMetrics.map((metric) => (
-                                <NumberInput
-                                    key={metric.id}
-                                    className="flex-1"
-                                    innerClassName="flex-1 min-w-0"
-                                    label={metric.unit ? `${metric.name} (${metric.unit})` : metric.name}
-                                    step={1}
-                                    precision={3}
-                                    value={valueForMetric(metric.id)}
-                                    onValueChange={(v) => setValueForMetric(metric.id, v)}
-                                />
-                            ))
-                        )}
-                    </div>
-
-                    <ErrorDiv errorMsg={errorMsg} />
-
-                    <div className="flex justify-end gap-2">
-                        <button onClick={onCancel}>Cancel</button>
-                        <button className="btn-success" aria-disabled={saving || undefined} onClick={doSave}>
-                            {saveButtonTitle}
-                        </button>
-                    </div>
+        <EditorDialog title={title} saveLabel={saveButtonTitle} saving={saving} onSave={doSave} onClose={onCancel}>
+            <div className="flex flex-col gap-2 justify-between">
+                <div className="flex flex-col gap-2">
+                    {sortedMetrics.length === 0 ? (
+                        <small>
+                            No body metrics defined yet. Add some from the <a href="#body-metrics">Body Metrics</a> page.
+                        </small>
+                    ) : (
+                        sortedMetrics.map((metric) => (
+                            <NumberInput
+                                key={metric.id}
+                                className="flex-1"
+                                innerClassName="flex-1 min-w-0"
+                                label={metric.unit ? `${metric.name} (${metric.unit})` : metric.name}
+                                step={1}
+                                precision={3}
+                                value={valueForMetric(metric.id)}
+                                onValueChange={(v) => setValueForMetric(metric.id, v)}
+                            />
+                        ))
+                    )}
                 </div>
+
+                <ErrorDiv errorMsg={errorMsg} />
             </div>
-        </>
+        </EditorDialog>
     );
 }

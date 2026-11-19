@@ -62,7 +62,6 @@ export function GoalsPage(state: BaseState) {
         <>
             <div className="flex flex-wrap justify-evenly my-4 gap-2">
                 <button
-                    disabled={showNewGoalPanel}
                     onClick={() => {
                         setShowNewGoalPanel(true);
                         newGoal.current = NewTblUserGoal({target_value: 1500});
@@ -76,10 +75,22 @@ export function GoalsPage(state: BaseState) {
 
             {showNewGoalPanel && (
                 <GoalCreationPanel
-                    className="mb-4"
                     onCreated={createGoal}
                     onCancel={() => setShowNewGoalPanel(false)}
                     userGoal={newGoal.current}
+                    bodyMetrics={state.bodyMetrics}
+                    namespaces={state.namespaces}
+                    setNamespaces={state.setNamespaces}
+                />
+            )}
+
+            {editingGoal !== null && (
+                <GoalCreationPanel
+                    key={editingGoal.id}
+                    userGoal={editingGoal}
+                    onCreated={createGoal}
+                    onUpdated={updateGoal}
+                    onCancel={() => setEditingGoal(null)}
                     bodyMetrics={state.bodyMetrics}
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
@@ -91,30 +102,15 @@ export function GoalsPage(state: BaseState) {
                     <h3 className="text-center py-32">No goals found.</h3>
                 ) : (
                     <div ref={paging.listRef} className="contents">
-                        {state.goals
-                            .slice(0, paging.shown)
-                            .map((g: TblUserGoal) =>
-                                editingGoal?.id === g.id ? (
-                                    <GoalCreationPanel
-                                        key={g.id}
-                                        userGoal={editingGoal}
-                                        onCreated={createGoal}
-                                        onUpdated={updateGoal}
-                                        onCancel={() => setEditingGoal(null)}
-                                        bodyMetrics={state.bodyMetrics}
-                                        namespaces={state.namespaces}
-                                        setNamespaces={state.setNamespaces}
-                                    />
-                                ) : (
-                                    <GoalPanel
-                                        key={g.id}
-                                        goal={g}
-                                        dayOffsetSeconds={state.user.day_time_offset_seconds}
-                                        editGoal={(goal) => setEditingGoal((prev) => (prev?.id === goal.id ? null : goal))}
-                                        deleteGoal={deleteGoal}
-                                    />
-                                )
-                            )}
+                        {state.goals.slice(0, paging.shown).map((g: TblUserGoal) => (
+                            <GoalPanel
+                                key={g.id}
+                                goal={g}
+                                dayOffsetSeconds={state.user.day_time_offset_seconds}
+                                editGoal={(goal) => setEditingGoal(goal)}
+                                deleteGoal={deleteGoal}
+                            />
+                        ))}
                     </div>
                 )}
             </div>

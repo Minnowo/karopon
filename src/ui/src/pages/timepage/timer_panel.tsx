@@ -5,6 +5,10 @@ import {TimeInput} from '../../components/time_input';
 import {FormatTimerTimestamp} from '../../utils/date_utils';
 import {FormatDuration} from '../../utils/time';
 import {useTimeNow} from '../../hooks/useTimeNow';
+import {EditorDialog} from '../../components/editor_dialog';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {ApiError} from '../../api/api';
+import {ErrorText, PageErrorMessage} from '../../utils/error';
 
 import {Dispatch, StateUpdater, useState} from 'preact/hooks';
 
@@ -23,7 +27,8 @@ type TimerPanelProps = {
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
     continueTimer: (timer: TaggedTimespan) => void;
-    editTimer: (timer: TaggedTimespan) => void;
+    // Saves an edit; rejects with the API error so the edit dialog can show it.
+    saveTimespan: (timer: TblUserTimespan) => Promise<void>;
     deleteTimer: (timer: TaggedTimespan) => void;
 };
 
@@ -38,6 +43,7 @@ export const TimerPanel = ({
     continueTimer,
     stopTimer,
     deleteTimer,
+    saveTimespan,
 }: TimerPanelProps) => {
     const running = timer.timespan.stop_time === 0;
     const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
@@ -45,12 +51,17 @@ export const TimerPanel = ({
     const [showNote, setShowNote] = useState<boolean>(timer.timespan.note !== null);
 
     const [showEdit, setShowEdit] = useState(false);
+    const [editNote, setEditNote] = useState<string>('');
+    const [saving, setSaving] = useState<boolean>(false);
+    const [editError, setEditError] = useState<ErrorDivMsg | null>(null);
     const [editStart, setEditStart] = useState<Date>(new Date(timer.timespan.start_time));
     const [editStop, setEditStop] = useState<Date>(new Date(timer.timespan.stop_time || Date.now()));
 
     const openEdit = () => {
         setEditStart(new Date(timer.timespan.start_time));
         setEditStop(new Date(timer.timespan.stop_time || Date.now()));
+        setEditNote(timer.timespan.note ?? '');
+        setEditError(null);
         setShowEdit(true);
     };
 
@@ -64,15 +75,25 @@ export const TimerPanel = ({
     };
 
     const saveEdit = () => {
-        const n = note ? note.trim() : null;
-        updateTimespan({
+        if (saving) {
+            return;
+        }
+        const n = editNote.trim() === '' ? null : editNote.trim();
+        setSaving(true);
+        setEditError(null);
+        saveTimespan({
             ...timer.timespan,
             start_time: editStart.getTime(),
             stop_time: running ? 0 : editStop.getTime(),
-            note: n === '' ? null : n,
-        });
-        setNote(n === '' ? null : n);
-        setShowEdit(false);
+            note: n,
+        })
+            .then(() => {
+                setNote(n);
+                setShowEdit(false);
+            })
+            // The times have no field of their own to mark, so field messages show as one alert.
+            .catch((e: unknown) => setEditError(e instanceof ApiError ? (PageErrorMessage(e) ?? e) : ErrorText(e)))
+            .finally(() => setSaving(false));
     };
 
     return (
@@ -115,41 +136,6 @@ export const TimerPanel = ({
                     </div>
                 </div>
 
-                {showEdit && (
-                    <div className="flex flex-col gap-2">
-                        <TimeInput
-                            label="Start"
-                            value={editStart}
-                            onChange={setEditStart}
-                            showDate={true}
-                            showSeconds={true}
-                            hour12={timeformat === UserTimeFormat.Hour12}
-                        />
-                        {!running && (
-                            <TimeInput
-                                label="Stop"
-                                value={editStop}
-                                onChange={setEditStop}
-                                showDate={true}
-                                showSeconds={true}
-                                hour12={timeformat === UserTimeFormat.Hour12}
-                            />
-                        )}
-                        <textarea
-                            placeholder="Note"
-                            aria-label="Note"
-                            value={note ?? ''}
-                            onInput={(e) => setNote(e.currentTarget.value)}
-                        />
-                        <div className="flex gap-2 justify-end">
-                            <button onClick={() => setShowEdit(false)}>Cancel</button>
-                            <button className="btn-success" onClick={saveEdit}>
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                )}
-
                 {!showEdit && showNote && (
                     <textarea
                         placeholder="Note"
@@ -167,6 +153,39 @@ export const TimerPanel = ({
                     </div>
                 )}
             </div>
+            {showEdit && (
+                <EditorDialog
+                    title="Edit Timer"
+                    saveLabel="Save"
+                    saving={saving}
+                    onSave={saveEdit}
+                    onClose={() => setShowEdit(false)}
+                >
+                    <TimeInput
+                        label="Start"
+                        value={editStart}
+                        onChange={setEditStart}
+                        showDate={true}
+                        showSeconds={true}
+                        hour12={timeformat === UserTimeFormat.Hour12}
+                    />
+                    {!running && (
+                        <TimeInput
+                            label="Stop"
+                            value={editStop}
+                            onChange={setEditStop}
+                            showDate={true}
+                            showSeconds={true}
+                            hour12={timeformat === UserTimeFormat.Hour12}
+                        />
+                    )}
+                    <label className="flex flex-col gap-1">
+                        Note
+                        <textarea rows={4} value={editNote} onInput={(e) => setEditNote(e.currentTarget.value)} />
+                    </label>
+                    <ErrorDiv errorMsg={editError} />
+                </EditorDialog>
+            )}
             <DropdownButton
                 actions={[
                     {
@@ -174,7 +193,7 @@ export const TimerPanel = ({
                         onClick: () => continueTimer(timer),
                     },
                     {label: 'Toggle Note', onClick: () => setShowNote((x) => !x)},
-                    {label: showEdit ? 'Cancel Edit' : 'Edit', onClick: () => (showEdit ? setShowEdit(false) : openEdit())},
+                    {label: 'Edit', onClick: openEdit},
                     {
                         label: 'Delete',
                         dangerous: true,

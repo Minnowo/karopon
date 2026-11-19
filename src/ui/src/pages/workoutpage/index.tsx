@@ -218,17 +218,14 @@ export function WorkoutPage({route, ...state}: WorkoutPageProps) {
                 {tab === WORKOUT_ROUTE && (
                     <>
                         <div className="flex justify-evenly mb-4">
-                            <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
-                                New Workout
-                            </button>
+                            <button onClick={() => setShowAddPanel(true)}>New Workout</button>
                         </div>
 
                         {showAddPanel && (
                             <WorkoutBuilderPanel
                                 {...tagProps}
-                                className="mb-4"
                                 exercises={exercises}
-                                title="Workout Builder"
+                                title="New Workout"
                                 submitLabel="Create"
                                 onSubmit={addWorkout}
                                 onCancel={() => setShowAddPanel(false)}
@@ -262,17 +259,14 @@ export function WorkoutPage({route, ...state}: WorkoutPageProps) {
                 {tab === WORKOUT_EXERCISES_ROUTE && (
                     <>
                         <div className="flex justify-evenly mb-4">
-                            <button disabled={showAddPanel} onClick={() => setShowAddPanel(true)}>
-                                New Exercise
-                            </button>
+                            <button onClick={() => setShowAddPanel(true)}>New Exercise</button>
                             {!HasRestExercise(exercises) && <button onClick={addRest}>Add Rest Exercise</button>}
                         </div>
 
                         {showAddPanel && (
                             <AddExercisePanel
                                 {...tagProps}
-                                className="mb-4"
-                                title="Create New Exercise"
+                                title="New Exercise"
                                 submitLabel="Create"
                                 onSubmit={addExercise}
                                 onCancel={() => setShowAddPanel(false)}

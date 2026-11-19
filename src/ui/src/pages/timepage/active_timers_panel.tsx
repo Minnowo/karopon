@@ -12,7 +12,8 @@ type ActiveTimerPanelProps = {
     updateTags: (timer: TaggedTimespan) => void;
     stopTimer: (timer: TaggedTimespan) => void;
     continueTimer: (timer: TaggedTimespan) => void;
-    editTimer: (timer: TaggedTimespan) => void;
+    // Saves an edit; rejects with the API error so the edit dialog can show it.
+    saveTimespan: (timer: TblUserTimespan) => Promise<void>;
     deleteTimer: (timer: TaggedTimespan) => void;
 };
 
@@ -26,7 +27,7 @@ export const ActiveTimerPanel = ({
     updateTags,
     stopTimer,
     continueTimer,
-    editTimer,
+    saveTimespan,
     deleteTimer,
 }: ActiveTimerPanelProps) => {
     if (timers.length <= 0) {
@@ -48,7 +49,7 @@ export const ActiveTimerPanel = ({
                     updateTags={updateTags}
                     continueTimer={continueTimer}
                     deleteTimer={deleteTimer}
-                    editTimer={editTimer}
+                    saveTimespan={saveTimespan}
                     stopTimer={stopTimer}
                 />
             ))}

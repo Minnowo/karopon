@@ -1,4 +1,5 @@
 import {Dispatch, StateUpdater, useId, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {NewUserActivityRequest, TblUserTag} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {NumberInput} from '../../components/number_input';
@@ -16,19 +17,17 @@ type AddActivityPanelProps = {
     // Saves the activity; rejects with an ApiError when the server refuses it.
     onCreate: (req: NewUserActivityRequest) => Promise<void>;
     onCancel: () => void;
-    className?: string;
 };
 
 export function AddActivityPanel({
     namespaces,
     setNamespaces,
     tagColors,
-    title = 'Create New Break Activity',
-    submitLabel = 'Create',
+    title = 'New Break Activity',
+    submitLabel = 'Create Activity',
     initial,
     onCreate,
     onCancel,
-    className = '',
 }: AddActivityPanelProps) {
     const [name, setName] = useState<string>(initial?.name ?? '');
     const [tag, setTag] = useState<TblUserTag | null>(
@@ -98,9 +97,7 @@ export function AddActivityPanel({
     };
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
-            <h2>{title}</h2>
-
+        <EditorDialog title={title} saveLabel={submitLabel} saving={saving} onSave={onSaveClick} onClose={onCancel}>
             <div className="flex flex-col gap-2">
                 <input
                     {...invalidProps('#/name')}
@@ -163,13 +160,6 @@ export function AddActivityPanel({
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                    {submitLabel}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 }

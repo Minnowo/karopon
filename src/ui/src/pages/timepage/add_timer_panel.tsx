@@ -4,17 +4,21 @@ import {ChangeEvent} from 'preact/compat';
 import {TaggedTimespan, TblUserTag} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
+import {EditorDialog} from '../../components/editor_dialog';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
+import {ApiError} from '../../api/api';
+import {ErrorText, PageErrorMessage} from '../../utils/error';
 
 type Props = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
     timer: TaggedTimespan;
-    onCreate: (timer: TaggedTimespan) => void;
+    // Saves the timer; rejects with the API error so the dialog can show it.
+    onCreate: (timer: TaggedTimespan) => Promise<void>;
     onCancel: () => void;
     showTimeEditing: boolean;
     saveButtonTitle: string;
-    className?: string;
 };
 
 export const AddTimerPanel = ({
@@ -26,7 +30,6 @@ export const AddTimerPanel = ({
     onCancel,
     showTimeEditing,
     saveButtonTitle,
-    className = '',
 }: Props) => {
     const [startTime, setStartTime] = useState<Date>(new Date(timer.timespan.start_time));
     const [stopTime, setStopTime] = useState<Date>(new Date(timer.timespan.stop_time));
@@ -34,6 +37,8 @@ export const AddTimerPanel = ({
     const [tags, setTags] = useState<TblUserTag[]>([...timer.tags]);
 
     const tagsId = useId();
+    const [saving, setSaving] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
 
     useLayoutEffect(() => {
         setStartTime(new Date(timer.timespan.start_time));
@@ -55,16 +60,21 @@ export const AddTimerPanel = ({
             tags,
         } as TaggedTimespan;
 
-        onCreate(newTimer);
+        if (saving) {
+            return;
+        }
+        setSaving(true);
+        setErrorMsg(null);
+        onCreate(newTimer)
+            // No field to mark for the times here, so field messages show as one alert.
+            .catch((e: unknown) => setErrorMsg(e instanceof ApiError ? (PageErrorMessage(e) ?? e) : ErrorText(e)))
+            .finally(() => setSaving(false));
     };
 
     return (
-        <div className={`flex flex-col gap-4 surface-1 ${className}`}>
-            <details className="w-full no-summary-arrow">
-                <summary className="cursor-pointer">
-                    <h2 className="inline">Create New Timer</h2>
-                    <small> (click for help)</small>
-                </summary>
+        <EditorDialog title="New Timer" saveLabel={saveButtonTitle} saving={saving} onSave={doCreate} onClose={onCancel}>
+            <details className="w-full">
+                <summary className="cursor-pointer">How to use timers</summary>
 
                 <div className="flex flex-col gap-2 pt-2">
                     <p>
@@ -140,12 +150,7 @@ export const AddTimerPanel = ({
                 <textarea rows={4} value={note ?? ''} placeholder={'Note'} onInput={(e) => setNote(e.currentTarget.value)} />
             </label>
 
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" onClick={doCreate}>
-                    {saveButtonTitle}
-                </button>
-            </div>
-        </div>
+            <ErrorDiv errorMsg={errorMsg} />
+        </EditorDialog>
     );
 };

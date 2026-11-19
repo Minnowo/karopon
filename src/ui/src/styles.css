@@ -201,8 +201,10 @@ textarea[aria-invalid='true'],
     }
 
     /* The More sheet: a modal <dialog> anchored to the bottom of the window. */
+    /* Not surface-1: utilities beat this layer, so its rounded-md and p-3
+       would undo the square bottom edge. */
     .nav-sheet {
-        @apply mx-0 mt-auto mb-0 max-h-[80vh] w-full max-w-none rounded-b-none text-c-on-surface;
+        @apply mx-0 mt-auto mb-0 max-h-[80vh] w-full max-w-none rounded-t-md bg-c-surface-container-1 px-3 pt-3 text-c-on-surface;
         padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
     }
     .nav-sheet::backdrop {
@@ -237,4 +239,50 @@ textarea[aria-invalid='true'],
     html {
         scroll-padding-bottom: 6rem;
     }
+}
+
+/*
+ * Editor dialog (components/editor_dialog.tsx,
+ * https://m3.material.io/components/dialogs/guidelines):
+ * full screen with a top bar (close, title, Save) on phones; from sm a
+ * centered dialog 56px from the window edges with Cancel and Save at the
+ * bottom. Background set directly, not with surface-1 (see .nav-sheet).
+ */
+@layer components {
+    .editor-dialog {
+        @apply m-0 h-full max-h-none w-full max-w-none flex-col rounded-none bg-c-surface-container-1 p-0 text-c-on-surface open:flex
+            sm:m-auto sm:h-fit sm:max-h-[calc(100%-112px)] sm:w-[calc(100%-112px)] sm:max-w-3xl sm:rounded-md;
+    }
+    .editor-dialog::backdrop {
+        @apply bg-black/40;
+    }
+    .editor-dialog-header {
+        @apply flex items-center gap-2 px-2 py-2 sm:px-6 sm:pt-6 sm:pb-2;
+    }
+    .editor-dialog-close {
+        @apply rounded-sm border-0 bg-transparent p-2 hover:bg-c-on-surface-hover-tint;
+        box-shadow: none;
+    }
+    .editor-dialog-body {
+        @apply flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-4 sm:px-6;
+    }
+    .editor-dialog-footer {
+        @apply hidden justify-end gap-2 px-6 pb-6 sm:flex;
+    }
+    /* Totals pinned under the fields: a row of label over value pairs. */
+    .editor-dialog-summary {
+        @apply border-t border-c-outline-variant px-4 py-3 sm:mx-6 sm:mb-4 sm:px-0;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+    .editor-summary {
+        @apply flex flex-wrap justify-around gap-x-4 gap-y-2 text-center;
+    }
+    .editor-summary dt {
+        @apply text-sm text-c-on-surface-variant;
+    }
+}
+
+/* While a modal dialog is open the page behind it does not scroll. */
+html:has(dialog[open]) {
+    overflow: hidden;
 }

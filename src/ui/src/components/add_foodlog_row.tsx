@@ -4,6 +4,7 @@ import {FuzzySearch} from './select_list';
 import {NumberInput} from './number_input';
 import {FieldError} from './field_error';
 import {CalculateCalories, Str2CalorieFormula} from '../utils/calories';
+import {Icon} from './icons';
 
 type AddFoodlogPanelRowState = {
     user: TblUser;
@@ -54,10 +55,28 @@ export function AddFoodlogPanelRow({
         }
     }, [food, foods]);
 
+    const calories = CalculateCalories(
+        food.protein,
+        food.carb - food.fibre,
+        food.fibre,
+        food.fat,
+        Str2CalorieFormula(user.caloric_calc_method)
+    );
+    const macros = [
+        `Fat ${food.fat.toFixed(1)}`,
+        `Carb ${food.carb.toFixed(1)}`,
+        `Fibre ${food.fibre.toFixed(1)}`,
+        `Protein ${food.protein.toFixed(1)}`,
+        ...(showNetCarb ? [`Net ${(food.carb - food.fibre).toFixed(1)}`] : []),
+        ...(showCalories ? [`${calories.toFixed(0)} kcal`] : []),
+    ];
+
+    // A card per food: name, then amount and remove; the macros on a muted line
+    // once a saved food is picked. Wraps to two lines on narrow screens.
     return (
-        <>
-            <tr>
-                <td className="wsnw w-full pr-1 py-0">
+        <li className="surface-2 flex flex-col gap-1">
+            <div className="flex flex-wrap items-start gap-2">
+                <div className="flex min-w-40 flex-1 flex-col gap-1">
                     <FuzzySearch<TblUserFood>
                         query={foodTemplate.current.name}
                         onQueryChange={(q) => {
@@ -68,7 +87,7 @@ export function AddFoodlogPanelRow({
                         data={foods}
                         dataDisplayStr={(d: TblUserFood) => `${d.name} (${d.unit})`}
                         dataSearchStr={(d: TblUserFood) => d.name}
-                        className="w-full min-w-48 my-1 sm:mr-1"
+                        className="w-full"
                         placeholder="Food Name"
                         noResultsText="No saved food found"
                         invalid={nameError !== undefined}
@@ -94,61 +113,53 @@ export function AddFoodlogPanelRow({
                         }}
                     />
                     <FieldError id={nameErrorId} message={nameError} />
-                </td>
-                <td className="pr-1 py-0">
-                    <NumberInput
-                        innerClassName="w-full min-w-[5ch]"
-                        precision={1}
-                        min={0}
-                        label={food.unit || undefined}
-                        ariaLabel="Amount"
-                        // The unit comes from the picked saved food; without one there is nothing to measure.
-                        disabled={!food.unit}
-                        value={food.portion}
-                        labelOnLeftSide={false}
-                        invalid={portionError !== undefined}
-                        errorId={portionErrorId}
-                        onValueChange={(v) => {
-                            food.portion = v;
-                            if (foodTemplate.current.id > 0) {
-                                food.carb = foodTemplate.current.carb * v;
-                                food.protein = foodTemplate.current.protein * v;
-                                food.fat = foodTemplate.current.fat * v;
-                                food.fibre = foodTemplate.current.fibre * v;
-                            }
-                            render();
-                        }}
-                    />
-                    <FieldError id={portionErrorId} message={portionError} />
-                </td>
-                <td className="pr-2 py-0 text-right"> {food.fat.toFixed(1)} </td>
-                <td className="pr-2 py-0 text-right"> {food.carb.toFixed(1)} </td>
-                <td className="pr-2 py-0 text-right"> {food.fibre.toFixed(1)} </td>
-                <td className="pr-2 py-0 text-right">{food.protein.toFixed(1)} </td>
-                {showNetCarb && <td className="pr-2 py-0 text-right">{(food.carb - food.fibre).toFixed(1)}</td>}
-                {showCalories && (
-                    <td className="pr-2 py-0 text-right">
-                        {CalculateCalories(
-                            food.protein,
-                            food.carb - food.fibre,
-                            food.fibre,
-                            food.fat,
-
-                            Str2CalorieFormula(user.caloric_calc_method)
-                        ).toFixed(0)}
-                    </td>
-                )}
-                <td className="py-0">
+                </div>
+                <div className="flex items-start gap-2">
+                    {/* Sized for 4 digits and the unit: larger amounts are rare, and the name gets the room. */}
+                    <div className="flex flex-col gap-1">
+                        <NumberInput
+                            innerClassName="w-[6ch]"
+                            precision={1}
+                            min={0}
+                            label={food.unit || undefined}
+                            ariaLabel="Amount"
+                            // The unit comes from the picked saved food; without one there is nothing to measure.
+                            disabled={!food.unit}
+                            value={food.portion}
+                            labelOnLeftSide={false}
+                            invalid={portionError !== undefined}
+                            errorId={portionErrorId}
+                            onValueChange={(v) => {
+                                food.portion = v;
+                                if (foodTemplate.current.id > 0) {
+                                    food.carb = foodTemplate.current.carb * v;
+                                    food.protein = foodTemplate.current.protein * v;
+                                    food.fat = foodTemplate.current.fat * v;
+                                    food.fibre = foodTemplate.current.fibre * v;
+                                }
+                                render();
+                            }}
+                        />
+                        <FieldError id={portionErrorId} message={portionError} />
+                    </div>
                     <button
+                        type="button"
                         tabindex={-1}
                         className="btn-outlined-error"
                         aria-label={food.name ? `Remove ${food.name}` : 'Remove food row'}
                         onClick={() => deleteSelf()}
                     >
-                        X
+                        <Icon name="close" />
                     </button>
-                </td>
-            </tr>
-        </>
+                </div>
+            </div>
+            {food.unit && (
+                <small className="flex flex-wrap gap-x-3">
+                    {macros.map((m) => (
+                        <span key={m}>{m}</span>
+                    ))}
+                </small>
+            )}
+        </li>
     );
 }

@@ -1,4 +1,5 @@
 import {useState, useMemo, useRef, useEffect, useId} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {TblDataSource, TblDataSourceFood, TblUserFood} from '../../api/types';
 import {ApiError} from '../../api/api';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
@@ -16,7 +17,7 @@ type AddFoodPanelProps = {
     className?: string;
     readonly doRefresh: () => void;
 };
-export function AddFoodPanel({food, dataSources, addFood, onCancel, className, doRefresh}: AddFoodPanelProps) {
+export function AddFoodPanel({food, dataSources, addFood, onCancel, doRefresh}: AddFoodPanelProps) {
     const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
     const [saving, setSaving] = useState<boolean>(false);
@@ -100,13 +101,10 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
     };
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
+        <EditorDialog title="New Food" saveLabel="Create Food" saving={saving} onSave={onSaveClick} onClose={onCancel}>
             <div className="w-full">
-                <details className="w-full no-summary-arrow">
-                    <summary className="cursor-pointer">
-                        <h2 className="inline">Create New Food</h2>
-                        <small> (click for help)</small>
-                    </summary>
+                <details className="w-full">
+                    <summary className="cursor-pointer">How to add a food</summary>
 
                     <div className="flex flex-col gap-2 pt-2">
                         <p>Add a food using information from a nutrition label or a built-in data source.</p>
@@ -277,13 +275,6 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
 
             <ErrorDiv errorMsg={errorMsg} />
 
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                    Create Food
-                </button>
-            </div>
-
             <details className="w-full">
                 <summary className="cursor-pointer">Search data sources for food</summary>
 
@@ -295,6 +286,6 @@ export function AddFoodPanel({food, dataSources, addFood, onCancel, className, d
                     )}
                 </div>
             </details>
-        </div>
+        </EditorDialog>
     );
 }

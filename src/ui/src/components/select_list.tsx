@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState, useCallback, useId} from 'preact/hooks';
+import {usePlacedList} from '../hooks/usePlacedList';
 import {useDebouncedCallback} from '../hooks/useDebounce';
 
 type FuzzySearchProps<T> = {
@@ -40,6 +41,7 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
     const optionId = (i: number) => `${baseId}-option-${i}`;
 
     const [open, setOpen] = useState<boolean>(false);
+    const listStyle = usePlacedList(open, inputRef);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [matches, setMatches] = useState<T[] | null>(null);
 
@@ -199,7 +201,8 @@ export function FuzzySearch<T>(p: FuzzySearchProps<T>) {
                     ref={listRef}
                     id={listboxId}
                     role="listbox"
-                    class={`absolute z-10 mt-1 max-h-60 overflow-auto rounded-sm shadow-lg smooth-scroll`}
+                    class="fixed z-50 overflow-auto rounded-sm shadow-lg smooth-scroll"
+                    style={listStyle}
                 >
                     {matches && matches.length > 0 ? (
                         matches.map((item, i) => {

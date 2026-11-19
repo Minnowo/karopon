@@ -1,4 +1,5 @@
 import {useId, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {FieldError} from '../../components/field_error';
 import {ApiError} from '../../api/api';
@@ -42,8 +43,7 @@ export const AddBodyMetricPanel = ({onCreate, onCancel}: AddBodyMetricPanelProps
     };
 
     return (
-        <div className="mb-4 surface-1 flex flex-col gap-2">
-            <h2>New Body Metric</h2>
+        <EditorDialog title="New Body Metric" saveLabel="Create Metric" saving={saving} onSave={handleSubmit} onClose={onCancel}>
             <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1 flex flex-col gap-1">
                     <input
@@ -59,7 +59,6 @@ export const AddBodyMetricPanel = ({onCreate, onCancel}: AddBodyMetricPanelProps
                             setName(e.currentTarget.value);
                             setNameError(undefined);
                         }}
-                        autoFocus
                     />
                     <FieldError id={`${nameId}-error`} message={nameError} />
                 </div>
@@ -73,12 +72,6 @@ export const AddBodyMetricPanel = ({onCreate, onCancel}: AddBodyMetricPanelProps
                 />
             </div>
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex gap-2 justify-end">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={handleSubmit}>
-                    Create
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 };

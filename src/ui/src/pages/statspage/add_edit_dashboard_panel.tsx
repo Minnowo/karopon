@@ -1,46 +1,48 @@
 import {useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 
 type DashboardSettingsPanelProps = {
-    className?: string;
     titleLabel: string;
     initialName: string;
     confirmLabel: string;
     saving?: boolean;
+    // The save's error, shown in the dialog; the caller keeps it.
+    error?: ErrorDivMsg | null;
     onConfirm: (name: string) => void;
     onCancel: () => void;
 };
+
+// AddEditDashboardPanel asks for a view's name, for a new view or a rename.
 export function AddEditDashboardPanel({
-    className = 'mt-4 mb-4',
     titleLabel,
     initialName,
     confirmLabel,
     saving = false,
+    error = null,
     onConfirm,
     onCancel,
 }: DashboardSettingsPanelProps) {
     const [name, setName] = useState(initialName);
 
     return (
-        <div className={`flex flex-col gap-2 surface-1 ${className}`}>
-            <h2>{titleLabel}</h2>
-            <input
-                type="text"
-                className="w-full px-2 py-1"
-                value={name}
-                onInput={(e) => setName((e.target as HTMLInputElement).value)}
-                placeholder="View name"
-                aria-label="View name"
-                autoFocus
-            />
-
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel} disabled={saving}>
-                    Cancel
-                </button>
-                <button className="btn-success" onClick={() => onConfirm(name)} disabled={saving}>
-                    {saving ? 'Saving...' : confirmLabel}
-                </button>
-            </div>
-        </div>
+        <EditorDialog
+            title={titleLabel}
+            saveLabel={confirmLabel}
+            saving={saving}
+            onSave={() => onConfirm(name)}
+            onClose={onCancel}
+        >
+            <label className="flex flex-col gap-1">
+                Name
+                <input
+                    type="text"
+                    value={name}
+                    onInput={(e) => setName((e.target as HTMLInputElement).value)}
+                    placeholder="View name"
+                />
+            </label>
+            <ErrorDiv errorMsg={error} />
+        </EditorDialog>
     );
 }

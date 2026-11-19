@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'preact/hooks';
-import {PageErrorMessage} from '../../utils/error';
+import {PageErrorMessage, RefreshOnUnauthorized} from '../../utils/error';
 import {BaseState} from '../../state/basestate';
 import {
     ApiDeleteUserTimespan,
@@ -74,19 +74,18 @@ export function TimespansPage(state: BaseState) {
             .catch(handleErr);
     };
 
-    const newTimer = (newTimespan: TaggedTimespan, closeCreatePanel = false) => {
+    // newTimer starts a timer from a quick action (Start Timer, Continue); errors show on the page.
+    const newTimer = (newTimespan: TaggedTimespan) => {
         ApiNewUserTimespan(newTimespan)
             .then((ts: TaggedTimespan) => {
                 state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
-                if (closeCreatePanel) {
-                    setShowNewTimespan(false);
-                }
             })
             .catch(handleErr);
     };
 
-    const updateTimespan = (newTimespan: TblUserTimespan) => {
-        ApiUpdateUserTimespan(newTimespan)
+    // saveTimespan saves a timer edit. It rejects with the API error so the edit dialog can show it.
+    const saveTimespan = (newTimespan: TblUserTimespan): Promise<void> => {
+        return ApiUpdateUserTimespan(newTimespan)
             .then(() =>
                 state.setTimespans((oldTs: TaggedTimespan[]) =>
                     oldTs.map((t: TaggedTimespan) => {
@@ -97,7 +96,22 @@ export function TimespansPage(state: BaseState) {
                     })
                 )
             )
-            .catch(handleErr);
+            .catch(RefreshOnUnauthorized(state.doRefresh));
+    };
+
+    // updateTimespan is for quick actions (stop, a note) that report errors on the page.
+    const updateTimespan = (newTimespan: TblUserTimespan) => {
+        saveTimespan(newTimespan).catch(handleErr);
+    };
+
+    // createTimer saves a new timer from the dialog. It rejects with the API error so the dialog can show it.
+    const createTimer = (newTimespan: TaggedTimespan): Promise<void> => {
+        return ApiNewUserTimespan(newTimespan)
+            .then((ts: TaggedTimespan) => {
+                state.setTimespans((old) => (old ? [ts, ...old] : [ts]));
+                setShowNewTimespan(false);
+            })
+            .catch(RefreshOnUnauthorized(state.doRefresh));
     };
 
     const startTimerNow = (tags?: TblUserTag[]) => {
@@ -128,10 +142,6 @@ export function TimespansPage(state: BaseState) {
         startTimerNow(timer.tags);
     };
 
-    const editTimer = (timer: TaggedTimespan) => {
-        console.debug(timer);
-    };
-
     const deleteTimer = (timer: TaggedTimespan) => {
         if (confirm('Delete this timer?')) {
             const payload = {
@@ -152,7 +162,6 @@ export function TimespansPage(state: BaseState) {
                 <button onClick={() => startTimerNow()}>Start Timer</button>
 
                 <button
-                    disabled={showNewTimespan}
                     onClick={() => {
                         setShowNewTimespan(true);
                         setTmpTimer(NewTaggedTimespan());
@@ -166,14 +175,13 @@ export function TimespansPage(state: BaseState) {
 
             {showNewTimespan && (
                 <AddTimerPanel
-                    className="mb-4"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     tagColors={tagColorMap}
                     timer={tmpTimer}
                     showTimeEditing={false}
-                    saveButtonTitle={'New Timer'}
-                    onCreate={(t) => newTimer(t, true)}
+                    saveButtonTitle={'Start Timer'}
+                    onCreate={createTimer}
                     onCancel={() => setShowNewTimespan(false)}
                 />
             )}
@@ -188,7 +196,7 @@ export function TimespansPage(state: BaseState) {
                     updateTimespan={updateTimespan}
                     updateTags={updateTags}
                     continueTimer={continueTimer}
-                    editTimer={editTimer}
+                    saveTimespan={saveTimespan}
                     deleteTimer={deleteTimer}
                     stopTimer={stopTimer}
                 />
@@ -208,7 +216,7 @@ export function TimespansPage(state: BaseState) {
                                 updateTimespan={updateTimespan}
                                 updateTags={updateTags}
                                 continueTimer={continueTimer}
-                                editTimer={editTimer}
+                                saveTimespan={saveTimespan}
                                 deleteTimer={deleteTimer}
                                 stopTimer={stopTimer}
                             />

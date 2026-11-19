@@ -1,4 +1,5 @@
 import {Dispatch, StateUpdater, useId, useMemo, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ExerciseWithTags, StepKind, StepKindValues, TblUserTag, WorkoutWithTags} from '../../api/types';
 import {TagInput} from '../../components/tag_input';
 import {TagChip} from '../../components/tag_chip';
@@ -33,7 +34,6 @@ type WorkoutBuilderPanelProps = {
     // Saves; rejects with an ApiError when the server refuses it.
     onSubmit: (w: WorkoutWithTags) => Promise<void>;
     onCancel: () => void;
-    className?: string;
 };
 
 const move = <T,>(arr: T[], i: number, dir: -1 | 1): T[] => {
@@ -368,12 +368,9 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
     );
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${p.className ?? ''}`}>
-            <details className="w-full no-summary-arrow">
-                <summary className="cursor-pointer">
-                    <h2 className="inline">{p.title}</h2>
-                    <small> (click for help)</small>
-                </summary>
+        <EditorDialog title={p.title} saveLabel={p.submitLabel} saving={saving} onSave={onSaveClick} onClose={p.onCancel}>
+            <details className="w-full">
+                <summary className="cursor-pointer">How to build a workout</summary>
 
                 <div className="flex flex-col gap-2 pt-2">
                     <p>
@@ -512,13 +509,6 @@ export function WorkoutBuilderPanel(p: WorkoutBuilderPanelProps) {
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-
-            <div className="flex justify-end gap-2">
-                <button onClick={p.onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                    {p.submitLabel}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 }

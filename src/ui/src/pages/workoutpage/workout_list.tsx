@@ -23,68 +23,64 @@ export function WorkoutEditPanel(p: WorkoutEditPanelProps) {
 
     const summary = useMemo(() => StructureSummary(ParseStructure(p.workout.workout.structure)), [p.workout.workout.structure]);
 
-    if (showEdit) {
-        return (
-            <WorkoutBuilderPanel
-                namespaces={p.namespaces}
-                setNamespaces={p.setNamespaces}
-                tagColors={p.tagColors}
-                exercises={p.exercises}
-                title="Edit Workout"
-                submitLabel="Save"
-                initial={p.workout}
-                onSubmit={(w) => p.updateWorkout(w).then(() => setShowEdit(false))}
-                onCancel={() => setShowEdit(false)}
-            />
-        );
-    }
-
-    if (showCopy) {
-        return (
-            <WorkoutBuilderPanel
-                namespaces={p.namespaces}
-                setNamespaces={p.setNamespaces}
-                tagColors={p.tagColors}
-                exercises={p.exercises}
-                title="Copy Workout"
-                submitLabel="Create"
-                initial={{...p.workout, workout: {...p.workout.workout, id: 0, name: `${p.workout.workout.name} (copy)`}}}
-                onSubmit={(w) => p.addWorkout(w).then(() => setShowCopy(false))}
-                onCancel={() => setShowCopy(false)}
-            />
-        );
-    }
-
     const {workout, tags} = p.workout;
 
     return (
-        <div className="w-full surface-1 flex items-center gap-2">
-            <div className="flex-1 flex flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                    <h2>{workout.name}</h2>
-                    {tags.map((t) => (
-                        <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={p.tagColors.get(t.namespace)} />
-                    ))}
+        <>
+            <div className="w-full surface-1 flex items-center gap-2">
+                <div className="flex-1 flex flex-col gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h2>{workout.name}</h2>
+                        {tags.map((t) => (
+                            <TagChip key={`${t.namespace}:${t.name}`} tag={t} color={p.tagColors.get(t.namespace)} />
+                        ))}
+                    </div>
+                    <small>
+                        {summary}
+                        {workout.note ? ` - ${workout.note}` : ''}
+                    </small>
                 </div>
-                <small>
-                    {summary}
-                    {workout.note ? ` - ${workout.note}` : ''}
-                </small>
+                <button className="btn-success" onClick={() => p.startWorkout(p.workout)}>
+                    Start
+                </button>
+                <DropdownButton
+                    actions={[
+                        {label: 'Edit', onClick: () => setShowEdit(true)},
+                        {label: 'Copy', onClick: () => setShowCopy(true)},
+                        {
+                            label: 'Copy as Text',
+                            onClick: () => void navigator.clipboard.writeText(WorkoutText(p.workout, p.exercises)),
+                        },
+                        {label: 'Delete', dangerous: true, onClick: () => p.deleteWorkout(p.workout)},
+                    ]}
+                />
             </div>
-            <button className="btn-success" onClick={() => p.startWorkout(p.workout)}>
-                Start
-            </button>
-            <DropdownButton
-                actions={[
-                    {label: 'Edit', onClick: () => setShowEdit(true)},
-                    {label: 'Copy', onClick: () => setShowCopy(true)},
-                    {
-                        label: 'Copy as Text',
-                        onClick: () => void navigator.clipboard.writeText(WorkoutText(p.workout, p.exercises)),
-                    },
-                    {label: 'Delete', dangerous: true, onClick: () => p.deleteWorkout(p.workout)},
-                ]}
-            />
-        </div>
+            {showEdit && (
+                <WorkoutBuilderPanel
+                    namespaces={p.namespaces}
+                    setNamespaces={p.setNamespaces}
+                    tagColors={p.tagColors}
+                    exercises={p.exercises}
+                    title="Edit Workout"
+                    submitLabel="Save"
+                    initial={p.workout}
+                    onSubmit={(w) => p.updateWorkout(w).then(() => setShowEdit(false))}
+                    onCancel={() => setShowEdit(false)}
+                />
+            )}
+            {showCopy && (
+                <WorkoutBuilderPanel
+                    namespaces={p.namespaces}
+                    setNamespaces={p.setNamespaces}
+                    tagColors={p.tagColors}
+                    exercises={p.exercises}
+                    title="Copy Workout"
+                    submitLabel="Create"
+                    initial={{...p.workout, workout: {...p.workout.workout, id: 0, name: `${p.workout.workout.name} (copy)`}}}
+                    onSubmit={(w) => p.addWorkout(w).then(() => setShowCopy(false))}
+                    onCancel={() => setShowCopy(false)}
+                />
+            )}
+        </>
     );
 }

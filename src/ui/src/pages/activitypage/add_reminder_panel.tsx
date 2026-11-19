@@ -1,4 +1,5 @@
 import {useId, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ActivityWithTag, ReminderActivityMode, ReminderAlarmMode} from '../../api/types';
 import {NumberInput} from '../../components/number_input';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
@@ -38,7 +39,6 @@ type AddReminderPanelProps = {
     // Saves the reminder; rejects with an ApiError when the server refuses it.
     onCreate: (reminder: NewReminder) => Promise<void>;
     onCancel: () => void;
-    className?: string;
 };
 
 let nextRowKey = 0;
@@ -46,12 +46,11 @@ let nextRowKey = 0;
 export function AddReminderPanel({
     activities,
     hour12,
-    title = 'Create New Reminder',
-    submitLabel = 'Create',
+    title = 'New Reminder',
+    submitLabel = 'Create Reminder',
     initial,
     onCreate,
     onCancel,
-    className = '',
 }: AddReminderPanelProps) {
     const [enabled, setEnabled] = useState<boolean>(initial?.enabled ?? true);
     const [intervalMinutes, setIntervalMinutes] = useState<number>(initial?.intervalMinutes ?? 45);
@@ -162,9 +161,7 @@ export function AddReminderPanel({
     };
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
-            <h2>{title}</h2>
-
+        <EditorDialog title={title} saveLabel={submitLabel} saving={saving} onSave={onSaveClick} onClose={onCancel}>
             <div className="flex flex-col gap-2">
                 <label className="flex flex-col gap-1">
                     Name
@@ -331,13 +328,6 @@ export function AddReminderPanel({
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
-
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                    {submitLabel}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 }

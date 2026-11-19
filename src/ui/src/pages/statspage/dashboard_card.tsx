@@ -1,4 +1,5 @@
 import {Dispatch, StateUpdater, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {TaggedTimespan, TblUserBodyMetric, UserBodyLog, UserEventFoodLog} from '../../api/types';
 import {ChartData, CommonRanges, DashboardCard, EventLogType, GraphStyle, MacroType, TimeUnit} from './common';
 import {PieChart} from './graph_pie_chart';
@@ -449,8 +450,6 @@ export function DashboardCardComponent({
         setGraphStyleOverride(s);
     };
 
-    const isDirty = draft !== null && JSON.stringify(draft) !== JSON.stringify(card);
-
     useEffect(() => {
         // Mount-only clicking Edit on an existing chart re-renders it rather than remounting it.
         // This is only read once at mount time.
@@ -517,57 +516,64 @@ export function DashboardCardComponent({
     return (
         <div ref={thisRef} className="surface-1 flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
-                <h2 className="wsnw overflow-hidden text-ellipsis">{draft?.title ?? card.title}</h2>
-                {!editing && (
-                    <DropdownButton
-                        actions={[
-                            {label: 'Edit', onClick: onStartEdit},
-                            {label: 'Duplicate', onClick: onDuplicate},
-                            {label: 'Move Up', disabled: isFirst, onClick: handleMoveUP},
-                            {label: 'Move Down', disabled: isLast, onClick: handleMoveDown},
-                            {label: 'Delete', dangerous: true, onClick: onRemove},
-                        ]}
-                    />
-                )}
+                <h2 className="wsnw overflow-hidden text-ellipsis">{card.title}</h2>
+                {/* Kept while editing, so focus can return to it when the editor dialog closes. */}
+                <DropdownButton
+                    actions={[
+                        {label: 'Edit', onClick: onStartEdit},
+                        {label: 'Duplicate', onClick: onDuplicate},
+                        {label: 'Move Up', disabled: isFirst, onClick: handleMoveUP},
+                        {label: 'Move Down', disabled: isLast, onClick: handleMoveDown},
+                        {label: 'Delete', dangerous: true, onClick: onRemove},
+                    ]}
+                />
             </div>
+
+            {/* While the editor dialog is open it shows the chart; this card waits behind it. */}
+            {editing ? <small>This chart is being edited.</small> : renderChart()}
 
             {editing && draft !== null && (
-                <DashboardCardEditor
-                    draft={draft}
-                    onDraftChange={setDraft}
-                    dayOffsetSeconds={dayOffsetSeconds}
-                    bodyMetrics={bodyMetrics}
-                    namespaces={namespaces}
-                    setNamespaces={setNamespaces}
-                    tagColors={tagColors}
-                    isDirty={isDirty}
+                <EditorDialog
+                    title="Edit Chart"
+                    saveLabel="Save"
                     saving={saving}
-                    saveError={saveError}
                     onSave={() => onSave(draft)}
-                    onCancel={onCancelEdit}
-                />
-            )}
-
-            <div className="relative">
-                <div
-                    className={`transition-opacity ${previewStale ? 'opacity-40 pointer-events-none no-drag' : ''}`}
-                    aria-disabled={previewStale || undefined}
+                    onClose={onCancelEdit}
                 >
-                    {renderChart()}
-                </div>
+                    <DashboardCardEditor
+                        draft={draft}
+                        onDraftChange={setDraft}
+                        dayOffsetSeconds={dayOffsetSeconds}
+                        bodyMetrics={bodyMetrics}
+                        namespaces={namespaces}
+                        setNamespaces={setNamespaces}
+                        tagColors={tagColors}
+                        saveError={saveError}
+                    />
 
-                {previewStale && draft !== null && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <button
-                            className="btn-secondary wsnw shadow-lg"
-                            onClick={() => setPreviewCard(draft)}
-                            title="Redraw the chart using the current settings"
+                    <h3>Preview</h3>
+                    <div className="relative">
+                        <div
+                            className={`transition-opacity ${previewStale ? 'opacity-40 pointer-events-none no-drag' : ''}`}
+                            aria-disabled={previewStale || undefined}
                         >
-                            Refresh Chart
-                        </button>
+                            {renderChart()}
+                        </div>
+
+                        {previewStale && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <button
+                                    className="btn-secondary wsnw shadow-lg"
+                                    onClick={() => setPreviewCard(draft)}
+                                    title="Redraw the chart using the current settings"
+                                >
+                                    Refresh Chart
+                                </button>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </EditorDialog>
+            )}
         </div>
     );
 }

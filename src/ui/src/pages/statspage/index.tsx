@@ -1,13 +1,16 @@
 import {useMemo, useState} from 'preact/hooks';
 import {BaseState} from '../../state/basestate';
 import {DEFAULT_DASHBOARD, UserDashboard} from './common';
-import {ApiDeleteDashboard, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
+import {ApiDeleteDashboard, ApiError, ApiNewDashboard, ApiUpdateDashboard} from '../../api/api';
+import {ErrorDivMsg} from '../../components/error_div';
 import {DashboardComponent} from './dashboard';
 import {AddEditDashboardPanel} from './add_edit_dashboard_panel';
 
 export function StatsPage(state: BaseState) {
     const [curDashboard, setCurDashboard] = useState<number>(0);
     const [showAddPanel, setShowAddPanel] = useState(false);
+    const [adding, setAdding] = useState<boolean>(false);
+    const [addError, setAddError] = useState<ErrorDivMsg | null>(null);
 
     const tagColorMap = useMemo(() => {
         const m = new Map();
@@ -18,12 +21,25 @@ export function StatsPage(state: BaseState) {
     }, [state.tagColors]);
 
     const onAdd = (name: string) => {
-        ApiNewDashboard(name || DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards)).then((db) => {
-            const newIndex = state.dashboards.length;
-            state.setDashboards([...state.dashboards, db]);
-            setCurDashboard(newIndex);
-            setShowAddPanel(false);
-        });
+        if (adding) {
+            return;
+        }
+        setAdding(true);
+        setAddError(null);
+        ApiNewDashboard(name || DEFAULT_DASHBOARD.name, JSON.stringify(DEFAULT_DASHBOARD.cards))
+            .then((db) => {
+                const newIndex = state.dashboards.length;
+                state.setDashboards([...state.dashboards, db]);
+                setCurDashboard(newIndex);
+                setShowAddPanel(false);
+            })
+            .catch((e: unknown) => {
+                if (e instanceof ApiError && e.isUnauthorizedError()) {
+                    state.doRefresh();
+                }
+                setAddError(e instanceof Error ? e : String(e));
+            })
+            .finally(() => setAdding(false));
     };
 
     const onUpdate = (dashboard: UserDashboard): Promise<void> => {
@@ -52,7 +68,12 @@ export function StatsPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
-                <button disabled={showAddPanel} className="wsnw px-3" onClick={() => setShowAddPanel(true)} title="New Dashboard">
+                <button
+                    onClick={() => {
+                        setAddError(null);
+                        setShowAddPanel(true);
+                    }}
+                >
                     New View
                 </button>
                 {state.dashboards.length > 0 && (
@@ -75,7 +96,9 @@ export function StatsPage(state: BaseState) {
                 <AddEditDashboardPanel
                     titleLabel="New View"
                     initialName=""
-                    confirmLabel="Create"
+                    confirmLabel="Create View"
+                    saving={adding}
+                    error={addError}
                     onConfirm={onAdd}
                     onCancel={() => setShowAddPanel(false)}
                 />

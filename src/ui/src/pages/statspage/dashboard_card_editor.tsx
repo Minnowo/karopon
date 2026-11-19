@@ -142,11 +142,7 @@ type DashboardCardEditorProps = {
     namespaces: string[];
     setNamespaces: Dispatch<StateUpdater<string[]>>;
     tagColors?: Map<string, string>;
-    isDirty: boolean;
-    saving: boolean;
     saveError: string | null;
-    onSave: () => void;
-    onCancel: () => void;
 };
 
 export function DashboardCardEditor({
@@ -157,11 +153,7 @@ export function DashboardCardEditor({
     namespaces,
     setNamespaces,
     tagColors,
-    isDirty,
-    saving,
     saveError,
-    onSave,
-    onCancel,
 }: DashboardCardEditorProps) {
     const [expandedRangeIndex, setExpandedRangeIndex] = useState<number | null>(null);
     const [addTemplateKey, setAddTemplateKey] = useState<string>('default-0');
@@ -235,8 +227,6 @@ export function DashboardCardEditor({
 
     return (
         <div className="flex flex-col gap-4">
-            <h3>Edit Chart</h3>
-
             <ErrorDiv errorMsg={saveError} />
 
             <div className="flex flex-col gap-1">
@@ -400,15 +390,6 @@ export function DashboardCardEditor({
                     />
                     <span>Show Y-Axis</span>
                 </label>
-            </div>
-
-            <div className="flex justify-end gap-2">
-                <button onClick={onCancel} disabled={saving}>
-                    Cancel
-                </button>
-                <button className="btn-success" onClick={onSave} disabled={saving || !isDirty}>
-                    {saving ? 'Saving...' : 'Save'}
-                </button>
             </div>
         </div>
     );

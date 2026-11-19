@@ -125,7 +125,7 @@ export function Navigation({user, route}: NavigationProps) {
 
             <dialog
                 ref={moreRef}
-                className="nav-sheet surface-1"
+                className="nav-sheet"
                 aria-labelledby="nav-sheet-title"
                 // A click on the backdrop lands on the dialog itself.
                 onClick={(e) => {

@@ -4,6 +4,7 @@ import {HasNamespace, TagIsValid, SplitTag, TagToString, FmtTagColor} from '../u
 import {useDebouncedCallback} from '../hooks/useDebounce';
 import {ApiGetUserNamespacesTags} from '../api/api';
 import {TagChip} from './tag_chip';
+import {usePlacedList} from '../hooks/usePlacedList';
 
 type TagInputProps = {
     namespaces: string[];
@@ -59,6 +60,7 @@ export function TagInput({
     }, [input, namespaces]);
 
     const listOpen = open && (showCreateButton || (tagSearch && tagSearch.length > 0));
+    const listStyle = usePlacedList(listOpen, inputRef);
 
     useEffect(() => {
         if (listRef.current && (tagSearch.length > 0 || showCreateButton)) {
@@ -197,8 +199,11 @@ export function TagInput({
                 return;
             }
             case 'Escape':
-                event.preventDefault();
-                setOpen(false);
+                // Only take the Escape while the list is open, so a dialog around this closes on the next one.
+                if (listOpen) {
+                    event.preventDefault();
+                    setOpen(false);
+                }
                 return;
 
             case 'Enter': {
@@ -289,7 +294,8 @@ export function TagInput({
                         ref={listRef}
                         id={listboxId}
                         role="listbox"
-                        class={`absolute z-10 mt-1 max-h-60 overflow-auto rounded-sm shadow-lg smooth-scroll wsnw`}
+                        class="fixed z-50 overflow-auto rounded-sm shadow-lg smooth-scroll wsnw"
+                        style={listStyle}
                     >
                         {showCreateButton && (
                             <li

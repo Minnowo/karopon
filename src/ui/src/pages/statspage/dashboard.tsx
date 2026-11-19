@@ -241,11 +241,11 @@ export const DashboardComponent = ({baseState, tagColors, dashboard, onUpdate, o
 
             {renaming && (
                 <AddEditDashboardPanel
-                    className="mb-8"
                     titleLabel="Rename View"
                     initialName={dashboard.name}
                     confirmLabel="Save"
                     saving={saving}
+                    error={saveError}
                     onConfirm={handleRename}
                     onCancel={() => setRenaming(false)}
                 />

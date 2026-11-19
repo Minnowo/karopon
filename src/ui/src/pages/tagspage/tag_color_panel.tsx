@@ -1,4 +1,6 @@
 import {useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
+import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {TblUserTagColor} from '../../api/types';
 import {FmtTagColor} from '../../utils/tags';
 
@@ -46,7 +48,8 @@ type TagColorPanelProps = {
     namespaces: string[];
     tagColors: TblUserTagColor[];
     onCancel: () => void;
-    onUpdate: (c: Record<string, string>) => void;
+    // Saves the colors; rejects with the API error so the dialog can show it.
+    onUpdate: (c: Record<string, string>) => Promise<void>;
 };
 
 export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagColorPanelProps) => {
@@ -59,17 +62,25 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
         return t !== '' && !isValidColor(t);
     });
 
+    const [saving, setSaving] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<ErrorDivMsg | null>(null);
+
     const handleSave = () => {
-        onUpdate(colorInputs);
+        // An invalid color already says so on its row.
+        if (saving || hasInvalid) {
+            return;
+        }
+        setSaving(true);
+        setErrorMsg(null);
+        onUpdate(colorInputs)
+            .catch((e: unknown) => setErrorMsg(e instanceof Error ? e : String(e)))
+            .finally(() => setSaving(false));
     };
 
     return (
-        <div className="mb-4 surface-1 flex flex-col gap-2">
-            <details className="w-full no-summary-arrow">
-                <summary className="cursor-pointer">
-                    <h2 className="inline">Tag Colors</h2>
-                    <small> (click for help)</small>
-                </summary>
+        <EditorDialog title="Tag Colors" saveLabel="Save" saving={saving} onSave={handleSave} onClose={onCancel}>
+            <details className="w-full">
+                <summary className="cursor-pointer">How tag colors work</summary>
 
                 <div className="flex flex-col gap-2 pt-2">
                     <p>
@@ -153,12 +164,7 @@ export const TagColorPanel = ({namespaces, tagColors, onUpdate, onCancel}: TagCo
                     onChange={(v) => setColorInputs((prev) => ({...prev, [ns]: v}))}
                 />
             ))}
-            <div className="flex gap-2 justify-end">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" disabled={hasInvalid} onClick={handleSave}>
-                    Save
-                </button>
-            </div>
-        </div>
+            <ErrorDiv errorMsg={errorMsg} />
+        </EditorDialog>
     );
 };

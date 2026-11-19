@@ -1,4 +1,5 @@
 import {useId, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {ErrorDiv, ErrorDivMsg} from '../../components/error_div';
 import {FieldError} from '../../components/field_error';
 import {ApiError} from '../../api/api';
@@ -18,7 +19,7 @@ export const AddTagPanel = ({
     initialNamespace = '',
     initialName = '',
     title = 'New Tag',
-    submitLabel = 'Create',
+    submitLabel = 'Create Tag',
     showMergeOption = false,
     onCreate,
     onCancel,
@@ -100,8 +101,7 @@ export const AddTagPanel = ({
     };
 
     return (
-        <div className="mb-4 surface-1 flex flex-col gap-2">
-            <h2>{title}</h2>
+        <EditorDialog title={title} saveLabel={submitLabel} saving={saving} onSave={handleSubmit} onClose={onCancel}>
             <div className="flex flex-col sm:flex-row gap-2">
                 {field('namespace', 'Namespace', namespace, setNamespace, true)}
                 {field('name', 'Name', name, setName, false)}
@@ -116,16 +116,10 @@ export const AddTagPanel = ({
                             clearErrors();
                         }}
                     />
-                    <span className="text-sm">Merge if tag with same name exists</span>
+                    Merge if tag with same name exists
                 </label>
             )}
             <ErrorDiv errorMsg={errorMsg} />
-            <div className="flex gap-2 justify-end">
-                <button onClick={onCancel}>Cancel</button>
-                <button className="btn-success" aria-disabled={saving || undefined} onClick={handleSubmit}>
-                    {submitLabel}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 };

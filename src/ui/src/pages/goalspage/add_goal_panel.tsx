@@ -1,4 +1,5 @@
 import {Dispatch, StateUpdater, useId, useMemo, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {
     GoalAggregationType,
     GoalAggregationTypeValues,
@@ -31,19 +32,9 @@ type Props = {
     onCreated: (goal: TblUserGoal) => Promise<void>;
     onUpdated?: (goal: TblUserGoal) => Promise<void>;
     onCancel: () => void;
-    className?: string;
 };
 
-export function GoalCreationPanel({
-    userGoal,
-    bodyMetrics,
-    namespaces,
-    setNamespaces,
-    onCreated,
-    onUpdated,
-    onCancel,
-    className = '',
-}: Props) {
+export function GoalCreationPanel({userGoal, bodyMetrics, namespaces, setNamespaces, onCreated, onUpdated, onCancel}: Props) {
     const [error, setError] = useState<ErrorDivMsg | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Map<string, string>>(new Map());
     const [saving, setSaving] = useState<boolean>(false);
@@ -117,9 +108,13 @@ export function GoalCreationPanel({
     };
 
     return (
-        <div className={`surface-1 flex flex-col gap-4 ${className}`}>
-            <h2>{isEditing ? 'Edit Goal' : 'Create a New Goal'}</h2>
-
+        <EditorDialog
+            title={isEditing ? 'Edit Goal' : 'New Goal'}
+            saveLabel={isEditing ? 'Save' : 'Create Goal'}
+            saving={saving}
+            onSave={doCreateOrUpdate}
+            onClose={onCancel}
+        >
             <div className="flex flex-col gap-2">
                 <input
                     className="w-full"
@@ -322,14 +317,7 @@ export function GoalCreationPanel({
                 </div>
 
                 <ErrorDiv errorMsg={error} />
-
-                <div className="flex justify-end gap-2">
-                    <button onClick={onCancel}>Cancel</button>
-                    <button className="btn-success" aria-disabled={saving || undefined} onClick={doCreateOrUpdate}>
-                        {isEditing ? 'Update Goal' : 'Create Goal'}
-                    </button>
-                </div>
             </div>
-        </div>
+        </EditorDialog>
     );
 }

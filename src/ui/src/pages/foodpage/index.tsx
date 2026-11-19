@@ -78,7 +78,6 @@ export const FoodPage = (state: BaseState) => {
         <>
             <div className="flex justify-evenly my-4">
                 <button
-                    disabled={showAddFoodPanel}
                     onClick={() => {
                         setShowAddFoodPanel(true);
                         setBaseFood(TblUserFoodFactory.empty());
@@ -87,7 +86,6 @@ export const FoodPage = (state: BaseState) => {
                     New Food
                 </button>
                 <button
-                    disabled={showBuildFoodPanel}
                     onClick={() => {
                         setShowBuildFoodPanel(true);
                     }}
@@ -100,7 +98,6 @@ export const FoodPage = (state: BaseState) => {
 
             {showAddFoodPanel && (
                 <AddFoodPanel
-                    className="mb-4"
                     food={baseFood}
                     dataSources={state.dataSources}
                     addFood={(f) => addNewFood(setShowAddFoodPanel, f)}
@@ -111,12 +108,9 @@ export const FoodPage = (state: BaseState) => {
 
             {showBuildFoodPanel && (
                 <FoodBuilderPanel
-                    className="mb-4"
                     user={state.user}
                     foods={state.foods}
-                    addFood={(f) => {
-                        addNewFood(setShowBuildFoodPanel, f).catch(handleErr);
-                    }}
+                    addFood={(f) => addNewFood(setShowBuildFoodPanel, f).catch(RefreshOnUnauthorized(state.doRefresh))}
                     onCancel={() => setShowBuildFoodPanel(false)}
                 />
             )}
@@ -143,7 +137,6 @@ export const FoodPage = (state: BaseState) => {
                                     copyFood={(foodToCopy: TblUserFood) => {
                                         setShowAddFoodPanel(true);
                                         setBaseFood(foodToCopy);
-                                        window.scrollTo({top: 0, behavior: 'smooth'});
                                     }}
                                 />
                             );

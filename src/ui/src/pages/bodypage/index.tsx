@@ -81,22 +81,32 @@ export function BodyPage(state: BaseState) {
     return (
         <>
             <div className="w-full flex flex-wrap justify-evenly gap-2 my-4">
-                <button disabled={showNewEventPanel} onClick={() => setShowNewEventPanel(true)}>
-                    New Event
-                </button>
+                <button onClick={() => setShowNewEventPanel(true)}>New Body Log</button>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
 
             {showNewEventPanel && (
                 <AddBodyPanel
-                    className="mb-4"
-                    title="New Bodylog"
+                    title="New Body Log"
                     saveButtonTitle="Create"
                     bodylog={tmpLog}
                     bodyMetrics={state.bodyMetrics}
                     onCreate={addBodyLog}
                     onCancel={() => setShowNewEventPanel(false)}
+                />
+            )}
+
+            {editLog !== null && (
+                <AddBodyPanel
+                    key={editLog.bodylog.id}
+                    title="Edit Body Log"
+                    saveButtonTitle="Save"
+                    preserveTime={true}
+                    bodylog={editLog}
+                    bodyMetrics={state.bodyMetrics}
+                    onCreate={updateBodyLog}
+                    onCancel={() => setEditLog(null)}
                 />
             )}
 
@@ -107,32 +117,16 @@ export function BodyPage(state: BaseState) {
                 </div>
             ) : (
                 <div ref={paging.listRef} className="flex flex-col gap-4">
-                    {state.bodylogs
-                        .slice(0, paging.shown)
-                        .map((log: UserBodyLog) =>
-                            editLog?.bodylog.id === log.bodylog.id ? (
-                                <AddBodyPanel
-                                    key={log.bodylog.id}
-                                    title="Edit Body Log"
-                                    saveButtonTitle={'Update'}
-                                    preserveTime={true}
-                                    bodylog={editLog}
-                                    bodyMetrics={state.bodyMetrics}
-                                    onCreate={updateBodyLog}
-                                    onCancel={() => setEditLog(null)}
-                                    className="mb-4"
-                                />
-                            ) : (
-                                <BodyLogPanel
-                                    key={log.bodylog.id}
-                                    bodyLog={log}
-                                    bodyMetrics={state.bodyMetrics}
-                                    onCopy={copyBodyLog}
-                                    onEdit={(l) => setEditLog(l)}
-                                    onDelete={deleteBodyLog}
-                                />
-                            )
-                        )}
+                    {state.bodylogs.slice(0, paging.shown).map((log: UserBodyLog) => (
+                        <BodyLogPanel
+                            key={log.bodylog.id}
+                            bodyLog={log}
+                            bodyMetrics={state.bodyMetrics}
+                            onCopy={copyBodyLog}
+                            onEdit={(l) => setEditLog(l)}
+                            onDelete={deleteBodyLog}
+                        />
+                    ))}
                 </div>
             )}
 

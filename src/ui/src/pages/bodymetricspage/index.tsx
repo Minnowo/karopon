@@ -52,8 +52,6 @@ export const BodyMetricsPage = (state: BaseState) => {
         <>
             <div className="w-full flex justify-evenly my-4">
                 <button
-                    disabled={showNewMetric}
-                    className="px-3 py-1"
                     onClick={() => {
                         setShowNewMetric(true);
                         setErrorMsg(null);
@@ -73,7 +71,7 @@ export const BodyMetricsPage = (state: BaseState) => {
                 ) : (
                     sortedMetrics.map((m) => (
                         <div key={m.id} className="surface-1 flex items-center gap-2">
-                            <span className="flex-1 text-sm">
+                            <span className="flex-1">
                                 {m.name}
                                 {m.unit && <small> ({m.unit})</small>}
                             </span>

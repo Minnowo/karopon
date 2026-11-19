@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {
     CreateUserEventLog,
     InsertUserFoodLog,
@@ -261,185 +262,151 @@ export function AddEventsPanel(p: AddEventsPanelState) {
         }
     };
 
-    const buildTableHead = () => {
-        return (
-            <tr className="text-xs text-center">
-                <th className="text-left py-1" />
-                <th className="py-1">Amt</th>
-                <th className="py-1 pr-2">Fat</th>
-                <th className="py-1 pr-2">Carb</th>
-                <th className="py-1 pr-2">Fib</th>
-                <th className="py-1 pr-2">Prot</th>
-                <th className="py-1 pr-2">Net</th>
-                <th className="py-1 pr-2">Cal</th>
-                <th className="py-1" />
-            </tr>
-        );
-    };
-
-    const buildSumRow = () => {
-        return (
-            <>
-                {foods.current.length > 1 && (
-                    <tr className="border-none text-center">
-                        <th className="text-right w-full" />
-                        <th className="pr-1">-</th>
-                        <th className="pr-2 text-right"> {totals.fat.toFixed(1)}</th>
-                        <th className="pr-2 text-right">{totals.carb.toFixed(1)}</th>
-                        <th className="pr-2 text-right">{totals.fibre.toFixed(1)}</th>
-                        <th className="pr-2 text-right">{totals.protein.toFixed(1)}</th>
-                        <th className="pr-2 text-right"> {netCarb.toFixed(1)}</th>
-                        <th className="pr-2 text-right">{calories}</th>
-                        <th />
-                    </tr>
-                )}
-            </>
-        );
-    };
+    // Totals stay in view at the bottom of the dialog while the foods scroll.
+    const summary = (
+        <dl className="editor-summary">
+            {p.user.show_diabetes && (
+                <>
+                    {/* For type 1 diabetes: the injection and finger-prick side changes daily, so it is not always the same spot. */}
+                    <div>
+                        <dt>Side today</dt>
+                        <dd>{`${days % 2 === 0 ? 'Left' : 'Right'}-${days % 4 <= 1 ? 'Upper' : 'Lower'}`}</dd>
+                    </div>
+                    <div>
+                        <dt>Insulin calc</dt>
+                        <dd>{insulin.toFixed(1)}</dd>
+                    </div>
+                </>
+            )}
+            <div>
+                <dt>Carbs</dt>
+                <dd>{totals.carb.toFixed(1)}</dd>
+            </div>
+            <div>
+                <dt>Net carbs</dt>
+                <dd>{netCarb.toFixed(1)}</dd>
+            </div>
+            <div>
+                <dt>Calories</dt>
+                <dd>{calories}</dd>
+            </div>
+        </dl>
+    );
 
     return (
-        <div ref={rootRef} className="w-full surface-1 flex flex-col gap-2">
-            <div className="flex w-full justify-between items-center gap-2">
-                <h2>{p.dialogTitle}</h2>
-                <small>{FormatSmartTimestamp(eventTime.getTime())}</small>
-                <span />
-            </div>
+        <EditorDialog
+            title={p.dialogTitle}
+            subtitle={FormatSmartTimestamp(eventTime.getTime())}
+            saveLabel={p.saveButtonTitle}
+            saving={saving}
+            onSave={onCreateClick}
+            onClose={p.onCancel}
+            summary={summary}
+        >
+            <div ref={rootRef} className="flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-start w-full gap-2">
+                    <div className="w-full flex flex-col gap-1">
+                        <FuzzySearch<TblUserEvent>
+                            query={event}
+                            onQueryChange={(q) => {
+                                setEvent(q);
+                                setEventNameError(undefined);
+                            }}
+                            data={p.events}
+                            dataDisplayStr={(d: TblUserEvent) => d.name}
+                            dataSearchStr={(d: TblUserEvent) => d.name}
+                            className="w-full"
+                            placeholder="Event Name"
+                            noResultsText="New Event"
+                            invalid={eventNameError !== undefined}
+                            errorId={eventNameErrorId}
+                            onSelect={(evnt: TblUserEvent | null) => {
+                                if (!evnt) {
+                                    return;
+                                }
+                                setEvent(evnt.name);
 
-            <div className="flex flex-col sm:flex-row sm:items-start w-full gap-2">
-                <div className="w-full flex flex-col gap-1">
-                    <FuzzySearch<TblUserEvent>
-                        query={event}
-                        onQueryChange={(q) => {
-                            setEvent(q);
-                            setEventNameError(undefined);
-                        }}
-                        data={p.events}
-                        dataDisplayStr={(d: TblUserEvent) => d.name}
-                        dataSearchStr={(d: TblUserEvent) => d.name}
-                        className="w-full"
-                        placeholder="Event Name"
-                        noResultsText="New Event"
-                        invalid={eventNameError !== undefined}
-                        errorId={eventNameErrorId}
-                        onSelect={(evnt: TblUserEvent | null) => {
-                            if (!evnt) {
-                                return;
-                            }
-                            setEvent(evnt.name);
-
-                            if (p.user.fill_eventlog_from_last) {
-                                for (const lastEvt of p.eventlogs) {
-                                    if (lastEvt.eventlog.event === evnt.name) {
-                                        setFromLastEvent(lastEvt);
-                                        break;
+                                if (p.user.fill_eventlog_from_last) {
+                                    for (const lastEvt of p.eventlogs) {
+                                        if (lastEvt.eventlog.event === evnt.name) {
+                                            setFromLastEvent(lastEvt);
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                        }}
-                        autofocus={p.fromEvent.eventlog.event.trim() === ''}
+                            }}
+                            autofocus={p.fromEvent.eventlog.event.trim() === ''}
+                        />
+
+                        <FieldError id={eventNameErrorId} message={eventNameError} />
+                    </div>
+
+                    <TimeInput
+                        skipTabIndex={true}
+                        value={new Date(eventTime)}
+                        onChange={setEventTime}
+                        showDate={true}
+                        hour12={p.user.time_format === UserTimeFormat.Hour12}
                     />
 
-                    <FieldError id={eventNameErrorId} message={eventNameError} />
+                    {p.user.show_diabetes && (
+                        <NumberInput
+                            className="flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Blood Sugar"
+                            value={bloodSugar}
+                            onValueChange={setBloodSugar}
+                            min={0}
+                        />
+                    )}
                 </div>
 
-                <TimeInput
-                    skipTabIndex={true}
-                    value={new Date(eventTime)}
-                    onChange={setEventTime}
-                    showDate={true}
-                    hour12={p.user.time_format === UserTimeFormat.Hour12}
-                />
+                <ul aria-label="Foods" className="flex flex-col gap-2">
+                    {foods.current.map((food: TblUserFoodLogWithKey, index: number) => {
+                        return (
+                            <AddFoodlogPanelRow
+                                key={food.key}
+                                user={p.user}
+                                foods={p.foods}
+                                food={food}
+                                render={() => {
+                                    clearRowError(food.key);
+                                    renderWithTrailing();
+                                }}
+                                deleteSelf={() => {
+                                    clearRowError(food.key);
+                                    foods.current.splice(index, 1);
+                                    renderWithTrailing();
+                                }}
+                                nameError={rowErrors.get(food.key)?.name}
+                                portionError={rowErrors.get(food.key)?.portion}
+                            />
+                        );
+                    })}
+                </ul>
 
                 {p.user.show_diabetes && (
-                    <NumberInput
-                        className="flex-1 flex-grow"
-                        innerClassName="w-full min-w-12"
-                        label="Blood Sugar"
-                        value={bloodSugar}
-                        onValueChange={setBloodSugar}
-                        min={0}
-                    />
+                    <div className="w-full flex gap-2 flex-wrap flex-col sm:flex-row">
+                        <NumberInput
+                            className="flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Insulin To Carb Ratio"
+                            value={insulinToCarbRatio}
+                            onValueChange={setInsulinToCarbRatio}
+                            min={0}
+                        />
+                        <NumberInput
+                            className="flex-1 flex-grow"
+                            innerClassName="w-full min-w-12"
+                            label="Insulin Taken"
+                            value={insulinTaken}
+                            onValueChange={setInsulinTaken}
+                            min={0}
+                        />
+                    </div>
                 )}
+                <ErrorDiv errorMsg={errorMsg} />
             </div>
-
-            <div className="overflow-x-scroll surface-2 px-0 py-1">
-                <table className="w-full text-sm border-collapse table-borderless">
-                    <tbody>
-                        {buildTableHead()}
-                        {buildSumRow()}
-                        {foods.current.map((food: TblUserFoodLogWithKey, index: number) => {
-                            return (
-                                <AddFoodlogPanelRow
-                                    key={food.key}
-                                    user={p.user}
-                                    foods={p.foods}
-                                    food={food}
-                                    render={() => {
-                                        clearRowError(food.key);
-                                        renderWithTrailing();
-                                    }}
-                                    deleteSelf={() => {
-                                        clearRowError(food.key);
-                                        foods.current.splice(index, 1);
-                                        renderWithTrailing();
-                                    }}
-                                    nameError={rowErrors.get(food.key)?.name}
-                                    portionError={rowErrors.get(food.key)?.portion}
-                                />
-                            );
-                        })}
-
-                        {buildTableHead()}
-                        {buildSumRow()}
-                        <tr className="block sm:hidden">
-                            {/* This is here so that you have some room to scroll easier on mobile */}
-                            <td>&nbsp;</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div className="surface-2 flex flex-none justify-center items-center text-center gap-4">
-                {p.user.show_diabetes && (
-                    <>
-                        {/* This is for type 1 diabetes where you need to prick your finger / inject insulin. It helps you swap sides / finger consistently so you're not always injecting / pricking the same spot everyday. */}
-                        <span title="Insulin injection location and blood meter prick side (changes daily)">
-                            {`${days % 2 === 0 ? 'Left' : 'Right'}-${days % 4 <= 1 ? 'Upper' : 'Lower'}`}
-                        </span>
-                        <span title="Insulin calculated for this event's food">Insulin Calc {insulin.toFixed(1)}</span>
-                        <span title="Net carbs for this event's food">Net Carbs {netCarb.toFixed(1)}</span>
-                    </>
-                )}
-                <span title={`This event's calories, formula used: ${p.user.caloric_calc_method}`}>Calories {calories}</span>
-            </div>
-
-            {p.user.show_diabetes && (
-                <div className="w-full flex gap-2 flex-wrap flex-col sm:flex-row">
-                    <NumberInput
-                        className="flex-1 flex-grow"
-                        innerClassName="w-full min-w-12"
-                        label="Insulin To Carb Ratio"
-                        value={insulinToCarbRatio}
-                        onValueChange={setInsulinToCarbRatio}
-                        min={0}
-                    />
-                    <NumberInput
-                        className="flex-1 flex-grow"
-                        innerClassName="w-full min-w-12"
-                        label="Insulin Taken"
-                        value={insulinTaken}
-                        onValueChange={setInsulinTaken}
-                        min={0}
-                    />
-                </div>
-            )}
-            <ErrorDiv errorMsg={errorMsg} />
-
-            <div className="flex justify-between sm:justify-end gap-2">
-                <button onClick={p.onCancel}>Cancel</button>
-                <button className="btn-success" onClick={onCreateClick} aria-disabled={saving || undefined}>
-                    {saving ? 'Saving...' : p.saveButtonTitle}
-                </button>
-            </div>
-        </div>
+        </EditorDialog>
     );
 }

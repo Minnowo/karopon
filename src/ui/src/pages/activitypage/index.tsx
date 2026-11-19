@@ -182,19 +182,14 @@ export const ActivityPage = (state: BaseState) => {
     return (
         <>
             <div className="flex justify-evenly my-4">
-                <button disabled={showAddReminderPanel} onClick={() => setShowAddReminderPanel(true)}>
-                    New Reminder
-                </button>
-                <button disabled={showAddActivityPanel} onClick={() => setShowAddActivityPanel(true)}>
-                    New Activity
-                </button>
+                <button onClick={() => setShowAddReminderPanel(true)}>New Reminder</button>
+                <button onClick={() => setShowAddActivityPanel(true)}>New Activity</button>
             </div>
 
             <ErrorDiv errorMsg={errorMsg} />
 
             {showAddReminderPanel && (
                 <AddReminderPanel
-                    className="mb-4"
                     activities={state.activities}
                     hour12={hour12}
                     onCreate={({enabled, intervalMinutes, cron, activityIDs, activityMode, sound, name, alarmMode}) =>
@@ -206,7 +201,6 @@ export const ActivityPage = (state: BaseState) => {
 
             {showAddActivityPanel && (
                 <AddActivityPanel
-                    className="mb-4"
                     namespaces={state.namespaces}
                     setNamespaces={state.setNamespaces}
                     tagColors={undefined}

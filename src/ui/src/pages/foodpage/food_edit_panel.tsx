@@ -1,4 +1,5 @@
 import {useState, useRef, useId} from 'preact/hooks';
+import {EditorDialog} from '../../components/editor_dialog';
 import {TblUser, TblUserFood} from '../../api/types';
 import {DropdownButton} from '../../components/drop_down_button';
 import {DoRender} from '../../hooks/doRender';
@@ -104,43 +105,131 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
 
     return (
         <div className="w-full surface-1 flex flex-col gap-2">
-            <div className="flex justify-between gap-2">
-                {showUpdatePanel ? (
-                    <>
-                        <div class="w-full flex flex-col gap-2">
-                            <input
-                                id={nameId}
-                                class="wsnw w-full"
-                                type="text"
-                                onInput={(e) => {
-                                    tmpFood.current.name = e.currentTarget.value;
-                                    clearFieldError('#/name');
-                                }}
-                                value={tmpFood.current.name}
-                                placeholder="Food Name"
-                                aria-label="Food Name"
-                                aria-invalid={fieldErrors.has('#/name') || undefined}
-                                aria-describedby={fieldErrors.has('#/name') ? `${nameId}-error` : undefined}
-                            />
-                            <FieldError id={`${nameId}-error`} message={fieldErrors.get('#/name')} />
-                            <input
-                                id={unitId}
-                                class="wsnw w-full"
-                                type="text"
-                                onInput={(e) => {
-                                    tmpFood.current.unit = e.currentTarget.value;
-                                    clearFieldError('#/unit');
-                                }}
-                                value={tmpFood.current.unit}
-                                placeholder="Portion Unit"
-                                aria-label="Portion Unit"
-                                aria-invalid={fieldErrors.has('#/unit') || undefined}
-                                aria-describedby={fieldErrors.has('#/unit') ? `${unitId}-error` : undefined}
-                            />
+            <div className="w-full flex flex-col gap-2">
+                <div className="w-full flex flex-row">
+                    <h2 className="w-full">{food.name}</h2>
+                    <DropdownButton
+                        actions={[
+                            {
+                                label: 'Copy',
+                                onClick: () => {
+                                    if (copyFood) {
+                                        copyFood({
+                                            id: food.id,
+                                            user_id: food.user_id,
+                                            name: food.name,
+                                            unit: food.unit,
+                                            fat: food.fat * portion,
+                                            carb: food.carb * portion,
+                                            fibre: food.fibre * portion,
+                                            protein: food.protein * portion,
+                                            portion,
+                                        });
+                                    }
+                                },
+                            },
+                            {label: 'Edit', onClick: onEditClicked},
+                            {
+                                label: 'Delete',
+
+                                dangerous: true,
+                                onClick: () => {
+                                    if (deleteFood) {
+                                        deleteFood(food);
+                                    }
+                                },
+                            },
+                        ]}
+                    />
+                </div>
+                <div className="w-full flex flex-row items-center justify-between">
+                    <NumberInput innerClassName="w-24" label={food.unit} min={0} value={portion} onValueChange={setPortion} />
+                    <span>
+                        {`Calories ${CalculateCalories(
+                            food.protein * portion,
+                            (food.carb - food.fibre) * portion,
+                            food.fibre * portion,
+                            food.fat * portion,
+                            Str2CalorieFormula(user.caloric_calc_method)
+                        ).toFixed(1)}`}
+                    </span>
+                </div>
+            </div>
+            <div class="w-full">
+                <div class="flex flex-col gap-2 sm:hidden">
+                    <div class="flex justify-between">
+                        <span>Fat</span>
+                        <span>{(food.fat * portion).toFixed(3)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Carbs</span>
+                        <span>{(food.carb * portion).toFixed(3)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Fibre</span>
+                        <span>{(food.fibre * portion).toFixed(3)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Protein</span>
+                        <span>{(food.protein * portion).toFixed(3)}</span>
+                    </div>
+                </div>
+
+                <div class="hidden sm:flex flex-col gap-1 w-full">
+                    <div class="flex w-full">
+                        <small class="flex-1">Fat</small>
+                        <small class="flex-1">Carbs</small>
+                        <small class="flex-1">Fibre</small>
+                        <small class="flex-1">Protein</small>
+                    </div>
+
+                    <div class="flex w-full">
+                        <div class="flex-1">{(food.fat * portion).toFixed(3)}</div>
+                        <div class="flex-1">{(food.carb * portion).toFixed(3)}</div>
+                        <div class="flex-1">{(food.fibre * portion).toFixed(3)}</div>
+                        <div class="flex-1">{(food.protein * portion).toFixed(3)}</div>
+                    </div>
+                </div>
+            </div>
+
+            {showUpdatePanel && (
+                <EditorDialog title="Edit Food" saveLabel="Save" saving={saving} onSave={onSaveClick} onClose={onCancelClick}>
+                    <label className="flex flex-col gap-1">
+                        Name
+                        <input
+                            id={nameId}
+                            type="text"
+                            onInput={(e) => {
+                                tmpFood.current.name = e.currentTarget.value;
+                                clearFieldError('#/name');
+                            }}
+                            value={tmpFood.current.name}
+                            aria-invalid={fieldErrors.has('#/name') || undefined}
+                            aria-describedby={fieldErrors.has('#/name') ? `${nameId}-error` : undefined}
+                        />
+                    </label>
+                    <FieldError id={`${nameId}-error`} message={fieldErrors.get('#/name')} />
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                            <label className="flex flex-col gap-1">
+                                Unit
+                                <input
+                                    id={unitId}
+                                    type="text"
+                                    onInput={(e) => {
+                                        tmpFood.current.unit = e.currentTarget.value;
+                                        clearFieldError('#/unit');
+                                    }}
+                                    value={tmpFood.current.unit}
+                                    aria-invalid={fieldErrors.has('#/unit') || undefined}
+                                    aria-describedby={fieldErrors.has('#/unit') ? `${unitId}-error` : undefined}
+                                />
+                            </label>
                             <FieldError id={`${unitId}-error`} message={fieldErrors.get('#/unit')} />
+                        </div>
+                        <div className="flex flex-col gap-1 justify-end">
                             <NumberInput
                                 id={portionId}
-                                className={'wsnw'}
                                 innerClassName="w-full"
                                 label={'Portion'}
                                 value={tmpFood.current.portion}
@@ -153,164 +242,53 @@ export const FoodEditPanel = ({user, food, updateFood, copyFood, deleteFood}: Fo
                                 }}
                             />
                             <FieldError id={`${portionId}-error`} message={fieldErrors.get('#/portion')} />
-                            <ErrorDiv errorMsg={errorMsg} />
-                        </div>
-
-                        <div class="flex flex-col gap-2">
-                            <button class="w-full" onClick={onCancelClick}>
-                                Cancel
-                            </button>
-                            <button class="w-full btn-success" aria-disabled={saving || undefined} onClick={onSaveClick}>
-                                Update
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    <div className="w-full flex flex-col gap-2">
-                        <div className="w-full flex flex-row">
-                            <h2 className="w-full">{food.name}</h2>
-                            <DropdownButton
-                                actions={[
-                                    {
-                                        label: 'Copy',
-                                        onClick: () => {
-                                            if (copyFood) {
-                                                copyFood({
-                                                    id: food.id,
-                                                    user_id: food.user_id,
-                                                    name: food.name,
-                                                    unit: food.unit,
-                                                    fat: food.fat * portion,
-                                                    carb: food.carb * portion,
-                                                    fibre: food.fibre * portion,
-                                                    protein: food.protein * portion,
-                                                    portion,
-                                                });
-                                            }
-                                        },
-                                    },
-                                    {label: 'Edit', onClick: onEditClicked},
-                                    {
-                                        label: 'Delete',
-
-                                        dangerous: true,
-                                        onClick: () => {
-                                            if (deleteFood) {
-                                                deleteFood(food);
-                                            }
-                                        },
-                                    },
-                                ]}
-                            />
-                        </div>
-                        <div className="w-full flex flex-row items-center justify-between">
-                            <NumberInput
-                                innerClassName="w-24"
-                                label={food.unit}
-                                min={0}
-                                value={portion}
-                                onValueChange={setPortion}
-                            />
-                            <span>
-                                {`Calories ${CalculateCalories(
-                                    food.protein * portion,
-                                    (food.carb - food.fibre) * portion,
-                                    food.fibre * portion,
-                                    food.fat * portion,
-                                    Str2CalorieFormula(user.caloric_calc_method)
-                                ).toFixed(1)}`}
-                            </span>
                         </div>
                     </div>
-                )}
-            </div>
-
-            {showUpdatePanel ? (
-                <div className="flex flex-wrap gap-2">
-                    <NumberInput
-                        className={'wsnw'}
-                        innerClassName="w-16"
-                        label={'Fat'}
-                        value={tmpFood.current.fat}
-                        precision={3}
-                        onValueChange={(fat: number) => {
-                            tmpFood.current.fat = fat;
-                            render();
-                        }}
-                    />
-                    <NumberInput
-                        className={'wsnw'}
-                        innerClassName="w-16"
-                        label={'Carb'}
-                        value={tmpFood.current.carb}
-                        precision={3}
-                        onValueChange={(carb: number) => {
-                            tmpFood.current.carb = carb;
-                            render();
-                        }}
-                    />
-                    <NumberInput
-                        className={'wsnw'}
-                        innerClassName="w-16"
-                        label={'Fibre'}
-                        value={tmpFood.current.fibre}
-                        precision={3}
-                        onValueChange={(fibre: number) => {
-                            tmpFood.current.fibre = fibre;
-                            render();
-                        }}
-                    />
-                    <NumberInput
-                        className={'wsnw'}
-                        innerClassName="w-16"
-                        label={'Protein'}
-                        value={tmpFood.current.protein}
-                        precision={3}
-                        onValueChange={(protein: number) => {
-                            tmpFood.current.protein = protein;
-                            render();
-                        }}
-                    />
-                </div>
-            ) : (
-                <>
-                    <div class="w-full">
-                        <div class="flex flex-col gap-2 sm:hidden">
-                            <div class="flex justify-between">
-                                <span>Fat</span>
-                                <span>{(food.fat * portion).toFixed(3)}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Carbs</span>
-                                <span>{(food.carb * portion).toFixed(3)}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Fibre</span>
-                                <span>{(food.fibre * portion).toFixed(3)}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Protein</span>
-                                <span>{(food.protein * portion).toFixed(3)}</span>
-                            </div>
-                        </div>
-
-                        <div class="hidden sm:flex flex-col gap-1 w-full">
-                            <div class="flex w-full">
-                                <small class="flex-1">Fat</small>
-                                <small class="flex-1">Carbs</small>
-                                <small class="flex-1">Fibre</small>
-                                <small class="flex-1">Protein</small>
-                            </div>
-
-                            <div class="flex w-full">
-                                <div class="flex-1">{(food.fat * portion).toFixed(3)}</div>
-                                <div class="flex-1">{(food.carb * portion).toFixed(3)}</div>
-                                <div class="flex-1">{(food.fibre * portion).toFixed(3)}</div>
-                                <div class="flex-1">{(food.protein * portion).toFixed(3)}</div>
-                            </div>
-                        </div>
+                    <h3>Nutrients per portion</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                        <NumberInput
+                            innerClassName="w-full"
+                            label={'Fat'}
+                            value={tmpFood.current.fat}
+                            precision={3}
+                            onValueChange={(fat: number) => {
+                                tmpFood.current.fat = fat;
+                                render();
+                            }}
+                        />
+                        <NumberInput
+                            innerClassName="w-full"
+                            label={'Carb'}
+                            value={tmpFood.current.carb}
+                            precision={3}
+                            onValueChange={(carb: number) => {
+                                tmpFood.current.carb = carb;
+                                render();
+                            }}
+                        />
+                        <NumberInput
+                            innerClassName="w-full"
+                            label={'Fibre'}
+                            value={tmpFood.current.fibre}
+                            precision={3}
+                            onValueChange={(fibre: number) => {
+                                tmpFood.current.fibre = fibre;
+                                render();
+                            }}
+                        />
+                        <NumberInput
+                            innerClassName="w-full"
+                            label={'Protein'}
+                            value={tmpFood.current.protein}
+                            precision={3}
+                            onValueChange={(protein: number) => {
+                                tmpFood.current.protein = protein;
+                                render();
+                            }}
+                        />
                     </div>
-                </>
+                    <ErrorDiv errorMsg={errorMsg} />
+                </EditorDialog>
             )}
         </div>
     );
