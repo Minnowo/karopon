@@ -84,8 +84,9 @@ Never weaken, skip or delete a test or a check to make something pass.
 
 When implementing or talking to a service, file format, protocol or API, find
 the authoritative reference (spec, RFC, official docs, schema) and read it
-before writing code. Download it into `docs/reference/` (or note the URL and
-version in the module header) so the facts are on hand. Do not guess field
+before writing code. Cite its URL (and version) in the module header. A local
+copy may be kept in `docs/reference/`, which is not committed, so never cite
+that path. Do not guess field
 names, limits, encodings or error semantics from memory or from examples.
 If no spec exists, say so and record what behaviour was observed.
 
@@ -102,6 +103,8 @@ the code cannot say.
   non-obvious way or for a non-obvious reason. Say why, not what.
 - No comments that restate the code, narrate changes ("now uses X", "fixed
   bug"), or mark sections for decoration.
+- No references to planning notes: no `docs/brief.md`, decision, milestone
+  or audit numbers. Those notes are temporary; state the reason itself.
 - If a workaround needs a paragraph of comment to justify why it is OK, the
   code is wrong. Fix the code.
 
@@ -126,6 +129,9 @@ Tests: constants and fixtures first, then test cases, then test helpers last.
   same change.
 - Keep the build green at every step. Commit small and often; each commit is a
   working state. Commits can be squashed at the end as needed.
+- Planning notes (a brief, decision log, milestones, audit) stay local and are
+  never committed. Commit messages describe the change and its reason
+  directly, without citing them.
 - Report honestly. A stub, partial implementation or untested path is reported
   as such, never as done. Say whether a number was measured or estimated.
 - No stubs or placeholders to get something compiling or passing: no empty
@@ -255,6 +261,7 @@ android/
   app/                  Kotlin app (WebView, alarms, TTS, settings)
   scripts/              build/lint helpers, run inside the Android build container
 docker/                 release image, goreleaser build image, Android build image
+.claude/skills/         vendored ponkotsu-css SKILL.md
 ```
 
 Backend layering: `cmd` -> `api` -> `database` -> `database/{postgres,sqlite}`.
@@ -346,6 +353,26 @@ UI (TypeScript / Preact):
 Accessibility is a high priority. New or changed UI must be usable by
 keyboard and screen reader: semantic elements, labels on every control,
 visible focus, sufficient contrast, no information by colour alone.
+
+### Styling
+
+The UI is styled with ponkotsu-css (https://github.com/Minnowo/ponkotsu-css),
+a Material Design 3 style base layer and palette for Tailwind v4. Read
+`.claude/skills/ponkotsu-css/SKILL.md` before writing or restyling markup.
+
+- Plain elements are already styled. Pick the element by meaning (`<h2>`,
+  `<label>`, `<small>`, `<button>`), then add classes only for layout or to
+  pick a variant (`surface-N`, `btn-*`). No typography utilities.
+- Colours are role tokens only (`bg-c-<role>`, `text-c-<role>`). Text on
+  fill `X` is always `on-X`. No hex values or stock Tailwind colours.
+  Followed properly, this guarantees contrast in both themes, so contrast is
+  fixed by using the right role, never by picking a colour by hand.
+- Focus rings come from the `std-focus` utility and the base input styles.
+  Use them; do not add custom focus styles or remove outlines.
+- The app has no motion (transitions, animations). Keep it that way.
+- Vendored, never edited here: `src/ui/src/ponkotsu.css` (generated theme)
+  and the SKILL.md above. Change them upstream and copy them over.
+  Karopon-only overrides go in `src/ui/src/styles.css`.
 
 Android (Kotlin):
 
