@@ -43,8 +43,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.28 h1:ThEiQrnbtumT+QMknw63Befp/ce/nUPgBPMlRFEum7A=
 github.com/mattn/go-sqlite3 v1.14.28/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/minnowo/log4zero v0.1.0 h1:Sx3txZGAwJ9xh+L1tLcNgg506DtZKmJq8Apzi/y/2x0=
-github.com/minnowo/log4zero v0.1.0/go.mod h1:f7+P+SzqdUrtufDJsFGmjiIesbgeQzRHo6Nnyb5GGgU=
+github.com/minnowo/log4zero v0.2.1 h1:BTnAwe+nfnjc0fzuPbJAlEonJumhfn1j4hUhf7x5T6I=
+github.com/minnowo/log4zero v0.2.1/go.mod h1:f7+P+SzqdUrtufDJsFGmjiIesbgeQzRHo6Nnyb5GGgU=
 github.com/muir/sqltoken v0.1.0 h1:edosEGsOClOZNfgGQNQSgxR9O6LiVefm2rDRqp2InuI=
 github.com/muir/sqltoken v0.1.0/go.mod h1:lgOIORnKekMsuc/ZwdPOfwz/PtWLPCke43cEbT3uDuY=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=

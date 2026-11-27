@@ -78,10 +78,11 @@ func Java_cc_headpats_karopon_GoServer_nativeStart(
 	sessionSecret := jstringToString(env, jSessionSecret)
 
 	// There's no log.config.json on the device for log4zero.InitOnce to
-	// read, and its color:true fallback is unreadable in logcat (raw ANSI
-	// escapes), so configure it directly instead. Every log4zero.Get(name)
-	// call in the codebase must be listed here - anything missing keeps the
-	// color:true default.
+	// read, so configure it directly instead. Raw ANSI escapes are
+	// unreadable in logcat, so these entries leave Color at its zero value
+	// (ColorOff). Every log4zero.Get(name) call in the codebase should be
+	// listed here to pin its level; anything missing falls back to info
+	// with ColorAuto, which also stays plain since stdout is not a terminal.
 	logCfg := log4zero.Config{
 		Loggers: map[string]log4zero.LoggerConfig{
 			"main":                {Level: "info"},
