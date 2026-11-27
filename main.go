@@ -216,6 +216,12 @@ func main() {
 						Value:    "./log.config.json",
 						Required: false,
 					},
+					&cli.BoolFlag{
+						Name: "dump-log-config",
+						Usage: "Print every logger with its current settings as a log config file, then exit. " +
+							"Save the output to --log-config-path and edit it to change log levels.",
+						Required: false,
+					},
 				},
 			},
 		},

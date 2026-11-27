@@ -2,23 +2,23 @@
     "loggers": {
         "main": {
             "level": "debug",
-            "color": true
+            "color": "auto"
         },
         "user-registry": {
             "level": "debug",
-            "color": true
+            "color": "auto"
         },
         "api-responses": {
             "level": "debug",
-            "color": true
+            "color": "auto"
         },
         "database-migrations": {
             "level": "debug",
-            "color": true
+            "color": "auto"
         },
         "auth-middleware": {
             "level": "debug",
-            "color": true
+            "color": "auto"
         }
     }
 }

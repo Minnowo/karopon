@@ -134,6 +134,10 @@ func CmdServerMain(ctx context.Context, c *cli.Command) error {
 
 	logConfigFile := c.Value("log-config-path").(string)
 
+	if c.Bool("dump-log-config") {
+		return DumpLogConfig(os.Stdout, logConfigFile)
+	}
+
 	err := log4zero.InitOnce(logConfigFile)
 
 	log.Logger = *log4zero.Get("main")
